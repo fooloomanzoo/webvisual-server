@@ -4,6 +4,7 @@
 const express = require('express'),
   fs = require('fs'),
   path = require('path'),
+  util = require('util'),
 
   // Processing Modules
   DataModule = require('./lib/data_module'),
@@ -22,9 +23,9 @@ const express = require('express'),
   spdy = require('spdy'),
   app = express();
 
+let server;
 // if not called as child_process
-process.send = process.send || logger;
-var argv = require('minimist')(process.argv.slice(2));
+let argv = require('minimist')(process.argv.slice(2));
   // if no arguments are send ('_' contains Array of arguments with no option)
 if (Object.keys(argv).length <= 1)
   argv = null;
@@ -72,7 +73,7 @@ class WebvisualServer {
   constructor(settings) {
     this.isRunning = false;
 
-    this.config = settings || argv || defaults;
+    this.config = settings;
 
     this.router = new Router(app, passport);
     this.router.on('error', (err) => {
@@ -91,49 +92,46 @@ class WebvisualServer {
       process.send( { error: err } );
     });
 
-    this.connect(this.config);
+    // this.connect(this.config);
   }
 
-  createServer(settings, callback) {
+  createServerSettings(settings) {
     return new Promise((resolve, reject) => {
-      if (settings)
-        this.config = settings;
-
       if (this.isRunning)
         this.disconnect();
 
       this.router.setSettings(settings || this.config);
 
-      let sslOptions = defaults.server.ssl;
-      sslOptions.port = this.config.server.port.http2 || 443;
+      var sslSettings = JSON.parse(JSON.stringify(defaults.server.ssl));
+      sslSettings.port = settings.server.port.http2 || 443;
 
       try {
         // use https & http-redirecting
-        if (this.config.server.ssl &&
-          this.config.server.ssl.cert &&
-          this.config.server.ssl.key &&
-          this.config.server.ssl.passphrase) {
+        if (settings.server.ssl &&
+          settings.server.ssl.cert &&
+          settings.server.ssl.key &&
+          settings.server.ssl.passphrase) {
 
-          let cert = path.resolve(this.config.server.ssl.cert)
+          var cert = path.resolve(this.config.server.ssl.cert)
             , key = path.resolve(this.config.server.ssl.key)
             , passphrase = path.resolve(this.config.server.ssl.passphrase);
 
           fs.access( cert, fs.constants.R_OK, (err) => {
             if (err)
-              throw new Error(`File for certification (ssl) not found \n ${err}`);
+              process.send( { error: `File for certification (ssl) not found \n ${err}`} );
             else {
               fs.access( key, fs.constants.R_OK, (err) => {
                 if (err)
-                  throw new Error(`File for public key (ssl) not found \n ${err}`);
+                  process.send( { error: `File for public key (ssl) not found \n ${err}`} );
                 else {
                   fs.access( passphrase, fs.constants.R_OK, (err) => {
                     if (err)
-                      throw new Error(`File for passphrase (ssl) not found \n ${err}`);
+                      process.send( { error: `File for passphrase (ssl) not found \n ${err}`} );
                     else {
                       // Configure SSL Encryption
-                      sslOptions.key = key;
-                      sslOptions.cert = cert;
-                      sslOptions.passphrase = passphrase;
+                      sslSettings.key = key;
+                      sslSettings.cert = cert;
+                      sslSettings.passphrase = passphrase;
                     }
                   });
                 }
@@ -145,23 +143,25 @@ class WebvisualServer {
         process.send( { error: err } );
       } finally {
         // read sync ssl encryption
-        sslOptions.key = fs.readFileSync(sslOptions.key, 'utf8');
-        sslOptions.cert = fs.readFileSync(sslOptions.cert, 'utf8');
-        sslOptions.passphrase = require(sslOptions.passphrase).password;
-        resolve(sslOptions);
+        sslSettings.key = fs.readFileSync(sslSettings.key, 'utf8');
+        sslSettings.cert = fs.readFileSync(sslSettings.cert, 'utf8');
+        sslSettings.passphrase = require(sslSettings.passphrase).password;
+        resolve(sslSettings);
       }
     });
   }
 
   connect(settings) {
     // connect the DATA-Module
+    if (settings)
+      this.config = settings;
     if (this.isRunning === false) {
-      process.send( { log: 'WebvisualServer is starting' } );
-      this.createServer(settings)
-        .then((sslOptions) => {
+      process.send( { info: 'WebvisualServer is starting' } );
+      this.createServerSettings(this.config)
+        .then((sslSettings) => {
           if (this.http2)
             this.http2.close();
-          this.http2 = spdy.createServer(sslOptions, app);
+          this.http2 = spdy.createServer(sslSettings, app);
           this.http2.on('error', (err) => {
               if (e.code === 'EADDRINUSE') {
                 process.send( { error: `HTTP2 Server \n Port ${this.config.server.port.http2} in use. Please check if node.exe is not already running on this port.` } );
@@ -188,13 +188,12 @@ class WebvisualServer {
   }
 
   disconnect() {
-    process.send( { log: 'WebvisualServer is closing' } );
     if (this.http2)
       this.http2.close();
     this.configFilesHandler.unwatch();
     this.dataHandler.disconnect();
     this.isRunning = false;
-    process.send( { event: 'server-stop' } );
+    process.send( { event: 'server-stop', info: 'WebvisualServer is closed' } );
   }
 
   reconnect(settings) {
@@ -217,34 +216,57 @@ class WebvisualServer {
   }
 };
 
-var server = new WebvisualServer();
-
-// if not started as child_process of GUI, logger is used
-function logger(arg) {
-  for (var type in arg) {
-    switch (type) {
-      case 'event':
-        console.info( arg[type] );
-        break;
-      case 'error':
-        console.error( arg[type] );
-        break;
-      case 'log':
-      default:
-        console.log( arg[type] )
+// if not started as child_process of GUI
+if (!process.send) {
+  process.send = function(arg) {
+    for (var type in arg) {
+      switch (type) {
+        case 'event':
+          console.info( arg[type] );
+          break;
+        case 'error':
+          console.error( arg[type] );
+          break;
+        case 'warn':
+          console.warn( arg[type] );
+          break;
+        case 'log':
+        default:
+          console.log( arg[type] )
+      }
     }
-  }
-};
+  };
+  server = new WebvisualServer(argv || defaults);
+} else {
 
-// parent-process manages this server-process
-process.on("message", (arg) => {
-  console.log(arg);
-  for (var func in arg) {
-    if (server[func]) {
-      server[func]( arg[func] );
-    }
+  console.log = function() {
+    process.send( { log: util.format.apply(null, arguments)} );
   }
-})
+  console.info = function() {
+    process.send( { info: util.format.apply(null, arguments)} );
+  }
+  console.error = function() {
+    process.send( { error: util.format.apply(null, arguments)} );
+  }
+  console.warn = function() {
+    process.send( { warn: util.format.apply(null, arguments)} );
+  }
+
+  if (process.env['WEBVISUALSERVER'])
+    server = new WebvisualServer(process.env['WEBVISUALSERVER']);
+
+  process.on("message", (arg) => {
+    if (arg.init === true && arg.config)
+      server = new WebvisualServer(arg.config);
+    else {
+      for (var func in arg) {
+        if (server && server[func]) {
+          server[func]( arg[func] );
+        }
+      }
+    }
+  })
+}
 
 process.on('uncaughtException', (err) => {
   console.log('(uncaughtException)', err);
@@ -256,11 +278,11 @@ process.on('ECONNRESET', (err) => {
   // server.reconnect();
 });
 
-// process.on('SIGINT', (err) => {
-//   console.log('(SIGINT)', err);
-//   // server.disconnect();
-//   process.exit(0);
-// });
+process.on('SIGINT', (err) => {
+  console.log('(SIGINT)', err);
+  // server.disconnect();
+  process.exit(0);
+});
 
 process.on('exit', (err) => {
   console.log('(EXIT)', err);
