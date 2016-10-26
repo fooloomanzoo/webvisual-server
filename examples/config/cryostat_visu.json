@@ -416,7 +416,7 @@
 		"connections": {
 			"file": {
 				"mode": "append",
-				"path": "./examples/datafile/cryostat_visu2.txt",
+				"path": "./examples/datafile/test.txt",
 				"format": {
 					"dateFormat": "DD.MM.YYYY hh:mm:ss",
 					"decimalSeparator": ".",
