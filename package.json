@@ -14,7 +14,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "stop": "taskkill /IM node.exe /F"
+    "stop": "taskkill /IM node.exe /F",
+    "postinstall": "bower update"
   },
   "dependencies": {
     "activedirectory": "^0.7.1",
@@ -27,6 +28,7 @@
     "express-session": "*",
     "jade": "*",
     "merge-defaults": "*",
+    "minimist": "^1.2.0",
     "passport": "*",
     "passport-local": "*",
     "socket.io": "*",

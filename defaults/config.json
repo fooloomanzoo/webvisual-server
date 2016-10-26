@@ -1,0 +1,48 @@
+{
+  "server": {
+    "auth": {
+      "required": false,
+      "ldap": {
+        "baseDN": "dc=ibn-net,dc=kfa-juelich,dc=de",
+        "url": "ldap://ibn-net.kfa-juelich.de"
+      },
+      "suffix": "@fz-juelich.de"
+    },
+    "port": {
+      "http2": 443
+    },
+    "ssl": {
+      "cert": "./defaults/ssl/ca.crt",
+      "key": "./defaults/ssl/ca.key",
+      "passphrase": "./defaults/ssl/ca.pw.json",
+      "ca": [],
+      "requestCert": true,
+      "rejectUnauthorized": false
+    }
+  },
+  "userConfigFiles": {
+    "Cryostat": {
+      "path": "./examples/config/cryostat_visu.json",
+      "renderer": "Diagrammansicht"
+    },
+    "HNF-GDS": {
+      "path": "./examples/config/HNF_GDS.json",
+      "renderer": "Alarmzustände"
+    },
+    "Tests": {
+      "path": "./examples/config/test.json",
+      "renderer": "Alarmzustände"
+    }
+  },
+  "renderer": {
+    "Alarmzustände": {
+      "icon": "juelich:alarm",
+      "path": "alarm-view.jade"
+    },
+    "Diagrammansicht": {
+      "icon": "juelich:graph",
+      "path": "chart-view.jade"
+    }
+  },
+  "database": {}
+}

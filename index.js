@@ -4,12 +4,11 @@
 const express = require('express'),
   fs = require('fs'),
   path = require('path'),
-  EventEmitter = require('events').EventEmitter,
 
   // Processing Modules
-  DataModule = require('./data_module'),
+  DataModule = require('./lib/data_module'),
+  ConfigFileProcessor = require('./lib/config_file_processor'),
   Router = require('./routes'),
-  ConfigFileProcessor = require('./config_file_processor'),
 
   // Sessions & Authentification
   xFrameOptions = require('x-frame-options'),
@@ -23,15 +22,15 @@ const express = require('express'),
   spdy = require('spdy'),
   app = express();
 
+// if not called as child_process
+process.send = process.send || logger;
+var argv = require('minimist')(process.argv.slice(2));
+  // if no arguments are send ('_' contains Array of arguments with no option)
+if (Object.keys(argv).length <= 1)
+  argv = null;
+
 // Defaults
-var defaultSSLOptions = {
-  key: path.resolve(__dirname, 'examples', 'ssl', 'ca.key'),
-  cert: path.resolve(__dirname, 'examples', 'ssl', 'ca.crt'),
-  passphrase: path.resolve(__dirname, 'examples', 'ssl', 'ca.pw.json'),
-  ca: [],
-  requestCert: true,
-  rejectUnauthorized: false
-};
+const defaults = require('./defaults/config.json');
 
 // use compression
 app.use(compression());
@@ -68,19 +67,20 @@ app.use(passport.session());
 // static dir
 app.use(express.static(path.join(__dirname, 'public', 'www')));
 
-class WebvisualServer extends EventEmitter {
+class WebvisualServer {
 
   constructor(settings) {
-    super();
     this.isRunning = false;
-    this.config = settings;
+
+    this.config = settings || argv || defaults;
 
     this.router = new Router(app, passport);
     this.router.on('error', (err) => {
-      this.emit('error', err);
+      process.send( { error: err } );
     });
 
     this.dataHandler = new DataModule();
+
     this.configFilesHandler = new ConfigFileProcessor();
 
     this.configFilesHandler.on('changed', (route) => {
@@ -88,8 +88,10 @@ class WebvisualServer extends EventEmitter {
       this.router.setConfiguration(this.configFilesHandler.settings[route], route); // load Settings to Routen them to requests
     });
     this.dataHandler.on('error', (err) => {
-      this.emit('error', err);
+      process.send( { error: err } );
     });
+
+    this.connect(this.config);
   }
 
   createServer(settings, callback) {
@@ -100,10 +102,9 @@ class WebvisualServer extends EventEmitter {
       if (this.isRunning)
         this.disconnect();
 
-      this.isHttps = false;
       this.router.setSettings(settings || this.config);
 
-      let sslOptions = defaultSSLOptions;
+      let sslOptions = defaults.server.ssl;
       sslOptions.port = this.config.server.port.http2 || 443;
 
       try {
@@ -112,38 +113,42 @@ class WebvisualServer extends EventEmitter {
           this.config.server.ssl.cert &&
           this.config.server.ssl.key &&
           this.config.server.ssl.passphrase) {
-          sslOptions.cert = path.resolve(this.config.server.ssl.cert);
-          sslOptions.key = path.resolve(this.config.server.ssl.key);
-          sslOptions.passphrase = path.resolve(this.config.server.ssl.passphrase);
+
+          let cert = path.resolve(this.config.server.ssl.cert)
+            , key = path.resolve(this.config.server.ssl.key)
+            , passphrase = path.resolve(this.config.server.ssl.passphrase);
+
+          fs.access( cert, fs.constants.R_OK, (err) => {
+            if (err)
+              throw new Error(`File for certification (ssl) not found \n ${err}`);
+            else {
+              fs.access( key, fs.constants.R_OK, (err) => {
+                if (err)
+                  throw new Error(`File for public key (ssl) not found \n ${err}`);
+                else {
+                  fs.access( passphrase, fs.constants.R_OK, (err) => {
+                    if (err)
+                      throw new Error(`File for passphrase (ssl) not found \n ${err}`);
+                    else {
+                      // Configure SSL Encryption
+                      sslOptions.key = key;
+                      sslOptions.cert = cert;
+                      sslOptions.passphrase = passphrase;
+                    }
+                  });
+                }
+              });
+            }
+          });
         }
-
-        fs.access(sslOptions.cert, fs.constants.R_OK, (err) => {
-          if (err)
-            throw new Error(`File for certification (ssl) not found \n ${err}`);
-          else {
-            fs.access(sslOptions.key, fs.constants.R_OK, (err) => {
-              if (err)
-                throw new Error(`File for public key (ssl) not found \n ${err}`);
-              else {
-                fs.access(sslOptions.passphrase, fs.constants.R_OK, (err) => {
-                  if (err)
-                    throw new Error(`File for passphrase (ssl) not found \n ${err}`);
-                  else {
-                    // Configure SSL Encryption
-                    sslOptions.key = fs.readFileSync(sslOptions.key, 'utf8');
-                    sslOptions.cert = fs.readFileSync(sslOptions.cert, 'utf8');
-                    sslOptions.passphrase = require(sslOptions.passphrase)
-                      .password;
-                    resolve(sslOptions);
-                  }
-                });
-              }
-            });
-          }
-        });
-
       } catch (err) {
-        reject(err);
+        process.send( { error: err } );
+      } finally {
+        // read sync ssl encryption
+        sslOptions.key = fs.readFileSync(sslOptions.key, 'utf8');
+        sslOptions.cert = fs.readFileSync(sslOptions.cert, 'utf8');
+        sslOptions.passphrase = require(sslOptions.passphrase).password;
+        resolve(sslOptions);
       }
     });
   }
@@ -151,45 +156,45 @@ class WebvisualServer extends EventEmitter {
   connect(settings) {
     // connect the DATA-Module
     if (this.isRunning === false) {
-      this.emit('log', 'WebvisualServer is starting');
+      process.send( { log: 'WebvisualServer is starting' } );
       this.createServer(settings)
         .then((sslOptions) => {
           if (this.http2)
             this.http2.close();
           this.http2 = spdy.createServer(sslOptions, app);
-          this.http2.on('error', (e) => {
+          this.http2.on('error', (err) => {
               if (e.code === 'EADDRINUSE') {
-                this.emit('error', `HTTP2 Server \n Port ${this.config.server.port.http2} in use. Please check if node.exe is not already running on this port.`);
+                process.send( { error: `HTTP2 Server \n Port ${this.config.server.port.http2} in use. Please check if node.exe is not already running on this port.` } );
                 this.http2.close();
               } else if (e.code === 'EACCES') {
-                this.emit('error', `HTTP2 Server \n Network not accessable. Port ${this.config.server.port.http2} might be in use by another application. Try to switch the port or quit the application, which is using this port`);
+                process.send( { error: `HTTP2 Server \n Network not accessable. Port ${this.config.server.port.http2} might be in use by another application. Try to switch the port or quit the application, which is using this port` } );
               } else {
-                this.emit('error', e);
+                process.send( { error: err } );
               }
             })
             .once('listening', () => {
-              this.emit('log', `HTTP2 Server is listening on port ${this.config.server.port.http2}`);
+              process.send( { log: `HTTP2 Server is listening on port ${this.config.server.port.http2}` } );
             });
           this.dataHandler.setServer(this.http2);
           this.http2.listen(this.config.server.port.https || 443);
           this.configFilesHandler.watch(this.config.userConfigFiles);
           this.isRunning = true;
-          this.emit('server-start');
+          process.send( { event: 'server-start' } );
         })
         .catch( (err) => {
-          this.emit('error', `in SSL Configuration \n ${err}`)
+          process.send( { error: `in SSL Configuration \n ${err}` } );
         });
     }
   }
 
   disconnect() {
-    this.emit('log', 'WebvisualServer is closing');
+    process.send( { log: 'WebvisualServer is closing' } );
     if (this.http2)
       this.http2.close();
     this.configFilesHandler.unwatch();
     this.dataHandler.disconnect();
     this.isRunning = false;
-    this.emit('server-stop');
+    process.send( { event: 'server-stop' } );
   }
 
   reconnect(settings) {
@@ -212,4 +217,52 @@ class WebvisualServer extends EventEmitter {
   }
 };
 
-module.exports = WebvisualServer;
+var server = new WebvisualServer();
+
+// if not started as child_process of GUI, logger is used
+function logger(arg) {
+  for (var type in arg) {
+    switch (type) {
+      case 'event':
+        console.info( arg[type] );
+        break;
+      case 'error':
+        console.error( arg[type] );
+        break;
+      case 'log':
+      default:
+        console.log( arg[type] )
+    }
+  }
+};
+
+// parent-process manages this server-process
+process.on("message", (arg) => {
+  console.log(arg);
+  for (var func in arg) {
+    if (server[func]) {
+      server[func]( arg[func] );
+    }
+  }
+})
+
+process.on('uncaughtException', (err) => {
+  console.log('(uncaughtException)', err);
+  // server.reconnect();
+});
+
+process.on('ECONNRESET', (err) => {
+  console.log('(ECONNRESET)', err);
+  // server.reconnect();
+});
+
+// process.on('SIGINT', (err) => {
+//   console.log('(SIGINT)', err);
+//   // server.disconnect();
+//   process.exit(0);
+// });
+
+process.on('exit', (err) => {
+  console.log('(EXIT)', err);
+  // server.disconnect();
+});
