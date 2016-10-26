@@ -1,0 +1,50 @@
+{
+  "name": "webvisual-server",
+  "version": "0.7.5",
+  "description": "server for visualization of data changes",
+  "private": "true",
+  "homepage": "https://github.com/fooloomanzoo/webvisual",
+  "author": "Johannes Brautzsch <hannes-b@web.de>",
+  "owner": "Forschungszentrum Jülich GmbH",
+  "contributors": [
+    "Johannes Brautzsch <hannes-b@web.de>",
+    "Alexander Diener",
+    "Sascha Wolff"
+  ],
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "stop": "taskkill /IM node.exe /F"
+  },
+  "dependencies": {
+    "activedirectory": "^0.7.1",
+    "body-parser": "*",
+    "chokidar": "*",
+    "compression": "*",
+    "cookie-parser": "*",
+    "dateformat": "*",
+    "express": "*",
+    "express-session": "*",
+    "jade": "*",
+    "merge-defaults": "*",
+    "passport": "*",
+    "passport-local": "*",
+    "socket.io": "*",
+    "spdy": "*",
+    "underscore": "*",
+    "x-frame-options": "*"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">= 6.0",
+    "npm": "*"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fooloomanzoo/webvisual-server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/fooloomanzoo/webvisual-server/issues"
+  }
+}
