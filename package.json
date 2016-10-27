@@ -23,6 +23,7 @@
     "chokidar": "*",
     "compression": "*",
     "cookie-parser": "*",
+    "cookie-session": "*",
     "dateformat": "*",
     "express": "*",
     "express-session": "*",
