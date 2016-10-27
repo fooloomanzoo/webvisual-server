@@ -13,7 +13,7 @@ const express = require('express'),
 
   // Sessions & Authentification
   xFrameOptions = require('x-frame-options'),
-  session = require('express-session'),
+  session = require('cookie-session'),
   passport = require('passport'),
   bodyParser = require('body-parser'),
   cookieParser = require('cookie-parser'),
@@ -36,7 +36,7 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
 // get cookies from http requests
-app.use(cookieParser());
+app.use(cookieParser( {maxAge: 1000*3600*24*180} ));
 app.use(bodyParser.urlencoded({
   extended: true
 }));
