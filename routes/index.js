@@ -1,10 +1,11 @@
 // Routing
 const
-  EventEmitter = require('events')
-  .EventEmitter,
+  EventEmitter = require('events').EventEmitter,
+  express = require('express'),
   passport = require('passport'),
   fs = require('fs'),
-  path = require('path');
+  path = require('path'),
+  mkdirp = require('mkdirp');
 
 class router extends EventEmitter {
 
@@ -15,6 +16,9 @@ class router extends EventEmitter {
     this.configuration = {};
 
     this.app.get('/', (req, res) => {
+      res.set({
+        'Cache-Control': 'public, no-cache'
+      });
       if (this.settings.server.auth.required === true) {
         res.redirect('/login');
       } else {
@@ -23,6 +27,9 @@ class router extends EventEmitter {
     });
 
     this.app.get('/index', this.loggedIn.bind(this), (req, res) => {
+      res.set({
+        'Cache-Control': 'public, no-cache'
+      });
       res.get('X-Frame-Options'); // prevent to render the page within an <iframe> element
       res.render('index', {
         user: req.user,
@@ -35,6 +42,9 @@ class router extends EventEmitter {
     });
 
     this.app.get('/login', (req, res) => {
+      res.set({
+        'Cache-Control': 'public, no-cache'
+      });
       if (this.settings.server.auth.required === true) {
         res.render('login', {
           user: req.user,
@@ -117,7 +127,7 @@ class router extends EventEmitter {
           user: req.user,
           title: route,
           route: route,
-          config: this.configuration[route].configuration,
+          config: this.configuration[route],
           mobile: this.isMobile(req)
         });
         res.end();
@@ -130,6 +140,29 @@ class router extends EventEmitter {
 
   setConfiguration(opt, route) {
     this.configuration[route] = opt;
+
+    // create server side json files of the regrounded element configurations
+      // mkdir
+    var dirs = ['/public', 'www', 'data', route];
+    var newDir = process.cwd();
+
+    for (var i = 0; i < dirs.length; i++) {
+      newDir += dirs[i] + '/';
+      if (!fs.exists(newDir)) {
+        fs.mkdir(newDir, (err) => {
+          this.emit( {error: err} );
+        })
+      }
+    }
+      // write json
+    var p;
+    for (var key in opt) {
+      p = path.resolve(newDir, key + ".json")
+      fs.writeFile (p, JSON.stringify(opt[key]), (err) => {
+        if (err) this.emit("error", JSON.stringify(err));
+      });
+    }
+    this.app.use(express.static(path.join(__dirname, 'public', 'www'), {'Cache-Control': 'public, no-cache'}));
     // console.log(this.configuration);
   }
 

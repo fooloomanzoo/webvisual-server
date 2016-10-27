@@ -1,5 +1,6 @@
 # bower components
 **/bower_components
+**/data/**
 
 # Logs
 logs

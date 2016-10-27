@@ -13,7 +13,7 @@ const express = require('express'),
 
   // Sessions & Authentification
   xFrameOptions = require('x-frame-options'),
-  session = require('cookie-session'),
+  cookieSession = require('cookie-session'),
   passport = require('passport'),
   bodyParser = require('body-parser'),
   cookieParser = require('cookie-parser'),
@@ -28,31 +28,23 @@ let server;
 // Defaults
 const defaults = require('./defaults/config.json');
 
-// use compression
-app.use(compression());
-
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
 // get cookies from http requests
-app.use(cookieParser( {maxAge: 1000*3600*24*180} ));
-app.use(bodyParser.urlencoded({
-  extended: true
-}));
-app.use(bodyParser.json());
+// app.use(cookieParser());
+// app.use(bodyParser.urlencoded({
+//   extended: true
+// }));
+// app.use(bodyParser.json());
 
-app.use(session({
-  secret: '&hkG#1dwwh!',
-  resave: false,
-  saveUninitialized: false
-}));
+// app.use( cookieSession( {
+//   maxAge: 3600000*24*180
+// }));
 
-// Prevent Clickjacking
+Prevent Clickjacking
 app.use(xFrameOptions());
-
-// compress responses
-app.use(compression())
 
 // register for authentification
 app.use(passport.initialize());
@@ -60,8 +52,11 @@ app.use(passport.initialize());
 // init session handler
 app.use(passport.session());
 
+// compress responses
+app.use( compression() );
+
 // static dir
-app.use(express.static(path.join(__dirname, 'public', 'www')));
+app.use(express.static(path.join(__dirname, 'public', 'www'), {'Cache-Control': 'public, no-cache'}));
 
 class WebvisualServer {
 
@@ -81,7 +76,7 @@ class WebvisualServer {
 
     this.configFilesHandler.on('changed', (route) => {
       this.dataHandler.setConfiguration(this.configFilesHandler.settings[route], route);
-      this.router.setConfiguration(this.configFilesHandler.settings[route], route); // load Settings to Routen them to requests
+      this.router.setConfiguration(this.configFilesHandler.settings[route].configuration, route); // load Settings to Routen them to requests
     });
     this.dataHandler.on('error', (err) => {
       process.send( { error: err } );
@@ -230,8 +225,9 @@ if (!process.send) {
           console.log( arg[type] )
       }
     }
-  };
+  }
   server = new WebvisualServer(defaults);
+
 } else {
 
   console.log = function() {
