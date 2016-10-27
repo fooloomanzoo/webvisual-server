@@ -24,11 +24,6 @@ const express = require('express'),
   app = express();
 
 let server;
-// if not called as child_process
-let argv = require('minimist')(process.argv.slice(2));
-  // if no arguments are send ('_' contains Array of arguments with no option)
-if (Object.keys(argv).length <= 1)
-  argv = null;
 
 // Defaults
 const defaults = require('./defaults/config.json');
@@ -236,7 +231,7 @@ if (!process.send) {
       }
     }
   };
-  server = new WebvisualServer(argv || defaults);
+  server = new WebvisualServer(defaults);
 } else {
 
   console.log = function() {
@@ -280,11 +275,11 @@ process.on('ECONNRESET', (err) => {
 
 process.on('SIGINT', (err) => {
   console.log('(SIGINT)', err);
-  // server.disconnect();
+  server.disconnect();
   process.exit(0);
 });
 
 process.on('exit', (err) => {
   console.log('(EXIT)', err);
-  // server.disconnect();
+  server.disconnect();
 });
