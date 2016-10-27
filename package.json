@@ -28,7 +28,6 @@
     "express-session": "*",
     "jade": "*",
     "merge-defaults": "*",
-    "minimist": "^1.2.0",
     "passport": "*",
     "passport-local": "*",
     "socket.io": "*",
