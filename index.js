@@ -43,7 +43,7 @@ app.set('view engine', 'jade');
 //   maxAge: 3600000*24*180
 // }));
 
-Prevent Clickjacking
+// Prevent Clickjacking
 app.use(xFrameOptions());
 
 // register for authentification
@@ -74,9 +74,9 @@ class WebvisualServer {
 
     this.configFilesHandler = new ConfigFileProcessor();
 
-    this.configFilesHandler.on('changed', (route) => {
-      this.dataHandler.setConfiguration(this.configFilesHandler.settings[route], route);
-      this.router.setConfiguration(this.configFilesHandler.settings[route].configuration, route); // load Settings to Routen them to requests
+    this.configFilesHandler.on('changed', (facility) => {
+      this.dataHandler.setConfiguration(this.configFilesHandler.settings[facility], facility);
+      this.router.setConfiguration(this.configFilesHandler.settings[facility], facility); // load Settings to Routen them to requests
     });
     this.dataHandler.on('error', (err) => {
       process.send( { error: err } );
@@ -153,10 +153,10 @@ class WebvisualServer {
             this.http2.close();
           this.http2 = spdy.createServer(sslSettings, app);
           this.http2.on('error', (err) => {
-              if (e.code === 'EADDRINUSE') {
+              if (err.code === 'EADDRINUSE') {
                 process.send( { error: `HTTP2 Server \n Port ${this.config.server.port.http2} in use. Please check if node.exe is not already running on this port.` } );
                 this.http2.close();
-              } else if (e.code === 'EACCES') {
+              } else if (err.code === 'EACCES') {
                 process.send( { error: `HTTP2 Server \n Network not accessable. Port ${this.config.server.port.http2} might be in use by another application. Try to switch the port or quit the application, which is using this port` } );
               } else {
                 process.send( { error: err } );
@@ -230,18 +230,18 @@ if (!process.send) {
 
 } else {
 
-  console.log = function() {
-    process.send( { log: util.format.apply(null, arguments)} );
-  }
-  console.info = function() {
-    process.send( { info: util.format.apply(null, arguments)} );
-  }
-  console.error = function() {
-    process.send( { error: util.format.apply(null, arguments)} );
-  }
-  console.warn = function() {
-    process.send( { warn: util.format.apply(null, arguments)} );
-  }
+  // console.log = function() {
+  //   process.send( { log: util.format.apply(null, arguments)} );
+  // }
+  // console.info = function() {
+  //   process.send( { info: util.format.apply(null, arguments)} );
+  // }
+  // console.error = function() {
+  //   process.send( { error: util.format.apply(null, arguments)} );
+  // }
+  // console.warn = function() {
+  //   process.send( { warn: util.format.apply(null, arguments)} );
+  // }
 
   if (process.env['WEBVISUALSERVER'])
     server = new WebvisualServer(process.env['WEBVISUALSERVER']);

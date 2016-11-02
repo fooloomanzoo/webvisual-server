@@ -1,0 +1,47 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="webvisual-ripple-container.html">
+
+<dom-module id="webvisual-tab">
+  <template strip-whitespace>
+    <style>
+      [hidden] {
+        display: none !important;
+      }
+
+      :host {
+        display: inline-block;
+        position: relative;
+        border-radius: 6px 6px 0px 0px;
+        overflow: hidden;
+        cursor: pointer;
+        vertical-align: middle;
+        padding: 0em 1.2em;
+      }
+
+      #overlay {
+        pointer-events: none;
+        display: none;
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        @apply(--webvisual-tab-overlay);
+      }
+
+      :host(.webvisual-tabs-overlay-static-above) #overlay {
+        display: block;
+      }
+    </style>
+    <div id="overlay"></div>
+    <webvisual-ripple-container>
+      <content></content>
+    </webvisual-ripple-container>
+  </template>
+  <script>
+    Polymer({
+      is: 'webvisual-tab'
+    });
+  </script>
+</dom-module>

@@ -1,0 +1,70 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="behaviors/container-behavior.html"/>
+<link rel="import" href="webvisual-element-box.html"/>
+
+<dom-module id='webvisual-swipeable-container'>
+  <template>
+    <style>
+      :host {
+        position: relative;
+      }
+      iron-swipeable-container#content {
+        padding: 0.5em 0.5em 0.25em 0.5em;
+        display: block;
+        position: relative;
+        width: auto;
+      }
+      iron-swipeable-container#content > webvisual-element-box {
+        margin-bottom: 0.25em;
+        float: left;
+        clear: both;
+        width: 100%;
+        position: relative;
+      }
+    </style>
+
+    <iron-swipeable-container id='content' on-iron-swipe="_onSwipe">
+      <template is="dom-if" if="[[!noExceedNotify]]">
+        <template is="dom-repeat" items="[[exceedingElements]]">
+          <webvisual-element-box ident="[[item.ident]]" system="[[item.system]]" keys="[[item.keys]]" grouped-key="[[item.groupedKey]]" unit="[[item.unit]]"
+                        color="[[item.color]]" is-boolean="[[item.isBoolean]]" selectable exceedable="[[item.exceedable]]" show-date>
+          </webvisual-element-box>
+        </template>
+      </template>
+      <template is="dom-if" if="[[!noSelectNotify]]">
+        <template is="dom-repeat" items="[[selectedElements]]">
+          <webvisual-element-box ident="[[item.ident]]" system="[[item.system]]" keys="[[item.keys]]" grouped-key="[[item.groupedKey]]"  unit="[[item.unit]]"
+                        color="[[item.color]]" is-boolean="[[item.isBoolean]]" selectable exceedable="[[item.exceedable]]" show-date>
+          </webvisual-element-box>
+        </template>
+      </template>
+    </iron-swipeable-container>
+
+  </template>
+  <script>
+    WSSwipeableContainer = Polymer({
+      is: 'webvisual-swipeable-container',
+
+      behaviors: [
+        ContainerBehavior
+      ],
+
+      properties: {
+        multiSelect: {
+          type: Boolean,
+          value: true
+        }
+      },
+
+      _onSwipe: function(e) {
+        this.unsetExceedingElement(e);
+        this.async(function(){
+          if(this.$.content.children.length === 0) {
+            this.clearExceedingElements();
+          }
+        }, 16)
+      }
+
+    });
+  </script>
+</dom-module>

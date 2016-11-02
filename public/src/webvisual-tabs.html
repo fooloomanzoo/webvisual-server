@@ -1,0 +1,46 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../bower_components/iron-selector/iron-selectable.html">
+<link rel="import" href="webvisual-tabs-overlay.html">
+
+<dom-module id="webvisual-tabs">
+  <template strip-whitespace>
+    <style>
+      :host {
+        @apply(--layout);
+        @apply(--layout-center-center);
+      }
+
+      #container {
+        position: relative;
+      }
+
+      webvisual-tabs-overlay {
+        @apply(--webvisual-tab-overlay);
+      }
+    </style>
+    <div id="container">
+      <webvisual-tabs-overlay id="overlay"></webvisual-tabs-overlay>
+      <content></content>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      is: 'webvisual-tabs',
+
+      behaviors: [
+        Polymer.IronSelectableBehavior
+      ],
+
+      observers: [
+        '_onSelectedItemChanged(selectedItem)'
+      ],
+
+      _onSelectedItemChanged: function(selectedItem) {
+        if (selectedItem === undefined && this.selected) return;
+
+        this.$.overlay.target = selectedItem;
+      },
+    });
+  </script>
+</dom-module>

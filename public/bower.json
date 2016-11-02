@@ -9,7 +9,8 @@
   "dependencies": {
     "iron-elements": "PolymerElements/iron-elements",
     "paper-elements": "PolymerElements/paper-elements",
-    "app-layout": "PolymerElements/app-layout",
+    "app-layout": "polymerelements/app-layout",
+    "app-route": "polymerelements/app-route",
     "neon-animation": "PolymerElements/neon-animation"
   },
   "devDependencies": {

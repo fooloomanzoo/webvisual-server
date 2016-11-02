@@ -7,7 +7,7 @@ const
   path = require('path'),
   mkdirp = require('mkdirp');
 
-class router extends EventEmitter {
+class Router extends EventEmitter {
 
   constructor(app, config) {
     super();
@@ -65,7 +65,7 @@ class router extends EventEmitter {
 
   setSettings(options) {
     if (options === undefined)
-      this.emit("error", "Empty Configuration passed to router");
+      this.emit("error", "Empty Configuration passed to Router");
     for (let key in options) {
       if (key == 'server')
         this.setServer(options.server);
@@ -109,25 +109,25 @@ class router extends EventEmitter {
   setUserConfig(userConfigFiles) {
     this.settings.userConfigFiles = userConfigFiles;
 
-    for (let route in userConfigFiles) {
-      this.app.get('/' + route, this.loggedIn.bind(this), (req, res) => {
-        let route = req.url.substr(1);
+    for (let facility in userConfigFiles) {
+      this.app.get('/' + facility, this.loggedIn.bind(this), (req, res) => {
+        let facility = req.url.substr(1);
 
-        if (!route || !this.settings.userConfigFiles[route] || !this.settings.userConfigFiles[route].renderer) {
-          this.emit("error", "Requested Renderer for '" + route + "' not found.");
+        if (!facility || !this.settings.userConfigFiles[facility] || !this.settings.userConfigFiles[facility].renderer) {
+          this.emit("error", "Requested Renderer for '" + facility + "' not found.");
           res.redirect('/index');
           res.end();
           return;
         }
-        let rendererName = this.settings.userConfigFiles[route].renderer;
+        let rendererName = this.settings.userConfigFiles[facility].renderer;
         let rendererPath = './renderer/' + this.settings.renderer[rendererName].path;
 
         res.get('X-Frame-Options'); // prevent to render the page within an <iframe> element
         res.render(rendererPath, {
           user: req.user,
-          title: route,
-          route: route,
-          config: this.configuration[route],
+          title: facility,
+          facility: facility,
+          config: this.configuration[facility],
           mobile: this.isMobile(req)
         });
         res.end();
@@ -138,12 +138,12 @@ class router extends EventEmitter {
     });
   }
 
-  setConfiguration(opt, route) {
-    this.configuration[route] = opt;
-
+  setConfiguration(opt, facility) {
+    this.configuration[facility] = opt;
+    
     // create server side json files of the regrounded element configurations
       // mkdir
-    var dirs = ['/public', 'www', 'data', route];
+    var dirs = ['/public', 'data', facility];
     var newDir = process.cwd();
 
     for (var i = 0; i < dirs.length; i++) {
@@ -156,11 +156,19 @@ class router extends EventEmitter {
     }
       // write json
     var p;
-    for (var key in opt) {
-      p = path.resolve(newDir, key + ".json")
-      fs.writeFile (p, JSON.stringify(opt[key]), (err) => {
-        if (err) this.emit("error", JSON.stringify(err));
-      });
+    for (var sys in opt) {
+      if (!fs.exists(newDir + '/' + sys)) {
+        fs.mkdir(newDir + '/' + sys, (err) => {
+          this.emit( {error: err} );
+        })
+      }
+      for (var key in opt[sys]) {
+        p = path.resolve(newDir + '/' + sys, key + ".json")
+        fs.writeFile (p, JSON.stringify(opt[sys][key]), (err) => {
+          if (err) this.emit("error", JSON.stringify(err));
+        });
+      }
+
     }
     this.app.use(express.static(path.join(__dirname, 'public', 'www'), {'Cache-Control': 'public, no-cache'}));
     // console.log(this.configuration);
@@ -184,4 +192,4 @@ class router extends EventEmitter {
   }
 }
 
-module.exports = router;
+module.exports = Router;

@@ -31,56 +31,56 @@
 
 		"locals": {
 			"ignore": [],
-			"types": [ {
-				"id": "id1",
+			"units": [ {
+				"indent": "indent1",
 				"keys": {
 					"Bezeichner": "Messreihe 1"
 				},
 				"unit": "K",
 				"color": "#A3C825"
 			}, {
-				"id": "id2",
+				"indent": "indent2",
 				"keys": {
 					"Bezeichner": "Messreihe 2"
 				},
 				"unit": "K",
 				"color": "#14AFB6"
 			}, {
-				"id": "id3",
+				"indent": "indent3",
 				"keys": {
 					"Bezeichner": "Messreihe 3"
 				},
 				"unit": "K",
 				"color": "#1464B6"
 			}, {
-				"id": "id4",
+				"indent": "indent4",
 				"keys": {
 					"Bezeichner": "Messreihe 4"
 				},
 				"unit": "K",
 				"color": "#14B638"
 			}, {
-				"id": "id5",
+				"indent": "indent5",
 				"keys": {
 					"Bezeichner": "Messreihe 5"
 				},
 				"unit": "K",
 				"color": "#6A14B6"
 			}, {
-				"id": "id6",
+				"indent": "indent6",
 				"keys": {
 					"Bezeichner": "Messreihe 6"
 				},
 				"unit": "K",
 				"color": "#6A14B6"
 			}, {
-				"id": "id7",
+				"indent": "indent7",
 				"keys": {
 					"Bezeichner": "Messreihe 7"
 				},
 				"unit": "K"
 			}, {
-				"id": "id8",
+				"indent": "indent8",
 				"keys": {
 					"Bezeichner": "Messreihe 8"
 				},
@@ -88,7 +88,7 @@
 			} ],
 
 			"unnamedType": {
-				"id": "id",
+				"indent": "indent",
 				"keys": {
 					"Bezeichner": "Bezeichner"
 				},
@@ -137,98 +137,98 @@
 
 		"locals": {
 			"ignore": [],
-			"types": [ {
-				"id": "id1",
+			"units": [ {
+				"indent": "indent1",
 				"keys": {
 					"Bezeichner": "4K"
 				},
 				"unit": "",
 				"color": "#A3C825"
 			}, {
-				"id": "id2",
+				"indent": "indent2",
 				"keys": {
 					"Bezeichner": "1K"
 				},
 				"unit": "",
 				"color": "#14AFB6"
 			}, {
-				"id": "id3",
+				"indent": "indent3",
 				"keys": {
 					"Bezeichner": "Cryostat"
 				},
 				"unit": "",
 				"color": "#1464B6"
 			}, {
-				"id": "id4",
+				"indent": "indent4",
 				"keys": {
 					"Bezeichner": "ENTROPY"
 				},
 				"unit": "",
 				"color": "#14B638"
 			}, {
-				"id": "id5",
+				"indent": "indent5",
 				"keys": {
 					"Bezeichner": "H-Oben"
 				},
 				"unit": "W",
 				"color": "#6A14B6"
 			}, {
-				"id": "id6",
+				"indent": "indent6",
 				"keys": {
 					"Bezeichner": "H-Unten"
 				},
 				"unit": "W",
 				"color": "#6A14B6"
 			}, {
-				"id": "id7",
+				"indent": "indent7",
 				"keys": {
 					"Bezeichner": "R1"
 				},
 				"unit": "V"
 			}, {
-				"id": "id8",
+				"indent": "indent8",
 				"keys": {
 					"Bezeichner": "R2"
 				},
 				"unit": "V"
 			}, {
-				"id": "id9",
+				"indent": "indent9",
 				"keys": {
 					"Bezeichner": "AIO3"
 				},
 				"unit": "V"
 			}, {
-				"id": "id10",
+				"indent": "indent10",
 				"keys": {
 					"Bezeichner": "AIO4"
 				},
 				"unit": "K"
 			}, {
-				"id": "id11",
+				"indent": "indent11",
 				"keys": {
 					"Bezeichner": "DIO"
 				},
 				"unit": ""
 			}, {
-				"id": "id12",
+				"indent": "indent12",
 				"keys": {
 					"Bezeichner": "Relays"
 				},
 				"unit": ""
 			}, {
-				"id": "id13",
+				"indent": "indent13",
 				"keys": {
 					"Bezeichner": "V1"
 				},
 				"unit": ""
 			}, {
-				"id": "id14",
+				"indent": "indent14",
 				"keys": {
 					"Bezeichner": "V2"
 				},
 				"unit": ""
 			}, {
-				"id": "id15",
+				"indent": "indent15",
 				"keys": {
 					"Bezeichner": "V3"
 				},
@@ -236,7 +236,7 @@
 			} ],
 
 			"unnamedType": {
-				"id": "id",
+				"indent": "indent",
 				"keys": {
 					"Bezeichner": "Messreihe"
 				},
@@ -290,98 +290,98 @@
 
 		"locals": {
 			"ignore": [],
-			"types": [ {
-				"id": "id1",
+			"units": [ {
+				"indent": "indent1",
 				"keys": {
 					"Bezeichner": "4K"
 				},
 				"unit": "",
 				"color": "#A3C825"
 			}, {
-				"id": "id2",
+				"indent": "indent2",
 				"keys": {
 					"Bezeichner": "1K"
 				},
 				"unit": "",
 				"color": "#14AFB6"
 			}, {
-				"id": "id3",
+				"indent": "indent3",
 				"keys": {
 					"Bezeichner": "Cryostat"
 				},
 				"unit": "",
 				"color": "#1464B6"
 			}, {
-				"id": "id4",
+				"indent": "indent4",
 				"keys": {
 					"Bezeichner": "ENTROPY"
 				},
 				"unit": "",
 				"color": "#14B638"
 			}, {
-				"id": "id5",
+				"indent": "indent5",
 				"keys": {
 					"Bezeichner": "H-Oben"
 				},
 				"unit": "W",
 				"color": "#6A14B6"
 			}, {
-				"id": "id6",
+				"indent": "indent6",
 				"keys": {
 					"Bezeichner": "H-Unten"
 				},
 				"unit": "W",
 				"color": "#6A14B6"
 			}, {
-				"id": "id7",
+				"indent": "indent7",
 				"keys": {
 					"Bezeichner": "R1"
 				},
 				"unit": "V"
 			}, {
-				"id": "id8",
+				"indent": "indent8",
 				"keys": {
 					"Bezeichner": "R2"
 				},
 				"unit": "V"
 			}, {
-				"id": "id9",
+				"indent": "indent9",
 				"keys": {
 					"Bezeichner": "AIO3"
 				},
 				"unit": "V"
 			}, {
-				"id": "id10",
+				"indent": "indent10",
 				"keys": {
 					"Bezeichner": "AIO4"
 				},
 				"unit": "K"
 			}, {
-				"id": "id11",
+				"indent": "indent11",
 				"keys": {
 					"Bezeichner": "DIO"
 				},
 				"unit": ""
 			}, {
-				"id": "id12",
+				"indent": "indent12",
 				"keys": {
 					"Bezeichner": "Relays"
 				},
 				"unit": ""
 			}, {
-				"id": "id13",
+				"indent": "indent13",
 				"keys": {
 					"Bezeichner": "V1"
 				},
 				"unit": ""
 			}, {
-				"id": "id14",
+				"indent": "indent14",
 				"keys": {
 					"Bezeichner": "V2"
 				},
 				"unit": ""
 			}, {
-				"id": "id15",
+				"indent": "indent15",
 				"keys": {
 					"Bezeichner": "V3"
 				},
@@ -389,7 +389,7 @@
 			} ],
 
 			"unnamedType": {
-				"id": "id",
+				"indent": "indent",
 				"keys": {
 					"Bezeichner": "Messreihe"
 				},
@@ -443,98 +443,98 @@
 
 		"locals": {
 			"ignore": [],
-			"types": [ {
-				"id": "id1",
+			"units": [ {
+				"indent": "indent1",
 				"keys": {
 					"Bezeichner": "4K"
 				},
 				"unit": "",
 				"color": "#A3C825"
 			}, {
-				"id": "id2",
+				"indent": "indent2",
 				"keys": {
 					"Bezeichner": "1K"
 				},
 				"unit": "",
 				"color": "#14AFB6"
 			}, {
-				"id": "id3",
+				"indent": "indent3",
 				"keys": {
 					"Bezeichner": "Cryostat"
 				},
 				"unit": "",
 				"color": "#1464B6"
 			}, {
-				"id": "id4",
+				"indent": "indent4",
 				"keys": {
 					"Bezeichner": "ENTROPY"
 				},
 				"unit": "",
 				"color": "#14B638"
 			}, {
-				"id": "id5",
+				"indent": "indent5",
 				"keys": {
 					"Bezeichner": "H-Oben"
 				},
 				"unit": "W",
 				"color": "#6A14B6"
 			}, {
-				"id": "id6",
+				"indent": "indent6",
 				"keys": {
 					"Bezeichner": "H-Unten"
 				},
 				"unit": "W",
 				"color": "#6A14B6"
 			}, {
-				"id": "id7",
+				"indent": "indent7",
 				"keys": {
 					"Bezeichner": "R1"
 				},
 				"unit": "V"
 			}, {
-				"id": "id8",
+				"indent": "indent8",
 				"keys": {
 					"Bezeichner": "R2"
 				},
 				"unit": "V"
 			}, {
-				"id": "id9",
+				"indent": "indent9",
 				"keys": {
 					"Bezeichner": "AIO3"
 				},
 				"unit": "V"
 			}, {
-				"id": "id10",
+				"indent": "indent10",
 				"keys": {
 					"Bezeichner": "AIO4"
 				},
 				"unit": "K"
 			}, {
-				"id": "id11",
+				"indent": "indent11",
 				"keys": {
 					"Bezeichner": "DIO"
 				},
 				"unit": ""
 			}, {
-				"id": "id12",
+				"indent": "indent12",
 				"keys": {
 					"Bezeichner": "Relays"
 				},
 				"unit": ""
 			}, {
-				"id": "id13",
+				"indent": "indent13",
 				"keys": {
 					"Bezeichner": "V1"
 				},
 				"unit": ""
 			}, {
-				"id": "id14",
+				"indent": "indent14",
 				"keys": {
 					"Bezeichner": "V2"
 				},
 				"unit": ""
 			}, {
-				"id": "id15",
+				"indent": "indent15",
 				"keys": {
 					"Bezeichner": "V3"
 				},
@@ -542,7 +542,7 @@
 			} ],
 
 			"unnamedType": {
-				"id": "id",
+				"indent": "indent",
 				"keys": {
 					"Bezeichner": "Messreihe"
 				},

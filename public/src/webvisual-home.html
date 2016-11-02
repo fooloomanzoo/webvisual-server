@@ -1,0 +1,106 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="webvisual-button.html">
+
+<dom-module id="webvisual-home">
+
+  <template include="app-theme">
+
+    <style>
+      :host {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+      }
+      .box {
+        position: relative;
+        box-sizing: border-box;
+        font-size: 1em;
+        padding: 1.5em;
+        margin: auto;
+        align-self: flex-start;
+        color: var(--bright-text-color);
+        white-space: normal;
+        line-height: 1.4;
+      }
+      .item {
+        display: flex;
+        font-size: 0.75em;
+        white-space: pre-line;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        text-align: center;
+        margin-bottom: 20px;
+        margin-left: 18vw;
+        margin-right: 18vw;
+        border-bottom: thin solid var(--highlight-color);
+        color: var(--highlight-color);
+        background: var(--primary-color);
+      }
+      h1 {
+          font-weight: normal;
+          font-size: 2em;
+          margin: 0.5em;
+          text-align: center;
+          white-space: normal;
+      }
+      h4 {
+        font-size: 1.3em;
+        font-weight: 500;
+        margin: 16px 0;
+      }
+
+      @media (max-width: 767px) {
+        h4 {
+          margin: 12px 0;
+        }
+      }
+
+    </style>
+
+    <div class="box">
+      <h1>Auswahl der Messanlage</h1>
+      <template is="dom-repeat" items="[[facilities]]" strip-whitespace>
+        <webvisual-button class="item">
+          <h4>[[item.title]]</h4>
+          <a aria-label$="[[item.title]]" href$="/list/[[item.name]]">select</a>
+        </webvisual-button>
+      </template>
+    </div>
+
+
+  </template>
+
+  <script>
+
+    Polymer({
+
+      is: 'webvisual-home',
+
+      properties: {
+
+        facilities: {
+          type: Array
+        },
+
+        visible: {
+          type: Boolean,
+          observer: '_visibleChanged'
+        }
+
+      },
+
+      _visibleChanged: function(visible) {
+        if (visible) {
+          this.fire('change-section', { title: 'Home' });
+        }
+      }
+
+    });
+
+  </script>
+
+</dom-module>

@@ -1,0 +1,182 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<dom-module id="webvisual-facility-data">
+
+  <script>
+  (function() {
+    var facilityList = [
+      {
+        "name": "Cryostat",
+        "title": "Cryostat",
+        "systems": [
+          {
+            "name": "Lakeshore",
+            "title": "Lakeshore"
+          }, {
+            "name": "Tic500",
+            "title": "Tic500"
+          }, {
+            "name": "Tic501",
+            "title": "Tic501"
+          }, {
+            "name": "Tic502",
+            "title": "Tic502"
+          }
+        ]
+      },
+      {
+        "name": "HNF-GDS",
+        "title": "HNF-GDS",
+        "systems": [
+          {
+            "name": "HNF-GDS",
+            "title": "HNF-GDS"
+          }
+        ]
+      },
+      {
+        "name": "Tests",
+        "title": "Generated Measurement Data for Testing",
+        "systems": [
+          {
+            "name": "test",
+            "title": "test"
+          }
+        ]
+      }
+    ];
+
+    Polymer({
+
+      is: 'webvisual-facility-data',
+
+      properties: {
+
+        facilityName: String,
+
+        systemName: String,
+
+        ident: String,
+
+        facilities: {
+          type: Array,
+          value: facilityList,
+          readOnly: true,
+          notify: true
+        },
+
+        facility: {
+          type: Object,
+          computed: '_computeFacility(facilityName)',
+          notify: true
+        },
+
+        system: {
+          type: Object,
+          computed: '_computeSystem(facilityName, systemName)',
+          notify: true
+        },
+
+        item: {
+          type: Object,
+          computed: '_computeItem(system.items, ident)',
+          notify: true
+        },
+
+        failure: {
+          type: Boolean,
+          notify: true,
+          readOnly: true
+        }
+      },
+
+      _getFacilityObject: function(facilityName) {
+        for (var i = 0, c; c = this.facilities[i]; ++i) {
+          if (c.name === facilityName) {
+            return c;
+          }
+        }
+        return null;
+      },
+
+      _computeFacility: function(facilityName) {
+        // Fetch the items of the facility. Note that the fetch is asynchronous,
+        // which means `facility.items` may not be set initially (but that path
+        // will be notified when the fetch completes).
+        var facilityObj = this._getFacilityObject(facilityName);
+        return facilityObj;
+      },
+
+      _computeSystem: function(facilityName, systemName) {
+        // Fetch the items of the facility. Note that the fetch is asynchronous,
+        // which means `facility.items` may not be set initially (but that path
+        // will be notified when the fetch completes).
+        var facilityObj = this._getFacilityObject(facilityName);
+        this._fetchItems(facilityObj, systemName, 1);
+        return facilityObj;
+      },
+
+      _computeItem: function(items, ident) {
+        for (var i = 0, item; item = items[i]; ++i) {
+          if (item.ident === ident) {
+            return item;
+          }
+        }
+      },
+
+      _fetchItems: function(facility, system, attempts) {
+        this._setFailure(false);
+        // Only fetch the items of a facility if it has not been previously set.
+        if (!facility || facility.items) {
+          return;
+        }
+        this._getResource({
+          url: '/data/' + facility.name + '/' + system + '/units.json',
+          onLoad: function(e) {
+            this.set('system.items', JSON.parse(e.target.responseText));
+          },
+          onError: function(e) {
+            this._setFailure(true);
+          }
+        }, attempts);
+      },
+
+      _getResource: function(rq, attempts) {
+        var xhr = new XMLHttpRequest();
+        xhr.addEventListener('load', rq.onLoad.bind(this));
+        xhr.addEventListener('error', function(e) {
+          // Flaky connections might fail fetching resources
+          if (attempts > 1) {
+            this.debounce('_getResource', this._getResource.bind(this, rq, attempts - 1), 200);
+          } else {
+            rq.onError.call(this, e);
+          }
+        }.bind(this));
+
+        xhr.open('GET', rq.url);
+        xhr.send();
+      },
+
+      refresh: function() {
+        if (this.facilityName) {
+          // Try at most 3 times to get the items.
+          this._fetchItems(this._getFacilityObject(this.facilityName), this.systemName, 3);
+        }
+      }
+
+    });
+
+  })();
+  </script>
+
+</dom-module>
