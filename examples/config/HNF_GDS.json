@@ -43,8 +43,8 @@
 
     "locals": {
       "ignore": [0, 8, 16, 17, 21, 22],
-      "units": [{
-          "indent": "Binary",
+      "ids": [{
+          "id": "Binary",
           "keys": {
             "kind": "Test",
             "roomNr": "test",
@@ -64,7 +64,7 @@
           },
           "unit": "₍₂₎"
         }, {
-          "indent": "DI0-1",
+          "id": "DI0-1",
           "keys": {
             "kind": "H₂",
             "roomNr": "2032",
@@ -83,7 +83,7 @@
             "to": 0
           }
         }, {
-          "indent": "DI1-1",
+          "id": "DI1-1",
           "keys": {
             "kind": "H₂",
             "roomNr": "2032",
@@ -102,7 +102,7 @@
             "to": 0
           }
         }, {
-          "indent": "DI2-1",
+          "id": "DI2-1",
           "keys": {
             "kind": "H₂",
             "roomNr": "3005",
@@ -120,7 +120,7 @@
             "to": 0
           }
         }, {
-          "indent": "DI3-1",
+          "id": "DI3-1",
           "keys": {
             "kind": "H₂",
             "roomNr": "3005",
@@ -138,7 +138,7 @@
             "to": 0
           }
         }, {
-          "indent": "DI4-1",
+          "id": "DI4-1",
           "keys": {
             "kind": "H₂",
             "roomNr": "4006",
@@ -156,7 +156,7 @@
             "to": 0
           }
         }, {
-          "indent": "DI5-1",
+          "id": "DI5-1",
           "keys": {
             "kind": "H₂",
             "roomNr": "4006",
@@ -174,7 +174,7 @@
             "to": 0
           }
         }, {
-          "indent": "DI6-1",
+          "id": "DI6-1",
           "keys": {
             "kind": "H₂",
             "system": "H₂-Gasüberwachung",
@@ -190,7 +190,7 @@
             "to": 0
           }
         }, {
-          "indent": "DI7-1",
+          "id": "DI7-1",
           "keys": {
             "property": "Reserve",
             "system": "intern",
@@ -204,7 +204,7 @@
         },
 
         {
-          "indent": "DI0-2",
+          "id": "DI0-2",
           "keys": {
             "kind": "Verschiedene",
             "system": "TOX-Gasüberwachung",
@@ -220,7 +220,7 @@
             "to": 0
           }
         }, {
-          "indent": "DI1-2",
+          "id": "DI1-2",
           "keys": {
             "kind": "Verschiedene",
             "system": "TOX-Gasüberwachung",
@@ -236,7 +236,7 @@
             "to": 0
           }
         }, {
-          "indent": "DI2-2",
+          "id": "DI2-2",
           "keys": {
             "kind": "Verschiedene",
             "roomNr": "2030",
@@ -255,7 +255,7 @@
             "to": 0
           }
         }, {
-          "indent": "DI3-2",
+          "id": "DI3-2",
           "keys": {
             "kind": "Verschiedene",
             "roomNr": "2032",
@@ -274,7 +274,7 @@
             "to": 0
           }
         }, {
-          "indent": "DI4-2",
+          "id": "DI4-2",
           "keys": {
             "kind": "Verschiedene",
             "roomNr": "3005",
@@ -292,7 +292,7 @@
             "to": 0
           }
         }, {
-          "indent": "DI5-2",
+          "id": "DI5-2",
           "keys": {
             "kind": "Verschiedene",
             "roomNr": "4006",
@@ -310,7 +310,7 @@
             "to": 0
           }
         }, {
-          "indent": "DI6-2",
+          "id": "DI6-2",
           "keys": {
             "kind": "HBr/BCl₃",
             "roomNr": "4006",
@@ -328,7 +328,7 @@
             "to": 0
           }
         }, {
-          "indent": "DI7-2",
+          "id": "DI7-2",
           "keys": {
             "property": "Reserve",
             "system": "intern",
@@ -342,7 +342,7 @@
         },
 
         {
-          "indent": "DI0-3",
+          "id": "DI0-3",
           "property": "Reserve",
           "system": "intern",
           "alarmlevel": "",
@@ -352,7 +352,7 @@
           },
           "isBoolean": true
         }, {
-          "indent": "DI1-3",
+          "id": "DI1-3",
           "keys": {
             "kind": "Cl₂",
             "roomNr": "3005",
@@ -370,7 +370,7 @@
             "to": 0
           }
         }, {
-          "indent": "DI2-3",
+          "id": "DI2-3",
           "keys": {
             "kind": "Cl₂",
             "roomNr": "2030",
@@ -389,7 +389,7 @@
             "to": 0
           }
         }, {
-          "indent": "DI3-3",
+          "id": "DI3-3",
           "keys": {
             "kind": "HBr",
             "roomNr": "2030",
@@ -408,7 +408,7 @@
             "to": 0
           }
         }, {
-          "indent": "DI4-3",
+          "id": "DI4-3",
           "keys": {
             "property": "Reserve",
             "system": "intern",
@@ -420,7 +420,7 @@
           },
           "isBoolean": true
         }, {
-          "indent": "DI5-3",
+          "id": "DI5-3",
           "keys": {
             "property": "Reserve",
             "system": "intern",
@@ -432,7 +432,7 @@
           },
           "isBoolean": true
         }, {
-          "indent": "DI6-3",
+          "id": "DI6-3",
           "keys": {
             "kind": "NH₃",
             "roomNr": "4006",
@@ -450,7 +450,7 @@
             "to": 0
           }
         }, {
-          "indent": "DI7-3",
+          "id": "DI7-3",
           "keys": {
             "kind": "NH₃",
             "roomNr": "3005",
@@ -470,7 +470,7 @@
         },
 
         {
-          "indent": "DI0-4",
+          "id": "DI0-4",
           "keys": {
             "kind": "NH₃",
             "roomNr": "2032",
@@ -489,7 +489,7 @@
             "to": 0
           }
         }, {
-          "indent": "DI1-4",
+          "id": "DI1-4",
           "keys": {
             "kind": "HCl",
             "roomNr": "4006",
@@ -507,7 +507,7 @@
             "to": 0
           }
         }, {
-          "indent": "DI2-4",
+          "id": "DI2-4",
           "keys": {
             "kind": "HCl",
             "roomNr": "4006",
@@ -525,7 +525,7 @@
             "to": 0
           }
         }, {
-          "indent": "DI3-4",
+          "id": "DI3-4",
           "keys": {
             "kind": "HCl",
             "roomNr": "3005",
@@ -543,7 +543,7 @@
             "to": 0
           }
         }, {
-          "indent": "DI4-4",
+          "id": "DI4-4",
           "keys": {
             "kind": "SiH₄",
             "roomNr": "4006",
@@ -561,7 +561,7 @@
             "to": 0
           }
         }, {
-          "indent": "DI5-4",
+          "id": "DI5-4",
           "keys": {
             "kind": "SiH₄",
             "roomNr": "3005",
@@ -579,7 +579,7 @@
             "to": 0
           }
         }, {
-          "indent": "DI6-4",
+          "id": "DI6-4",
           "keys": {
             "kind": "SiH₄",
             "roomNr": "2032",
@@ -598,7 +598,7 @@
             "to": 0
           }
         }, {
-          "indent": "DI7-4",
+          "id": "DI7-4",
           "keys": {
             "kind": "Cl₂",
             "roomNr": "4006",
@@ -618,7 +618,7 @@
         },
 
         {
-          "indent": "DI0-5",
+          "id": "DI0-5",
           "keys": {
             "kind": "Cl₂",
             "roomNr": "4006",
@@ -636,7 +636,7 @@
             "to": 0
           }
         }, {
-          "indent": "DI1-5",
+          "id": "DI1-5",
           "keys": {
             "kind": "HBr/BCl₃",
             "roomNr": "3005",
@@ -654,7 +654,7 @@
             "to": 0
           }
         }, {
-          "indent": "DI2-5",
+          "id": "DI2-5",
           "keys": {
             "kind": "BCl₃",
             "roomNr": "2030",
@@ -673,7 +673,7 @@
             "to": 0
           }
         }, {
-          "indent": "DI3-5",
+          "id": "DI3-5",
           "keys": {
             "kind": "O₂",
             "roomNr": "4006-21",
@@ -692,7 +692,7 @@
             "to": 0
           }
         }, {
-          "indent": "DI4-5",
+          "id": "DI4-5",
           "keys": {
             "kind": "O₂",
             "roomNr": "4006-21",
@@ -711,7 +711,7 @@
             "to": 0
           }
         }, {
-          "indent": "DI5-5",
+          "id": "DI5-5",
           "keys": {
             "kind": "O₂",
             "roomNr": "4006-23",
@@ -730,7 +730,7 @@
             "to": 0
           }
         }, {
-          "indent": "DI6-5",
+          "id": "DI6-5",
           "keys": {
             "kind": "O₂",
             "roomNr": "4006-23",
@@ -749,7 +749,7 @@
             "to": 0
           }
         }, {
-          "indent": "DI7-5",
+          "id": "DI7-5",
           "keys": {
             "kind": "O₂",
             "system": "O₂-Gasüberwachung",
@@ -768,7 +768,7 @@
       ],
 
       "unnamedType": {
-        "indent": "indent",
+        "id": "id",
         "keys": {
           "kind": "",
           "roomNr": "",
@@ -800,7 +800,7 @@
       "exclusiveGroups": {
         "roomNr": {
           "Wartung und Störungen": {
-            "indents": [
+            "ids": [
               "DI0-2",
               "DI7-5",
               "DI1-2",
@@ -808,7 +808,7 @@
             ]
           },
           "4006": {
-            "indents": [
+            "ids": [
               "DI3-5",
               "DI4-5",
               "DI5-5",
@@ -818,7 +818,7 @@
         },
         "alarmlevel": {
           "Wartung und Störungen": {
-            "indents": [
+            "ids": [
               "DI6-1",
               "DI0-2",
               "DI1-2",

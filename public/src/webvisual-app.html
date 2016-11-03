@@ -1,7 +1,8 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/app-layout/app-header/app-header.html">
+<link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
 <link rel="import" href="../bower_components/app-layout/app-scroll-effects/effects/waterfall.html">
-<link rel="import" href="../bower_components/app-layout/app-scroll-effects/effects/resize-snapped-title.html">
+<link rel="import" href="../bower_components/app-layout/app-scroll-effects/effects/resize-title.html">
 <link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
 <link rel="import" href="../bower_components/app-layout/helpers/helpers.html">
 <link rel="import" href="../bower_components/app-route/app-location.html">
@@ -20,21 +21,13 @@
 <link rel="import" href="webvisual-logo.html"/>
 <link rel="import" href="webvisual-icon-button.html"/>
 <link rel="import" href="webvisual-facility-data.html"/>
+
 <link rel="import" href="webvisual-home.html"/>
-<link rel="import" href="webvisual-select.html"/>
 <link rel="import" href="webvisual-list.html"/>
+<link rel="import" href="webvisual-detail.html"/>
 
 <link rel="import" href="../bower_components/iron-a11y-keys-behavior/iron-a11y-keys-behavior.html"/>
 <link rel="import" href="../bower_components/iron-a11y-keys-behavior/iron-a11y-keys-behavior.html"/>
-<link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html"/>
-<link rel="import" href="../bower_components/neon-animation/neon-animated-pages.html"/>
-<link rel="import" href="../bower_components/neon-animation/neon-shared-element-animatable-behavior.html"/>
-<link rel="import" href="../bower_components/neon-animation/neon-animation-runner-behavior.html"/>
-<link rel="import" href="../bower_components/neon-animation/animations/scale-up-animation.html"/>
-<link rel="import" href="../bower_components/neon-animation/animations/fade-in-animation.html"/>
-<link rel="import" href="../bower_components/neon-animation/animations/fade-out-animation.html"/>
-<link rel="import" href="../bower_components/neon-animation/animations/slide-up-animation.html"/>
-<link rel="import" href="../bower_components/neon-animation/animations/hero-animation.html"/>
 
 <dom-module id="webvisual-app">
 
@@ -42,11 +35,10 @@
     <style include="app-theme"></style>
     <style include="webvisual-app-style">
       :host {
-        font-size: 1em;
-        display: block;
-        position: relative;
-        padding-top: 130px;
-        padding-bottom: 64px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
         min-height: 100vh;
         --app-primary-color: var(--primary-color);
         --app-secondary-color: var(--dark-primary-color);
@@ -57,10 +49,18 @@
         -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
         color: var(--primary-text-color);
       }
+      :host([page="home"]),
+      :host([page="select"]) {
+        background: var(--primary-color);
+      }
+      :host([page="list"]),
+      :host([page="detail"]) {
+        background: var(--bright-primary-color);
+      }
       app-header {
         @apply(--layout-fixed-top);
-        z-index: 1;
-        background-color: rgba(255, 255, 255, 0.95);
+        /*z-index: 1;*/
+        background-color: transparent;
         --app-header-shadow: {
           box-shadow: inset 0px 5px 6px -3px rgba(0, 0, 0, 0.2);
           height: 10px;
@@ -72,11 +72,14 @@
         background: var(--primary-color);
         color: var(--bright-text-color);
       }
+      #tabs {
+        background: white;
+      }
             /* small screen */
       @media (max-width: 767px) {
-        :host {
+        /*:host {
           padding-top: 64px;
-        }
+        }*/
 
         .menu-btn {
           display: block;
@@ -86,7 +89,7 @@
           display: none;
         }
       }
-      #toolbarFooter ::content .toolbar-footer {
+      /*#toolbarFooter ::content .toolbar-footer {
         border-width: 0;
         border-color: rgba(0, 0, 0, 0.3);
         border-radius: 8px;
@@ -95,18 +98,16 @@
         padding-right: 1px;
         margin: 0;
         z-index: inherit;
-        /*height: 0;*/
         position: relative;
       }
       #toolbarFooter ::content .toolbar-footer[opened] {
-        /*height: 100%;*/
       }
       #toolbarFooter ::content .toolbar-footer:last-child {
         padding-right: 0;
       }
       #toolbarFooter ::content svg-element {
         background: rgba(255,255,255,0.2);
-      }
+      }*/
       #groupingKeysSystemSelector {
         display: flex;
         flex-direction: column;
@@ -122,143 +123,103 @@
         font-size: 0.9em;
         padding: 0.5em;
       }
-      #systemsTabs {
-        height: 34px;
-        font-size: 0.85em;
-  			align-self: flex-end;
-  			margin-left: 24px;
-  			margin-right: 60px;
-      }
-      #systemsTabs ::content tab-element.system.iron-selected {
-        background: linear-gradient(to top, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.15));
-        color: #f1f1f1;
-      }
-      #systemsTabs ::content tab-element.system:hover:not(.iron-selected) {
-        background: linear-gradient(to top, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04));
-      }
-      #systemsTabs ::content tab-element.system.iron-selected[dark] {
-        background: linear-gradient(to top, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.08));
-        color: #A8CCDB;
-      }
-
-  		#control webvisual-icon-button.tab-icon {
+  		.tab-icon {
   			display: none !important;
   		}
+      .error-icon {
+        color: var(--warning-color);
+      }
+      #logo {
+        padding-left: 16px;
+      }
       @media all and (max-width: 520px) {
-  			#toolbarHeader {
-  				flex-direction: column;
-  			}
-  			#systemsTabs {
-  				align-self: flex-start;
-  				display: none !important;
-  			}
-  			#systemsTabs.tabs-opened {
-  				display: inline-block !important;
-  			}
-  			#control webvisual-icon-button.tab-icon {
-  				display: inline-block !important;
-  			}
         #panelSelector ::content .panel {
           display: block;
           padding: 0em;
         }
-        #toolbarHeader webvisual-icon-button.menu-icon {
-          margin-left: 12px;
-        }
 
       }
       @media all and (min-width: 520px) and (max-width: 600px){
-        #toolbarHeader webvisual-icon-button.menu-icon {
-          margin-left: 16px;
-        }
       }
     </style>
 
-    <app-location route="{{facility}}"></app-location>
+    <app-location route="{{route}}"></app-location>
     <app-route
-      route="{{facility}}"
+      route="{{route}}"
       pattern="/:page"
       data="{{routeData}}"
       tail="{{subroute}}"></app-route>
 
-    <webvisual-facility-data facilities="{{facilities}}"></webvisual-facility-data>
+    <webvisual-facility-data facilities="{{facilities}}" systems="{{systems}}"></webvisual-facility-data>
 
     <iron-media-query query="max-width: 767px" query-matches="{{smallScreen}}"></iron-media-query>
 
-    <app-header role="navigation" id="header" effects="waterfall resize-snapped-title" condenses fixed>
-      <app-toolbar>
-        <webvisual-icon-button icon="menu" class="menu-icon" on-tap="toggleDrawer"></webvisual-icon-button>
+    <app-header role="navigation" id="header" condenses reveals effects="waterfall">
+      <template is="dom-if" if="[[_shouldRenderHeader]]">
 
-          <webvisual-logo main-title id="logo" on-tap="backToIndex"></webvisual-logo>
-          <div condensed-title>Webvisual</div>
+        <app-toolbar>
+          <webvisual-icon-button icon="menu" class="menu-icon"></webvisual-icon-button>
 
-        <section id="control" bottom-item>
-  				<section id="tabsIcon">
-  					<webvisual-icon-button icon="more-vert" class="tab-icon" on-tap="toggleTabs"></webvisual-icon-button>
-  				</section>
-          <webvisual-icon-button icon="error-outline" class="error control" on-tap="toggleAlarmPanel" hidden$="[[!isExceeding]]"></webvisual-icon-button>
-          <section hidden$="[[!_computeOpened(opened, forceOpened)]]" style="display: flex;">
+          <webvisual-logo main-title id="logo"></webvisual-logo>
+
+          <template is="dom-if" if="[[_shouldRenderControlButtons]]">
+
+            <template is="dom-if" if="[[isExceeding]]">
+              <webvisual-icon-button icon="error-outline" class="error-icon control" on-tap="toggleAlarmPanel" hidden$="[[!isExceeding]]"></webvisual-icon-button>
+            </template>
+
             <webvisual-icon-button icon="[[_computeExpandIcon(expanded)]]" class="expand-icon" on-tap="toolbarExpandToggle"></webvisual-icon-button>
             <webvisual-icon-button icon="remove" hidden$="[[forceOpened]]" class="toggle-icon control" on-tap="closeToolbar"></webvisual-icon-button>
-          </section>
-        </section>
-      </app-toolbar>
 
-      <!-- <app-toolbar id="systemsTabs" sticky$="[[_shouldShowTabs]]" hidden$="[[!_shouldShowTabs]]"> -->
-        <div id="tabContainer">
-          <template is="dom-if" if="[[_shouldRenderTabs]]">
-            <webvisual-tabs
-                selected="[[currentFacility]]"
-                attr-for-selected="name">
-              <template is="dom-repeat" items="[[facilities]]" as="facility" initial-count="3">
-                <webvisual-tab name="[[facility.name]]">
-                  <a href="/list/[[facility.name]]">[[facility.title]]</a>
-                </webvisual-tab>
-              </template>
-            </webvisual-tabs>
           </template>
-        </div>
-        <!-- <div id="tabContainer" sticky$="[[_shouldShowTabs]]" hidden$="[[!_shouldShowTabs]]">
-          <template is="dom-if" if="[[_shouldRenderTabs]]">
-            <webvisual-tabs
-                selected="[[currentSystem]]"
-                attr-for-selected="name">
-              <template is="dom-repeat" items="[[systems]]" as="system">
-                <webvisual-tab name="[[system.name]]">
-                  <a href="/list/[[currentFacility.name]]/[[system.name]]">[[system.title]]</a>
-                </webvisual-tab>
-              </template>
-            </webvisual-tabs>
-          </template>
-        </div> -->
-        <!-- <iron-selector id="systemSelector" selected="{{currentSystem}}" attr-for-selected="system">
-          <content select="tab-element.system"></content>
-        </iron-selector> -->
-      <!-- </app-toolbar> -->
+        </app-toolbar>
 
-      <app-toolbar sticky>
-        <!-- <iron-selector id="systemSelector" selected="{{currentSystem}}" attr-for-selected="system">
-          <content select="tab-element.system"></content>
-        </iron-selector> -->
-      </app-toolbar>
 
+        <template is="dom-if" if="[[_shouldRenderLowerToolbar]]">
+          <app-toolbar class="middle" hidden$="[[!opened]]">
+            <!-- <iron-selector id="systemSelector" selected="{{currentSystem}}" attr-for-selected="system">
+              <content select="tab-element.system"></content>
+            </iron-selector> -->
+          </app-toolbar>
+        </template>
+
+        <app-toolbar id="systemsTabs" sticky$="[[_shouldShowTabs]]" hidden$="[[!_shouldShowTabs]]">
+          <div id="tabContainer" sticky$="[[_shouldShowTabs]]" hidden$="[[!_shouldShowTabs]]">
+            <template is="dom-if" if="[[_shouldRenderTabs]]">
+              <webvisual-tabs
+                  selected="[[currentSystem]]"
+                  attr-for-selected="name">
+                <template is="dom-repeat" items="[[systems]]" as="system">
+                  <webvisual-tab name="[[system.name]]">
+                    <a href="/list/[[currentSystem.name]]/[[system.name]]">[[system.title]]</a>
+                  </webvisual-tab>
+                </template>
+              </webvisual-tabs>
+            </template>
+          </div>
+          <!-- <iron-selector id="systemSelector" selected="{{currentSystem}}" attr-for-selected="system">
+            <content select="tab-element.system"></content>
+          </iron-selector> -->
+        </app-toolbar>
+
+      </template>
     </app-header>
 
     <!-- <iron-pages role="main" id="panelSelector" selected="{{currentSystem}}" attr-for-selected="system"> -->
-    <iron-pages role="main" selected="[[page]]" attr-for-selected="name" selected-attribute="visible">
-      <!-- home view -->
+    <iron-pages id="pageselector" role="main" selected="[[page]]" attr-for-selected="name" selected-attribute="visible">
+      <!-- home view for selecting the facility -->
       <webvisual-home name="home" facilities="[[facilities]]"></webvisual-home>
-      <!-- list view of items in a category -->
-      <webvisual-select name="system-select" route="[[subroute]]" offline="[[offline]]"></webvisual-select>
-      <!-- detail view of one item -->
+      <!-- list view of items in a facility -->
       <webvisual-list name="list" route="[[subroute]]" offline="[[offline]]"></webvisual-list>
+      <!-- detail view of one item -->
+      <webvisual-detail name="detail" route="[[subroute]]" offline="[[offline]]"></webvisual-detail>
     </iron-pages>
 
     <!-- EXCEEDING -->
-    <!-- <app-drawer id="alarmPanel">
-      <section id="alarmHeader" on-tap="toggleAlarmPanel">
+    <app-drawer id="alarmPanel" align="right" swipe-open tabindex="0">
+      <app-toolbar id="alarmheader" on-tap="toggleAlarmPanel">
         <webvisual-button class="title"><iron-icon icon="warning" class="left"></iron-icon><section class="content">Alarme</section></webvisual-button>
-      </section>
+      </app-toolbar>
 
       <webvisual-swipeable-container id="exceedingElementsList"
          is-exceeding="{{isExceeding}}"
@@ -268,46 +229,52 @@
       </webvisual-swipeable-container>
 
       <section style="padding: 0em 0.75em 0.75em 0.75em; float: right;"><a href="#" on-click="_clearExceedingElementsFromList">Liste leeren</a></section>
-    </app-drawer> -->
-
-    <!-- SIDEMENU -->
-    <app-drawer id="drawerPanel">
-      <webvisual-button collapse-id="settings" class="sidemenu collapsable" on-tap="toggleCollapse">
-        <iron-icon icon="settings" class="left"></iron-icon>
-        <section class="content">Einstellungen</section>
-        <iron-icon icon="arrow-drop-up" class="right" id="settings"></iron-icon>
-      </webvisual-button>
-
-          <section class="sidemenu indention collapse settings" opened>
-            <webvisual-button collapse-id="grouping" class="sidemenu" on-tap="toggleCollapse">
-              <iron-icon icon="reorder" class="left"></iron-icon>
-              <section class="content">Gruppierung</section>
-              <iron-icon icon="arrow-drop-down" class="right" id="grouping"></iron-icon>
-            </webvisual-button>
-            <section id="groupingKeysButtons" class="sidemenu indention collapse grouping">
-              <iron-selector id="groupingKeysSystemSelector" selected="[[currentSystem]]" attr-for-selected="system" selected-class="foreground">
-                <content select="iron-selector.groupingKeySelector"></content>
-              </iron-selector>
-            </section>
-
-            <webvisual-toggle-button class="sidemenu" on-change="toggleDateView"><iron-icon icon="date-range"></iron-icon>Zeit anzeigen</webvisual-toggle-button>
-            <webvisual-toggle-button class="sidemenu" on-change="toggleWindowDecoration" checked="{{withoutWindow}}"><iron-icon icon="editor:border-style"></iron-icon>Fensterrahmen</webvisual-toggle-button>
-            <webvisual-toggle-button class="sidemenu" on-change="toggleWindowHeader" checked="{{hideHeader}}"><iron-icon icon="editor:drag-handle"></iron-icon>Fenstertitel</webvisual-toggle-button>
-            <webvisual-toggle-button class="sidemenu" id="colorschema" on-change="toggleTheme"><iron-icon icon="settings-brightness"></iron-icon>Farbschema</webvisual-toggle-button>
-          </section>
-
-      <webvisual-button class="sidemenu" on-tap="backToSelectPage">
-        <iron-icon icon="assessment" class="left"></iron-icon>
-        <section class="content">Konfigurationsauswahl</section>
-      </webvisual-button>
-
-      <webvisual-button class="sidemenu" on-tap="backToIndex">
-        <iron-icon icon="arrow-back" class="left"></iron-icon>
-        <section class="content">Index</section>
-      </webvisual-button>
-
     </app-drawer>
 
+    <!-- SIDEMENU -->
+    <template is="dom-if" if="[[_shouldRenderDrawer]]">
+      <app-drawer id="drawerPanel" align="left" swipe-open tabindex="0">
+        <app-toolbar id="drawerheader" on-tap="toggleDrawer">
+          <webvisual-button class="title"><iron-icon icon="settings" class="left"></iron-icon><section class="content">Alarme</section></webvisual-button>
+        </app-toolbar>
+
+        <webvisual-button collapse-id="settings" class="sidemenu collapsable" on-tap="toggleCollapse">
+          <iron-icon icon="settings" class="left"></iron-icon>
+          <section class="content">Einstellungen</section>
+          <iron-icon icon="arrow-drop-up" class="right" id="settings"></iron-icon>
+        </webvisual-button>
+
+            <section class="sidemenu indention collapse settings" opened>
+                <webvisual-button collapse-id="grouping" class="sidemenu" on-tap="toggleCollapse">
+                  <iron-icon icon="reorder" class="left"></iron-icon>
+                  <section class="content">Gruppierung</section>
+                  <iron-icon icon="arrow-drop-down" class="right" id="grouping"></iron-icon>
+                </webvisual-button>
+                <section id="groupingKeysButtons" class="sidemenu indention collapse grouping">
+                  <iron-selector id="groupingKeysSystemSelector" selected="[[currentSystem]]" attr-for-selected="system" selected-class="foreground">
+                    <content select="iron-selector.groupingKeySelector"></content>
+                  </iron-selector>
+                </section>
+
+                <webvisual-toggle-button class="sidemenu" on-change="toggleDateView"><iron-icon icon="date-range"></iron-icon>Zeit anzeigen</webvisual-toggle-button>
+                <webvisual-toggle-button class="sidemenu" on-change="toggleWindowDecoration" checked="{{withoutWindow}}"><iron-icon icon="editor:border-style"></iron-icon>Fensterrahmen</webvisual-toggle-button>
+                <webvisual-toggle-button class="sidemenu" on-change="toggleWindowHeader" checked="{{hideHeader}}"><iron-icon icon="editor:drag-handle"></iron-icon>Fenstertitel</webvisual-toggle-button>
+                <webvisual-toggle-button class="sidemenu" id="colorschema" on-change="toggleTheme"><iron-icon icon="settings-brightness"></iron-icon>Farbschema</webvisual-toggle-button>
+            </section>
+
+        <webvisual-button class="sidemenu" on-tap="backToSelectPage">
+          <iron-icon icon="assessment" class="left"></iron-icon>
+          <section class="content">Konfigurationsauswahl</section>
+        </webvisual-button>
+
+        <webvisual-button class="sidemenu" on-tap="backToIndex">
+          <iron-icon icon="arrow-back" class="left"></iron-icon>
+          <section class="content">Index</section>
+        </webvisual-button>
+
+      </app-drawer>
+
+    </template>
   </template>
 
   <script>
@@ -325,6 +292,14 @@
         numItems: {
           type: Number,
           value: 0
+        },
+
+        _shouldShowLowerToolbar: {
+          computed: '_computeShouldRenderLowerToolbar(page)'
+        },
+
+        _shouldRenderControlButtons: {
+          computed: '_computeShouldShowControls(page)'
         },
 
         _shouldShowTabs: {
@@ -377,13 +352,13 @@
         if (page != null) {
           // home route is eagerly loaded
           if (page == 'home') {
-            this._pageLoaded(Boolean(oldPage));
+            this._pageLoaded(Boolean(oldPage) && (page === 'list' || page === 'detail'));
           // other routes are lazy loaded
           } else {
             this.importHref(
               this.resolveUrl('webvisual-' + page + '.html'),
               function() {
-                this._pageLoaded(Boolean(oldPage));
+                this._pageLoaded(Boolean(oldPage) && (page === 'list' || page === 'detail'));
               }, null, true);
           }
         }
@@ -437,10 +412,10 @@
       },
 
       // Elements in the app can notify section changes.
-      // Response by a11y announcing the section and syncronizing the category.
+      // Response by a11y announcing the section and syncronizing the facility.
       _onChangeSection: function(event) {
         var detail = event.detail;
-        this.categoryName = detail.category || '';
+        this.facilityName = detail.facility || '';
         // Announce the page's title
         if (detail.title) {
           document.title = detail.title + ' - Webvisual';
@@ -472,9 +447,21 @@
         }
       },
 
+
+      _computeShouldRenderHeader: function(page, opened) {
+        return (page === 'list' || page === 'detail');
+      },
+
+      _computeShouldRenderLowerToolbar: function(page, opened) {
+        return (page === 'list') && opened;
+      },
+
+      _computeShouldShowControls: function(page) {
+        return (page === 'list' || page === 'detail');
+      },
+
       _computeShouldShowTabs: function(page, smallScreen) {
-        return true;
-        // (page === 'home' || page === 'list' || page === 'detail') && !smallScreen;
+        return (page === 'list' || page === 'detail') && !smallScreen;
       },
 
       _computeShouldRenderTabs: function(_shouldShowTabs, loadComplete) {

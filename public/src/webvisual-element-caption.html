@@ -7,8 +7,9 @@
         border-radius: inherit;
         height: auto;
         width: auto;
-        flex: 1 0 auto;
+        flex: 1 1 auto;
         flex-direction: column;
+        flex-wrap: wrap;
         cursor: default;
         box-sizing: border-box;
         position: relative;
@@ -21,7 +22,7 @@
         border: none;
         flex-direction: row;
         align-items: center;
-        justify-content: center;
+        justify-content: flex-start;
       }
       :host([dark]) {
         background: var(--caption-dark-background, #B0B0B0);
@@ -38,7 +39,6 @@
         word-break: break-all;
       }
       .captions:first-of-type {
-        margin-left: 0;
         font-weight: bold;
         font-size: 0.9em;
         word-wrap: normal;
@@ -53,6 +53,7 @@
       :host([vertical]) {
         flex-direction: column;
         align-items: flex-start;
+        justify-content: center;
         line-height: 1.4;
       }
       :host([vertical]) .captions {
@@ -72,32 +73,40 @@
   <script>
 
     CaptionElement = Polymer({
+
       is: 'webvisual-element-caption',
 
       properties: {
+
         keys: {
           type: Object,
           value: function() {
             return {};
-          }
+          },
+          notify: true,
+          observer: 'print'
         },
+
         groupedKey: {
           type: String,
           value: ''
         },
+
         onlyGroupedKey: {
-          type: Boolean
+          type: Boolean,
+          value: false
         },
-        withoutGroupedKey: {
-          type: Boolean
+
+        withoutGroupedKey:  {
+          type: Boolean,
+          value: false
         },
+
         reducedCaptionKeys: {
           type: Array,
-          value: function() {
-            return [];
-          },
-          computed: 'getReducedCaptionKeys(groupedKey, onlyGroupedKey, withoutGroupedKey, keys.*)'
+          computed: '_computeReducedCaptionKeys(groupedKey, keys, onlyGroupedKey, withoutGroupedKey)'
         },
+
         vertical: {
           type: Boolean,
           reflectToAttribute: true
@@ -108,12 +117,17 @@
         return this.keys[key];
       },
 
-      getReducedCaptionKeys: function() {
-        var captionKeys = Object.keys(this.keys);
+      print: function(a,b) {
+        console.log(a,b);
+      },
+
+      _computeReducedCaptionKeys: function(groupedKey, keys, onlyGroupedKey, withoutGroupedKey) {
+        console.log(groupedKey, keys, onlyGroupedKey, withoutGroupedKey);
+        var captionKeys = Object.keys(keys);
+        console.log('captionKeys', captionKeys);
         if (captionKeys.length === 0) return [];
 
-        var reducedCaptionKeys = [],
-            groupedKey = this.groupedKey;
+        var reducedCaptionKeys = [];
         if (this.withoutGroupedKey === true)
           reducedCaptionKeys = captionKeys.filter( function(key) { return (groupedKey !== key) } );
         else if (this.onlyGroupedKey === true)

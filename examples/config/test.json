@@ -17,9 +17,9 @@
 
     "locals": {
       "ignore": [],
-      "units": [
+      "ids": [
         {
-          "indent": "DI3-3",
+          "id": "DI3-3",
           "keys": {
             "prompt": "2030",
             "secondprompt": "taurin"
@@ -31,7 +31,7 @@
           "unit": "kPa",
           "isBoolean": true
         }, {
-          "indent": "DI4-3",
+          "id": "DI4-3",
           "keys": {
             "prompt": "2030",
             "secondprompt": "taurin"
@@ -41,7 +41,7 @@
             "to": 10000000
           }
         }, {
-          "indent": "DI1-3",
+          "id": "DI1-3",
           "keys": {
             "prompt": "2033",
             "secondprompt": "irun"
@@ -51,7 +51,7 @@
             "to": 9
           }
         }, {
-          "indent": "DI2-3",
+          "id": "DI2-3",
           "keys": {
             "prompt": "2033",
             "secondprompt": "nirtau"
@@ -61,7 +61,7 @@
             "to": 9
           }
         }, {
-          "indent": "DI6-3",
+          "id": "DI6-3",
           "keys": {
             "prompt": "2035",
             "secondprompt": "taurin"
@@ -71,7 +71,7 @@
             "to": 9
           }
         }, {
-          "indent": "DI7-3",
+          "id": "DI7-3",
           "keys": {
             "prompt": "2034",
             "secondprompt": "taurin"
@@ -81,7 +81,7 @@
             "to": 9
           }
         }, {
-          "indent": "DI5-3",
+          "id": "DI5-3",
           "keys": {
             "prompt": "2037",
             "secondprompt": "trin"
@@ -94,9 +94,9 @@
       ],
 
       "unnamedType": {
-        "indent": "indent",
+        "id": "id",
         "keys": {
-          "prompt": "indent"
+          "prompt": "id"
         },
         "values": [{
           "x": 0,
@@ -111,7 +111,7 @@
       "exclusiveGroups": {
         "prompt": {
           "very-important": {
-            "indents": [
+            "ids": [
               "DI5-3"
             ]
           }

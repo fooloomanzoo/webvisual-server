@@ -1,11 +1,13 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
+
 <link rel="import" href="behaviors/color-behavior.html"/>
 <link rel="import" href="behaviors/checked-and-select-behavior.html"/>
 <link rel="import" href="behaviors/drag-and-drop-behavior.html"/>
 <link rel="import" href="behaviors/element-behavior.html"/>
-<link rel="import" href="behaviors/attribute-repeat-animation-behavior.html"/>
-<link rel="import" href="webvisual-element-caption.html"/>
+
 <link rel="import" href="webvisual-element-table.html"/>
+<link rel="import" href="webvisual-dropdown.html"/>
 
 <dom-module id='webvisual-element-sign'>
   <template>
@@ -23,10 +25,6 @@
         line-height: 1;
         height: auto;
         align-self: stretch;
-        border-radius: 2px 2px 2px 3px;
-        border-style: solid;
-        border-width: thin;
-        border-color: rgba(0,0,0,.2);
       }
 
       :host([vertical]) {
@@ -46,12 +44,6 @@
         width: 100%;
         align-self: stretch;
         box-sizing: border-box;
-        border-color: inherit;
-        border-right-width: thin;
-        border-right-style: solid;
-        border-bottom-width: 0;
-        border-bottom-style: solid;
-        border-top-left-radius: inherit; border-top-right-radius: 0; border-bottom-left-radius: inherit; border-bottom-right-radius: 0;
         transition: background 300ms cubic-bezier(0.3, 0, 0.15, 1);
       }
       :host([dark]) #sign{
@@ -137,7 +129,7 @@
         width: 1.5em;
         fill: currentColor;
       }
-      paper-ripple#ripple {
+      #ripple {
         color: #1d1d1d;
       }
       #bookmark {
@@ -184,36 +176,20 @@
         min-width: 7em;
       }
       [hidden] {
-        pointer-events: none;
-      }
-      #sign[vertical] {
-        border-top-left-radius: inherit; border-top-right-radius: inherit; border-bottom-left-radius: 0; border-bottom-right-radius: 0;
-        border-bottom-width: thin;
-        border-right-width: 0;
-      }
-      webvisual-element-caption {
-        align-self: stretch;
-        border-top-left-radius: 0; border-top-right-radius: inherit; border-bottom-left-radius: 0; border-bottom-right-radius: inherit;
-        --caption-padding: 0.6em;
-      }
-      webvisual-element-caption[vertical] {
-        border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-left-radius: inherit; border-bottom-right-radius: inherit;
-        --caption-padding: 0.3em 0.5em 0.5em 0.5em;
-      }
-      [hidden] {
+        pointer-events: none
         display: none !important;
       }
     </style>
 
     <section id='sign' animatable state$="[[renderedValue.state]]" on-click='select'>
       <paper-ripple hidden$='[[!selectable]]' id='ripple'></paper-ripple>
-      <template is="dom-if" if="[[!isBoolean]]">
+      <template is="dom-if" if="[[!item.isBoolean]]">
         <section class="value">
           <section id='valueSection'>[[getValue(renderedValue.y)]]</section>
-          <section id='unitSection' hidden$="[[!unit]]">[[unit]]</section>
+          <section id='unitSection' hidden$="[[!item.unit]]">[[item.unit]]</section>
         </section>
       </template>
-      <template is="dom-if" if="[[isBoolean]]">
+      <template is="dom-if" if="[[item.isBoolean]]">
         <section class="value">
           <svg id='icon' hidden$='[[!isExceeding]]' viewBox='0 0 24 24'>
             <g id='error-outline'><path d='M11 15h2v2h-2zm0-8h2v6h-2zm.99-5C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z'/></g>
@@ -221,54 +197,46 @@
         </section>
       </template>
       <section id='dateSection' hidden$='[[!showDate]]'>[[toDate(renderedValue.x)]]</section>
-      <svg id='bookmark' hidden$='[[!hasTooltip(hasExceeded)]]' viewBox='0 0 24 24' aria-system='Alarme' on-click="toggleTooltip">
+      <svg id='bookmark' hidden$='[[!hasBookmark]]' viewBox='0 0 24 24' aria-label='Alarme' on-click="toggleTooltip">
         <g id='announcement'><path d='M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 9h-2V5h2v6zm0 4h-2v-2h2v2z'/></g>
       </svg>
     </section>
 
-    <webvisual-element-caption id="caption" animatable grouped-key='[[groupedKey]]' keys='[[keys]]' without-grouped-key></webvisual-element-caption>
-
-    <webvisual-dropdown id='tooltip' hiding-event="mouseleave" position="right" align="center">
-      <div class='title'>Alarmphasen</div>
-      <section id='tooltipContent'>
-        <webvisual-element-table id='firstStateChangeTable' caption="start" hide-header only-first-row no-socket-connection is-boolean='[[isBoolean]]'></webvisual-element-table>
-        <webvisual-element-table id='lastStateChangeTable' caption="end" hide-header only-first-row no-socket-connection is-boolean='[[isBoolean]]'></webvisual-element-table>
-      </section>
-    </webvisual-dropdown>
+    <template is="dom-if" if="[[tooltip]]">
+      <webvisual-dropdown id='tooltip' hiding-event="mouseleave" position="right" align="center" hidden$='[[!hasBookmark]]'>
+        <div class='title'>Alarmphasen</div>
+        <section id='tooltipContent'>
+          <webvisual-element-table id='firstStateChangeTable' caption="start" hide-header only-first-row no-socket-connection is-boolean='[[item.isBoolean]]'></webvisual-element-table>
+          <webvisual-element-table id='lastStateChangeTable' caption="end" hide-header only-first-row no-socket-connection is-boolean='[[item.isBoolean]]'></webvisual-element-table>
+        </section>
+      </webvisual-dropdown>
+    </template>
 
   </template>
 
   <script>
 
-    WSElementSign = Polymer({
+    WebvisiualElementSign = Polymer({
       is: 'webvisual-element-sign',
 
       behaviors: [
         ColorBehavior,
         CheckedAndSelectBehavior,
         DragAndDropBehavior,
-        AttributeRepeatAnimationBehavior,
         ElementBehavior
       ],
 
       properties: {
-        repeatedAttributes: {
-          type: Array,
-          value: function(){ return ['vertical']}
-        },
         showDate: {
           type: Boolean
-        },
-        vertical: {
-          type: Boolean,
-          reflectToAttribute: true
         },
         showCaption: {
           type: Boolean,
           value: true
         },
         tooltip: {
-          type: Boolean
+          type: Boolean,
+          observer: '_setTooltip'
         },
         singleValue: {
           type: Boolean,
@@ -280,6 +248,10 @@
           value: function() {
             return {};
           }
+        },
+        hasBookmark: {
+          type: Boolean,
+          computed: '_computeHasBookmark(hasExceeded, tooltip)'
         }
       },
 
@@ -288,14 +260,6 @@
       },
 
       _tooltip: Object,
-
-      attached: function() {
-        this._tooltip = this.$.tooltip;
-
-        if (this.tooltip)
-          this._setTooltip();
-        this.insertValues();
-      },
 
       renderInsertedValues: function(value) {
         if (value === undefined) {
@@ -309,9 +273,12 @@
         this.renderedValue = value;
       },
 
-      _setTooltip: function() {
-        this.$.firstStateChangeTable.insertValues(this.firstStateChange);
-        this.$.lastStateChangeTable.insertValues(this.lastStateChange);
+      _setTooltip: function(tooltip) {
+        if (tooltip) {
+          this._tooltip = this.$.tooltip;
+          this.$.firstStateChangeTable.insertValues(this.firstStateChange);
+          this.$.lastStateChangeTable.insertValues(this.lastStateChange);
+        }
       },
 
       setFirstStateChange: function(value) {
@@ -329,19 +296,17 @@
           this._tooltip.hide();
       },
 
-      hasTooltip: function(hasExceeded) {
-        return hasExceeded && this.tooltip;
+      _computeHasBookmark: function(hasExceeded, tooltip) {
+        return hasExceeded && tooltip;
       },
 
       toggleTooltip: function(e) {
+        if (!this._tooltip) return;
+
         e.preventDefault();
         this._tooltip.toggle();
         e.stopPropagation();
-      },
-
-      getAnimatableNodes: function() {
-        return [this.$.sign, this.$.caption];
-      },
+      }
     });
   </script>
 

@@ -2,29 +2,9 @@
   ElementBehavior = {
 
     properties: {
-      ident: {
-        type: String,
-        reflectToAttribute: true
-      },
-      system: {
-        type: String,
-        reflectToAttribute: true
-      },
-      keys: {
-        type: Object,
-        value: function() {
-          return {};
-        }
-      },
-      groupedKey: {
-        type: String,
-        value: ''
-      },
+      item: Object,
 
-      newestDataFirst: {
-        type: Boolean,
-        value: false
-      },
+      groupedKey: String,
 
       firstStateChange: {
         type: Array,
@@ -38,36 +18,14 @@
           return [];
         }
       },
-      isBoolean: {
-        type: Boolean,
-        value: false
-      },
 
-      svg: {
-        type: Object,
-        value: function() {
-          return {};
-        }
-      },
+      exceedable: Boolean,
 
-      exceedable: {
-        type: Boolean,
-        value: false
-      },
-      isExceeding: {
-        type: Boolean,
-        value: false,
-        observer: 'handleExceeding'
-      },
-      hasExceeded: {
-        type: Boolean,
-        value: false,
-        observer: 'hasExceededChanged'
-      },
-      bubbles: {
-        type: Boolean,
-        value: false
-      },
+      isExceeding: Boolean,
+
+      hasExceeded: Boolean,
+
+      bubbles: Boolean,
 
       noSocketConnection: {
         type: Boolean,
@@ -75,14 +33,16 @@
         observer: "updatableChanged"
       },
 
-      singleValue: {
-        type: Boolean,
-        value: false
-      },
-      renderedValue: {
-        type: Object
-      }
+      singleValue: Boolean,
+
+      renderedValue: Object
     },
+
+    observers: [
+      'handleExceeding(isExceeding)',
+      'hasExceededChanged(hasExceeded)',
+      'setElement(item)'
+    ],
 
     get containerRoot() {
       var root = Polymer.dom(this).getOwnerRoot();
@@ -114,7 +74,7 @@
     },
 
     attached: function() {
-      if (this.system && this.ident)
+      if (this.item && this.item.system && this.item.id)
         this.updatableChanged();
       else {
         this.set('values', this.values || []);
@@ -122,68 +82,64 @@
     },
 
     detached: function() {
-      var pos;
+      var pos, system, id;
+      if (this.item &&
+          this.item.system &&
+          this.item.id) {
+            system = this.item.system;
+            id = this.item.id;
+          }
       if (this.noSocketConnection === false &&
+        system &&
+        id &&
         window.Content !== undefined &&
-        window.Content[this.system] &&
-        window.Content[this.system][this.ident] &&
-        (pos = window.Content[this.system][this.ident].nodes.indexOf(this)) !== -1)
-        window.Content[this.system][this.ident].nodes.splice(pos, 1);
+        window.Content[system] &&
+        window.Content[system][id] &&
+        (pos = window.Content[system][id].nodes.indexOf(this)) !== -1)
+        window.Content[system][id].nodes.splice(pos, 1);
     },
 
-    setElement: function(obj, options) {
+    setElement: function(item, properties) {
       this.clearValues();
-      var pos;
-      if (this.noSocketConnection === false && this.system && this.ident &&
+      this.set('item', item);
+      for (var key in properties) {
+        if (key !== 'item')
+          this.set(key, properties[key].value);
+      }
+      var pos, system = item.system, id = item.id;
+      if (this.noSocketConnection === false && system && id &&
         window.Content !== undefined &&
-        window.Content[this.system] &&
-        window.Content[this.system][this.ident] &&
-        (pos = window.Content[this.system][this.ident].nodes.indexOf(this)) !== -1) {
-        window.Content[this.system][this.ident].nodes.splice(pos, 1); // remove from window.Content
+        window.Content[system] &&
+        window.Content[system][id] &&
+        (pos = window.Content[system][id].nodes.indexOf(this)) !== -1) {
+        window.Content[system][id].nodes.splice(pos, 1); // remove from window.Content
         this.removeAttribute('updatable');
-      }
-
-      for (var key in obj.element) {
-        this.set(key, obj.element[key]);
-      }
-      for (var key in obj.properties) {
-        this.set(key, obj.properties[key].value);
-      }
-      for (var key in options) {
-        this.set(key, options[key]);
       }
       this.updatableChanged();
     },
 
     unsetElement: function() {
-      var pos;
-      if (this.noSocketConnection === false && this.system && this.ident &&
-        window.Content !== undefined &&
-        window.Content[this.system] &&
-        window.Content[this.system][this.ident] &&
-        (pos = window.Content[this.system][this.ident].nodes.indexOf(this)) !== -1) {
-        window.Content[this.system][this.ident].nodes.splice(pos, 1); // remove from window.Content
-        this.removeAttribute('updatable');
-      }
+      var pos, system, id;
+      if (this.item &&
+          this.item.system &&
+          this.item.id) {
+            system = this.item.system;
+            id = this.item.id;
+          }
+      if (this.noSocketConnection === false &&
+          system &&
+          id &&
+          window.Content !== undefined &&
+          window.Content[system] &&
+          window.Content[system][id] &&
+          (pos = window.Content[system][id].nodes.indexOf(this)) !== -1) {
+            window.Content[system][id].nodes.splice(pos, 1); // remove from window.Content
+            this.removeAttribute('updatable');
+          }
     },
 
     getElement: function() {
-      return {
-        element: {
-          'ident': this.ident,
-          'system': this.system,
-          'keys': this.keys,
-          'captionKeys': this.captionKeys,
-          'isBoolean': this.isBoolean,
-          'unit': this.unit,
-          'svg': this.svg,
-          'firstStateChange': this.firstStateChange,
-          'lastStateChange': this.lastStateChange,
-          'exceedable': this.exceedable,
-          'groupedKey': this.groupedKey,
-          'color': this.color
-        }
-      };
+      return this.properties;
     },
 
     toDate: function(x) {
@@ -283,9 +239,11 @@
 
     updatableChanged: function() {
       // sets a global Object 'window.Content', for updating the values of the elements
-      if (this.noSocketConnection === false && this.system && this.ident) {
-        var id = this.ident,
-          system = this.system;
+      if (this.item &&
+         !this.noSocketConnection &&
+          this.item.system &&
+          this.item.id) {
+        var system = this.item.system, id = this.item.id;
         this.setAttribute("updatable", '');
         if (window.Content === undefined)
           window.Content = {};
@@ -319,7 +277,7 @@
             });
             this.insertValues(this.values || []);
           } catch (e) {
-            console.log(this.nodeName, this.system, this.ident, e);
+            console.log(this.nodeName, system, id, e);
           }
         }
       } else {

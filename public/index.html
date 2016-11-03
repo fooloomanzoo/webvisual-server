@@ -21,22 +21,28 @@
       font-size: 1em;
       line-height: 1.5;
       min-height: 100vh;
-      background: var(--bright-primary-color, #669DB4);
     }
 
     /* styling for render while resources are loading */
     webvisual-app[unresolved] {
       display: block;
-      min-height: 101vh;
-      line-height: 128px;
+      position: relative;
+      min-height: 100vh;
+      min-width: 100vw;
+      line-height: 76vh;
+      vertical-align: middle;
       text-align: center;
-      font-size: 48px;
+      font-size: 2em;
       font-weight: 600;
       letter-spacing: 0.3em;
-      color: #f1f1f1;
-      background: var(--bright-primary-color, #669DB4);
-      padding: 0 16px;
-      overflow: visible;
+      white-space: nowrap;
+      -webkit-overflow-scrolling: auto;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: #E4F6FF;
+      background: #005B82;
+      padding: 96px 32px;
+      box-sizing: border-box;
     }
 
   </style>

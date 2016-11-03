@@ -66,7 +66,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         systemName: String,
 
-        ident: String,
+        itemName: String,
 
         facilities: {
           type: Array,
@@ -77,7 +77,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         facility: {
           type: Object,
-          computed: '_computeFacility(facilityName)',
+          computed: '_computeFacility(facilityName, systemName)',
           notify: true
         },
 
@@ -89,7 +89,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         item: {
           type: Object,
-          computed: '_computeItem(system.items, ident)',
+          computed: '_computeItem(system.items, itemName)',
           notify: true
         },
 
@@ -109,21 +109,26 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         return null;
       },
 
+      _getSystemObject: function(systemName) {
+        for (var i = 0, c; c = this.facility.systems[i]; ++i) {
+          if (c.name === systemName) {
+            return c;
+          }
+        }
+        return null;
+      },
+
       _computeFacility: function(facilityName) {
-        // Fetch the items of the facility. Note that the fetch is asynchronous,
-        // which means `facility.items` may not be set initially (but that path
-        // will be notified when the fetch completes).
         var facilityObj = this._getFacilityObject(facilityName);
         return facilityObj;
       },
 
       _computeSystem: function(facilityName, systemName) {
-        // Fetch the items of the facility. Note that the fetch is asynchronous,
-        // which means `facility.items` may not be set initially (but that path
-        // will be notified when the fetch completes).
-        var facilityObj = this._getFacilityObject(facilityName);
-        this._fetchItems(facilityObj, systemName, 1);
-        return facilityObj;
+        if (!this.facility || !this.facility.systems)
+          return null;
+        var systemObj = this._getSystemObject(systemName);
+        this._fetchItems(systemObj, this.facility.name, 1);
+        return systemObj;
       },
 
       _computeItem: function(items, ident) {
@@ -134,14 +139,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         }
       },
 
-      _fetchItems: function(facility, system, attempts) {
+      _fetchItems: function(system, facilityName, attempts) {
         this._setFailure(false);
         // Only fetch the items of a facility if it has not been previously set.
-        if (!facility || facility.items) {
+        if (!system || system.items) {
           return;
         }
         this._getResource({
-          url: '/data/' + facility.name + '/' + system + '/units.json',
+          url: '/data/' + facilityName + '/' + system.name + '/ids.json',
           onLoad: function(e) {
             this.set('system.items', JSON.parse(e.target.responseText));
           },
@@ -170,7 +175,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       refresh: function() {
         if (this.facilityName) {
           // Try at most 3 times to get the items.
-          this._fetchItems(this._getFacilityObject(this.facilityName), this.systemName, 3);
+          this._fetchItems(this._getSystemObject(this.systemName), this.facilityName, 3);
         }
       }
 

@@ -7,22 +7,31 @@
   <template strip-whitespace>
     <style>
       :host {
-        @apply(--layout);
-        @apply(--layout-center-center);
+        box-sizing: border-box;
+        position: relative;
+        overflow: hidden;
+        /*@apply(--layout);
+        @apply(--layout-center-center);*/
       }
 
       #container {
         position: relative;
+        -webkit-overflow-scrolling: touch;
+        position: relative;
+        height: 100%;
+        white-space: nowrap;
+        overflow-x: auto;
+        text-align: center;
       }
 
       webvisual-tabs-overlay {
         @apply(--webvisual-tab-overlay);
       }
     </style>
-    <div id="container">
+    <nav id="container">
       <webvisual-tabs-overlay id="overlay"></webvisual-tabs-overlay>
       <content></content>
-    </div>
+    </nav>
   </template>
   <script>
     Polymer({

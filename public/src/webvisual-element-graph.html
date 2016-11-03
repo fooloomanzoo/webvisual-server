@@ -106,7 +106,7 @@
         var containerRoot = this.containerRoot;
         // performance.mark('graph attached start');
 
-        if (containerRoot.nodeName !== 'WS-CHART') {
+        if (containerRoot.nodeName !== 'Webvisiual-CHART') {
           console.warn(this.ident, 'Graph is not attached to a container');
           this.chartElement = document.createElement('webvisual-chart');
           containerRoot.appendChild(this.chartElement);

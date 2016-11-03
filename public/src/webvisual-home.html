@@ -1,4 +1,6 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
+<link rel="import" href="../bower_components/iron-selector/iron-selector.html">
 <link rel="import" href="webvisual-button.html">
 
 <dom-module id="webvisual-home">
@@ -12,63 +14,104 @@
         align-items: center;
         justify-content: center;
         box-sizing: border-box;
+        color: var(--bright-text-color);
+        outline: none;
       }
       .box {
         position: relative;
         box-sizing: border-box;
         font-size: 1em;
-        padding: 1.5em;
+        padding: 32px;
         margin: auto;
         align-self: flex-start;
-        color: var(--bright-text-color);
         white-space: normal;
         line-height: 1.4;
       }
       .item {
+        color: var(--hightlight-color);
         display: flex;
-        font-size: 0.75em;
+        font-size: 1em;
         white-space: pre-line;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         text-decoration: none;
         text-align: center;
-        margin-bottom: 20px;
-        margin-left: 18vw;
-        margin-right: 18vw;
-        border-bottom: thin solid var(--highlight-color);
-        color: var(--highlight-color);
-        background: var(--primary-color);
       }
       h1 {
-          font-weight: normal;
-          font-size: 2em;
-          margin: 0.5em;
-          text-align: center;
-          white-space: normal;
+        font-weight: normal;
+        font-size: 2em;
+        margin: 2em;
+        text-align: center;
+        white-space: normal;
       }
-      h4 {
-        font-size: 1.3em;
+      a {
         font-weight: 500;
-        margin: 16px 0;
+        text-decoration: none;
       }
+      .item.facility {
+        margin: 16px;
+        padding: 1.5em;
+        border-radius: 16px;
+        border: thin solid var(--highlight-color);
+      }
+      .item.facility.iron-selected,
+      .item.facility.iron-selected:hover {
+        font-size: 1.25em;
+        background: var(--bright-primary-color);
+        border-width: medium;
+      }
+      .item.system {
+        margin: 0 48px 8px 96px;
+        padding: 1em;
+        border-radius: 8px;
+        color: var(--highlight-color);
+        border: thin solid var(--highlight-color);
+      }
+      .item.system:hover {
+        color: var(--bright-text-color);
+      }
+      iron-collapse {
+        margin-bottom: 32px;
+      }
+
 
       @media (max-width: 767px) {
-        h4 {
-          margin: 12px 0;
-        }
-      }
 
+      }
+      a:link {
+        color: var(--bright-text-color);
+      }
+      a:active {
+        color: var(--active-link-color);
+      }
+      a:visited {
+        color: var(--highlight-color);
+      }
     </style>
 
     <div class="box">
       <h1>Auswahl der Messanlage</h1>
-      <template is="dom-repeat" items="[[facilities]]" strip-whitespace>
-        <webvisual-button class="item">
-          <h4>[[item.title]]</h4>
-          <a aria-label$="[[item.title]]" href$="/list/[[item.name]]">select</a>
-        </webvisual-button>
-      </template>
+      <iron-selector id="selector" selected="{{currentFacility}}" attr-for-selected="aria-label" selectable=".facility">
+        <template is="dom-repeat" items="[[facilities]]" strip-whitespace>
+          <webvisual-button raised class="item facility" itemtitle="[[item.title]]" aria-label$="[[item.title]]" tabindex="1">
+            <div>[[item.title]]</div>
+          </webvisual-button>
+
+          <iron-collapse opened="{{_computeOpened(item.title, currentFacility)}}">
+            <div class="collapse-content">
+              <template is="dom-repeat" items="[[item.systems]]" as="system" strip-whitespace>
+                <a href$="/list/[[item.name]]/[[system.name]]/" tabindex="-1">
+                  <webvisual-button raised class="item system" aria-label$="[[system.title]]" tabindex="1">
+                    <div>[[system.title]]</div>
+                  </webvisual-button>
+                </a>
+              </template>
+            </div>
+          </iron-collapse>
+        </template>
+      </iron-selector>
+
     </div>
 
 
@@ -86,19 +129,27 @@
           type: Array
         },
 
+        currentFacility: {
+          type: String,
+          notify: true
+        },
+
         visible: {
           type: Boolean,
           observer: '_visibleChanged'
         }
-
       },
+
 
       _visibleChanged: function(visible) {
         if (visible) {
           this.fire('change-section', { title: 'Home' });
         }
-      }
+      },
 
+      _computeOpened: function(title, selected) {
+        return (title === selected);
+      }
     });
 
   </script>

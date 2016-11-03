@@ -16,9 +16,11 @@
         overflow: hidden;
         cursor: pointer;
         vertical-align: middle;
-        padding: 0em 1.2em;
       }
 
+      #ripple {
+        padding: 0.6em 1.2em;
+      }
       #overlay {
         pointer-events: none;
         display: none;
@@ -35,7 +37,7 @@
       }
     </style>
     <div id="overlay"></div>
-    <webvisual-ripple-container>
+    <webvisual-ripple-container id="ripple">
       <content></content>
     </webvisual-ripple-container>
   </template>
