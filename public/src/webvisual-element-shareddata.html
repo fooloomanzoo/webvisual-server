@@ -1,7 +1,7 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
-<script src="/socket.io/socket.io.js"/>
-<script src="../js/cache.js"/>
-<script src="../js/webvisual-tools.js"/>
+<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+<script type="text/javascript" src="../scripts/cache.js"></script>
+<script type="text/javascript" src="../scripts/webvisual-tools.js"></script>
 
 <dom-module id="webvisual-element-shareddata">
   <template>
@@ -21,17 +21,15 @@
 
         socketName: String,
 
-        socketRoom: String,
-
-        mobile: Boolean
+        socketRoom: String
 
       },
 
-      observers: {
+      observers: [
         '_createSocket(socketName)',
         '_createCache(socketRoom)',
         '_setupConnection(socketRoom)'
-      }
+      ],
 
       ready: function() {
         // listen for online/offline
@@ -58,7 +56,7 @@
           Webvisual.sockets.get(socketName).disconnect();
         }
 
-        var socket = io.connect(window.location.host + socketName, {
+        var socket = io.connect(window.location.host + '/' + socketName, {
       		multiplex: false
       	});
 

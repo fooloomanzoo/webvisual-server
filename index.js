@@ -29,8 +29,8 @@ let server;
 const defaults = require('./defaults/config.json');
 
 // view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
+// app.set('views', path.join(__dirname, 'views'));
+// app.set('view engine', 'jade');
 
 // get cookies from http requests
 // app.use(cookieParser());
@@ -56,7 +56,7 @@ app.use(passport.session());
 app.use( compression() );
 
 // static dir
-app.use(express.static(path.join(__dirname, 'public', 'www'), {'Cache-Control': 'public, no-cache'}));
+app.use(express.static(path.join(__dirname, 'public'), {'Cache-Control': 'public, no-cache'}));
 
 class WebvisualServer {
 

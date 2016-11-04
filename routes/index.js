@@ -15,51 +15,51 @@ class Router extends EventEmitter {
     this.settings = {};
     this.configuration = {};
 
-    this.app.get('/', (req, res) => {
-      res.set({
-        'Cache-Control': 'public, no-cache'
-      });
-      if (this.settings.server.auth.required === true) {
-        res.redirect('/login');
-      } else {
-        res.redirect('/index');
-      }
-    });
-
-    this.app.get('/index', this.loggedIn.bind(this), (req, res) => {
-      res.set({
-        'Cache-Control': 'public, no-cache'
-      });
-      res.get('X-Frame-Options'); // prevent to render the page within an <iframe> element
-      res.render('index', {
-        // user: req.user,
-        // title: 'Webvisual Index',
-        // renderer: this.settings.renderer,
-        // mobile: this.isMobile(req)
-      });
-      res.end();
-    });
-
-    this.app.get('/login', (req, res) => {
-      res.set({
-        'Cache-Control': 'public, no-cache'
-      });
-      if (this.settings.server.auth.required === true) {
-        res.render('login', {
-          // user: req.user,
-          // title: 'Webvisual Login',
-          // mobile: this.isMobile(req),
-          // server: this.settings.server
-        });
-      } else {
-        res.redirect('/index');
-      }
-    });
-
-    this.app.get('/logout', (req, res) => {
-      req.logout();
-      res.redirect('/login');
-    });
+    // this.app.get('/', (req, res) => {
+    //   res.set({
+    //     'Cache-Control': 'public, no-cache'
+    //   });
+    //   if (this.settings.server.auth.required === true) {
+    //     res.redirect('/login');
+    //   } else {
+    //     res.redirect('/index');
+    //   }
+    // });
+    //
+    // this.app.get('/index', this.loggedIn.bind(this), (req, res) => {
+    //   res.set({
+    //     'Cache-Control': 'public, no-cache'
+    //   });
+    //   res.get('X-Frame-Options'); // prevent to render the page within an <iframe> element
+    //   res.render('index', {
+    //     // user: req.user,
+    //     // title: 'Webvisual Index',
+    //     // renderer: this.settings.renderer,
+    //     // mobile: this.isMobile(req)
+    //   });
+    //   res.end();
+    // });
+    //
+    // this.app.get('/login', (req, res) => {
+    //   res.set({
+    //     'Cache-Control': 'public, no-cache'
+    //   });
+    //   if (this.settings.server.auth.required === true) {
+    //     res.render('login', {
+    //       // user: req.user,
+    //       // title: 'Webvisual Login',
+    //       // mobile: this.isMobile(req),
+    //       // server: this.settings.server
+    //     });
+    //   } else {
+    //     res.redirect('/index');
+    //   }
+    // });
+    //
+    // this.app.get('/logout', (req, res) => {
+    //   req.logout();
+    //   res.redirect('/login');
+    // });
   }
 
   setSettings(options) {
@@ -82,59 +82,59 @@ class Router extends EventEmitter {
     require('./authentification_strategies/activedirectory.js')(this.settings.server.auth.ldap); // register custom ldap-passport-stategy
     require('./authentification_strategies/dummy.js')(); // register dummy-stategy
 
-    if (this.settings.server.auth.required === true) {
-      this.app.post('/login',
-        passport.authenticate('activedirectory-login', {
-          successRedirect: '/index',
-          failureRedirect: '/login'
-        }),
-        function(req, res) {
-          // console.log("auth login");
-        }
-      );
-    } else {
-      this.app.post('/login',
-        passport.authenticate('dummy', {
-          successRedirect: '/index',
-          failureRedirect: '/index'
-        }),
-        function(req, res) {
-          // console.log("no-auth login");
-        }
-      );
-    }
+    // if (this.settings.server.auth.required === true) {
+    //   this.app.post('/login',
+    //     passport.authenticate('activedirectory-login', {
+    //       successRedirect: '/index',
+    //       failureRedirect: '/login'
+    //     }),
+    //     function(req, res) {
+    //       // console.log("auth login");
+    //     }
+    //   );
+    // } else {
+    //   this.app.post('/login',
+    //     passport.authenticate('dummy', {
+    //       successRedirect: '/index',
+    //       failureRedirect: '/index'
+    //     }),
+    //     function(req, res) {
+    //       // console.log("no-auth login");
+    //     }
+    //   );
+    // }
   }
 
   setUserConfig(userConfigFiles) {
     this.settings.userConfigFiles = userConfigFiles;
 
-    for (let facility in userConfigFiles) {
-      this.app.get('/' + facility, this.loggedIn.bind(this), (req, res) => {
-        let facility = req.url.substr(1);
-
-        if (!facility || !this.settings.userConfigFiles[facility] || !this.settings.userConfigFiles[facility].renderer) {
-          this.emit("error", "Requested Renderer for '" + facility + "' not found.");
-          res.redirect('/index');
-          res.end();
-          return;
-        }
-        let rendererName = this.settings.userConfigFiles[facility].renderer;
-        let rendererPath = './renderer/' + this.settings.renderer[rendererName].path;
-
-        res.get('X-Frame-Options'); // prevent to render the page within an <iframe> element
-        res.render(rendererPath, {
-          // user: req.user,
-          // title: facility,
-          // facility: facility,
-          // config: this.configuration[facility],
-          // mobile: this.isMobile(req)
-        });
-        res.end();
-      });
-    }
-    this.app.use(function(req, res) {
-      res.redirect('/login');
-    });
+    // for (let facility in userConfigFiles) {
+    //   this.app.get('/' + facility, this.loggedIn.bind(this), (req, res) => {
+    //     let facility = req.url.substr(1);
+    //
+    //     if (!facility || !this.settings.userConfigFiles[facility] || !this.settings.userConfigFiles[facility].renderer) {
+    //       this.emit("error", "Requested Renderer for '" + facility + "' not found.");
+    //       res.redirect('/index');
+    //       res.end();
+    //       return;
+    //     }
+    //     let rendererName = this.settings.userConfigFiles[facility].renderer;
+    //     let rendererPath = './renderer/' + this.settings.renderer[rendererName].path;
+    //
+    //     res.get('X-Frame-Options'); // prevent to render the page within an <iframe> element
+    //     res.render(rendererPath, {
+    //       // user: req.user,
+    //       // title: facility,
+    //       // facility: facility,
+    //       // config: this.configuration[facility],
+    //       // mobile: this.isMobile(req)
+    //     });
+    //     res.end();
+    //   });
+    // }
+    // this.app.use(function(req, res) {
+    //   res.redirect('/login');
+    // });
   }
 
   setConfiguration(opt, facility) {
@@ -167,10 +167,7 @@ class Router extends EventEmitter {
           if (err) this.emit("error", JSON.stringify(err));
         });
       }
-
     }
-    this.app.use(express.static(path.join(__dirname, 'public', 'www'), {'Cache-Control': 'public, no-cache'}));
-    // console.log(this.configuration);
   }
 
   loggedIn(req, res, next) {
