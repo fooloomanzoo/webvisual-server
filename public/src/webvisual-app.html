@@ -59,7 +59,7 @@
       }
       app-header {
         @apply(--layout-fixed-top);
-        /*z-index: 1;*/
+        z-index: 1;
         background-color: transparent;
         --app-header-shadow: {
           box-shadow: inset 0px 5px 6px -3px rgba(0, 0, 0, 0.2);
@@ -69,8 +69,16 @@
       }
       app-toolbar {
         font-size: 16px;
-        background: var(--primary-color);
+        /*background: var(--primary-color);*/
         color: var(--bright-text-color);
+      }
+      app-drawer {
+        z-index: 1;
+        --app-drawer-scrim-background: var(--drawer-scim-background);
+        --app-drawer-content-container: var(--drawer-content-container);
+      }
+      app-drawer > app-toolbar {
+        color: var(--primary-color);
       }
       #tabs {
         background: white;
@@ -158,14 +166,14 @@
       <template is="dom-if" if="[[_shouldRenderHeader]]">
 
         <app-toolbar>
-          <webvisual-icon-button icon="menu" class="menu-icon"></webvisual-icon-button>
+          <webvisual-icon-button icon="menu" class="menu-icon" on-tap="_toggleDrawer"></webvisual-icon-button>
 
           <webvisual-logo main-title id="logo"></webvisual-logo>
 
           <template is="dom-if" if="[[_shouldRenderControlButtons]]">
 
             <template is="dom-if" if="[[isExceeding]]">
-              <webvisual-icon-button icon="error-outline" class="error-icon control" on-tap="toggleAlarmPanel" hidden$="[[!isExceeding]]"></webvisual-icon-button>
+              <webvisual-icon-button icon="error-outline" class="error-icon control" on-tap="_toggleAlarmDrawer" hidden$="[[!isExceeding]]"></webvisual-icon-button>
             </template>
 
             <webvisual-icon-button icon="[[_computeExpandIcon(expanded)]]" class="expand-icon" on-tap="toolbarExpandToggle"></webvisual-icon-button>
@@ -205,7 +213,6 @@
       </template>
     </app-header>
 
-    <!-- <iron-pages role="main" id="panelSelector" selected="{{currentSystem}}" attr-for-selected="system"> -->
     <iron-pages id="pageselector" role="main" selected="[[page]]" attr-for-selected="name" selected-attribute="visible">
       <!-- home view for selecting the facility -->
       <webvisual-home name="home" facilities="[[facilities]]"></webvisual-home>
@@ -216,26 +223,30 @@
     </iron-pages>
 
     <!-- EXCEEDING -->
-    <app-drawer id="alarmPanel" align="right" swipe-open tabindex="0">
-      <app-toolbar id="alarmheader" on-tap="toggleAlarmPanel">
-        <webvisual-button class="title"><iron-icon icon="warning" class="left"></iron-icon><section class="content">Alarme</section></webvisual-button>
-      </app-toolbar>
+    <template is="dom-if" if="[[isExceeding]]">
+      <app-drawer id="alarmDrawer" opened="{{alarmDrawerOpened}}" align="right" swipe-open tabindex="0">
+        <app-toolbar class="header">
+          <webvisual-icon-button icon="warning" on-tap="_toggleAlarmDrawer"></webvisual-icon-button>
+          <div>Alarme</div>
+        </app-toolbar>
 
-      <webvisual-swipeable-container id="exceedingElementsList"
-         is-exceeding="{{isExceeding}}"
-         notify-parent="{{!noExceedNotify}}"
-         no-select-notify
-         no-auto-removal-exceeding-elements>
-      </webvisual-swipeable-container>
+        <webvisual-swipeable-container id="exceedingElementsList"
+           is-exceeding="{{isExceeding}}"
+           notify-parent="{{!noExceedNotify}}"
+           no-select-notify
+           no-auto-removal-exceeding-elements>
+        </webvisual-swipeable-container>
 
-      <section style="padding: 0em 0.75em 0.75em 0.75em; float: right;"><a href="#" on-click="_clearExceedingElementsFromList">Liste leeren</a></section>
-    </app-drawer>
+        <section style="padding: 0em 0.75em 0.75em 0.75em; float: right;"><a href="#" on-click="_clearExceedingElementsFromList">Liste leeren</a></section>
+      </app-drawer>
+    </template>
 
     <!-- SIDEMENU -->
     <template is="dom-if" if="[[_shouldRenderDrawer]]">
-      <app-drawer id="drawerPanel" align="left" swipe-open tabindex="0">
-        <app-toolbar id="drawerheader" on-tap="toggleDrawer">
-          <webvisual-button class="title"><iron-icon icon="settings" class="left"></iron-icon><section class="content">Alarme</section></webvisual-button>
+      <app-drawer id="drawerPanel" opened="{{drawerOpened}}" align="left" swipe-open tabindex="0">
+        <app-toolbar class="header">
+          <webvisual-icon-button icon="settings" on-tap="_toggleDrawer"></webvisual-icon-button>
+          <div>Einstellungen</div>
         </app-toolbar>
 
         <webvisual-button collapse-id="settings" class="sidemenu collapsable" on-tap="toggleCollapse">
@@ -294,6 +305,10 @@
           value: 0
         },
 
+        _shouldRenderHeader: {
+          computed: '_computeShouldRenderHeader(page)'
+        },
+
         _shouldShowLowerToolbar: {
           computed: '_computeShouldRenderLowerToolbar(page)'
         },
@@ -311,7 +326,7 @@
         },
 
         _shouldRenderDrawer: {
-          computed: '_computeShouldRenderDrawer(smallScreen, loadComplete)'
+          computed: '_computeShouldRenderDrawer(page, loadComplete)'
         }
       },
 
@@ -340,6 +355,7 @@
       },
 
       _routePageChanged: function(page) {
+        console.log(page);
         this.page = page || 'home';
         // Scroll to the top of the page on every *route* change. Use `Polymer.AppLayout.scroll`
         // with `behavior: 'silent'` to disable header scroll effects during the scroll.
@@ -410,6 +426,9 @@
       _toggleDrawer: function() {
         this.drawerOpened = !this.drawerOpened;
       },
+      _toggleAlarmDrawer: function() {
+        this.alarmDrawerOpened = !this.alarmDrawerOpened;
+      },
 
       // Elements in the app can notify section changes.
       // Response by a11y announcing the section and syncronizing the facility.
@@ -468,8 +487,8 @@
         return _shouldShowTabs && loadComplete;
       },
 
-      _computeShouldRenderDrawer: function(smallScreen, loadComplete) {
-        return smallScreen && loadComplete;
+      _computeShouldRenderDrawer: function(page, loadComplete) {
+        return (page !== 'home') && loadComplete;
       },
 
       _computePluralizedQuantity: function(quantity) {

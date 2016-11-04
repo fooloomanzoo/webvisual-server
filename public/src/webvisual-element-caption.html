@@ -83,8 +83,7 @@
           value: function() {
             return {};
           },
-          notify: true,
-          observer: 'print'
+          notify: true
         },
 
         groupedKey: {
@@ -117,14 +116,8 @@
         return this.keys[key];
       },
 
-      print: function(a,b) {
-        console.log(a,b);
-      },
-
       _computeReducedCaptionKeys: function(groupedKey, keys, onlyGroupedKey, withoutGroupedKey) {
-        console.log(groupedKey, keys, onlyGroupedKey, withoutGroupedKey);
         var captionKeys = Object.keys(keys);
-        console.log('captionKeys', captionKeys);
         if (captionKeys.length === 0) return [];
 
         var reducedCaptionKeys = [];
