@@ -111,7 +111,7 @@
       },
 
       observers: [
-        '_facilityChanged(facility, visible)'
+        '_routeChanged(facility, system, visible)'
       ],
 
       print: function(arg) {
@@ -126,7 +126,7 @@
       _getItemHref: function(item) {
         // By returning null when `itemId` is undefined, the href attribute won't be set and
         // the link will be disabled.
-        return item.name ? ['/detail', this.facility.name, item.name].join('/') : null;
+        return item.name ? ['/detail', this.facility.name, this.system.name, item.name].join('/') : null;
       },
 
       _getPluralizedQuantity: function(quantity) {
@@ -137,14 +137,14 @@
         return  '(' + quantity + ' ' + pluralizedQ + ')';
       },
 
-      _facilityChanged: function(facility, visible) {
+      _routeChanged: function(facility, system, visible) {
         if (visible) {
           this.debounce('change-section', function() {
             // Notify the facility and the page's title
             this.fire('change-section', {
               facility: facility.name,
-              title: facility.title,
-              systems: facility.systems
+              title: facility.title + '/' + facility.title,
+              system: system.name,
             });
           });
         }

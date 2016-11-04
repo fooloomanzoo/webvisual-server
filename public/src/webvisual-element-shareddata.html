@@ -1,0 +1,120 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<script src="/socket.io/socket.io.js"/>
+<script src="../js/cache.js"/>
+<script src="../js/webvisual-tools.js"/>
+
+<dom-module id="webvisual-element-shareddata">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+
+  </template>
+  <script>
+    Polymer({
+
+      is: 'webvisual-element-shareddata',
+
+      properties: {
+
+        socketName: String,
+
+        socketRoom: String,
+
+        mobile: Boolean
+
+      },
+
+      observers: {
+        '_createSocket(socketName)',
+        '_createCache(socketRoom)',
+        '_setupConnection(socketRoom)'
+      }
+
+      ready: function() {
+        // listen for online/offline
+        Polymer.RenderStatus.afterNextRender(this, function() {
+          this.listen(window, 'online', '_notifyNetworkStatus');
+          this.listen(window, 'offline', '_notifyNetworkStatus');
+        });
+
+      },
+
+      _notifyNetworkStatus: function() {
+        var oldOffline = this.offline;
+        this.offline =  !navigator.onLine;
+
+        if (!this.socket && !this.offline) {
+          this._createSocket();
+        }
+      },
+
+      _createSocket: function(socketName) {
+        if (!window.io || !socketName) return;
+
+        if (Webvisual.sockets.has(socketName)) {
+          Webvisual.sockets.get(socketName).disconnect();
+        }
+
+        var socket = io.connect(window.location.host + socketName, {
+      		multiplex: false
+      	});
+
+        socket.on('connect', (function() {
+      			console.info("client connected to: " + window.location.host);
+      			this.opened = true;
+      		}).bind(this));
+        socket.on('disconnect', (function() {
+      			console.info("client connected to: " + window.location.host);
+      			this.opened = true;
+      		}).bind(this));
+        socket.on('reconnect', (function() {
+      			console.info("client connected to: " + window.location.host);
+      			this.opened = true;
+      		}).bind(this));
+        socket.on('error', (function() {
+      			console.info("client connected to: " + window.location.host);
+      			this.opened = true;
+      		}).bind(this));
+
+        socket.on('initial', Webvisual.updateData);
+        socket.on('update', Webvisual.updateData);
+
+        Webvisual.sockets.set(socketName, socket);
+
+        if (this.socketRoom) {
+          this._setupConnection(this.socketRoom);
+        }
+      },
+
+      _setupConnection: function(socketRoom) {
+        if (!Webvisual.sockets.has(this.socketName)) {
+          return;
+        }
+        Webvisual.sockets.get(this.socketName)
+                         .emit('setup', {
+              							room: socketRoom,
+              							mobile: Webvisual.mobile
+              						});
+      },
+
+      _createCache: function(socketRoom) {
+        var facilityName = socketRoom.split('/')[0]
+          , systemName = socketRoom.split('/')[1];
+
+        if (!facilityName || !systemName) return;
+
+        if (Webvisual.cache)
+          Webvisual.cache.clear();
+
+        Webvisual.cache = new ClientCache(facilityName, systemName);
+      },
+
+      _update: function() {
+
+      }
+    });
+  </script>
+</dom-module>

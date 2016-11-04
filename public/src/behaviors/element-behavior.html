@@ -74,7 +74,7 @@
     },
 
     attached: function() {
-      if (this.item && this.item.system && this.item.id)
+      if (this.item && this.item.id)
         this.updatableChanged();
       else {
         this.set('values', this.values || []);
@@ -82,21 +82,8 @@
     },
 
     detached: function() {
-      var pos, system, id;
-      if (this.item &&
-          this.item.system &&
-          this.item.id) {
-            system = this.item.system;
-            id = this.item.id;
-          }
-      if (this.noSocketConnection === false &&
-        system &&
-        id &&
-        window.Content !== undefined &&
-        window.Content[system] &&
-        window.Content[system][id] &&
-        (pos = window.Content[system][id].nodes.indexOf(this)) !== -1)
-        window.Content[system][id].nodes.splice(pos, 1);
+      this.unsetElement();
+      this.clearValues();
     },
 
     setElement: function(item, properties) {
@@ -106,36 +93,15 @@
         if (key !== 'item')
           this.set(key, properties[key].value);
       }
-      var pos, system = item.system, id = item.id;
-      if (this.noSocketConnection === false && system && id &&
-        window.Content !== undefined &&
-        window.Content[system] &&
-        window.Content[system][id] &&
-        (pos = window.Content[system][id].nodes.indexOf(this)) !== -1) {
-        window.Content[system][id].nodes.splice(pos, 1); // remove from window.Content
-        this.removeAttribute('updatable');
-      }
       this.updatableChanged();
     },
 
     unsetElement: function() {
-      var pos, system, id;
-      if (this.item &&
-          this.item.system &&
-          this.item.id) {
-            system = this.item.system;
-            id = this.item.id;
-          }
-      if (this.noSocketConnection === false &&
-          system &&
-          id &&
-          window.Content !== undefined &&
-          window.Content[system] &&
-          window.Content[system][id] &&
-          (pos = window.Content[system][id].nodes.indexOf(this)) !== -1) {
-            window.Content[system][id].nodes.splice(pos, 1); // remove from window.Content
-            this.removeAttribute('updatable');
-          }
+      if (this.item && this.item.id) {
+        var id = this.item.id;
+        if (this.noSocketConnection === false && id)
+          Webvisual.retractElement(this);
+      }
     },
 
     getElement: function() {
@@ -238,56 +204,26 @@
     },
 
     updatableChanged: function() {
-      // sets a global Object 'window.Content', for updating the values of the elements
+      // sets a global Object 'Webvisual', for updating the values of the elements
       if (this.item &&
          !this.noSocketConnection &&
-          this.item.system &&
           this.item.id) {
-        var system = this.item.system, id = this.item.id;
-        this.setAttribute("updatable", '');
-        if (window.Content === undefined)
-          window.Content = {};
-        if (window.Content[system] === undefined)
-          window.Content[system] = {};
-        if (window.Content[system][id] === undefined)
-          window.Content[system][id] = {};
-        if (window.Content[system][id].nodes === undefined)
-          window.Content[system][id].nodes = [];
-        if (window.Content[system][id].values === undefined)
-          window.Content[system][id].values = [];
-        if (window.Content[system][id].nodes.indexOf(this) === -1) {
-          window.Content[system][id].nodes.push(this);
-          // console.log(id, system, 'added', window.Content);
-          try {
-            // delete this.values;
-            if (window.Cache[system] === undefined)
-              window.Cache[system] = new ClientCache(window.name, system);
-            if (window.Cache[system][id] === undefined) {
-              var obj = {};
-              obj[id] = [];
-              window.Cache[system].append(obj);
+        var id = this.item.id;
+        try {
+          Object.defineProperty(this, "values", {
+            configurable: true,
+            enumerable: false,
+            get: function() {
+              return Webvisual.cache[id].values;
             }
-
-            Object.defineProperty(this, "values", {
-              configurable: true,
-              enumerable: false,
-              get: function() {
-                return window.Cache[system][id].values;
-              }
-            });
-            this.insertValues(this.values || []);
-          } catch (e) {
-            console.log(this.nodeName, system, id, e);
-          }
+          });
+          this.insertValues(this.values || []);
+          Webvisual.assignElement(this);
+        } catch (e) {
+          console.log(this.nodeName, system, id, e);
         }
       } else {
-        this.removeAttribute("updatable");
-        var pos;
-        if (!(window.Content === undefined) &&
-          window.Content[system] &&
-          window.Content[system][id] &&
-          (pos = window.Content[system][id].nodes.indexOf(this)) !== -1)
-          window.Content[system][id].nodes.splice(pos, 1);
+        Webvisual.retractElement(this);
       }
     }
   };

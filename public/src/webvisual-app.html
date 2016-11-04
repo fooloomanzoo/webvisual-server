@@ -18,6 +18,7 @@
 <link rel="import" href="behaviors/container-behavior.html"/>
 <link rel="import" href="behaviors/attribute-repeat-animation-behavior.html"/>
 
+<link rel="import" href="webvisual-element-shareddata.html"/>
 <link rel="import" href="webvisual-logo.html"/>
 <link rel="import" href="webvisual-icon-button.html"/>
 <link rel="import" href="webvisual-facility-data.html"/>
@@ -159,6 +160,8 @@
       tail="{{subroute}}"></app-route>
 
     <webvisual-facility-data facilities="{{facilities}}" systems="{{systems}}"></webvisual-facility-data>
+
+    <webvisual-element-shareddata socket-name="data" socket-room="{{socketRoom}}"></webvisual-element-shareddata>
 
     <iron-media-query query="max-width: 767px" query-matches="{{smallScreen}}"></iron-media-query>
 
@@ -434,11 +437,14 @@
       // Response by a11y announcing the section and syncronizing the facility.
       _onChangeSection: function(event) {
         var detail = event.detail;
-        this.facilityName = detail.facility || '';
         // Announce the page's title
         if (detail.title) {
           document.title = detail.title + ' - Webvisual';
           this._announce(detail.title + ', loaded');
+        }
+        // set SocketConnection
+        if (detail.facility && detail.system) {
+          this.socketRoom = detail.facility + '/' + detail.system;
         }
       },
 

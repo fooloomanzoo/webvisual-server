@@ -32,11 +32,10 @@ class Router extends EventEmitter {
       });
       res.get('X-Frame-Options'); // prevent to render the page within an <iframe> element
       res.render('index', {
-        user: req.user,
-        title: 'Webvisual Index',
-        userConfigFiles: this.settings.userConfigFiles,
-        renderer: this.settings.renderer,
-        mobile: this.isMobile(req)
+        // user: req.user,
+        // title: 'Webvisual Index',
+        // renderer: this.settings.renderer,
+        // mobile: this.isMobile(req)
       });
       res.end();
     });
@@ -47,10 +46,10 @@ class Router extends EventEmitter {
       });
       if (this.settings.server.auth.required === true) {
         res.render('login', {
-          user: req.user,
-          title: 'Webvisual Login',
-          mobile: this.isMobile(req),
-          server: this.settings.server
+          // user: req.user,
+          // title: 'Webvisual Login',
+          // mobile: this.isMobile(req),
+          // server: this.settings.server
         });
       } else {
         res.redirect('/index');
@@ -124,11 +123,11 @@ class Router extends EventEmitter {
 
         res.get('X-Frame-Options'); // prevent to render the page within an <iframe> element
         res.render(rendererPath, {
-          user: req.user,
-          title: facility,
-          facility: facility,
-          config: this.configuration[facility],
-          mobile: this.isMobile(req)
+          // user: req.user,
+          // title: facility,
+          // facility: facility,
+          // config: this.configuration[facility],
+          // mobile: this.isMobile(req)
         });
         res.end();
       });
@@ -140,7 +139,7 @@ class Router extends EventEmitter {
 
   setConfiguration(opt, facility) {
     this.configuration[facility] = opt;
-    
+
     // create server side json files of the regrounded element configurations
       // mkdir
     var dirs = ['/public', 'data', facility];
