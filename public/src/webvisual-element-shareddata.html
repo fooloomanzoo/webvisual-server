@@ -18,17 +18,29 @@
       is: 'webvisual-element-shareddata',
 
       properties: {
+        
+        locationHost: {
+          type: String,
+          value: window.location.host
+        },
 
         socketName: String,
 
-        socketRoom: String
+        socketRoom: {
+          type: String,
+          observer: '_setupConnection'
+        },
+
+        initialized: {
+          type: Boolean,
+          value: false,
+          notify: true
+        }
 
       },
 
       observers: [
-        '_createSocket(socketName)',
-        '_createCache(socketRoom)',
-        '_setupConnection(socketRoom)'
+        '_createSocket(locationHost, socketName)'
       ],
 
       ready: function() {
@@ -49,36 +61,39 @@
         }
       },
 
-      _createSocket: function(socketName) {
+      _createSocket: function(locationhost, socketName) {
         if (!window.io || !socketName) return;
 
         if (Webvisual.sockets.has(socketName)) {
-          Webvisual.sockets.get(socketName).disconnect();
+          return;
         }
 
-        var socket = io.connect(window.location.host + '/' + socketName, {
+        var socket = io.connect(locationhost + '/' + socketName, {
       		multiplex: false
       	});
 
         socket.on('connect', (function() {
-      			console.info("client connected to: " + window.location.host);
+      			console.info("clientSocket connected to: " + window.location.host);
       			this.opened = true;
       		}).bind(this));
         socket.on('disconnect', (function() {
-      			console.info("client connected to: " + window.location.host);
+      			console.warn("clientSocket disconnected to: " + window.location.host);
       			this.opened = true;
       		}).bind(this));
         socket.on('reconnect', (function() {
-      			console.info("client connected to: " + window.location.host);
+      			console.info("clientSocket reconnected to: " + window.location.host);
       			this.opened = true;
       		}).bind(this));
-        socket.on('error', (function() {
-      			console.info("client connected to: " + window.location.host);
+        socket.on('error', (function(err) {
+      			console.error("clientSocket error: ", err);
       			this.opened = true;
       		}).bind(this));
 
-        socket.on('initial', Webvisual.updateData);
-        socket.on('update', Webvisual.updateData);
+        socket.on('initial', function(message) {
+          Webvisual.initializeData(message);
+          this.initialized = true;
+        }.bind(this));
+        socket.on('update', Webvisual.updateData.bind(Webvisual));
 
         Webvisual.sockets.set(socketName, socket);
 
@@ -87,31 +102,19 @@
         }
       },
 
-      _setupConnection: function(socketRoom) {
-        if (!Webvisual.sockets.has(this.socketName)) {
+      _setupConnection: function(socketRoom, old) {
+        var facility = socketRoom.split('/')[0]
+          , system =  socketRoom.split('/')[1];
+        if (!facility || !system || !Webvisual.sockets.has(this.socketName)) {
           return;
         }
+        this.initialized = false;
         Webvisual.sockets.get(this.socketName)
                          .emit('setup', {
               							room: socketRoom,
+                            oldroom: old,
               							mobile: Webvisual.mobile
               						});
-      },
-
-      _createCache: function(socketRoom) {
-        var facilityName = socketRoom.split('/')[0]
-          , systemName = socketRoom.split('/')[1];
-
-        if (!facilityName || !systemName) return;
-
-        if (Webvisual.cache)
-          Webvisual.cache.clear();
-
-        Webvisual.cache = new ClientCache(facilityName, systemName);
-      },
-
-      _update: function() {
-
       }
     });
   </script>

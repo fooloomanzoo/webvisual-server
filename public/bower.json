@@ -2,7 +2,7 @@
   "name": "webvisual",
   "version": "0.7.5",
   "license": "MIT",
-  "homepage": "https://github.com/fooloomanzii/webvisual",
+  "homepage": "https://github.com/fooloomanzii/webvisual-server",
   "authors": [
     "fooloomanzoo <hannes-b@web.de>"
   ],
@@ -11,9 +11,7 @@
     "paper-elements": "PolymerElements/paper-elements",
     "app-layout": "polymerelements/app-layout",
     "app-route": "polymerelements/app-route",
-    "neon-animation": "PolymerElements/neon-animation"
-  },
-  "devDependencies": {
+    "neon-animation": "PolymerElements/neon-animation",
     "polymer": "Polymer/polymer#1.7.0",
     "d3": "*"
   }

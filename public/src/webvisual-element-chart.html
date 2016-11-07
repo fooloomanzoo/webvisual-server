@@ -7,7 +7,7 @@
 <link rel="import" href="webvisual-graph.html"/>
 <script type="text/javascript" src='../bower_components/d3/d3.min.js'></script>
 
-<dom-module id='webvisual-chart'>
+<dom-module id='webvisual-element-chart'>
   <template>
     <style>
       :host {
@@ -280,7 +280,7 @@
     });
 
     Polymer({
-      is: 'webvisual-chart',
+      is: 'webvisual-element-chart',
 
       behaviors: [
         Polymer.IronResizableBehavior,
@@ -485,7 +485,7 @@
 
         this._svg.selectAll('g,line,text,path,rect')
           .classed('style-scope', true)
-          .classed('webvisual-chart', true);
+          .classed('webvisual-element-chart', true);
 
         this._svg.on('contextmenu', this._resetZoom.bind(this));
         // performance.mark('build end');
@@ -559,7 +559,7 @@
 
         this._svg.selectAll('g,line,text,path,rect')
           .classed('style-scope', true)
-          .classed('webvisual-chart', true);
+          .classed('webvisual-element-chart', true);
         this._focusY.attr('y1', this._height);
         // performance.mark('size end');
         // performance.measure('size', 'size start', 'size end');
@@ -683,7 +683,7 @@
 
         this._svg.selectAll('g,line,text,path,rect')
           .classed('style-scope', true)
-          .classed('webvisual-chart', true);
+          .classed('webvisual-element-chart', true);
         this._updateInfo();
         // this._hideInfo();
       },
@@ -777,7 +777,7 @@
         this._focus.transition(33).attr('hidden', '');
         this._svg.selectAll('g,line,text,path,rect')
           .classed('style-scope', true)
-          .classed('webvisual-chart', true);
+          .classed('webvisual-element-chart', true);
       },
       _updateInfo: function() {
         if (this._info.attr('hidden') === "true" || this._info.x === undefined || this._info.y === undefined) return;
@@ -803,7 +803,7 @@
         this._chart.select('g.y.axis').transition(50).call(this._yAxis);
         this._svg.selectAll('g,line,text,path,rect')
           .classed('style-scope', true)
-          .classed('webvisual-chart', true);
+          .classed('webvisual-element-chart', true);
       },
       toggleMenu: function() {
         if (this.$.menu.hasAttribute('hidden')) {

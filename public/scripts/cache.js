@@ -1,6 +1,6 @@
 (function() {
-	'use strict';
-	const defaults = {
+
+	var defaults = {
 		size: 5400, // Length of each DataRow (by id in values)
 		is: 'Array', // TODO: +ArrayBuffer
 		type: 'Float64', // TODO: TypedArray
@@ -9,11 +9,11 @@
 
 	function CacheKey(options) {
 		// Set Options
-		for (let type in options) {
+		for (var type in options) {
 			this[type] = options[type];
 		}
 		// Merge Defaults
-		for (let type in defaults) {
+		for (var type in defaults) {
 			if (this[type] === undefined)
 				this[type] = defaults[type];
 		}
@@ -74,7 +74,7 @@
 		},
 
 		request: function(len) {
-			const start = (len >= 0 && len < this._cache.length) ? this._cache.length - len - 1 : 0;
+			var start = (len >= 0 && len < this._cache.length) ? this._cache.length - len - 1 : 0;
 			return this._cache.slice(start);
 		},
 
@@ -94,10 +94,10 @@
 	  },
 
 	  max: function(key) { // inspired by d3.array
-			let i = -1,
+			var i = -1,
 		      a,
 		      b;
-			const n = this._cache.length;
+			var n = this._cache.length;
 
 			while (++i < n) if ((b = this._cache[i][key]) !== null && b >= b) { a = b; break; }
 			while (++i < n) if ((b = this._cache[i][key]) !== null && a < b) { a = b; }
@@ -106,10 +106,10 @@
 	  },
 
 	  min: function(key) { // inspired by d3.array
-			let i = -1,
+			var i = -1,
 		      a,
 		      b;
-			const n = this._cache.length;
+			var n = this._cache.length;
 
 			while (++i < n) if ((b = this._cache[i][key]) !== null && b >= b) { a = b; break; }
 			while (++i < n) if ((b = this._cache[i][key]) !== null && a > b) a = b;
@@ -124,11 +124,12 @@
 	    }
 	  },
 
-		append: function(data) {
-			let len = data.length;
+		append: function(data, noHeap) {
+			var len = data.length;
 			if (len > this.size)
 				data = data.slice(len - this.size, len);
-			this._heap = this._heap.concat(data);
+			if (!noHeap)
+				this._heap = this._heap.concat(data);
 			if (this._cache.length === 0)
 				this._cache = data;
 			else
@@ -140,47 +141,62 @@
 		}
 	}
 
-	function ClientCache(facility, system, options) {
+	function ClientCache(options) {
 		// Set Options
-	  this.facility = facility;
-	  this.system = system;
 		this.options = options;
-		this._cache = {};
+		this._cache = new Map();
 	}
 
 	ClientCache.prototype = {
 
-		clear: function(ids) {
-			if (ids === undefined) {
-				ids = Object.keys(this._cache);
-			} else if (Array.isArray(ids) === false) {
-				ids = [ids];
-			}
-			for (let id in ids) {
-				if (this._cache[id]) {
-					this._cache[id].clear();
-				}
-			}
+		clear: function() {
+			this._cache.forEach( function(v,e) {
+				e.clear();
+				delete this[v];
+			}.bind(this))
+			this._cache.clear();
 		},
 
 		request: function(len, ids) {
+			var ret = {};
 			if (ids === undefined || !Array.isArray(ids)) {
+				this._cache.forEach(function(v,e) {
+					ret[v] = e.request(len);
+				})
 				ids = Object.keys(this._cache);
-			}
-			let ret = {};
-			for (let i in ids) {
-				if (ids[i] in this._cache) {
-					ret[ids[i]] = this._cache[ids[i]].request(len);
+			} else {
+				for (var i in ids) {
+					if (this._cache.has(ids[i])) {
+						ret[ids[i]] = this._cache.get(ids[i]).request(len);
+					}
 				}
 			}
 			return ret;
 		},
 
+		has: function(id) {
+			return this._cache.has(id);
+		},
+
+		get: function(id) {
+			return this._cache.get(id);
+		},
+
+		add: function(id) {
+			this._cache.set(id, new CacheKey(this.options));
+		},
+
+		delete: function(id) {
+			delete this[id];
+			this._cache.get(id).clear();
+			return this._cache.delete(id);
+		},
+
 		_max: function(array) { // inspired by d3.array
-			let i = -1,
+			var i = -1,
 		      a,
 		      b;
-			const n = array.length;
+			var n = array.length;
 
 			while (++i < n) if ((b = array[i]) !== null && b >= b) { a = b; break; }
 			while (++i < n) if ((b = array[i]) !== null && a < b) a = b;
@@ -189,10 +205,10 @@
 	  },
 
 	  _min: function(array) { // inspired by d3.array
-			let i = -1,
+			var i = -1,
 		      a,
 		      b;
-			const n = array.length;
+			var n = array.length;
 
 			while (++i < n) if ((b = array[i]) !== null && b >= b) { a = b; break; }
 			while (++i < n) if ((b = array[i]) !== null && a > b) a = b;
@@ -201,15 +217,18 @@
 	  },
 
 	  operation: function(func, compareFn, key, ids) {
+			var ret = [];
 	    if (ids === undefined || !Array.isArray(ids)) {
-	      ids = Object.keys(this._cache);
-	    }
-	    let temp = [];
-	    for (let i in ids) {
-	      if (ids[i] in this._cache) {
-	        temp.push(this._cache[ids[i]][func](key));
-	      }
-	    }
+				this._cache.forEach(function(v,e) {
+					ret.push(e[func](key));
+				})
+	    } else {
+				for (var i in ids) {
+					if (this._cache.has(ids[i])) {
+						temp.push(this._cache.get(ids[i])[func](key));
+					}
+				}
+			}
 	    return compareFn(temp, key);
 	  },
 
@@ -234,22 +253,12 @@
 	    return [this.min(ids, key), this.max(ids, key)];
 	  },
 
-		append: function(data) {
-			for (let id in data) {
-				if (this._cache[id] === undefined) {
-					this._cache[id] = new CacheKey(this.options);
-					Object.defineProperty(this, id, {
-						get: function() {
-							return this._cache[id];
-						},
-						set: function(obj) {
-							this._cache[id].append(obj);
-						},
-						enumerable: true,
-						configurable: true
-					});
+		append: function(data, noHeap) {
+			for (var id in data) {
+				if (!this._cache.has(id)) {
+					this._cache.set(id, new CacheKey(this.options));
 				}
-				this._cache[id].append(data[id]);
+				this._cache.get(id).append(data[id], noHeap);
 			}
 		}
 	}

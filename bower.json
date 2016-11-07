@@ -1,26 +1,18 @@
 {
-  "name": "webvisual-server",
-  "description": "server for visualization of data changes",
-  "main": "index.js",
-  "authors": [
-    "Johannes Brautzsch <hannes-b@web.de>",
-    "Alexander Diener",
-    "Sascha Wolff"
-  ],
+  "name": "webvisual",
+  "version": "0.7.5",
   "license": "MIT",
-  "homepage": "https://github.com/fooloomanzoo/webvisual-server",
-  "private": true,
+  "homepage": "https://github.com/fooloomanzii/webvisual-server",
+  "authors": [
+    "fooloomanzoo <hannes-b@web.de>"
+  ],
   "dependencies": {
-    "app-layout": "PolymerElements/app-layout",
     "iron-elements": "PolymerElements/iron-elements",
     "paper-elements": "PolymerElements/paper-elements",
+    "app-layout": "polymerelements/app-layout",
+    "app-route": "polymerelements/app-route",
+    "neon-animation": "PolymerElements/neon-animation",
+    "polymer": "Polymer/polymer#1.7.0",
     "d3": "*"
-  },
-  "ignore": [
-    "**/.*",
-    "node_modules",
-    "bower_components",
-    "test",
-    "tests"
-  ]
+  }
 }

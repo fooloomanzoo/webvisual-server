@@ -18,16 +18,16 @@
 <link rel="import" href="behaviors/container-behavior.html"/>
 <link rel="import" href="behaviors/attribute-repeat-animation-behavior.html"/>
 
-<link rel="import" href="webvisual-element-shareddata.html"/>
 <link rel="import" href="webvisual-logo.html"/>
 <link rel="import" href="webvisual-icon-button.html"/>
 <link rel="import" href="webvisual-facility-data.html"/>
+<link rel="import" href="webvisual-element-sign.html"/>
+<link rel="import" href="webvisual-element-caption.html"/>
 
 <link rel="import" href="webvisual-home.html"/>
 <link rel="import" href="webvisual-list.html"/>
 <link rel="import" href="webvisual-detail.html"/>
 
-<link rel="import" href="../bower_components/iron-a11y-keys-behavior/iron-a11y-keys-behavior.html"/>
 <link rel="import" href="../bower_components/iron-a11y-keys-behavior/iron-a11y-keys-behavior.html"/>
 
 <dom-module id="webvisual-app">
@@ -40,7 +40,9 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
+        box-sizing: border-box;
         min-height: 100vh;
+        padding-top: 64px;
         --app-primary-color: var(--primary-color);
         --app-secondary-color: var(--dark-primary-color);
         --app-accent-color: var(--bright-primary-color);
@@ -49,6 +51,7 @@
         --paper-spinner-color: var(--app-accent-color);
         -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
         color: var(--primary-text-color);
+        transition: background 500ms cubic-bezier(0.6, 0, 0.2, 1);
       }
       :host([page="home"]),
       :host([page="select"]) {
@@ -56,11 +59,11 @@
       }
       :host([page="list"]),
       :host([page="detail"]) {
-        background: var(--bright-primary-color);
+        background: var(--primary-background);
       }
       app-header {
         @apply(--layout-fixed-top);
-        z-index: 1;
+        z-index: 2;
         background-color: transparent;
         --app-header-shadow: {
           box-shadow: inset 0px 5px 6px -3px rgba(0, 0, 0, 0.2);
@@ -70,11 +73,11 @@
       }
       app-toolbar {
         font-size: 16px;
-        /*background: var(--primary-color);*/
+        background: var(--primary-color);
         color: var(--bright-text-color);
       }
       app-drawer {
-        z-index: 1;
+        z-index: 2;
         --app-drawer-scrim-background: var(--drawer-scim-background);
         --app-drawer-content-container: var(--drawer-content-container);
       }
@@ -117,21 +120,6 @@
       #toolbarFooter ::content svg-element {
         background: rgba(255,255,255,0.2);
       }*/
-      #groupingKeysSystemSelector {
-        display: flex;
-        flex-direction: column;
-      }
-      #groupingKeysSystemSelector ::content iron-selector.groupingKeySelector {
-        display: flex;
-        flex-direction: column;
-      }
-      #groupingKeysSystemSelector ::content iron-selector.groupingKeySelector:not(.foreground) {
-        display: none !important;
-      }
-      #groupingKeysSystemSelector ::content radio-webvisual-button {
-        font-size: 0.9em;
-        padding: 0.5em;
-      }
   		.tab-icon {
   			display: none !important;
   		}
@@ -159,9 +147,8 @@
       data="{{routeData}}"
       tail="{{subroute}}"></app-route>
 
-    <webvisual-facility-data facilities="{{facilities}}" systems="{{systems}}"></webvisual-facility-data>
-
-    <webvisual-element-shareddata socket-name="data" socket-room="{{socketRoom}}"></webvisual-element-shareddata>
+    <webvisual-facility-data
+    facilities="{{facilities}}"></webvisual-facility-data>
 
     <iron-media-query query="max-width: 767px" query-matches="{{smallScreen}}"></iron-media-query>
 
@@ -185,33 +172,23 @@
           </template>
         </app-toolbar>
 
-
-        <template is="dom-if" if="[[_shouldRenderLowerToolbar]]">
-          <app-toolbar class="middle" hidden$="[[!opened]]">
-            <!-- <iron-selector id="systemSelector" selected="{{currentSystem}}" attr-for-selected="system">
-              <content select="tab-element.system"></content>
-            </iron-selector> -->
-          </app-toolbar>
-        </template>
-
-        <app-toolbar id="systemsTabs" sticky$="[[_shouldShowTabs]]" hidden$="[[!_shouldShowTabs]]">
-          <div id="tabContainer" sticky$="[[_shouldShowTabs]]" hidden$="[[!_shouldShowTabs]]">
-            <template is="dom-if" if="[[_shouldRenderTabs]]">
-              <webvisual-tabs
-                  selected="[[currentSystem]]"
-                  attr-for-selected="name">
-                <template is="dom-repeat" items="[[systems]]" as="system">
-                  <webvisual-tab name="[[system.name]]">
-                    <a href="/list/[[currentSystem.name]]/[[system.name]]">[[system.title]]</a>
-                  </webvisual-tab>
-                </template>
-              </webvisual-tabs>
-            </template>
-          </div>
-          <!-- <iron-selector id="systemSelector" selected="{{currentSystem}}" attr-for-selected="system">
-            <content select="tab-element.system"></content>
-          </iron-selector> -->
-        </app-toolbar>
+        <div id="tabContainer" sticky$="[[_shouldShowTabs]]" hidden$="[[!_shouldShowTabs]]">
+          <template is="dom-if" if="[[_shouldRenderTabs]]">
+            <webvisual-tabs
+                selected="{{page}}"
+                attr-for-selected="name">
+                <webvisual-tab name="list">
+                  <a href="/list/[[facility.name]]/[[system.name]]">Listenansicht</a>
+                </webvisual-tab>
+                <webvisual-tab name="group">
+                  <a href="/group/[[facility.name]]/[[system.name]]">Gruppenansicht</a>
+                </webvisual-tab>
+                <webvisual-tab name="detail">
+                  <a href="/detail/[[facility.name]]/[[system.name]]">Detailansicht</a>
+                </webvisual-tab>
+            </webvisual-tabs>
+          </template>
+        </div>
 
       </template>
     </app-header>
@@ -220,7 +197,7 @@
       <!-- home view for selecting the facility -->
       <webvisual-home name="home" facilities="[[facilities]]"></webvisual-home>
       <!-- list view of items in a facility -->
-      <webvisual-list name="list" route="[[subroute]]" offline="[[offline]]"></webvisual-list>
+      <webvisual-list name="list" route="[[subroute]]" facility="{{facility}}" system="system" offline="[[offline]]"></webvisual-list>
       <!-- detail view of one item -->
       <webvisual-detail name="detail" route="[[subroute]]" offline="[[offline]]"></webvisual-detail>
     </iron-pages>
@@ -265,7 +242,7 @@
                   <iron-icon icon="arrow-drop-down" class="right" id="grouping"></iron-icon>
                 </webvisual-button>
                 <section id="groupingKeysButtons" class="sidemenu indention collapse grouping">
-                  <iron-selector id="groupingKeysSystemSelector" selected="[[currentSystem]]" attr-for-selected="system" selected-class="foreground">
+                  <iron-selector id="groupingKeysSystemSelector" selected="[[system]]" attr-for-selected="system" selected-class="foreground">
                     <content select="iron-selector.groupingKeySelector"></content>
                   </iron-selector>
                 </section>
@@ -288,6 +265,13 @@
 
       </app-drawer>
 
+      <iron-selector activate-event="element-select" item="{{selectedElement}}"></iron-selector>
+
+      <webvisual-snackbar class="opened">
+        <webvisual-element-sign item="[[selectedElement.item]]"></webvisual-element-sign>
+        <webvisual-element-caption keys="[[selectedElement.keys]]"></webvisual-element-caption>
+      </webvisual-snackbar>
+
     </template>
   </template>
 
@@ -303,6 +287,10 @@
           observer: '_pageChanged'
         },
 
+        facility: Object,
+
+        system: Object,
+
         numItems: {
           type: Number,
           value: 0
@@ -312,12 +300,8 @@
           computed: '_computeShouldRenderHeader(page)'
         },
 
-        _shouldShowLowerToolbar: {
-          computed: '_computeShouldRenderLowerToolbar(page)'
-        },
-
         _shouldRenderControlButtons: {
-          computed: '_computeShouldShowControls(page)'
+          computed: '_computeShouldRenderControlButtons(page)'
         },
 
         _shouldShowTabs: {
@@ -334,13 +318,18 @@
       },
 
       observers: [
-        '_routePageChanged(routeData.page)'
+        '_routePageChanged(routeData.page)',
+        'print(system,facility)'
       ],
 
       listeners: {
         'change-section': '_onChangeSection',
         'announce': '_onAnnounce',
         'dom-change': '_domChange'
+      },
+
+      print: function(arg, arg2) {
+        console.log(arg, arg2);
       },
 
       created: function() {
@@ -358,7 +347,6 @@
       },
 
       _routePageChanged: function(page) {
-        console.log(page);
         this.page = page || 'home';
         // Scroll to the top of the page on every *route* change. Use `Polymer.AppLayout.scroll`
         // with `behavior: 'silent'` to disable header scroll effects during the scroll.
@@ -443,9 +431,6 @@
           this._announce(detail.title + ', loaded');
         }
         // set SocketConnection
-        if (detail.facility && detail.system) {
-          this.socketRoom = detail.facility + '/' + detail.system;
-        }
       },
 
       // Elements in the app can notify a change to be a11y announced.
@@ -481,7 +466,7 @@
         return (page === 'list') && opened;
       },
 
-      _computeShouldShowControls: function(page) {
+      _computeShouldRenderControlButtons: function(page) {
         return (page === 'list' || page === 'detail');
       },
 
@@ -673,7 +658,7 @@
     //     window.location.pathname = '/index';
     //   },
     //   // Panel Control
-    //   _currentSystemChanged: function(newSystem, oldSystem) {
+    //   _systemChanged: function(newSystem, oldSystem) {
     //     // this._selectPanel(newSystem, oldSystem);
     //     this.clearSelectedElements();
     //     this.fire("clear-selected-elements");
@@ -720,7 +705,7 @@
     //   },
     //   // Grouping Options
     //   regroup: function(key) {
-    //     var system = this.currentSystem;
+    //     var system = this.system;
     //     var panel = this.queryEffectiveChildren('.panel[system="'+system+'"]');
     //     if (panel)
     //       panel.groupedKey = key;

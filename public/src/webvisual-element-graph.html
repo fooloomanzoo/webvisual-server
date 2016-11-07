@@ -1,4 +1,4 @@
-<!-- Dependent to be content of webvisual-chart -->
+<!-- Dependent to be content of webvisual-element-chart -->
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="behaviors/color-behavior.html"/>
 <link rel="import" href="behaviors/checked-and-select-behavior.html"/>
@@ -108,7 +108,7 @@
 
         if (containerRoot.nodeName !== 'Webvisiual-CHART') {
           console.warn(this.ident, 'Graph is not attached to a container');
-          this.chartElement = document.createElement('webvisual-chart');
+          this.chartElement = document.createElement('webvisual-element-chart');
           containerRoot.appendChild(this.chartElement);
         } else {
           this.chartElement = containerRoot;

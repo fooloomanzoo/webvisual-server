@@ -16,16 +16,14 @@
         border-radius: inherit;
         background: var(--caption-background, white);
         color: var(--primary-text-color);
-        line-height: 0;
+        line-height: 1.4;
         padding: var(--caption-padding, 0.5em);
         margin: 0;
         border: none;
         flex-direction: row;
         align-items: center;
         justify-content: flex-start;
-      }
-      :host([dark]) {
-        background: var(--caption-dark-background, #B0B0B0);
+        align-self: stretch;
       }
       .captions {
         position: relative;
@@ -34,15 +32,15 @@
         margin-left: 0.5em;
         font-weight: normal;
         font-size: 0.6em;
-        white-space: pre-wrap;
+        white-space: normal;
         word-wrap: break-word;
         word-break: break-all;
       }
       .captions:first-of-type {
         font-weight: bold;
         font-size: 0.9em;
-        word-wrap: normal;
-        word-break: keep-all;
+        /*word-wrap: normal;
+        word-break: normal;*/
       }
       .captions:nth-of-type(2) {
         font-size: 0.8em;

@@ -4,7 +4,7 @@
 <script type="text/javascript" src='../bower_components/d3/d3.min.js'></script>
 
 <!--
-`webvisual-svg` provides rendering a svg in a container.
+`webvisual-element-svg` provides rendering a svg in a container.
 
 #the svg has to have following specifications:
 - all tranistions of the included paths must be relative
@@ -27,11 +27,11 @@
 #reference and inspiration
 <http://bl.ocks.org/mbostock/9656675>
 
-@element webvisual-svg
+@element webvisual-element-svg
 -->
 <!-- <script src='../../../components/d3/d3.min.js'></script> -->
 
-<dom-module id='webvisual-svg'>
+<dom-module id='webvisual-element-svg'>
 <template>
 <style>
   :host {
@@ -111,7 +111,7 @@
     font-weight: inherit !important;
     letter-spacing: normal !important;
   }
-  .webvisual-svg-selectable {
+  .webvisual-element-svg-selectable {
     cursor: pointer;
     will-change: none;
     transform-origin: center center;
@@ -123,7 +123,7 @@
     animation-timing-function: linear;
     animation-iteration-count: 1;
     animation-fill-mode: forwards;
-    @apply(--clicked-webvisual-svg);
+    @apply(--clicked-webvisual-element-svg);
   }
   @keyframes clicked-animation {
     50% {
@@ -148,7 +148,7 @@
     animation-duration: 2s;
     animation-timing-function: linear;
     animation-iteration-count: infinite;
-    @apply(--exceeding-webvisual-svg);
+    @apply(--exceeding-webvisual-element-svg);
   }
   @keyframes exceeding-animation {
     0% {
@@ -184,7 +184,7 @@
     var SvgSource = {};
 
   SvgElement = Polymer({
-    is: 'webvisual-svg',
+    is: 'webvisual-element-svg',
 
     properties: {
       /**
@@ -227,7 +227,7 @@
         type: Boolean
       },
       /**
-       * If true, webvisual-svg is shown
+       * If true, webvisual-element-svg is shown
        */
       opened: {
         type: Boolean,
@@ -235,7 +235,7 @@
         observer: '_openedChanged'
       },
       /**
-       * Marks the element, that triggers, when an another webvisual-svg requests fullscreen-presentation.
+       * Marks the element, that triggers, when an another webvisual-element-svg requests fullscreen-presentation.
        * This Element should be in Polymer-DOM's Top Level, to catch the events.
        */
       fullscreen: {
@@ -437,7 +437,7 @@
       // append imported svg to this element
       this.$.svgContainer.insertBefore(svgNode, this.$.svgContainer.firstChild);
       this._svg = d3.select(svgNode).attr('id', 'main')
-                                    .classed('style-scope', true).classed('webvisual-svg', true);
+                                    .classed('style-scope', true).classed('webvisual-element-svg', true);
 
       // set style for resizing
       this._svg.attr('preserveAspectRatio', 'xMinYMin meet')
@@ -449,7 +449,7 @@
                              .attr('id', 'mainG');
 
       this._mainG.selectAll('text')
-                 .classed('style-scope', true).classed('webvisual-svg', true); // style-scoping in polymer
+                 .classed('style-scope', true).classed('webvisual-element-svg', true); // style-scoping in polymer
 
       // get original dimensions
       var viewBox = this._svg.attr('viewBox').split(' ');
@@ -508,19 +508,19 @@
             this.debounce('resetZoom', this._resetZoom, 33);
           }).bind(self));
 
-        // previous selectable elements: remove 'webvisual-svg-selectable' class and click listener
-        this._mainG.selectAll('.webvisual-svg-selectable')
-                  .classed('webvisual-svg-selectable', false)
+        // previous selectable elements: remove 'webvisual-element-svg-selectable' class and click listener
+        this._mainG.selectAll('.webvisual-element-svg-selectable')
+                  .classed('webvisual-element-svg-selectable', false)
                   .on('click dblclick', null);
         this._mainG.selectAll('.clicked')
                    .classed('clicked', false);
 
-        // add 'webvisual-svg-selectable' class and click listener
+        // add 'webvisual-element-svg-selectable' class and click listener
         for (var element in this.selectedElements)
           if(element.svg && element.svg.path && element.svg.source === this.source )
             this._mainG.selectAll(element.svg.path)
-                      .classed('webvisual-svg-selectable', true)  // for styling selectable
-                      .classed('style-scope', true).classed('webvisual-svg', true) // for style-scoping in polymer
+                      .classed('webvisual-element-svg-selectable', true)  // for styling selectable
+                      .classed('style-scope', true).classed('webvisual-element-svg', true) // for style-scoping in polymer
                       .on('click dblclick',
                         function() {
                           self._zoomToElement(this);
@@ -535,8 +535,8 @@
         for (var element in this.exceedingElements)
           if(element.svg && element.svg.path && element.svg.source === this.source)
             this._mainG.selectAll(element.svg.path)
-                      .classed('webvisual-svg-selectable', true)  // for styling selectable
-                      .classed('style-scope', true).classed('webvisual-svg', true) // for style-scoping in polymer
+                      .classed('webvisual-element-svg-selectable', true)  // for styling selectable
+                      .classed('style-scope', true).classed('webvisual-element-svg', true) // for style-scoping in polymer
                       .on('click dblclick',
                         function() {
                           self._zoomToElement(this);
@@ -551,8 +551,8 @@
         if (window.SvgSelectables){
           for (var key in window.SvgSelectables[this.source])
             this._mainG.selectAll(window.SvgSelectables[this.source][key])
-                      .classed('webvisual-svg-selectable', true)  // for styling selectable
-                      .classed('style-scope', true).classed('webvisual-svg', true) // for style-scoping in polymer
+                      .classed('webvisual-element-svg-selectable', true)  // for styling selectable
+                      .classed('style-scope', true).classed('webvisual-element-svg', true) // for style-scoping in polymer
                       .on('click dblclick',
                         function() {
                           self._zoomToElement(this);
@@ -621,7 +621,7 @@
       var sel = sel.join(',');
       if (sel === '' ||
           (elems = this._mainG.selectAll(sel)
-                              .filter('.webvisual-svg-selectable')).classed(selectedClass, true).empty()) {
+                              .filter('.webvisual-element-svg-selectable')).classed(selectedClass, true).empty()) {
         // if (this.opened) {
         //   this.debounce('resetZoom', this._resetZoom, 33);
         // }
@@ -717,7 +717,7 @@
       if (this.initial !== '') {
         var initial;
         if (!(initial = this._mainG.selectAll(this.initial)
-                                   .filter('.webvisual-svg-selectable')).empty()) {
+                                   .filter('.webvisual-element-svg-selectable')).empty()) {
           this.select([{svg: { path: this.initial }}], 'initial');
           return;
         }

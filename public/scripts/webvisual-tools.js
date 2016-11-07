@@ -1,18 +1,31 @@
 function WebvisualTools() {
   this.sockets = new Map();
-  this.cache = undefined;
+  this.cache = new ClientCache();
   this.nodes = new Map();
   this.mobile = this._testMobile();
 }
 
 WebvisualTools.prototype = {
   assignElement: function(element) {
-    var id = element.id;
+    var id = element.item.id;
 
-    if (!this.nodes.has(id))
+    if (!this.cache.has(id)) {
+      this.cache.add(id);
+    }
+    if (!this.nodes.has(id)) {
       this.nodes.set(id, new Set());
-
+    }
     this.nodes.get(id).add(element);
+
+    Object.defineProperty(element, "values", {
+      configurable: true,
+      enumerable: false,
+      get: function() {
+        return Webvisual.cache.get(id).values;
+      }
+    });
+    // initialize values of element
+    element.insertValues(this.cache.get(id));
   },
   retractElement: function(element) {
     var id = element.id;
@@ -22,6 +35,17 @@ WebvisualTools.prototype = {
 
     this.nodes.get(id).delete(element);
   },
+  initializeData: function(message) {
+		if (Array.isArray(message)) // if message is an Array
+			for (var i = 0; i < message.length; i++) {
+  			this.updateCache(message[i], true);
+  			// this.updateDatabase(message[i]);
+  		}
+		else { // if message is a single Object
+			this.updateCache(message, true);
+			// this.updateDatabase(message);
+		}
+	},
   updateData: function(message) {
 		if (Array.isArray(message)) // if message is an Array
 			for (var i = 0; i < message.length; i++) {
@@ -35,8 +59,8 @@ WebvisualTools.prototype = {
 			// this.updateDatabase(message);
 		}
 	},
-  updateCache: function(message) {
-    this.cache.append(message.values);
+  updateCache: function(message, noHeap) {
+    this.cache.append(message.values, noHeap);
   },
   updateNodes: function(message) {
 		if (!message.values) return;
@@ -49,8 +73,9 @@ WebvisualTools.prototype = {
         console.warn('no Nodes for Update');
         continue;
       }
-			splices = this.cache[id].splices;
-			heap = this.cache[id].heap;
+
+			splices = this.cache.get(id).splices;
+			heap = this.cache.get(id).heap;
       this.nodes.get(id).forEach( function(element) {
         element.insertValues(heap);
         element.spliceValues(splices);
@@ -64,7 +89,7 @@ WebvisualTools.prototype = {
   },
   _testMobile: function() {
     var ua = window.navigator.userAgent;
-    return ( /[mM]obi/i.test(ua) || /[tT]ablet/i.test(ua) || /[aA]ndroid/i.test(ua) );
+    return ( /[mM]obi/i.test(ua) || /[tT]abvar/i.test(ua) || /[aA]ndroid/i.test(ua) );
   }
 }
 

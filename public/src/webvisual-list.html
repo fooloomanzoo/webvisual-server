@@ -3,6 +3,7 @@
 
 <link rel="import" href="../bower_components/app-route/app-route.html">
 
+<link rel="import" href="webvisual-element-shareddata.html"/>
 <link rel="import" href="webvisual-facility-data.html"/>
 <link rel="import" href="webvisual-element-sign.html"/>
 <link rel="import" href="webvisual-element-caption.html"/>
@@ -16,7 +17,7 @@
         @apply(--layout-horizontal);
         @apply(--layout-wrap);
         @apply(--layout-justified);
-        margin: 0 10px 32px 10px;
+        margin: 0.25em 0.75em 2em 0.75em;
         padding: 0;
         list-style: none;
         box-sizing: border-box;
@@ -27,27 +28,65 @@
         box-sizing: border-box;
         -webkit-flex: 1 1;
         flex: 1 1;
-        -webkit-flex-basis: 33%;
-        flex-basis: 33%;
-        max-width: 33%;
-        border-radius: 2px;
-        border: solid thin rgba(0,0,0,.2);
+        -webkit-flex-basis: 20%;
+        flex-basis: 20%;
+        max-width: 20%;
+        padding: 0.25em;
+      }
+
+      .grid li > * {
+        border: solid thin rgba(0,0,0,.5);
+        border-right-width: 0;
+      }
+      .grid li > :first-child {
+        border-top-left-radius: 3px;
+        border-bottom-left-radius: 3px;
+      }
+      .grid li > :last-child {
+        border-top-right-radius: 3px;
+        border-bottom-right-radius: 5px;
+        border-right-width: thin;
       }
 
       .grid a {
-        display:block;
+        display: block;
         text-decoration: none;
+      }
+      webvisual-element-caption {
+        flex: 1 1 50%;
+      }
+      webvisual-element-sign {
+        flex: 1 0 auto;
+      }
+
+      @media (max-width: 1599px) {
+        .grid  li {
+          -webkit-flex-basis: 25%;
+          flex-basis: 25%;
+          max-width: 25%;
+        }
+      }
+
+      @media (max-width: 1279px) {
+        .grid  li {
+          -webkit-flex-basis: 33%;
+          flex-basis: 33%;
+          max-width: 33%;
+        }
       }
 
       @media (max-width: 767px) {
-        .hero-image {
-          display: none;
-        }
-
         .grid  li {
           -webkit-flex-basis: 50%;
           flex-basis: 50%;
           max-width: 50%;
+        }
+      }
+      @media (max-width: 319px) {
+        .grid  li {
+          -webkit-flex-basis: 100%;
+          flex-basis: 100%;
+          max-width: 100%;
         }
       }
     </style>
@@ -65,21 +104,27 @@
     system="{{system}}"
     failure="{{failure}}"></webvisual-facility-data>
 
-    <header>
-      <h1>[[facility.title]]/[[system.title]]</h1>
-      <!-- <span>[[_getPluralizedQuantity(facility.items.length)]]</span> -->
-    </header>
+    <webvisual-element-shareddata
+    socket-name="data"
+    socket-room="[[facility.name]]/[[system.name]]"
+    initialized="{{initialized}}"></webvisual-element-shareddata>
 
-    <ul class="grid" hidden$="[[failure]]">
-      <template is="dom-repeat" items="[[_getListItems(system.items)]]" initial-count="4">
-        <li>
-          <!-- <a href$="[[_getItemHref(item)]]"> -->
-            <webvisual-element-sign item="[[item]]"></webvisual-element-sign>
-            <webvisual-element-caption keys="[[item.keys]]" grouped-key='[[groupedKey]]' without-grouped-key></webvisual-element-caption>
-          <!-- </a> -->
-        </li>
-      </template>
-    </ul>
+    <!-- <header>
+      <h1>[[facility.title]]/[[system.title]]</h1>
+    </header> -->
+
+    <template is="dom-if" if="{{initialized}}">
+      <ul class="grid" hidden$="[[failure]]">
+        <template is="dom-repeat" items="[[_getListItems(system.items)]]" initial-count="6">
+          <li>
+            <!-- <a href$="[[_getItemHref(item)]]"> -->
+              <webvisual-element-sign item="[[item]]" selectable></webvisual-element-sign>
+              <webvisual-element-caption keys="[[item.keys]]" grouped-key='[[groupedKey]]' without-grouped-key></webvisual-element-caption>
+            <!-- </a> -->
+          </li>
+        </template>
+      </ul>
+    </template>
 
   </template>
 
@@ -107,15 +152,22 @@
           type: Boolean
         },
 
-        failure: Boolean
+        failure: Boolean,
+
+        initialized: {
+          type: Boolean,
+          value: false,
+          notify: true
+        }
       },
 
       observers: [
-        '_routeChanged(facility, system, visible)'
+        '_routeChanged(facility, system, visible)',
+        'print(system,facility)'
       ],
 
-      print: function(arg) {
-        console.log(arg);
+      print: function(arg,arg2) {
+        console.log(arg,arg2);
       },
 
       _getListItems: function(items) {
@@ -142,9 +194,7 @@
           this.debounce('change-section', function() {
             // Notify the facility and the page's title
             this.fire('change-section', {
-              facility: facility.name,
-              title: facility.title + '/' + facility.title,
-              system: system.name,
+              title: facility.title + '/' + system.title
             });
           });
         }

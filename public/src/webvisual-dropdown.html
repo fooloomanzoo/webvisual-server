@@ -23,7 +23,7 @@
         justify-content: center;
         box-shadow: none;
         outline: none;
-        z-index: 1010;
+        z-index: 2;
         -moz-user-select: none;
         -ms-user-select: none;
         -webkit-user-select: none;
@@ -208,11 +208,11 @@
         if (!this._target || !this.offsetParent)
           return;
 
-        const offset = this.offset;
-        const parentRect = this.offsetParent.getBoundingClientRect();
-        const targetRect = this._target.getBoundingClientRect();
-        const thisRect = this.getBoundingClientRect();
-        let horizontalOffset, verticalOffset;
+        var offset = this.offset;
+        var parentRect = this.offsetParent.getBoundingClientRect();
+        var targetRect = this._target.getBoundingClientRect();
+        var thisRect = this.getBoundingClientRect();
+        var horizontalOffset, verticalOffset;
 
         switch (this.align) {
           case 'start':
@@ -242,9 +242,9 @@
             break;
         }
 
-        let targetLeft = targetRect.left - parentRect.left;
-        let targetTop = targetRect.top - parentRect.top;
-        let dropdownLeft, dropdownTop;
+        var targetLeft = targetRect.left - parentRect.left;
+        var targetTop = targetRect.top - parentRect.top;
+        var dropdownLeft, dropdownTop;
 
         switch (this.position) {
           case 'top':

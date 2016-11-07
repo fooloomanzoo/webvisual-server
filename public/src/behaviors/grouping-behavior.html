@@ -33,15 +33,15 @@
     },
 
     regroup: function(groupedKey, old) {
-      const system = this.getAttribute('system');
+      var system = this.getAttribute('system');
 
       if (!system || !groupedKey || !Groups[system] || !Groups[system][groupedKey] || PreferedGroupingKeys[groupedKey] === groupedKey)
         return;
 
-      let oldgroups = this.queryAllEffectiveChildren('group-card');
-      let elements = {};
+      var oldgroups = this.queryAllEffectiveChildren('group-card');
+      var elements = {};
 
-      for (let i in oldgroups) {
+      for (var i in oldgroups) {
         Array.prototype.forEach.call(oldgroups[i].querySelectorAll('[element]'), function(elem) {
           elem.oldBounds = elem.getBoundingClientRect();
           elements[elem.id] = elem;
@@ -50,14 +50,14 @@
 
       if (oldgroups.length === 0 || elements.length === 0) return;
 
-      let id, index = 0, currentgroup;
-      const subgroups = Groups[system][groupedKey];
+      var id, index = 0, currentgroup;
+      var subgroups = Groups[system][groupedKey];
       PreferedGroupingKeys[system] = groupedKey;
 
       this.animationConfig['group-transition'] = [];
 
       if (this.animatable) {
-        for (let id in elements) {
+        for (var id in elements) {
           this.animationConfig['group-transition'].push( {
             name: 'attribute-animation',
             node: elements[id],
@@ -66,7 +66,7 @@
         }
       }
 
-      for (let subgroup in subgroups) {
+      for (var subgroup in subgroups) {
         if (oldgroups[index]) {
           oldgroups[index].title = subgroup;
           oldgroups[index].svg = subgroups[subgroup].svg;
@@ -75,7 +75,7 @@
           currentgroup = new GroupCard(subgroup, subgroups[subgroup].svg);
           this.appendChild(currentgroup);
         }
-        for (let i in subgroups[subgroup].ids) {
+        for (var i in subgroups[subgroup].ids) {
           id = Groups[system][groupedKey][subgroup].ids[i];
           elements[id].groupedKey = groupedKey;
           elements[id].style.order = '';
@@ -83,7 +83,7 @@
         }
         index++;
       }
-      for (let i = index; i < oldgroups.length; i++) {
+      for (var i = index; i < oldgroups.length; i++) {
         Polymer.dom(this).removeChild(oldgroups[i]);
       }
 

@@ -7,12 +7,12 @@ Push-Location $dir
 
 # -- Certificate Information --
 $country = "DE"                          # Country Name (2 letter code)
-$state = "Nordrhein-Westfalen"           # State or Province Name (full name)
-$city = "Juelich"                        # Locality Name (eg, city)
-$company = "Forschungszentrum Juelich"   # Organization Name (eg, company)
-$company_unit = "ICS-TAE"                # Organizational Unit Name (eg, section)
-$domain = "hnf-gds.ibn.kfa-juelich.de"   # Domain Name (Address)
-$email = "n.tiefes@fz-juelich.de"        # Email Address
+$state = "Berlin"                        # State or Province Name (full name)
+$city = "Berlin"                         # Locality Name (eg, city)
+$company = "Private"                     # Organization Name (eg, company)
+$company_unit = "Self-Signed"            # Organizational Unit Name (eg, section)
+$domain = %COMPUTERNAME%                 # Domain Name (Address) / Common Name
+$email = ""                              # Email Address
 $days = "1100"                           # Certificate validity duration in days
 
 $pass_length = 256;                      # Length of passphrase (min 4, max 1024)
@@ -22,7 +22,7 @@ $output_dir = ".\cert"                   # where to write output files
 $pass_json = $output_dir + "\ca.pw.json" # where to store the password
 
 # Generate password
-$pass = (./openssl.exe rand -base64 $pass_length) | Out-String 
+$pass = (./openssl.exe rand -base64 $pass_length) | Out-String
 $pass = $pass -replace "`n|`r",""
 
 # Check if outputdir exists. If not -> create it.
@@ -41,8 +41,8 @@ $subj = "/C=$country/ST=$state/L=$city/O=$company/OU=$company_unit/CN=$domain/em
 # generate a private key for CA
 ./openssl.exe genrsa -passout pass:$pass -des3 `
             -out "$output_dir\ca.key" 4096
-            
-# generate the certificate signing request          
+
+# generate the certificate signing request
 ./openssl.exe req -passin pass:$pass `
             -new `
             -sha256 `

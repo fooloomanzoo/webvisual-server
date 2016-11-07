@@ -7,8 +7,7 @@
 <template>
   <style>
     :host{
-      color: var(--bright-text-color);
-      fill: currentcolor;
+      color: currentcolor;
       box-sizing: border-box;
       height: 48px;
     }
@@ -16,6 +15,7 @@
       color: var(--highlight-color);
     }
     svg {
+      fill: currentColor;
       shape-rendering: geometricPrecision;
       transition: fill 0.28s cubic-bezier(0.4, 0, 0.2, 1);
     }
@@ -25,6 +25,9 @@
     @media all and (max-width: 520px) {
       :host(:not([show-always])) path:not(#logo) {
         display: none !important;
+      }
+      svg {
+        margin-top: 4px;
       }
     }
   </style>

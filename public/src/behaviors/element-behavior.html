@@ -4,6 +4,8 @@
     properties: {
       item: Object,
 
+      values: Array,
+
       groupedKey: String,
 
       firstStateChange: {
@@ -21,9 +23,15 @@
 
       exceedable: Boolean,
 
-      isExceeding: Boolean,
+      isExceeding: {
+        type: Boolean,
+        value: false
+      },
 
-      hasExceeded: Boolean,
+      hasExceeded: {
+        type: Boolean,
+        value: false
+      },
 
       bubbles: Boolean,
 
@@ -152,8 +160,8 @@
     },
 
     clearValues: function() {
-      if (this.values)
-        this.renderSplicedValues(this.values);
+      // if (this.values)
+      //   this.renderSplicedValues(this.values);
     },
 
     checkExceedingState: function(value) {
@@ -210,15 +218,8 @@
           this.item.id) {
         var id = this.item.id;
         try {
-          Object.defineProperty(this, "values", {
-            configurable: true,
-            enumerable: false,
-            get: function() {
-              return Webvisual.cache[id].values;
-            }
-          });
-          this.insertValues(this.values || []);
           Webvisual.assignElement(this);
+          // this.insertValues(this.values || []);
         } catch (e) {
           console.log(this.nodeName, id, e);
         }
