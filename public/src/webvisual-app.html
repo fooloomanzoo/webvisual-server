@@ -40,16 +40,16 @@
         justify-content: center;
         box-sizing: border-box;
         min-height: 100vh;
-        padding-top: 100px;
+        padding-top: 64px;
         --app-primary-color: var(--primary-color);
         --app-secondary-color: var(--dark-primary-color);
         --app-accent-color: var(--bright-primary-color);
-        --paper-button-ink-color: var(--app-accent-color);
-        --paper-icon-button-ink-color: var(--app-accent-color);
-        --paper-spinner-color: var(--app-accent-color);
         -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
         color: var(--primary-text-color);
-        transition: background 500ms cubic-bezier(0.6, 0, 0.2, 1);
+        transition: background 250ms cubic-bezier(0.6, 0, 0.2, 1);
+      }
+      :host([show-tabs]) {
+        padding-top: 100px;
       }
       :host([page="home"]) {
         padding-top: 0px;
@@ -143,45 +143,45 @@
 
     <iron-media-query query="max-width: 767px" query-matches="{{smallScreen}}"></iron-media-query>
 
-    <app-header role="navigation" id="header" condenses reveals effects="waterfall">
-      <template is="dom-if" if="[[_shouldRenderHeader]]">
+    <app-header role="navigation" id="header" hidden$="[[!_shouldShowHeader]]" condenses reveals effects="waterfall">
 
-        <app-toolbar>
-          <webvisual-icon-button icon="menu" class="menu-icon" on-tap="_toggleDrawer"></webvisual-icon-button>
+      <app-toolbar>
+        <webvisual-icon-button icon="menu" class="menu-icon" on-tap="_toggleDrawer"></webvisual-icon-button>
 
-          <webvisual-logo main-title id="logo"></webvisual-logo>
+        <webvisual-logo main-title id="logo"></webvisual-logo>
 
-          <template is="dom-if" if="[[_shouldRenderControlButtons]]">
+        <template is="dom-if" if="[[_shouldRenderControlButtons]]">
 
-            <template is="dom-if" if="[[isExceeding]]">
-              <webvisual-icon-button icon="error-outline" class="error-icon control" on-tap="_toggleAlarmDrawer" hidden$="[[!isExceeding]]"></webvisual-icon-button>
-            </template>
-
-            <webvisual-icon-button icon="[[_computeExpandIcon(expanded)]]" class="expand-icon" on-tap="toolbarExpandToggle"></webvisual-icon-button>
-            <webvisual-icon-button icon="remove" hidden$="[[forceOpened]]" class="toggle-icon control" on-tap="closeToolbar"></webvisual-icon-button>
-
+          <template is="dom-if" if="[[isExceeding]]">
+            <webvisual-icon-button icon="error-outline" class="error-icon control" on-tap="_toggleAlarmDrawer" hidden$="[[!isExceeding]]"></webvisual-icon-button>
           </template>
-        </app-toolbar>
 
-        <!-- <div id="tabs" sticky$="[[_shouldShowTabs]]" hidden$="[[!_shouldShowTabs]]">
-          <template is="dom-if" if="[[_shouldRenderTabs]]">
-            <webvisual-tabs
-                selected="{{page}}"
-                attr-for-selected="name">
-                <webvisual-tab name="list">
-                  <a href="/list/[[facility.name]]/[[system.name]]">Listenansicht</a>
-                </webvisual-tab>
-                <webvisual-tab name="group">
-                  <a href="/group/[[facility.name]]/[[system.name]]">Gruppenansicht</a>
-                </webvisual-tab>
-                <webvisual-tab name="detail">
-                  <a href="/detail/[[facility.name]]/[[system.name]]">Detailansicht</a>
-                </webvisual-tab>
-            </webvisual-tabs>
-          </template>
-        </div> -->
+          <webvisual-icon-button icon="more-vert" checked="{{showTabs}}"></webvisual-icon-button>
 
-      </template>
+          <!-- <webvisual-icon-button icon="[[_computeExpandIcon(expanded)]]" class="expand-icon" on-tap="toolbarExpandToggle"></webvisual-icon-button>
+          <webvisual-icon-button icon="remove" hidden$="[[forceOpened]]" class="toggle-icon control" on-tap="closeToolbar"></webvisual-icon-button> -->
+
+        </template>
+      </app-toolbar>
+
+      <div id="tabs" sticky$="[[_shouldShowTabs]]" hidden$="[[!_shouldShowTabs]]">
+        <template is="dom-if" if="[[_shouldRenderTabs]]">
+          <webvisual-tabs
+              selected="{{page}}"
+              attr-for-selected="name">
+              <webvisual-tab name="list">
+                <a href="/list/[[facility.name]]/[[system.name]]">Listenansicht</a>
+              </webvisual-tab>
+              <webvisual-tab name="group">
+                <a href="/group/[[facility.name]]/[[system.name]]">Gruppenansicht</a>
+              </webvisual-tab>
+              <webvisual-tab name="detail">
+                <a href="/detail/[[facility.name]]/[[system.name]]">Detailansicht</a>
+              </webvisual-tab>
+          </webvisual-tabs>
+        </template>
+      </div>
+
     </app-header>
 
     <iron-pages id="pageselector" role="main" selected="[[page]]" attr-for-selected="name" selected-attribute="visible">
@@ -287,8 +287,13 @@
           value: 0
         },
 
-        _shouldRenderHeader: {
-          computed: '_computeShouldRenderHeader(page)'
+        showTabs: {
+          type: Boolean,
+          reflectToAttribute: true
+        },
+
+        _shouldShowHeader: {
+          computed: '_computeShouldShowHeader(page)'
         },
 
         _shouldRenderControlButtons: {
@@ -296,7 +301,7 @@
         },
 
         _shouldShowTabs: {
-          computed: '_computeShouldShowTabs(page, smallScreen)'
+          computed: '_computeShouldShowTabs(page, showTabs)'
         },
 
         _shouldRenderTabs: {
@@ -347,6 +352,7 @@
       },
 
       _pageChanged: function(page, oldPage) {
+        console.log(page);
         if (page != null) {
           // home route is eagerly loaded
           if (page == 'home') {
@@ -449,7 +455,7 @@
       },
 
 
-      _computeShouldRenderHeader: function(page, opened) {
+      _computeShouldShowHeader: function(page, opened) {
         return (page === 'list' || page === 'detail');
       },
 
@@ -461,8 +467,8 @@
         return (page === 'list' || page === 'detail');
       },
 
-      _computeShouldShowTabs: function(page, smallScreen) {
-        return (page === 'list' || page === 'detail') && !smallScreen;
+      _computeShouldShowTabs: function(page, showTabs) {
+        return (page === 'list' || page === 'detail') && showTabs;
       },
 
       _computeShouldRenderTabs: function(_shouldShowTabs, loadComplete) {

@@ -1,6 +1,7 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/iron-icon/iron-icon.html">
 <link rel="import" href="../bower_components/paper-behaviors/paper-button-behavior.html">
+<link rel="import" href="../bower_components/paper-behaviors/paper-checked-element-behavior.html">
 <!-- Modification of polymers paper-icon-button because of conflicts with paper-style -->
 
 <dom-module id="webvisual-icon-button">
@@ -26,19 +27,24 @@
         height: calc(16px + var(--iron-icon-height));
 
         box-sizing: border-box !important;
-        @apply(--default-transition);
+        @apply(--icon-button);
       }
 
+      :host([checked]) {
+        @apply(--checked-icon-button);
+      }
       :host([disabled]) {
         color: var(--disabled-text-color);
         background: none;
         border-color: var(--disabled-text-color);
         cursor: auto;
         pointer-events: none;
+        @apply(--disabled-icon-button);
       }
 
       :host(:hover) {
         background: var(--hover-background);
+        @apply(--hovered-icon-button);
       }
 
       iron-icon {
@@ -55,6 +61,7 @@
       is: 'webvisual-icon-button',
 
       behaviors: [
+        Polymer.PaperCheckedElementBehavior,
         Polymer.PaperButtonBehavior
       ],
 
@@ -74,11 +81,19 @@
         }
       },
 
+      listeners: {
+        'tap': '_changeChecked'
+      },
+
       _altChanged: function(newValue, oldValue) {
         var system = this.getAttribute('aria-system');
         if (!system || oldValue == system) {
           this.setAttribute('aria-system', newValue);
         }
+      },
+
+      _changeChecked: function() {
+        this.checked = !this.checked;
       }
     });
   </script>
