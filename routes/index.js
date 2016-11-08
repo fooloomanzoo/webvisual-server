@@ -131,40 +131,12 @@ class Router extends EventEmitter {
     this.app.use('*', ensureLoggedIn('/login'));
     this.app.use(staticMiddleware);
     this.app.get('*', function(req, res) {
-      res.sendFile( path.join(process.cwd(), 'public','index.html') );
+      res.sendFile( path.join(process.cwd(), 'public', 'index.html') );
     });
   }
 
   setUserConfig(userConfigFiles) {
     this.settings.userConfigFiles = userConfigFiles;
-
-    // for (let facility in userConfigFiles) {
-    //   this.app.get('/' + facility, this.loggedIn.bind(this), (req, res) => {
-    //     let facility = req.url.substr(1);
-    //
-    //     if (!facility || !this.settings.userConfigFiles[facility] || !this.settings.userConfigFiles[facility].renderer) {
-    //       this.emit("error", "Requested Renderer for '" + facility + "' not found.");
-    //       res.redirect('/index');
-    //       res.end();
-    //       return;
-    //     }
-    //     let rendererName = this.settings.userConfigFiles[facility].renderer;
-    //     let rendererPath = './renderer/' + this.settings.renderer[rendererName].path;
-    //
-    //     res.get('X-Frame-Options'); // prevent to render the page within an <iframe> element
-    //     res.render(rendererPath, {
-    //       // user: req.user,
-    //       // title: facility,
-    //       // facility: facility,
-    //       // config: this.configuration[facility],
-    //       // mobile: this.isMobile(req)
-    //     });
-    //     res.end();
-    //   });
-    // }
-    // this.app.use( (req, res) => {
-    //   res.redirect('/login');
-    // });
   }
 
   setConfiguration(opt, facility) {
@@ -199,18 +171,6 @@ class Router extends EventEmitter {
       }
     }
   }
-
-  loggedIn(req, res, next) {
-    console.log('loggedIn?', req.user, req.path);
-    if (!this.settings.server.auth.required || req.user) {
-      return next();
-    } else {
-      req.session.returnTo = req.path;
-      console.log('not LoggedIn', req.path);
-      res.redirect('/login');
-    }
-  }
-
 }
 
 module.exports = Router;
