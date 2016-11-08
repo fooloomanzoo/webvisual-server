@@ -8,9 +8,7 @@
       },
       "suffix": "@fz-juelich.de"
     },
-    "port": {
-      "http2": 443
-    },
+    "port": 443,
     "ssl": {
       "cert": "./defaults/ssl/ca.crt",
       "key": "./defaults/ssl/ca.key",

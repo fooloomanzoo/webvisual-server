@@ -39,12 +39,12 @@
         border-right-width: 0;
       }
       .grid li > :first-child {
-        border-top-left-radius: 3px;
-        border-bottom-left-radius: 3px;
+        border-top-left-radius: 5px;
+        border-bottom-left-radius: 5px;
       }
       .grid li > :last-child {
-        border-top-right-radius: 3px;
-        border-bottom-right-radius: 5px;
+        border-top-right-radius: 5px;
+        border-bottom-right-radius: 8px;
         border-right-width: thin;
       }
 
@@ -82,7 +82,7 @@
           max-width: 50%;
         }
       }
-      @media (max-width: 319px) {
+      @media (max-width: 379px) {
         .grid  li {
           -webkit-flex-basis: 100%;
           flex-basis: 100%;
@@ -93,20 +93,20 @@
 
     <app-route
     route="[[route]]"
-    pattern="/:facility/:system"
+    pattern="/:facilityName/list/:systemName"
     data="{{routeData}}"></app-route>
 
     <webvisual-facility-data
     id="facilityData"
-    facility-name="[[routeData.facility]]"
+    facility-name="[[routeData.facilityName]]"
     facility="{{facility}}"
-    system-name="[[routeData.system]]"
+    system-name="[[routeData.systemName]]"
     system="{{system}}"
     failure="{{failure}}"></webvisual-facility-data>
 
     <webvisual-element-shareddata
     socket-name="data"
-    socket-room="[[facility.name]]/[[system.name]]"
+    socket-room="[[routeData.facilityName]]/[[routeData.systemName]]"
     initialized="{{initialized}}"></webvisual-element-shareddata>
 
     <!-- <header>
@@ -163,11 +163,11 @@
 
       observers: [
         '_routeChanged(facility, system, visible)',
-        'print(system,facility)'
+        'print(routeData)'
       ],
 
-      print: function(arg,arg2) {
-        console.log(arg,arg2);
+      print: function(arg,arg2,arg3) {
+        console.log(arg,arg2,arg3);
       },
 
       _getListItems: function(items) {
@@ -190,6 +190,7 @@
       },
 
       _routeChanged: function(facility, system, visible) {
+        this.print(facility, system, visible);
         if (visible) {
           this.debounce('change-section', function() {
             // Notify the facility and the page's title

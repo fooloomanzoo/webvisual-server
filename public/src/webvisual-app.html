@@ -37,12 +37,10 @@
     <style include="webvisual-app-style">
       :host {
         display: flex;
-        flex-direction: column;
-        align-items: center;
         justify-content: center;
         box-sizing: border-box;
         min-height: 100vh;
-        padding-top: 64px;
+        padding-top: 100px;
         --app-primary-color: var(--primary-color);
         --app-secondary-color: var(--dark-primary-color);
         --app-accent-color: var(--bright-primary-color);
@@ -53,8 +51,8 @@
         color: var(--primary-text-color);
         transition: background 500ms cubic-bezier(0.6, 0, 0.2, 1);
       }
-      :host([page="home"]),
-      :host([page="select"]) {
+      :host([page="home"]) {
+        padding-top: 0px;
         background: var(--primary-color);
       }
       :host([page="list"]),
@@ -76,6 +74,7 @@
         background: var(--primary-color);
         color: var(--bright-text-color);
       }
+
       app-drawer {
         z-index: 2;
         --app-drawer-scrim-background: var(--drawer-scim-background);
@@ -84,14 +83,24 @@
       app-drawer > app-toolbar {
         color: var(--primary-color);
       }
+      #pageselector {
+        box-sizing: border-box;
+        position: relative;
+      }
       #tabs {
-        background: white;
+        background: rgba(255, 255, 255, 0.5);;
+      }
+      #tabs a:link {
+        color: var(--primary-text-color);
+      }
+      #tabs a:visited {
+        color: var(--primary-color);
       }
             /* small screen */
       @media (max-width: 767px) {
-        /*:host {
+        :host {
           padding-top: 64px;
-        }*/
+        }
 
         .menu-btn {
           display: block;
@@ -101,25 +110,7 @@
           display: none;
         }
       }
-      /*#toolbarFooter ::content .toolbar-footer {
-        border-width: 0;
-        border-color: rgba(0, 0, 0, 0.3);
-        border-radius: 8px;
-        box-sizing: border-box;
-        padding: 0;
-        padding-right: 1px;
-        margin: 0;
-        z-index: inherit;
-        position: relative;
-      }
-      #toolbarFooter ::content .toolbar-footer[opened] {
-      }
-      #toolbarFooter ::content .toolbar-footer:last-child {
-        padding-right: 0;
-      }
-      #toolbarFooter ::content svg-element {
-        background: rgba(255,255,255,0.2);
-      }*/
+
   		.tab-icon {
   			display: none !important;
   		}
@@ -143,7 +134,7 @@
     <app-location route="{{route}}"></app-location>
     <app-route
       route="{{route}}"
-      pattern="/:page"
+      pattern="/:facility/:page/:system"
       data="{{routeData}}"
       tail="{{subroute}}"></app-route>
 
@@ -172,7 +163,7 @@
           </template>
         </app-toolbar>
 
-        <div id="tabContainer" sticky$="[[_shouldShowTabs]]" hidden$="[[!_shouldShowTabs]]">
+        <!-- <div id="tabs" sticky$="[[_shouldShowTabs]]" hidden$="[[!_shouldShowTabs]]">
           <template is="dom-if" if="[[_shouldRenderTabs]]">
             <webvisual-tabs
                 selected="{{page}}"
@@ -188,7 +179,7 @@
                 </webvisual-tab>
             </webvisual-tabs>
           </template>
-        </div>
+        </div> -->
 
       </template>
     </app-header>
@@ -197,9 +188,9 @@
       <!-- home view for selecting the facility -->
       <webvisual-home name="home" facilities="[[facilities]]"></webvisual-home>
       <!-- list view of items in a facility -->
-      <webvisual-list name="list" route="[[subroute]]" facility="{{facility}}" system="system" offline="[[offline]]"></webvisual-list>
+      <webvisual-list name="list" route="[[route]]" offline="[[offline]]"></webvisual-list>
       <!-- detail view of one item -->
-      <webvisual-detail name="detail" route="[[subroute]]" offline="[[offline]]"></webvisual-detail>
+      <webvisual-detail name="detail" route="[[route]]" offline="[[offline]]"></webvisual-detail>
     </iron-pages>
 
     <!-- EXCEEDING -->

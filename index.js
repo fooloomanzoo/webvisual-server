@@ -11,14 +11,6 @@ const express = require('express'),
   ConfigFileProcessor = require('./lib/config_file_processor'),
   Router = require('./routes'),
 
-  // Sessions & Authentification
-  xFrameOptions = require('x-frame-options'),
-  cookieSession = require('cookie-session'),
-  passport = require('passport'),
-  bodyParser = require('body-parser'),
-  cookieParser = require('cookie-parser'),
-  compression = require('compression'),
-
   // Server
   spdy = require('spdy'),
   app = express();
@@ -28,36 +20,6 @@ let server;
 // Defaults
 const defaults = require('./defaults/config.json');
 
-// view engine setup
-// app.set('views', path.join(__dirname, 'views'));
-// app.set('view engine', 'jade');
-
-// get cookies from http requests
-// app.use(cookieParser());
-// app.use(bodyParser.urlencoded({
-//   extended: true
-// }));
-// app.use(bodyParser.json());
-
-// app.use( cookieSession( {
-//   maxAge: 3600000*24*180
-// }));
-
-// Prevent Clickjacking
-app.use(xFrameOptions());
-
-// register for authentification
-app.use(passport.initialize());
-
-// init session handler
-app.use(passport.session());
-
-// compress responses
-app.use( compression() );
-
-// static dir
-app.use(express.static(path.join(__dirname, 'public'), {'Cache-Control': 'public, no-cache'}));
-
 class WebvisualServer {
 
   constructor(settings) {
@@ -65,7 +27,7 @@ class WebvisualServer {
 
     this.config = settings;
 
-    this.router = new Router(app, passport);
+    this.router = new Router(app);
     this.router.on('error', (err) => {
       process.send( { error: err } );
     });
@@ -93,7 +55,7 @@ class WebvisualServer {
       this.router.setSettings(settings || this.config);
 
       var sslSettings = JSON.parse(JSON.stringify(defaults.server.ssl));
-      sslSettings.port = settings.server.port.http2 || 443;
+      sslSettings.port = settings.server.port || process.env.port || 443;
 
       try {
         // use https & http-redirecting
@@ -154,19 +116,19 @@ class WebvisualServer {
           this.http2 = spdy.createServer(sslSettings, app);
           this.http2.on('error', (err) => {
               if (err.code === 'EADDRINUSE') {
-                process.send( { error: `HTTP2 Server \n Port ${this.config.server.port.http2} in use. Please check if node.exe is not already running on this port.` } );
+                process.send( { error: `HTTP2 Server \n Port ${this.config.server.port} in use. Please check if node.exe is not already running on this port.` } );
                 this.http2.close();
               } else if (err.code === 'EACCES') {
-                process.send( { error: `HTTP2 Server \n Network not accessable. Port ${this.config.server.port.http2} might be in use by another application. Try to switch the port or quit the application, which is using this port` } );
+                process.send( { error: `HTTP2 Server \n Network not accessable. Port ${this.config.server.port} might be in use by another application. Try to switch the port or quit the application, which is using this port` } );
               } else {
                 process.send( { error: err } );
               }
             })
             .once('listening', () => {
-              process.send( { log: `HTTP2 Server is listening on port ${this.config.server.port.http2}` } );
+              process.send( { log: `HTTP2 Server is listening on port ${this.config.server.port}` } );
             });
           this.dataHandler.setServer(this.http2);
-          this.http2.listen(this.config.server.port.https || 443);
+          this.http2.listen(this.config.server.port || process.env.port || 443);
           this.configFilesHandler.watch(this.config.userConfigFiles);
           this.isRunning = true;
           process.send( { event: 'server-start' } );

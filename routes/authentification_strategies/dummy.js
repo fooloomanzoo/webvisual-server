@@ -7,14 +7,6 @@ const passport = require('passport')
 module.exports = function() {
     // required for persistent login sessions
     // used to serialize the user for the session
-    passport.serializeUser(function(user, done) {
-        done(null, user);
-    });
-
-    // used to deserialize the user
-    passport.deserializeUser(function(user, done){
-        done(null, user);
-    });
 
     passport.use('dummy', new LocalStrategy({
           usernameField : 'username',
