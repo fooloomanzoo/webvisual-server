@@ -47,6 +47,7 @@
         -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
         color: var(--primary-text-color);
         transition: background 250ms cubic-bezier(0.6, 0, 0.2, 1);
+        transition: padding 250ms cubic-bezier(0.6, 0, 0.2, 1);
       }
       :host([show-tabs]) {
         padding-top: 100px;
@@ -134,7 +135,7 @@
     <app-location route="{{route}}"></app-location>
     <app-route
       route="{{route}}"
-      pattern="/:facility/:page/:system"
+      pattern="/:page"
       data="{{routeData}}"
       tail="{{subroute}}"></app-route>
 
@@ -164,23 +165,23 @@
         </template>
       </app-toolbar>
 
-      <div id="tabs" sticky$="[[_shouldShowTabs]]" hidden$="[[!_shouldShowTabs]]">
+      <!-- <div id="tabs" sticky$="[[_shouldShowTabs]]" hidden$="[[!_shouldShowTabs]]">
         <template is="dom-if" if="[[_shouldRenderTabs]]">
           <webvisual-tabs
               selected="{{page}}"
               attr-for-selected="name">
               <webvisual-tab name="list">
-                <a href="/list/[[facility.name]]/[[system.name]]">Listenansicht</a>
+                <a href="/list/[[facilityName]]/[[systemName]]">Listenansicht</a>
               </webvisual-tab>
               <webvisual-tab name="group">
-                <a href="/group/[[facility.name]]/[[system.name]]">Gruppenansicht</a>
+                <a href="/group/[[facilityName]]/[[systemName]]">Gruppenansicht</a>
               </webvisual-tab>
               <webvisual-tab name="detail">
-                <a href="/detail/[[facility.name]]/[[system.name]]">Detailansicht</a>
+                <a href="/detail/[[facilityName]]/[[systemName]]">Detailansicht</a>
               </webvisual-tab>
           </webvisual-tabs>
         </template>
-      </div>
+      </div> -->
 
     </app-header>
 
@@ -188,9 +189,9 @@
       <!-- home view for selecting the facility -->
       <webvisual-home name="home" facilities="[[facilities]]"></webvisual-home>
       <!-- list view of items in a facility -->
-      <webvisual-list name="list" route="[[route]]" offline="[[offline]]"></webvisual-list>
+      <webvisual-list name="list" route="[[subroute]]" offline="[[offline]]"></webvisual-list>
       <!-- detail view of one item -->
-      <webvisual-detail name="detail" route="[[route]]" offline="[[offline]]"></webvisual-detail>
+      <webvisual-detail name="detail" route="[[subroute]]" offline="[[offline]]"></webvisual-detail>
     </iron-pages>
 
     <!-- EXCEEDING -->
@@ -278,9 +279,9 @@
           observer: '_pageChanged'
         },
 
-        facility: Object,
+        facilityName: String,
 
-        system: Object,
+        systemName: String,
 
         numItems: {
           type: Number,
@@ -314,8 +315,7 @@
       },
 
       observers: [
-        '_routePageChanged(routeData.page)',
-        'print(system,facility)'
+        '_routePageChanged(routeData.page)'
       ],
 
       listeners: {
@@ -352,7 +352,6 @@
       },
 
       _pageChanged: function(page, oldPage) {
-        console.log(page);
         if (page != null) {
           // home route is eagerly loaded
           if (page == 'home') {

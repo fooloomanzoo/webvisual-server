@@ -2,7 +2,10 @@
   ElementBehavior = {
 
     properties: {
-      item: Object,
+      item: {
+        type: Object,
+        observer: '_linkElement'
+      },
 
       values: Array,
 
@@ -35,11 +38,7 @@
 
       bubbles: Boolean,
 
-      noSocketConnection: {
-        type: Boolean,
-        value: false,
-        observer: "updatableChanged"
-      },
+      noSocketConnection: Boolean,
 
       singleValue: Boolean,
 
@@ -47,9 +46,9 @@
     },
 
     observers: [
-      'handleExceeding(isExceeding)',
+      '_checkExceeding(isExceeding)',
       'hasExceededChanged(hasExceeded)',
-      'setElement(item)'
+      '_setSocketConnection(noSocketConnection)'
     ],
 
     get containerRoot() {
@@ -77,38 +76,27 @@
       this.setAttribute('uniqueid', uniqueid);
     },
 
-    factoryImpl: function(obj) {
-      this.setElement(obj);
-    },
-
-    attached: function() {
-      if (this.item && this.item.id)
-        this.updatableChanged();
-      else {
-        this.set('values', this.values || []);
-      }
+    factoryImpl: function(obj, properties) {
+      this._linkElement(obj, properties);
     },
 
     detached: function() {
-      this.unsetElement();
+      Webvisual.retractElement(this, this.item);
+      this._unlinkElement();
       this.clearValues();
     },
 
-    setElement: function(item, properties) {
+    _linkElement: function(item, olditem) {
+      this._unlinkElement(olditem);
       this.clearValues();
-      this.set('item', item);
-      for (var key in properties) {
-        if (key !== 'item')
-          this.set(key, properties[key].value);
+      if (item && Object.keys(item).length !== 0) {
+        Webvisual.assignElement(this);
       }
-      this.updatableChanged();
     },
 
-    unsetElement: function() {
-      if (this.item && this.item.id) {
-        var id = this.item.id;
-        if (this.noSocketConnection === false && id)
-          Webvisual.retractElement(this);
+    _unlinkElement: function(item) {
+      if (item && Object.keys(item).length !== 0) {
+        Webvisual.retractElement(this, item);
       }
     },
 
@@ -126,7 +114,15 @@
 
     insertValues: function(values) {
       if (values === undefined) {
-        values = this.values || [];
+        var id = this.item.id
+          , system = this.item.system
+          , facility = this.item.facility;
+
+        var name = facility + '/' + system + '/' + id;
+        if (Webvisual.cache.has(name))
+          values = Webvisual.cache.get(name).values;
+        else
+          values = [];
       }
       if (this.noSocketConnection === true) {
         this.splice('values', this.values.length, 0, values);
@@ -160,6 +156,8 @@
     },
 
     clearValues: function() {
+      this.resetState();
+      this.renderedValue = {};
       // if (this.values)
       //   this.renderSplicedValues(this.values);
     },
@@ -190,7 +188,7 @@
       this.lastStateChange.push(value);
     },
 
-    handleExceeding: function(isExceeding) {
+    _checkExceeding: function(isExceeding) {
       if (this.exceedable === true) {
         if (this.bubbles === true) {
           if (isExceeding === true)
@@ -208,23 +206,24 @@
     hasExceededChanged: function() {},
 
     resetState: function() {
-      this.set('hasExceeded', false);
+      this.isExceeding = false;
+      this.hasExceeded = false;
     },
 
-    updatableChanged: function() {
+    _setSocketConnection: function(nosocket) {
       // sets a global Object 'Webvisual', for updating the values of the elements
-      if (this.item &&
-         !this.noSocketConnection &&
-          this.item.id) {
-        var id = this.item.id;
+      if (!this.item) {
+        return;
+      }
+      if (!nosocket) {
         try {
           Webvisual.assignElement(this);
           // this.insertValues(this.values || []);
         } catch (e) {
-          console.log(this.nodeName, id, e);
+          console.log(this.nodeName, e);
         }
       } else {
-        Webvisual.retractElement(this);
+        this._unlinkElement(this.item);
       }
     }
   };

@@ -7,33 +7,65 @@ function WebvisualTools() {
 
 WebvisualTools.prototype = {
   assignElement: function(element) {
-    var id = element.item.id;
+    var id = element.item.id
+      , system = element.item.system
+      , facility = element.item.facility;
 
-    if (!this.cache.has(id)) {
-      this.cache.add(id);
-    }
-    if (!this.nodes.has(id)) {
-      this.nodes.set(id, new Set());
-    }
-    this.nodes.get(id).add(element);
+    if (!id || !system || !facility)
+      return;
 
+    var name = facility + '/' + system + '/' + id;
+
+    if (!this.nodes.has(name)) {
+      this.nodes.set(name, new Set());
+    }
+
+    this.nodes.get(name).add(element);
+
+    Object.defineProperty(element, "values", {
+      configurable: true,
+      enumerable: true,
+      get: function() {
+        return Webvisual.cache.get(name).values;
+      }
+    });
+    // initialize values of element
+    if (!this.cache.has(name)) {
+      this.cache.add(name);
+    } else {
+      // element.insertValues();
+    }
+  },
+
+  retractElement: function(element, item) {
+
+    var id = item.id
+      , system = item.system
+      , facility = item.facility;
+
+    if (!id || !system || !facility)
+      return;
+
+    var name = facility + '/' + system + '/' + id;
+
+    this.cache.delete(name);
+    delete element.values;
     Object.defineProperty(element, "values", {
       configurable: true,
       enumerable: false,
       get: function() {
-        return Webvisual.cache.get(id).values;
+        return [];
       }
     });
-    // initialize values of element
-    element.insertValues(this.cache.get(id));
-  },
-  retractElement: function(element) {
-    var id = element.id;
 
-    if (!this.nodes.has(id))
+    if (!this.nodes.has(name))
       return;
 
-    this.nodes.get(id).delete(element);
+    this.nodes.get(name).delete(element);
+  },
+  init: function() {
+    this.cache.clear();
+    this.nodes.clear();
   },
   initializeData: function(message) {
 		if (Array.isArray(message)) // if message is an Array
@@ -63,26 +95,32 @@ WebvisualTools.prototype = {
     this.cache.append(message.values, noHeap);
   },
   updateNodes: function(message) {
-		if (!message.values) return;
+    if (!message.values) return;
+    var activePaint = requestAnimationFrame(
+      function() {
+    		var splices = []
+          , heap = [];
 
-		var splices = []
-      , heap = [];
+    		for (var name in message.values) {
 
-		for (var id in message.values) {
-      if (!this.nodes.has(id)) {
-        console.warn('no Nodes for Update');
-        continue;
-      }
+          if (!this.nodes.has(name)) {
+            console.warn('no Nodes for Update');
+            continue;
+          }
 
-			splices = this.cache.get(id).splices;
-			heap = this.cache.get(id).heap;
-      this.nodes.get(id).forEach( function(element) {
-        element.insertValues(heap);
-        element.spliceValues(splices);
-      })
-			splices.length = 0;
-			heap.length = 0;
-		}
+    			splices = this.cache.get(name).splices;
+    			heap = this.cache.get(name).heap;
+          this.nodes.get(name).forEach( function(element, key) {
+            // console.log('update', element.item.id, element.nodeName);
+            element.insertValues(heap);
+            element.spliceValues(splices);
+          })
+    			splices.length = 0;
+    			heap.length = 0;
+    		}
+
+        cancelAnimationFrame(activePaint);
+      }.bind(this));
 	},
   updateDatabase: function() {
 

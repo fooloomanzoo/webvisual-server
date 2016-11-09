@@ -77,19 +77,26 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         facility: {
           type: Object,
-          computed: '_computeFacility(facilityName, systemName)',
+          computed: '_computeFacility(facilityName)',
           notify: true
         },
 
         system: {
           type: Object,
-          computed: '_computeSystem(facilityName, systemName)',
+          computed: '_computeSystem(facility, systemName)',
           notify: true
         },
 
         item: {
           type: Object,
           computed: '_computeItem(system.items, itemName)',
+          notify: true
+        },
+
+        socketRoom: {
+          type: String,
+          computed: '_computeSocketRoomName(facility.name, system.name)',
+          readOnly: true,
           notify: true
         },
 
@@ -109,8 +116,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         return null;
       },
 
-      _getSystemObject: function(systemName) {
-        for (var i = 0, c; c = this.facility.systems[i]; ++i) {
+      _getSystemObject: function(facility, systemName) {
+        if (!facility)
+          return null;
+        for (var i = 0, c; c = facility.systems[i]; ++i) {
           if (c.name === systemName) {
             return c;
           }
@@ -123,11 +132,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         return facilityObj;
       },
 
-      _computeSystem: function(facilityName, systemName) {
-        if (!this.facility || !this.facility.systems)
-          return null;
-        var systemObj = this._getSystemObject(systemName);
-        this._fetchItems(systemObj, this.facility.name, 1);
+      _computeSystem: function(facility, systemName) {
+        var systemObj = this._getSystemObject(facility, systemName);
+        this._fetchItems(systemObj, facility.name, 1);
         return systemObj;
       },
 
@@ -137,6 +144,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             return item;
           }
         }
+      },
+
+      _computeSocketRoomName: function(facility, system) {
+        return facility + '/' + system;
       },
 
       _fetchItems: function(system, facilityName, attempts) {

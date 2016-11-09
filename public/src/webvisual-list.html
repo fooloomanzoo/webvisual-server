@@ -3,7 +3,7 @@
 
 <link rel="import" href="../bower_components/app-route/app-route.html">
 
-<link rel="import" href="webvisual-element-shareddata.html"/>
+<link rel="import" href="webvisual-element-socket-data.html"/>
 <link rel="import" href="webvisual-facility-data.html"/>
 <link rel="import" href="webvisual-element-sign.html"/>
 <link rel="import" href="webvisual-element-caption.html"/>
@@ -93,29 +93,30 @@
 
     <app-route
     route="[[route]]"
-    pattern="/:facilityName/list/:systemName"
+    pattern="/:facilityName/:systemName"
     data="{{routeData}}"></app-route>
 
     <webvisual-facility-data
     id="facilityData"
     facility-name="[[routeData.facilityName]]"
-    facility="{{facility}}"
     system-name="[[routeData.systemName]]"
+    facility="{{facility}}"
     system="{{system}}"
-    failure="{{failure}}"></webvisual-facility-data>
+    failure="{{failure}}"
+    socket-room="{{socketRoom}}"></webvisual-facility-data>
 
-    <webvisual-element-shareddata
+    <webvisual-element-socket-data
     socket-name="data"
-    socket-room="[[routeData.facilityName]]/[[routeData.systemName]]"
-    initialized="{{initialized}}"></webvisual-element-shareddata>
+    socket-room="[[socketRoom]]"
+    initialized="{{initialized}}"></webvisual-element-socket-data>
 
     <!-- <header>
       <h1>[[facility.title]]/[[system.title]]</h1>
     </header> -->
 
-    <template is="dom-if" if="{{initialized}}">
+    <!-- <template is="dom-if" if="{{initialized}}"> -->
       <ul class="grid" hidden$="[[failure]]">
-        <template is="dom-repeat" items="[[_getListItems(system.items)]]" initial-count="6">
+        <template is="dom-repeat" items="[[_getListItems(system.items)]]" initial-count="3">
           <li>
             <!-- <a href$="[[_getItemHref(item)]]"> -->
               <webvisual-element-sign item="[[item]]" selectable></webvisual-element-sign>
@@ -124,7 +125,7 @@
           </li>
         </template>
       </ul>
-    </template>
+    <!-- </template> -->
 
   </template>
 
@@ -138,6 +139,7 @@
       // ],
 
       properties: {
+
         facility: Object,
 
         system: Object,
@@ -162,8 +164,7 @@
       },
 
       observers: [
-        '_routeChanged(facility, system, visible)',
-        'print(routeData)'
+        '_routeChanged(facility, system, visible)'
       ],
 
       print: function(arg,arg2,arg3) {
@@ -190,7 +191,6 @@
       },
 
       _routeChanged: function(facility, system, visible) {
-        this.print(facility, system, visible);
         if (visible) {
           this.debounce('change-section', function() {
             // Notify the facility and the page's title

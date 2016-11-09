@@ -3,7 +3,7 @@
 <script type="text/javascript" src="../scripts/cache.js"></script>
 <script type="text/javascript" src="../scripts/webvisual-tools.js"></script>
 
-<dom-module id="webvisual-element-shareddata">
+<dom-module id="webvisual-element-socket-data">
   <template>
     <style>
       :host {
@@ -15,10 +15,10 @@
   <script>
     Polymer({
 
-      is: 'webvisual-element-shareddata',
+      is: 'webvisual-element-socket-data',
 
       properties: {
-        
+
         locationHost: {
           type: String,
           value: window.location.host
@@ -90,11 +90,12 @@
       		}).bind(this));
 
         socket.on('initial', function(message) {
-          Webvisual.initializeData(message);
+          Webvisual.updateData(message);
           this.initialized = true;
         }.bind(this));
-        socket.on('update', Webvisual.updateData.bind(Webvisual));
-
+        socket.on('update', function(message) {
+          Webvisual.updateData(message);
+        }.bind(this));
         Webvisual.sockets.set(socketName, socket);
 
         if (this.socketRoom) {
@@ -102,19 +103,24 @@
         }
       },
 
-      _setupConnection: function(socketRoom, old) {
-        var facility = socketRoom.split('/')[0]
-          , system =  socketRoom.split('/')[1];
-        if (!facility || !system || !Webvisual.sockets.has(this.socketName)) {
-          return;
-        }
-        this.initialized = false;
-        Webvisual.sockets.get(this.socketName)
-                         .emit('setup', {
-              							room: socketRoom,
-                            oldroom: old,
-              							mobile: Webvisual.mobile
-              						});
+      _setupConnection: function(socketRoom, oldroom) {
+
+        this.debounce('setupconnection', function() {
+          var facility = socketRoom.split('/')[0]
+            , system = socketRoom.split('/')[1];
+          if (!facility || !system || !Webvisual.sockets.has(this.socketName)) {
+            return;
+          }
+          // if (this.initialized)
+          //   Webvisual.init();
+          // this.initialized = false;
+          Webvisual.sockets.get(this.socketName)
+                           .emit('setup', {
+                              room: socketRoom,
+                              oldroom: oldroom,
+                              mobile: Webvisual.mobile
+                            });
+        }.bind(this), 100);
       }
     });
   </script>

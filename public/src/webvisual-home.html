@@ -100,7 +100,7 @@
           <iron-collapse opened="{{_computeOpened(item.title, currentFacility)}}">
             <div class="collapse-content">
               <template is="dom-repeat" items="[[item.systems]]" as="system" strip-whitespace>
-                <a href$="/[[item.name]]/list/[[system.name]]" tabindex="-1">
+                <a href$="/list/[[item.name]]/[[system.name]]" tabindex="-1">
                   <webvisual-button raised class="item system" aria-label$="[[system.title]]" tabindex="1">
                     <div>[[system.title]]</div>
                   </webvisual-button>

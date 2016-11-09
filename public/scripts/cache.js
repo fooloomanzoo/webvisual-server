@@ -1,7 +1,7 @@
 (function() {
 
 	var defaults = {
-		size: 5400, // Length of each DataRow (by id in values)
+		size: 5400, // Length of each DataRow (by name in values)
 		is: 'Array', // TODO: +ArrayBuffer
 		type: 'Float64', // TODO: TypedArray
 		primary: undefined // 'append' or 'prepend'
@@ -68,7 +68,7 @@
 		},
 
 		clear: function() {
-			this._spliced.length = 0; // clear array
+			this._splices.length = 0; // clear array
 			this._heap.length = 0;
 			this._cache.length = 0;
 		},
@@ -150,46 +150,48 @@
 	ClientCache.prototype = {
 
 		clear: function() {
-			this._cache.forEach( function(v,e) {
-				e.clear();
-				delete this[v];
+			this._cache.forEach( function(value, key) {
+        value.clear();
+				delete this[key];
 			}.bind(this))
 			this._cache.clear();
 		},
 
-		request: function(len, ids) {
+		request: function(len, names) {
 			var ret = {};
-			if (ids === undefined || !Array.isArray(ids)) {
-				this._cache.forEach(function(v,e) {
-					ret[v] = e.request(len);
+			if (names === undefined || !Array.isArray(names)) {
+				this._cache.forEach( function(value, key) {
+					ret[v] = value.request(len);
 				})
-				ids = Object.keys(this._cache);
 			} else {
-				for (var i in ids) {
-					if (this._cache.has(ids[i])) {
-						ret[ids[i]] = this._cache.get(ids[i]).request(len);
+				for (var i in names) {
+					if (this._cache.has(names[i])) {
+						ret[names[i]] = this._cache.get(names[i]).request(len);
 					}
 				}
 			}
 			return ret;
 		},
 
-		has: function(id) {
-			return this._cache.has(id);
+		has: function(name) {
+			return this._cache.has(name);
 		},
 
-		get: function(id) {
-			return this._cache.get(id);
+		get: function(name) {
+			return this._cache.get(name);
 		},
 
-		add: function(id) {
-			this._cache.set(id, new CacheKey(this.options));
+		add: function(name) {
+			this._cache.set(name, new CacheKey(this.options));
 		},
 
-		delete: function(id) {
-			delete this[id];
-			this._cache.get(id).clear();
-			return this._cache.delete(id);
+		delete: function(name) {
+      if (this[name])
+        delete this[name];
+      if (!this._cache.has(name))
+        return;
+			this._cache.get(name).clear();
+			return this._cache.delete(name);
 		},
 
 		_max: function(array) { // inspired by d3.array
@@ -216,49 +218,50 @@
 	    return a;
 	  },
 
-	  operation: function(func, compareFn, key, ids) {
+	  operation: function(func, compareFn, key, names) {
 			var ret = [];
-	    if (ids === undefined || !Array.isArray(ids)) {
+	    if (names === undefined || !Array.isArray(names)) {
 				this._cache.forEach(function(v,e) {
 					ret.push(e[func](key));
 				})
 	    } else {
-				for (var i in ids) {
-					if (this._cache.has(ids[i])) {
-						temp.push(this._cache.get(ids[i])[func](key));
+				for (var i in names) {
+					if (this._cache.has(names[i])) {
+						temp.push(this._cache.get(names[i])[func](key));
 					}
 				}
 			}
 	    return compareFn(temp, key);
 	  },
 
-	  min: function(ids, key) {
-	    return this.operation('min', this._min, key, ids);
+	  min: function(names, key) {
+	    return this.operation('min', this._min, key, names);
 	  },
-	  max: function(ids, key) {
-	    return this.operation('max', this._max, key, ids);
+	  max: function(names, key) {
+	    return this.operation('max', this._max, key, names);
 	  },
-	  first: function(ids, key) {
-	    return this.operation('first', this._min, key, ids);
+	  first: function(names, key) {
+	    return this.operation('first', this._min, key, names);
 	  },
-	  last: function(ids, key) {
-	    return this.operation('last', this._max, key, ids);
-	  },
-
-	  range: function(ids) {
-	    return [this.first(ids, 'x'), this.last(ids, 'x')];
+	  last: function(names, key) {
+	    return this.operation('last', this._max, key, names);
 	  },
 
-	  rangedValues: function(ids, key) {
-	    return [this.min(ids, key), this.max(ids, key)];
+	  range: function(names) {
+	    return [this.first(names, 'x'), this.last(names, 'x')];
+	  },
+
+	  rangedValues: function(names, key) {
+	    return [this.min(names, key), this.max(names, key)];
 	  },
 
 		append: function(data, noHeap) {
-			for (var id in data) {
-				if (!this._cache.has(id)) {
-					this._cache.set(id, new CacheKey(this.options));
+			for (var name in data) {
+				if (!this._cache.has(name)) {
+          // console.log(name, data[name].length);
+					this._cache.set(name, new CacheKey(this.options));
 				}
-				this._cache.get(id).append(data[id], noHeap);
+				this._cache.get(name).append(data[name], noHeap);
 			}
 		}
 	}
