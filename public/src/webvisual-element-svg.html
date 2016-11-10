@@ -1,15 +1,15 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="behaviors/container-behavior.html"/>
 <link rel="import" href="behaviors/attribute-repeat-animation-behavior.html"/>
-<script type="text/javascript" src='../bower_components/d3/d3.min.js'></script>
+<script type="text/javascript" src="../bower_components/d3/d3.min.js"></script>
 
 <!--
 `webvisual-element-svg` provides rendering a svg in a container.
 
 #the svg has to have following specifications:
 - all tranistions of the included paths must be relative
-- there doesn't have to be a ''matrix'' transformation on the top element (very important), else zoom transitions won't work corviewly
-- 'view-box'-attribute has to be set
+- there doesn"t have to be a ""matrix"" transformation on the top element (very important), else zoom transitions won"t work corviewly
+- "view-box"-attribute has to be set
 - the to top element of the svg has to be a plain g-element (look up grouping in svg) with no transformations on it
 
 #how to achive this in Inkscape:
@@ -29,9 +29,9 @@
 
 @element webvisual-element-svg
 -->
-<!-- <script src='../../../components/d3/d3.min.js'></script> -->
+<!-- <script src="../../../components/d3/d3.min.js"></script> -->
 
-<dom-module id='webvisual-element-svg'>
+<dom-module id="webvisual-element-svg">
 <template>
 <style>
   :host {
@@ -168,13 +168,13 @@
   }
 
 </style>
-  <!-- <div id='host'> -->
-    <div id='svgContainer'>
+  <!-- <div id="host"> -->
+    <div id="svgContainer">
     </div>
-    <div id='control' top$='[[fullscreen]]'>
-      <svg class='icon' viewBox='0 -4 16 24' on-tap='_resetZoom'><title>focus</title><g id='focus'> <path d='M 16,5.5 13,8 16,10.5 Z' /> <path d='M 10.5,16 8,13 5.5,16 Z' /> <path d='M 0,10.5 3,7.9999999 0,5.5 Z' /><path d='M 5.5,0 8,3 10.5,0 Z'/><circle r='1.5' cx='8' cy='8' /></g></svg>
-      <svg class='icon' viewBox='0 0 24 24' hidden$='[[fullscreen]]' on-tap='_requestFullscreen'><title>fullscreen</title><g id='fullscreen'><path d='M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z'/></g></svg>
-      <svg class='icon' viewBox='0 0 24 24' hidden$='[[!fullscreen]]' on-tap='_exitFullscreen'><title>close</title><g id='fullscreen-exit'><path d='M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z'/></g></svg>
+    <div id="control" top$="[[fullscreen]]">
+      <svg class="icon" viewBox="0 -4 16 24" on-tap="_resetZoom"><title>focus</title><g id="focus"> <path d="M 16,5.5 13,8 16,10.5 Z" /> <path d="M 10.5,16 8,13 5.5,16 Z" /> <path d="M 0,10.5 3,7.9999999 0,5.5 Z" /><path d="M 5.5,0 8,3 10.5,0 Z"/><circle r="1.5" cx="8" cy="8" /></g></svg>
+      <svg class="icon" viewBox="0 0 24 24" hidden$="[[fullscreen]]" on-tap="_requestFullscreen"><title>fullscreen</title><g id="fullscreen"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></g></svg>
+      <svg class="icon" viewBox="0 0 24 24" hidden$="[[!fullscreen]]" on-tap="_exitFullscreen"><title>close</title><g id="fullscreen-exit"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></g></svg>
     </div>
   <!-- </div> -->
 </template>

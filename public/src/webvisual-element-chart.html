@@ -5,9 +5,9 @@
 <link rel="import" href="webvisual-dropdown.html"/>
 <link rel="import" href="webvisual-button.html"/>
 <link rel="import" href="webvisual-graph.html"/>
-<script type="text/javascript" src='../bower_components/d3/d3.min.js'></script>
+<script type="text/javascript" src="../bower_components/d3/d3.min.js"></script>
 
-<dom-module id='webvisual-element-chart'>
+<dom-module id="webvisual-element-chart">
   <template>
     <style>
       :host {
@@ -187,29 +187,29 @@
     </style>
 
     <div id="svgContainer">
-      <svg id='svgchart' version='1.1' xmlns='http://www.w3.org/2000/svg'>
-        <g id='chart'>
-          <clipPath id='clip'>
-            <rect x='0' y='0'></rect>
+      <svg id="svgchart" version="1.1" xmlns="http://www.w3.org/2000/svg">
+        <g id="chart">
+          <clipPath id="clip">
+            <rect x="0" y="0"></rect>
           </clipPath>
-          <rect class='plot'></rect>
-          <g class='x axis'></g>
-          <g class='y axis'></g>
-          <g class='x grid'></g>
-          <g class='y grid'></g>
-          <g id='brush'></g>
-          <g id='focus' hidden>
-            <line class='focus line x' x1='0'></line>
-            <line class='focus line y'></line>
+          <rect class="plot"></rect>
+          <g class="x axis"></g>
+          <g class="y axis"></g>
+          <g class="x grid"></g>
+          <g class="y grid"></g>
+          <g id="brush"></g>
+          <g id="focus" hidden>
+            <line class="focus line x" x1="0"></line>
+            <line class="focus line y"></line>
           </g>
-          <g id='graphs'>
-            <g id='areas'></g>
-            <g id='lines'></g>
-            <g id='dots'></g>
+          <g id="graphs">
+            <g id="areas"></g>
+            <g id="lines"></g>
+            <g id="dots"></g>
           </g>
-          <text id='info' x='0' y='0' hidden></text>
-          <g id='zoom'>
-            <rect class='overlay' x="0.5" y="0.5"></rect>
+          <text id="info" x="0" y="0" hidden></text>
+          <g id="zoom">
+            <rect class="overlay" x="0.5" y="0.5"></rect>
           </g>
         </g>
       </svg>
@@ -218,7 +218,7 @@
 
 		  <webvisual-icon-button id="legendbutton" icon="timeline"></webvisual-icon-button>
 		  <webvisual-dropdown id="legend" for="legendbutton" target-toggle-event="tap" hiding-event="" position="bottom" align="center">
-		    <content id='collector' select='webvisual-graph'></content>
+		    <content id="collector" select="webvisual-graph"></content>
 		    <template is="dom-repeat" items="[[selectedElements]]">
 		      <webvisual-graph ident="[[item.ident]]" system="[[item.system]]" keys="[[item.keys]]" grouped-key="[[item.groupedKey]]" color="[[item.color]]" interpolation="[[interpolation]]">
 		      </webvisual-graph>
@@ -235,25 +235,25 @@
 		  <webvisual-icon-button id="ybutton" icon="y"></webvisual-icon-button>
 		  <webvisual-dropdown for="ybutton" target-toggle-event="tap" position="right" align="start" offset="10">
 		    <iron-selector attr-for-selected="scale" selected="{{yScale}}" fallback-selection="linear" toggles>
-		      <webvisual-button scale='linear'>linear</webvisual-button>
-		      <webvisual-button scale='√'>√</webvisual-button>
-		      <webvisual-button scale='ln'>ln</webvisual-button>
-		      <webvisual-button scale='log₁₀'>log₁₀</webvisual-button>
+		      <webvisual-button scale="linear">linear</webvisual-button>
+		      <webvisual-button scale="√">√</webvisual-button>
+		      <webvisual-button scale="ln">ln</webvisual-button>
+		      <webvisual-button scale="log₁₀">log₁₀</webvisual-button>
 		    </iron-selector>
 		  </webvisual-dropdown>
 
 		  <webvisual-icon-button id="xbutton" icon="x"></webvisual-icon-button>
 		  <webvisual-dropdown for="xbutton" target-toggle-event="tap" position="top" align="end" offset="1">
 		    <iron-selector attr-for-selected="interpolate" selected="{{interpolation}}" fallback-selection="Lineare Verbindung" toggles>
-		      <webvisual-button interpolate='Lineare Verbindung'>Lineare Verbindung</webvisual-button>
-		      <webvisual-button interpolate='Basis Spline'>Basis Spline</webvisual-button>
-		      <webvisual-button interpolate='Monotoner Spline'>Monotoner Spline</webvisual-button>
-		      <webvisual-button interpolate='Kubischer Spline'>Kubischer Spline</webvisual-button>
-		      <webvisual-button interpolate='Cardinaler Spline'>Cardinaler Spline</webvisual-button>
-		      <webvisual-button interpolate='Catmull-Rom-Spline'>Catmull-Rom-Spline</webvisual-button>
-		      <webvisual-button interpolate='Stufe (mitte)'>Stufe (mitte)</webvisual-button>
-		      <webvisual-button interpolate='Stufe (davor)'>Stufe (davor)</webvisual-button>
-		      <webvisual-button interpolate='Stufe (danach)'>Stufe (danach)</webvisual-button>
+		      <webvisual-button interpolate="Lineare Verbindung">Lineare Verbindung</webvisual-button>
+		      <webvisual-button interpolate="Basis Spline">Basis Spline</webvisual-button>
+		      <webvisual-button interpolate="Monotoner Spline">Monotoner Spline</webvisual-button>
+		      <webvisual-button interpolate="Kubischer Spline">Kubischer Spline</webvisual-button>
+		      <webvisual-button interpolate="Cardinaler Spline">Cardinaler Spline</webvisual-button>
+		      <webvisual-button interpolate="Catmull-Rom-Spline">Catmull-Rom-Spline</webvisual-button>
+		      <webvisual-button interpolate="Stufe (mitte)">Stufe (mitte)</webvisual-button>
+		      <webvisual-button interpolate="Stufe (davor)">Stufe (davor)</webvisual-button>
+		      <webvisual-button interpolate="Stufe (danach)">Stufe (danach)</webvisual-button>
 		    </iron-selector>
 		  </webvisual-dropdown>
 
@@ -273,10 +273,10 @@
       'shortMonths': ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Dez']
     });
     d3.formatDefaultLocale({
-      "decimal": ",",
-      "thousands": ".",
-      "grouping": [3],
-      "currency": ["", "\u00a0€"]
+      'decimal': ',',
+      'thousands': '.',
+      'grouping': [3],
+      'currency': ['', '\u00a0€']
     });
 
     Polymer({
@@ -418,16 +418,16 @@
       ],
 
       created: function() {
-        this.formatMillisecond = d3.timeFormat(":%S,%L");
-        this.formatLongSecond = d3.timeFormat(":%M:%S,%L");
-        this.formatSecond = d3.timeFormat(":%M:%S");
-        this.formatLongMinute = d3.timeFormat("%H:%M:%S");
-        this.formatMinute = d3.timeFormat("%H:%M");
-        this.formatHour = d3.timeFormat("%X");
-        this.formatDay = d3.timeFormat("%d.%m");
-        this.formatWeek = d3.timeFormat("%d.%m");
-        this.formatMonth = d3.timeFormat("%d. %b");
-        this.formatYear = d3.timeFormat("%Y");
+        this.formatMillisecond = d3.timeFormat(':%S,%L');
+        this.formatLongSecond = d3.timeFormat(':%M:%S,%L');
+        this.formatSecond = d3.timeFormat(':%M:%S');
+        this.formatLongMinute = d3.timeFormat('%H:%M:%S');
+        this.formatMinute = d3.timeFormat('%H:%M');
+        this.formatHour = d3.timeFormat('%X');
+        this.formatDay = d3.timeFormat('%d.%m');
+        this.formatWeek = d3.timeFormat('%d.%m');
+        this.formatMonth = d3.timeFormat('%d. %b');
+        this.formatYear = d3.timeFormat('%Y');
       },
 
       ready: function() {
@@ -439,7 +439,7 @@
       },
 
       _sizeChanged: function(e) {
-        this.debounce("resize", this._sizeLayout, 25);
+        this.debounce('resize', this._sizeLayout, 25);
       },
 
       _buildLayout: function() {
@@ -608,7 +608,7 @@
             break;
         }
         axis.scale(scale).ticks(ticks * tickmult);
-        if (kind === "time")
+        if (kind === 'time')
           axis.ticks(ticks * tickmult)
           .tickFormat(this.timeFormat.bind(this));
         else if (scale.base && scale.base() === Math.E)
@@ -666,11 +666,11 @@
             // performance.mark('end');
             // performance.measure(g.ident, 'start', 'end');
           });
-          // p = performance.getEntriesByType("measure");
+          // p = performance.getEntriesByType('measure');
           //   for (var i=0; i < p.length; i++) {
-          //     console.log ("performance.measure " + p[i].name +
-          //         //  " startTime = " + p[i].startTime +
-          //          " duration  = " + p[i].duration);
+          //     console.log ('performance.measure ' + p[i].name +
+          //         //  ' startTime = ' + p[i].startTime +
+          //          ' duration  = ' + p[i].duration);
           //   }
           // performance.clearMarks();
           // performance.clearMeasures();
@@ -735,7 +735,7 @@
           }
         }
 
-        if (this.yScale === "√" || this.yScale === "ln" || this.yScale === "log₁₀") {
+        if (this.yScale === '√' || this.yScale === 'ln' || this.yScale === 'log₁₀') {
           if (domainY[0] <= 0) {
             domainY[0] = 1e-15;
           }
@@ -780,7 +780,7 @@
           .classed('webvisual-element-chart', true);
       },
       _updateInfo: function() {
-        if (this._info.attr('hidden') === "true" || this._info.x === undefined || this._info.y === undefined) return;
+        if (this._info.attr('hidden') === 'true' || this._info.x === undefined || this._info.y === undefined) return;
         var bbox = this._info.node().getBBox();
         // console.log(bbox, this._width, this._height);
         var x = this._x(this._info.x),
@@ -826,7 +826,7 @@
         }
         var domainX = this._x.domain();
         var domainY = this._y.domain();
-        if (this.yScale === "√" || this.yScale === "ln" || this.yScale === "log₁₀") {
+        if (this.yScale === '√' || this.yScale === 'ln' || this.yScale === 'log₁₀') {
           if (domainY[0] <= 0) {
             domainY[0] = 1e-15;
           }

@@ -23,6 +23,7 @@
 <link rel="import" href="webvisual-facility-data.html"/>
 <link rel="import" href="webvisual-element-sign.html"/>
 <link rel="import" href="webvisual-element-caption.html"/>
+<link rel="import" href="webvisual-element-snackbar.html"/>
 
 <link rel="import" href="webvisual-home.html"/>
 <link rel="import" href="webvisual-list.html"/>
@@ -257,12 +258,10 @@
 
       </app-drawer>
 
-      <iron-selector activate-event="element-select" item="{{selectedElement}}"></iron-selector>
-
-      <webvisual-snackbar class="opened">
+      <webvisual-element-snackbar open-on-select select-notify notify-parent="[[loadComplete]]" item="{{selectedElement}}">
         <webvisual-element-sign item="[[selectedElement.item]]"></webvisual-element-sign>
         <webvisual-element-caption keys="[[selectedElement.keys]]"></webvisual-element-caption>
-      </webvisual-snackbar>
+      </webvisual-element-snackbar>
 
     </template>
   </template>
@@ -321,7 +320,8 @@
       listeners: {
         'change-section': '_onChangeSection',
         'announce': '_onAnnounce',
-        'dom-change': '_domChange'
+        'dom-change': '_domChange',
+        'element-select': 'print'
       },
 
       print: function(arg, arg2) {

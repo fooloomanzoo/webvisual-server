@@ -1,7 +1,7 @@
 (function() {
 
 	var defaults = {
-		size: 5400, // Length of each DataRow (by name in values)
+		size: 120, // Length of each DataRow (by name in values)
 		is: 'Array', // TODO: +ArrayBuffer
 		type: 'Float64', // TODO: TypedArray
 		primary: undefined // 'append' or 'prepend'

@@ -5,9 +5,9 @@
 <link rel="import" href="behaviors/element-behavior.html"/>
 <link rel="import" href="webvisual-element-caption.html"/>
 <link rel="import" href="webvisual-radio-button.html"/>
-<script type="text/javascript" src='../bower_components/d3/d3.min.js'></script>
+<script type="text/javascript" src="../bower_components/d3/d3.min.js"></script>
 
-<dom-module id='graph-element'>
+<dom-module id="graph-element">
   <style>
     :host {
       box-sizing: border-box;
@@ -24,8 +24,8 @@
     }
   </style>
   <template>
-    <webvisual-radio-button id='legendEntry' checked='{{checked}}'>
-      <webvisual-element-caption id='legendCaption' horizontal only-grouped-key grouped-key='[[groupedKey]]' keys='[[keys]]'></webvisual-element-caption>
+    <webvisual-radio-button id="legendEntry" checked="{{checked}}">
+      <webvisual-element-caption id="legendCaption" horizontal only-grouped-key grouped-key="[[groupedKey]]" keys="[[keys]]"></webvisual-element-caption>
     </webvisual-radio-button>
   </template>
   <script>

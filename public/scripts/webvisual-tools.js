@@ -7,77 +7,52 @@ function WebvisualTools() {
 
 WebvisualTools.prototype = {
   assignElement: function(element) {
-    var id = element.item.id
-      , system = element.item.system
-      , facility = element.item.facility;
 
-    if (!id || !system || !facility)
+    var mount = element.item.mount;
+
+    if (!mount)
       return;
 
-    var name = facility + '/' + system + '/' + id;
-
-    if (!this.nodes.has(name)) {
-      this.nodes.set(name, new Set());
+    if (!this.nodes.has(mount)) {
+      this.nodes.set(mount, new Set());
     }
 
-    this.nodes.get(name).add(element);
+    this.nodes.get(mount).add(element);
 
     Object.defineProperty(element, "values", {
       configurable: true,
       enumerable: true,
       get: function() {
-        return Webvisual.cache.get(name).values;
+        return Webvisual.cache.get(mount).values;
       }
     });
-    // initialize values of element
-    if (!this.cache.has(name)) {
-      this.cache.add(name);
-    } else {
-      // element.insertValues();
-    }
   },
 
   retractElement: function(element, item) {
 
-    var id = item.id
-      , system = item.system
-      , facility = item.facility;
+    var mount = item.mount; // item(.mount) is used, because properties might be already deleted from element
 
-    if (!id || !system || !facility)
+    if (!mount)
       return;
 
-    var name = facility + '/' + system + '/' + id;
-
-    this.cache.delete(name);
     delete element.values;
-    Object.defineProperty(element, "values", {
-      configurable: true,
-      enumerable: false,
-      get: function() {
-        return [];
-      }
-    });
 
-    if (!this.nodes.has(name))
+    if (!this.nodes.has(mount))
       return;
 
-    this.nodes.get(name).delete(element);
+    this.nodes.get(mount).delete(element);
   },
-  init: function() {
+
+  initializeData: function(items) {
     this.cache.clear();
     this.nodes.clear();
-  },
-  initializeData: function(message) {
-		if (Array.isArray(message)) // if message is an Array
-			for (var i = 0; i < message.length; i++) {
-  			this.updateCache(message[i], true);
-  			// this.updateDatabase(message[i]);
-  		}
-		else { // if message is a single Object
-			this.updateCache(message, true);
-			// this.updateDatabase(message);
-		}
+    if (items) {
+      items.forEach(function(item) {
+        this.cache.add(item.mount);
+      }.bind(this));
+    }
 	},
+
   updateData: function(message) {
 		if (Array.isArray(message)) // if message is an Array
 			for (var i = 0; i < message.length; i++) {
@@ -96,21 +71,22 @@ WebvisualTools.prototype = {
   },
   updateNodes: function(message) {
     if (!message.values) return;
-    var activePaint = requestAnimationFrame(
+    
+    requestAnimationFrame(
       function() {
     		var splices = []
           , heap = [];
 
-    		for (var name in message.values) {
+    		for (var mount in message.values) {
 
-          if (!this.nodes.has(name)) {
+          if (!this.nodes.has(mount)) {
             console.warn('no Nodes for Update');
             continue;
           }
 
-    			splices = this.cache.get(name).splices;
-    			heap = this.cache.get(name).heap;
-          this.nodes.get(name).forEach( function(element, key) {
+    			splices = this.cache.get(mount).splices;
+    			heap = this.cache.get(mount).heap;
+          this.nodes.get(mount).forEach( function(element, key) {
             // console.log('update', element.item.id, element.nodeName);
             element.insertValues(heap);
             element.spliceValues(splices);
@@ -119,7 +95,7 @@ WebvisualTools.prototype = {
     			heap.length = 0;
     		}
 
-        cancelAnimationFrame(activePaint);
+        // cancelAnimationFrame(activePaint);
       }.bind(this));
 	},
   updateDatabase: function() {

@@ -31,6 +31,8 @@
           observer: '_setupConnection'
         },
 
+        items: Array,
+
         initialized: {
           type: Boolean,
           value: false,
@@ -40,7 +42,8 @@
       },
 
       observers: [
-        '_createSocket(locationHost, socketName)'
+        '_createSocket(locationHost, socketName)',
+        '_initializeData(items)'
       ],
 
       ready: function() {
@@ -104,23 +107,26 @@
       },
 
       _setupConnection: function(socketRoom, oldroom) {
+        var facility = socketRoom.split('/')[0]
+          , system = socketRoom.split('/')[1];
+        if (!facility || !system || !Webvisual.sockets.has(this.socketName)) {
+          return;
+        }
+        // if (this.initialized)
+        //   Webvisual.init();
+        // this.initialized = false;
+        Webvisual.sockets.get(this.socketName)
+                         .emit('setup', {
+                            room: socketRoom,
+                            oldroom: oldroom,
+                            mobile: Webvisual.mobile
+                          });
+      },
 
-        this.debounce('setupconnection', function() {
-          var facility = socketRoom.split('/')[0]
-            , system = socketRoom.split('/')[1];
-          if (!facility || !system || !Webvisual.sockets.has(this.socketName)) {
-            return;
-          }
-          // if (this.initialized)
-          //   Webvisual.init();
-          // this.initialized = false;
-          Webvisual.sockets.get(this.socketName)
-                           .emit('setup', {
-                              room: socketRoom,
-                              oldroom: oldroom,
-                              mobile: Webvisual.mobile
-                            });
-        }.bind(this), 100);
+      _initializeData: function(items) {
+        if (items && items.length > 0) {
+          Webvisual.initializeData(items);
+        }
       }
     });
   </script>

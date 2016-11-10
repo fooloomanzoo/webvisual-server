@@ -106,6 +106,7 @@
     socket-room="{{socketRoom}}"></webvisual-facility-data>
 
     <webvisual-element-socket-data
+    items="[[system.items]]"
     socket-name="data"
     socket-room="[[socketRoom]]"
     initialized="{{initialized}}"></webvisual-element-socket-data>
@@ -116,7 +117,7 @@
 
     <!-- <template is="dom-if" if="{{initialized}}"> -->
       <ul class="grid" hidden$="[[failure]]">
-        <template is="dom-repeat" items="[[_getListItems(system.items)]]" initial-count="3">
+        <template is="dom-repeat" items="[[_getListItems(system.items)]]">
           <li>
             <!-- <a href$="[[_getItemHref(item)]]"> -->
               <webvisual-element-sign item="[[item]]" selectable></webvisual-element-sign>

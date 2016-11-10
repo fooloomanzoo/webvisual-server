@@ -2,49 +2,33 @@
   CheckedAndSelectBehavior = {
 
     properties: {
-      selectable: {
-        type: Boolean,
-        value: false
-      },
+
+      selectable: Boolean,
+
       checked: {
         type: Boolean,
-        value: false,
         reflectToAttribute: true,
         notify: true,
         observer: 'checkedChanged'
       },
+
       toggles: {
         type: Boolean,
-        value: true,
-        reflectToAttribute: true
+        value: true
       },
+
       selectEvent: {
         type: String,
-        value: 'element-select'
-      },
-      deselectEvent: {
-        type: String,
-        value: 'element-deselect'
-      },
+        value: 'item-select'
+      }
+
     },
 
     checkedChanged: function(checked, old) {
-      if (old !== undefined && this.selectable === true) {
-        if (checked === false) {
-          this.fire(this.deselectEvent, {
-            target: this
-          });
-        } else if (checked === true) {
-          this.fire(this.selectEvent, {
-            target: this
-          });
-        }
+      if (this.selectable) {
+        this.dispatchEvent(new CustomEvent(this.selectEvent, {detail: { item: this.item, value: checked }}), {bubbles: true});
       }
-      if (this.handleChecked)
-        this.handleChecked(checked, old);
     },
-
-    handleChecked: function(checked, old) {},
 
     select: function() {
       if (this.selectable === true) {

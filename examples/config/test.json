@@ -29,7 +29,7 @@
             "to": 9
           },
           "unit": "kPa",
-          "isBoolean": true
+          "isIndicatorLamp": true
         }, {
           "id": "DI4-3",
           "keys": {

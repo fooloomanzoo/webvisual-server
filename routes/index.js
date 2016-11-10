@@ -80,8 +80,6 @@ class Router extends EventEmitter {
   setServer(opt) {
     this.settings.server = opt;
 
-    console.log(opt);
-
     require('./authentification_strategies/activedirectory.js')(this.passport, this.settings.server.auth.ldap); // register custom ldap-passport-stategy
     require('./authentification_strategies/dummy.js')(this.passport); // register dummy-stategy
 
@@ -92,7 +90,6 @@ class Router extends EventEmitter {
           failureRedirect: '/login'
         }),
         function(req, res) {
-          console.log('post', req.path, req.session.returnTo);
           res.redirect(req.session.returnTo || '/');
           delete req.session.returnTo;
         }
@@ -104,7 +101,6 @@ class Router extends EventEmitter {
           failureRedirect: '/'
         }),
         function(req, res) {
-          console.log('post dummy', req.path, req.session.returnTo);
           res.redirect(req.session.returnTo || '/');
           delete req.session.returnTo;
         }

@@ -1,6 +1,8 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="behaviors/container-behavior.html">
 
-<dom-module id="webvisual-snackbar">
+
+<dom-module id="webvisual-element-snackbar">
 
   <template>
 
@@ -25,7 +27,7 @@
         transition-property: visibility, transform, opacity;
         transition-duration: 0.2s;
       }
-      :host(.opened) {
+      :host([opened]) {
         visibility: visible;
         -webkit-transform: translate3d(0, 0, 0);
         transform: translate3d(0, 0, 0);
@@ -43,6 +45,7 @@
       }
     </style>
 
+
     <content></content>
 
   </template>
@@ -50,17 +53,11 @@
   <script>
 
     Polymer({
-      is: 'webvisual-snackbar',
+      is: 'webvisual-element-snackbar',
 
-      open: function() {
-        Polymer.dom.flush();
-        this.offsetHeight && this.classList.add('opened');
-        this.debounce('_close', this.close, 4000);
-      },
-
-      close: function() {
-        this.classList.remove('opened');
-      }
+      behaviors: [
+        ContainerBehavior
+      ]
     });
 
   </script>

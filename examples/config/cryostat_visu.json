@@ -240,7 +240,7 @@
 				"keys": {
 					"Bezeichner": "Messreihe"
 				},
-				"isBoolean": false,
+				"isIndicatorLamp": false,
 				"values": [ {
 					"x": null,
 					"y": 0
@@ -393,7 +393,7 @@
 				"keys": {
 					"Bezeichner": "Messreihe"
 				},
-				"isBoolean": false,
+				"isIndicatorLamp": false,
 				"values": [ {
 					"x": null,
 					"y": 0
@@ -546,7 +546,7 @@
 				"keys": {
 					"Bezeichner": "Messreihe"
 				},
-				"isBoolean": false,
+				"isIndicatorLamp": false,
 				"values": [ {
 					"x": null,
 					"y": 0
