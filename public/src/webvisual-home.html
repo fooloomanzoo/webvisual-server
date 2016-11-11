@@ -91,13 +91,13 @@
 
     <div class="box">
       <h1>Auswahl der Messanlage</h1>
-      <iron-selector id="selector" selected="{{currentFacility}}" attr-for-selected="aria-label" selectable=".facility">
+      <iron-selector id="selector" selected="{{currentFacility}}" attr-for-selected="item-name" selectable=".facility">
         <template is="dom-repeat" items="[[facilities]]" strip-whitespace>
-          <webvisual-button raised class="item facility" itemtitle="[[item.title]]" aria-label$="[[item.title]]" tabindex="1">
+          <webvisual-button raised class="item facility" item-name="[[item.name]]" aria-label$="[[item.title]]" tabindex="1">
             <div>[[item.title]]</div>
           </webvisual-button>
 
-          <iron-collapse opened="{{_computeOpened(item.title, currentFacility)}}">
+          <iron-collapse opened="{{_computeOpened(item.name, currentFacility)}}">
             <div class="collapse-content">
               <template is="dom-repeat" items="[[item.systems]]" as="system" strip-whitespace>
                 <a href$="/list/[[item.name]]/[[system.name]]" tabindex="-1">

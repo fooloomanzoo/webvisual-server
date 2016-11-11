@@ -111,6 +111,7 @@ class WebvisualServer {
       process.send( { info: 'WebvisualServer is starting' } );
       this.createServerSettings(this.config)
         .then((sslSettings) => {
+          this.configFilesHandler.watch(this.config.userConfigFiles);
           if (this.http2)
             this.http2.close();
           this.http2 = spdy.createServer(sslSettings, app);
@@ -129,9 +130,11 @@ class WebvisualServer {
             });
           this.dataHandler.setServer(this.http2);
           this.http2.listen(this.config.server.port || process.env.port || 443);
-          this.configFilesHandler.watch(this.config.userConfigFiles);
           this.isRunning = true;
           process.send( { event: 'server-start' } );
+        })
+        .then( () => {
+          this.router.createStaticContent();
         })
         .catch( (err) => {
           process.send( { error: `in SSL Configuration \n ${err}` } );

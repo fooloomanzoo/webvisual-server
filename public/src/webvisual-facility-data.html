@@ -1,60 +1,9 @@
-<!--
-@license
-Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
-This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
-The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
-The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
-Code distributed by Google as part of the polymer project is also
-subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
--->
-
 <link rel="import" href="../bower_components/polymer/polymer.html">
 
 <dom-module id="webvisual-facility-data">
 
   <script>
   (function() {
-    var facilityList = [
-      {
-        "name": "Cryostat",
-        "title": "Cryostat",
-        "systems": [
-          {
-            "name": "Lakeshore",
-            "title": "Lakeshore"
-          }, {
-            "name": "Tic500",
-            "title": "Tic500"
-          }, {
-            "name": "Tic501",
-            "title": "Tic501"
-          }, {
-            "name": "Tic502",
-            "title": "Tic502"
-          }
-        ]
-      },
-      {
-        "name": "HNF-GDS",
-        "title": "HNF-GDS",
-        "systems": [
-          {
-            "name": "HNF-GDS",
-            "title": "HNF-GDS"
-          }
-        ]
-      },
-      {
-        "name": "Tests",
-        "title": "Generated Measurement Data for Testing",
-        "systems": [
-          {
-            "name": "test",
-            "title": "test"
-          }
-        ]
-      }
-    ];
 
     Polymer({
 
@@ -70,8 +19,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         facilities: {
           type: Array,
-          value: facilityList,
-          readOnly: true,
+          value: function() {
+            return [];
+          },
           notify: true
         },
 
@@ -105,6 +55,23 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           notify: true,
           readOnly: true
         }
+      },
+
+      attached: function() {
+        this._loadFacilityList();
+      },
+
+      _loadFacilityList: function(attempts) {
+        this._getResource({
+          url: '/data/facilities.json',
+          onLoad: function(e) {
+            this.set('facilities', JSON.parse(e.target.responseText));
+            console.log(e.target.responseText);
+          },
+          onError: function(e) {
+            this._setFailure(true);
+          }
+        }, attempts);
       },
 
       _getFacilityObject: function(facilityName) {
@@ -157,7 +124,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           return;
         }
         this._getResource({
-          url: '/data/' + facilityName + '/' + system.name + '/ids.json',
+          url: '/data/' + facilityName + '+' + system.name + '+ids.json',
           onLoad: function(e) {
             this.set('system.items', JSON.parse(e.target.responseText));
           },

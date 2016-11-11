@@ -32,8 +32,8 @@ class Router extends EventEmitter {
 
     // this.app.use(morgan('combined'));
 
-    this.app.set("views", path.join(process.cwd(), 'views'));
-    this.app.set("view engine", "jade");
+    this.app.set('views', path.join(process.cwd(), 'views'));
+    this.app.set('view engine', 'jade');
 
     // Parser
     this.app.use(cookieParser());
@@ -77,7 +77,7 @@ class Router extends EventEmitter {
 
   setSettings(options) {
     if (options === undefined)
-      this.emit("error", "Empty Configuration passed to Router");
+      this.emit('error', 'Empty Configuration passed to Router');
     for (let key in options) {
       if (key == 'server')
         this.setServer(options.server);
@@ -98,14 +98,14 @@ class Router extends EventEmitter {
     if (this.settings.server.auth.required === true) {
       this.app.post('/login',
         this.passport.authenticate('activedirectory-login', {
-          successReturnToOrRedirect: '/',
+          successRedirect: '/',
           failureRedirect: '/login'
         })
       );
     } else {
       this.app.post('/login',
         this.passport.authenticate('dummy', {
-          successReturnToOrRedirect: '/',
+          successRedirect: '/',
           failureRedirect: '/'
         })
       );
@@ -128,7 +128,7 @@ class Router extends EventEmitter {
       res.redirect('/login');
     });
 
-    this.app.use('*', ensureLoggedIn('/login'));
+    this.app.use('/data/*', ensureLoggedIn('/login'));
     this.app.use(staticMiddleware);
     this.app.get('*', function(req, res) {
       res.sendFile( path.join(process.cwd(), 'public', 'index.html') );
@@ -137,39 +137,60 @@ class Router extends EventEmitter {
 
   setUserConfig(userConfigFiles) {
     this.settings.userConfigFiles = userConfigFiles;
+
+    // init facilities.json
+    fs.writeFileSync(path.resolve(process.cwd(), 'public', 'data', 'facilities.json'), JSON.stringify([]));
   }
 
   setConfiguration(opt, facility) {
     this.configuration[facility] = opt;
 
-    // create server side json files of the regrounded element configurations
-      // mkdir
-    var dirs = ['/public', 'data', facility];
-    var newDir = process.cwd();
+    // workaround, to catch all emidiate changes
+    if (this._activeWriteJob)
+      clearTimeout( this._activeWriteJob );
+    this._activeWriteJob = setTimeout(() => {
+      this.createStaticContent();
+    }, 250);
+  }
 
-    for (var i = 0; i < dirs.length; i++) {
-      newDir += dirs[i] + '/';
-      if (!fs.exists(newDir)) {
-        fs.mkdir(newDir, (err) => {
-          this.emit( {error: err} );
-        })
+  createStaticContent() {
+    let dir = path.resolve(process.cwd(), 'public', 'data')
+      , facilities = {}
+      , tmp = []
+      , p;
+
+    // write json
+    for (let facility in this.configuration) {
+      let opt = this.configuration[facility];
+      facilities[facility] = {
+        title: this.settings.userConfigFiles[facility].title,
+        systems: []
       }
+      for (let system in opt) {
+        facilities[facility].systems.push( {name: system, title: opt[system].title} );
+        let name = facility + '+' + system;
+        for (let key in opt[system]) {
+          if (key === 'title') continue;
+          p = path.resolve(dir, name + '+' + key + '.json')
+          fs.writeFile(p, JSON.stringify(opt[system][key]), (err) => {
+            if (err)
+              this.emit('error', 'Writing Files for static content configuration (../public/data/) failed\n' + err);
+          });
+        }
+      }
+
     }
-      // write json
-    var p;
-    for (var sys in opt) {
-      if (!fs.exists(newDir + '/' + sys)) {
-        fs.mkdir(newDir + '/' + sys, (err) => {
-          this.emit( {error: err} );
-        })
-      }
-      for (var key in opt[sys]) {
-        p = path.resolve(newDir + '/' + sys, key + ".json")
-        fs.writeFile (p, JSON.stringify(opt[sys][key]), (err) => {
-          if (err) this.emit("error", JSON.stringify(err));
-        });
-      }
+
+    dir = path.resolve(dir, 'facilities.json');
+
+    for (let facility in facilities) {
+      tmp.push({
+        name: facility,
+        title: facilities[facility].title,
+        systems: facilities[facility].systems
+      });
     }
+    fs.writeFileSync( dir, JSON.stringify(tmp) );
   }
 }
 
