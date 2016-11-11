@@ -20,10 +20,6 @@
 
       exceedNotify: Boolean,
 
-      notifySelf: Boolean,
-
-      notifyParent: Boolean,
-
       selectEvent: {
         type: String,
         value: 'item-select'
@@ -66,10 +62,8 @@
     },
 
     observers: [
-      '_watchSelectSelf(selectNotify, notifySelf)',
-      '_watchExceedSelf(exceedNotify, notifySelf)',
-      '_watchSelectParent(selectNotify, notifyParent)',
-      '_watchExceedParent(exceedNotify, notifyParent)',
+      '_watchSelect(selectNotify)',
+      '_watchExceed(exceedNotify)',
       '_reproductionSelectRepeat(item)',
       '_reproductionMultiSelectRepeat(items.splices)',
       '_reproductionExceedsRepeat(exceeding.splices)',
@@ -77,22 +71,6 @@
 
     hostAttributes: {
       container: true
-    },
-
-    get rootElement() {
-      var parentNode = Polymer.dom(this).parentNode;
-      // If the parentNode is a document fragment, then we need to use the host.
-      var ownerRoot = Polymer.dom(this).getOwnerRoot();
-      var target;
-
-      if (this.for) {
-        target = Polymer.dom(ownerRoot).querySelector('#' + this.for);
-      } else {
-        target = parentNode.nodeType == Node.DOCUMENT_FRAGMENT_NODE ?
-            ownerRoot.host : parentNode;
-      }
-
-      return target;
     },
 
     created: function() {
@@ -106,15 +84,12 @@
     },
 
     detached: function() {
-      this._watchSelectSelf(false, this.notifySelf);
-      this._watchExceedSelf(false, this.notifySelf);
-      this._watchSelectParent(false, this.notifyParent);
-      this._watchExceedParent(false, this.notifyParent);
+      this._watchSelect();
+      this._watchExceed();
     },
 
-    _watchSelectSelf: function(selectNotify, notifySelf) {
-      console.log(selectNotify, notifySelf);
-      if (notifySelf === true && selectNotify === true) {
+    _watchSelect: function(selectNotify) {
+      if (selectNotify === true) {
         this.addEventListener(this.selectEvent, this._select, {
           passive: true
         });
@@ -122,18 +97,17 @@
           passive: true
         });
       } else {
-        this.rootElement.removeEventListener(this.selectEvent, this._select, {
+        this.removeEventListener(this.selectEvent, this._select, {
           passive: true
         });
-        this.rootElement.removeEventListener('clear-selected-items', this.clearItems, {
+        this.removeEventListener('clear-selected-items', this.clearItems, {
           passive: true
         });
       }
     },
 
-    _watchExceedSelf: function(exceedNotify, notifySelf) {
-      console.log(exceedNotify, notifySelf);
-      if (notifySelf === true && exceedNotify === true) {
+    _watchExceed: function(exceedNotify) {
+      if (exceedNotify === true) {
         this.addEventListener(this.exceedEvent, this._setExceeding, {
           passive: true
         });
@@ -141,48 +115,10 @@
           passive: true
         });
       } else {
-        this.rootElement.removeEventListener(this.exceedEvent, this._setExceeding, {
+        this.removeEventListener(this.exceedEvent, this._setExceeding, {
           passive: true
         });
-        this.rootElement.removeEventListener('clear-exceeding-items', this.clearExceedings, {
-          passive: true
-        });
-      }
-    },
-
-    _watchSelectParent: function(selectNotify, notifyParent) {
-            console.log(selectNotify, notifyParent, this.rootElement);
-      if (notifyParent === true && selectNotify === true) {
-        this.rootElement.addEventListener(this.selectEvent, this._select, {
-          passive: true
-        });
-        this.rootElement.addEventListener('clear-selected-items', this.clearItems, {
-          passive: true
-        });
-      } else {
-        this.rootElement.removeEventListener(this.selectEvent, this._select, {
-          passive: true
-        });
-        this.rootElement.removeEventListener('clear-selected-items', this.clearItems, {
-          passive: true
-        });
-      }
-    },
-
-    _watchExceedParent: function(exceedNotify, notifyParent) {
-            console.log(exceedNotify, notifyParent, this.rootElement);
-      if (notifyParent === true && exceedNotify === true) {
-        this.rootElement.addEventListener(this.exceedEvent, this._setExceeding, {
-          passive: true
-        });
-        this.rootElement.addEventListener('clear-exceeding-items', this.clearExceedings, {
-          passive: true
-        });
-      } else {
-        this.rootElement.removeEventListener(this.exceedEvent, this._setExceeding, {
-          passive: true
-        });
-        this.rootElement.removeEventListener('clear-exceeding-items', this.clearExceedings, {
+        this.removeEventListener('clear-exceeding-items', this.clearExceedings, {
           passive: true
         });
       }

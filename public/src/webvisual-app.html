@@ -23,7 +23,7 @@
 <link rel="import" href="webvisual-facility-data.html"/>
 <link rel="import" href="webvisual-element-sign.html"/>
 <link rel="import" href="webvisual-element-caption.html"/>
-<link rel="import" href="webvisual-element-snackbar.html"/>
+<link rel="import" href="webvisual-snackbar.html"/>
 
 <link rel="import" href="webvisual-home.html"/>
 <link rel="import" href="webvisual-list.html"/>
@@ -131,6 +131,7 @@
       }
       @media all and (min-width: 520px) and (max-width: 600px){
       }
+
     </style>
 
     <app-location route="{{route}}"></app-location>
@@ -258,10 +259,10 @@
 
       </app-drawer>
 
-      <webvisual-element-snackbar open-on-select select-notify notify-parent="[[loadComplete]]" item="{{selectedElement}}">
-        <webvisual-element-sign item="[[selectedElement.item]]"></webvisual-element-sign>
-        <webvisual-element-caption keys="[[selectedElement.keys]]"></webvisual-element-caption>
-      </webvisual-element-snackbar>
+      <webvisual-snackbar>
+        <webvisual-element-sign item="[[item]]"></webvisual-element-sign>
+        <webvisual-element-caption keys="[[item.keys]]"></webvisual-element-caption>
+      </webvisual-snackbar>
 
     </template>
   </template>
@@ -269,6 +270,10 @@
   <script>
     Polymer({
       is: 'webvisual-app',
+
+      behaviors: [
+        ContainerBehavior
+      ],
 
       properties: {
 

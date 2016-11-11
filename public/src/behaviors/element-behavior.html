@@ -105,7 +105,7 @@
     },
 
     toDate: function(x) {
-      return this.showFullDate ? new Date(x).toLocaleString() : new Date(x).toLocaleTimeString();
+      return x ? (this.showFullDate ? new Date(x).toLocaleString() : new Date(x).toLocaleTimeString()) : '';
     },
 
     getValue: function(y) {

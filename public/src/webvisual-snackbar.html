@@ -25,7 +25,7 @@
         transition-property: visibility, transform, opacity;
         transition-duration: 0.2s;
       }
-      :host(.opened) {
+      :host([opened]) {
         visibility: visible;
         -webkit-transform: translate3d(0, 0, 0);
         transform: translate3d(0, 0, 0);
@@ -52,14 +52,20 @@
     Polymer({
       is: 'webvisual-snackbar',
 
+      properties: {
+        autoClose: Boolean
+      },
+
       open: function() {
         Polymer.dom.flush();
-        this.offsetHeight && this.classList.add('opened');
-        this.debounce('_close', this.close, 4000);
+        this.offsetHeight && this.setAttribute('opened', '');
+        if (this.autoClose) {
+          this.debounce('_close', this.close, 4000);
+        }
       },
 
       close: function() {
-        this.classList.remove('opened');
+        this.removeAttribute('opened');
       }
     });
 

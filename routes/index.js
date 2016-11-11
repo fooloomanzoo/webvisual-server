@@ -94,6 +94,7 @@ class Router extends EventEmitter {
           delete req.session.returnTo;
         }
       );
+      this.app.use('*', ensureLoggedIn('/login'));
     } else {
       this.app.post('/login',
         this.passport.authenticate('dummy', {
@@ -124,7 +125,6 @@ class Router extends EventEmitter {
       res.redirect('/login');
     });
 
-    this.app.use('*', ensureLoggedIn('/login'));
     this.app.use(staticMiddleware);
     this.app.get('*', function(req, res) {
       res.sendFile( path.join(process.cwd(), 'public', 'index.html') );
