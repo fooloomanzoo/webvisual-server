@@ -65,12 +65,12 @@ html(lang='en')
     // </webvisual-app>
     form(action='/login', method='post')
       section.input
-        input#username(type='text', name='username', label='Username', required='', tabindex='1')
+        input#username(type='text', name='username', label='Username', autocomplete="username", required='', tabindex='1')
       |       
       br
       |       
       section.input
-        input#password(type='password', name='password', label='Password', required='', tabindex='2')
+        input#password(type='password', name='password', label='Password', autocomplete="password", required='', tabindex='2')
       |       
       br
       |       

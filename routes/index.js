@@ -12,9 +12,13 @@ const
   cookieParser = require('cookie-parser'),
   compression = require('compression'),
   session = require('express-session'),
+
+  // morgan = require('morgan'),
+  RedisStore = require('connect-redis')(session);
+
   ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn;
 
-const staticMiddleware = express.static(path.join(process.cwd(), 'public'), {cacheControl: 'no-cache'});
+const staticMiddleware = express.static(path.join(process.cwd(), 'public'));
 
 class Router extends EventEmitter {
 
@@ -26,6 +30,8 @@ class Router extends EventEmitter {
     this.settings = {};
     this.configuration = {};
 
+    // this.app.use(morgan('combined'));
+
     this.app.set("views", path.join(process.cwd(), 'views'));
     this.app.set("view engine", "jade");
 
@@ -34,13 +40,19 @@ class Router extends EventEmitter {
     this.app.use(bodyParser.json());
     this.app.use(bodyParser.urlencoded({ extended: true }));
 
-    this.app.use( session({
+
+    this.app.use( session( {
+      store: new RedisStore( {
+        host: 'localhost',
+        port: 6379
+      } ),
+      maxAge: 24*3600*365,
+      secret: 'String(Math.random().toString(16).slice(2)',
       cachControl: 'no-cache',
-      secret: 'keyboard cat',
       resave: true,
       saveUninitialized: false,
       cookie: { secure: true }
-    }));
+    } ));
 
     // Prevent Clickjacking
     this.app.use(xFrameOptions());
@@ -86,25 +98,16 @@ class Router extends EventEmitter {
     if (this.settings.server.auth.required === true) {
       this.app.post('/login',
         this.passport.authenticate('activedirectory-login', {
-          successRedirect: '/',
+          successReturnToOrRedirect: '/',
           failureRedirect: '/login'
-        }),
-        function(req, res) {
-          res.redirect(req.session.returnTo || '/');
-          delete req.session.returnTo;
-        }
+        })
       );
-      this.app.use('*', ensureLoggedIn('/login'));
     } else {
       this.app.post('/login',
         this.passport.authenticate('dummy', {
-          successRedirect: '/',
+          successReturnToOrRedirect: '/',
           failureRedirect: '/'
-        }),
-        function(req, res) {
-          res.redirect(req.session.returnTo || '/');
-          delete req.session.returnTo;
-        }
+        })
       );
     }
 
@@ -125,6 +128,7 @@ class Router extends EventEmitter {
       res.redirect('/login');
     });
 
+    this.app.use('*', ensureLoggedIn('/login'));
     this.app.use(staticMiddleware);
     this.app.get('*', function(req, res) {
       res.sendFile( path.join(process.cwd(), 'public', 'index.html') );
