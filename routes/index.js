@@ -16,9 +16,8 @@ const
   // morgan = require('morgan'),
   RedisStore = require('connect-redis')(session);
 
-  ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn;
-
-const staticMiddleware = express.static(path.join(process.cwd(), 'public'));
+const staticMiddleware = express.static(path.join(process.cwd(), 'public'))
+    , staticDataMiddleware = express.static(path.join(process.cwd(), 'public', 'data'));
 
 class Router extends EventEmitter {
 
@@ -97,38 +96,47 @@ class Router extends EventEmitter {
 
     if (this.settings.server.auth.required === true) {
       this.app.post('/login',
-        this.passport.authenticate('activedirectory-login', {
-          successRedirect: '/',
-          failureRedirect: '/login'
-        })
-      );
+        this.passport.authenticate('activedirectory-login'),
+        (req, res) => {
+          console.log('returnTo', path.resolve(process.cwd(), 'public', req.session.returnTo));
+          res.sendFile(path.resolve(process.cwd(), 'public', req.session.returnTo));
+          res.status(200).send('Logged In');
+            console.log(req.user, req.isAuthenticated(), req.session.returnTo, req.originalUrl, req.url);
+        });
     } else {
       this.app.post('/login',
-        this.passport.authenticate('dummy', {
-          successRedirect: '/',
-          failureRedirect: '/'
-        })
-      );
+        this.passport.authenticate('dummy'),
+        (req, res) => {
+          res.sendFile(path.resolve(process.cwd(), 'public', req.session.returnTo));
+          res.status(200).send('Logged In');
+            console.log(req.user);
+        });
     }
 
-    this.app.get('/login', (req, res, next) => {
-      if (this.settings.server.auth.required === true) {
-        res.render('login', {
-          user: req.user,
-          title: 'Login - Webvisual'
-        });
-      }
-      else {
-        res.redirect('/');
-      }
-    });
+    this.app.get('/isLoggedIn', this.ensureLoggedIn(), function(req,res) {
+      console.log('is logged IN ?');
+      res.status(200).send('Logged In');
+    } );
+
+    // this.app.get('/login', (req, res, next) => {
+    //   if (this.settings.server.auth.required === true) {
+    //     res.render('login', {
+    //       user: req.user,
+    //       title: 'Login - Webvisual'
+    //     });
+    //   }
+    //   else {
+    //     res.redirect('/');
+    //   }
+    // });
 
     this.app.get('/logout', (req, res) => {
       req.logout();
-      res.redirect('/login');
+      res.sendFile( path.join(process.cwd(), 'public', 'index.html') );
     });
 
-    this.app.use('/data/*', ensureLoggedIn('/login'));
+    this.app.use('/data/*', this.ensureLoggedIn(), express.static(path.resolve( process.cwd(), 'public', 'data')) );
+
     this.app.use(staticMiddleware);
     this.app.get('*', function(req, res) {
       res.sendFile( path.join(process.cwd(), 'public', 'index.html') );
@@ -191,6 +199,20 @@ class Router extends EventEmitter {
       });
     }
     fs.writeFileSync( dir, JSON.stringify(tmp) );
+  }
+
+  ensureLoggedIn() {
+    return function(req, res, next) {
+      console.log('ensureLoggedIn', req.user, req.isAuthenticated());
+      if (!req.isAuthenticated || !req.isAuthenticated()) {
+        req.session.returnTo = req.originalUrl || req.url;
+        console.log(403);
+        res.status(403).send('Unauthorized');
+      } else {
+        console.log(req.url);
+        next();
+      }
+    }
   }
 }
 

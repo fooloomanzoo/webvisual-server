@@ -1,9 +1,6 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/app-layout/app-header/app-header.html">
 <link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
-<link rel="import" href="../bower_components/app-layout/app-scroll-effects/effects/waterfall.html">
-<link rel="import" href="../bower_components/app-layout/app-scroll-effects/effects/resize-title.html">
-<link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
 <link rel="import" href="../bower_components/app-layout/helpers/helpers.html">
 <link rel="import" href="../bower_components/app-route/app-location.html">
 <link rel="import" href="../bower_components/app-route/app-route.html">
@@ -12,9 +9,8 @@
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html">
 <link rel="import" href="../bower_components/iron-selector/iron-selector.html">
 
-<link rel="import" href="style/app-theme.html"/>
-<link rel="import" href="style/form-styles.html"/>
-<link rel="import" href="style/webvisual-app-style.html"/>
+<!-- <link rel="import" href="style/form-styles.html"/>
+<link rel="import" href="style/webvisual-app-style.html"/> -->
 <link rel="import" href="behaviors/container-behavior.html"/>
 <link rel="import" href="behaviors/attribute-repeat-animation-behavior.html"/>
 
@@ -25,17 +21,20 @@
 <link rel="import" href="webvisual-element-caption.html"/>
 <link rel="import" href="webvisual-snackbar.html"/>
 
+<link rel="import" href="webvisual-login.html"/>
 <link rel="import" href="webvisual-home.html"/>
 <link rel="import" href="webvisual-list.html"/>
 <link rel="import" href="webvisual-detail.html"/>
 
 <link rel="import" href="../bower_components/iron-a11y-keys-behavior/iron-a11y-keys-behavior.html"/>
 
+<link rel="import" href="shared-styles.html">
+
 <dom-module id="webvisual-app">
 
   <template>
-    <style include="app-theme"></style>
-    <style include="webvisual-app-style">
+
+    <style include="shared-styles">
       :host {
         display: flex;
         justify-content: center;
@@ -50,9 +49,28 @@
         transition: background 250ms cubic-bezier(0.6, 0, 0.2, 1);
         transition: padding 250ms cubic-bezier(0.6, 0, 0.2, 1);
       }
+      app-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 11;
+      }
+      app-header::before {
+        position: absolute;
+        content: '';
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: #212121;
+        opacity: 0;
+        transition: opacity 0.5s;
+      }
       :host([show-tabs]) {
         padding-top: 100px;
       }
+      :host([page="login"]),
       :host([page="home"]) {
         padding-top: 0px;
         background: var(--primary-color);
@@ -73,7 +91,6 @@
       }
       app-toolbar {
         font-size: 16px;
-        background: var(--primary-color);
         color: var(--bright-text-color);
       }
 
@@ -142,14 +159,21 @@
       tail="{{subroute}}"></app-route>
 
     <webvisual-facility-data
-    facilities="{{facilities}}"></webvisual-facility-data>
+    facilities="{{facilities}}" logged-in="{{loggedIn}}"></webvisual-facility-data>
 
     <iron-media-query query="max-width: 767px" query-matches="{{smallScreen}}"></iron-media-query>
 
-    <app-header role="navigation" id="header" hidden$="[[!_shouldShowHeader]]" condenses reveals effects="waterfall">
+    <app-header role="navigation" id="header" hidden$="[[!_shouldShowHeader]]" reveals>
 
       <app-toolbar>
         <webvisual-icon-button icon="menu" class="menu-icon" on-tap="_toggleDrawer"></webvisual-icon-button>
+
+        <template is="dom-if" if="[[!loggedIn]]">
+          <a href="/login">
+            <webvisual-icon-button icon="assignment-ind" class="login-icon"></webvisual-icon-button>
+          </a>
+        </template>
+
 
         <webvisual-logo main-title id="logo"></webvisual-logo>
 
@@ -189,7 +213,9 @@
 
     <iron-pages id="pageselector" role="main" selected="[[page]]" attr-for-selected="name" selected-attribute="visible">
       <!-- home view for selecting the facility -->
-      <webvisual-home name="home" facilities="[[facilities]]"></webvisual-home>
+      <webvisual-home name="home" facilities="[[facilities]]" logged-in="{{loggedIn}}"></webvisual-home>
+      <!-- login view-->
+      <webvisual-login name="login" route="[[subroute]]" offline="[[offline]]"></webvisual-login>
       <!-- list view of items in a facility -->
       <webvisual-list name="list" route="[[subroute]]" offline="[[offline]]"></webvisual-list>
       <!-- detail view of one item -->
@@ -292,6 +318,12 @@
           value: 0
         },
 
+        loggedIn: {
+          type: Boolean,
+          notify: true,
+          observer: '_loggedInChanged'
+        },
+
         showTabs: {
           type: Boolean,
           reflectToAttribute: true
@@ -345,6 +377,7 @@
           this.listen(window, 'online', '_notifyNetworkStatus');
           this.listen(window, 'offline', '_notifyNetworkStatus');
         });
+        this._testLoggedIn();
       },
 
       _routePageChanged: function(page) {
@@ -359,7 +392,7 @@
       _pageChanged: function(page, oldPage) {
         if (page != null) {
           // home route is eagerly loaded
-          if (page == 'home') {
+          if (page === 'home' || page === 'login') {
             this._pageLoaded(Boolean(oldPage) && (page === 'list' || page === 'detail'));
           // other routes are lazy loaded
           } else {
@@ -407,12 +440,44 @@
         if (this.offline || (!this.offline && oldOffline === true)) {
           if (!this._networkSnackbar) {
             this._networkSnackbar = document.createElement('webvisual-snackbar');
+            this._networkSnackbar.setAttribute('auto-close', '');
             Polymer.dom(this.root).appendChild(this._networkSnackbar);
           }
           Polymer.dom(this._networkSnackbar).innerHTML = this.offline ?
               'You are offline' : 'You are online';
           this._networkSnackbar.open();
         }
+      },
+
+      _testLoggedIn: function() {
+        var xhr = new XMLHttpRequest();
+        xhr.addEventListener('load', function(e) {
+          console.log('_testLoggedIn', e);
+          if (e.target.status === 200) {
+            this.loggedIn = true;
+          } else {
+            this.loggedIn = false;
+          }
+        }.bind(this));
+        xhr.addEventListener('error', function(e) {
+          console.log(e);
+          this.loggedIn = false;
+        }.bind(this));
+        xhr.open('GET', '/isLoggedIn');
+        xhr.send();
+      },
+
+      _loggedInChanged: function(loggedIn) {
+        console.log('app login', loggedIn);
+
+        if (!this._logInStatusSnackbar) {
+          this._logInStatusSnackbar = document.createElement('webvisual-snackbar');
+          this._logInStatusSnackbar.setAttribute('auto-close', '');
+          Polymer.dom(this.root).appendChild(this._logInStatusSnackbar);
+        }
+        Polymer.dom(this._logInStatusSnackbar).innerHTML = loggedIn ?
+          'Sie sind eingeloggt' : 'Sie sind nicht eingeloggt';
+        this._logInStatusSnackbar.open();
       },
 
       _toggleDrawer: function() {
@@ -459,8 +524,8 @@
       },
 
 
-      _computeShouldShowHeader: function(page, opened) {
-        return (page === 'list' || page === 'detail');
+      _computeShouldShowHeader: function(page) {
+        return (page === 'list' || page === 'group' || page === 'detail');
       },
 
       _computeShouldRenderLowerToolbar: function(page, opened) {

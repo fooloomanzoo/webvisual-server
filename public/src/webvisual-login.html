@@ -1,0 +1,145 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="webvisual-button.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="webvisual-login">
+
+  <template include="shared-styles">
+
+    <style>
+      :host {
+        @apply(--layout-vertical);
+        @apply(--layout-justified);
+        height: 100%;
+        box-sizing: border-box;
+        color: var(--bright-text-color);
+        outline: none;
+      }
+      .box {
+        position: relative;
+        box-sizing: border-box;
+        font-size: 1em;
+        padding: 32px;
+        margin: auto;
+        align-self: center;
+        white-space: normal;
+        line-height: 1.4;
+      }
+      #login {
+        @apply(--layout-vertical);
+        @apply(--layout-justified);
+        position: relative;
+        box-sizing: border-box;
+        font-size: 1em;
+        padding: 32px;
+        margin: auto;
+        align-self: center;
+        white-space: normal;
+        line-height: 1.4;
+      }
+
+      #login > * {
+        margin-bottom: 32px;
+      }
+
+      h1 {
+        font-weight: normal;
+        font-size: 2em;
+        margin: 0;
+        text-align: center;
+        white-space: normal;
+      }
+
+      .input-container {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+      }
+
+      input.input {
+        color: inherit;
+        max-width: 100%;
+        box-sizing: border-box;
+        padding: 0.5em 0 0.5em 0.5em;
+        border: none;
+        background: transparent;
+        border-bottom: 1px solid currentColor;
+        font-size: 1em;
+      }
+
+      button.button {
+        display: flex;
+        align-items: center;
+        color: inherit;
+        max-width: 100%;
+        border-radius: 5px;
+        box-sizing: border-box;
+        border: 1px solid currentColor;
+        background: linear-gradient(to bottom, rgba(255,255,255,0.04) 5%,rgba(255,255,255,0.10) 40%);
+        cursor: pointer;
+        transition: background 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+        padding: 1em 1.5em;
+        margin: 0em;
+        letter-spacing: 0.2px;
+      }
+
+      iron-icon {
+        margin-right: 0.75em;
+      }
+
+      button.button:hover {
+        background: linear-gradient(to bottom, rgba(255,255,255,0.06) 5%,rgba(255,255,255,0.15) 40%);
+      }
+
+    </style>
+
+    <div class="box">
+      <header>
+        <h1>Webvisual Login</h1>
+      </header>
+
+
+      <form id="login" action="/login" method="post">
+
+          <div class="input-container">
+            <iron-icon class="left" icon="perm-identity"></iron-icon>
+            <input id="username" class="input" type="text" name="username" placeholder="username(@fz-juelich.de)" required tabindex="1" autocomplete="username"/>
+          </div>
+
+          <div class="input-container">
+            <iron-icon class="left" icon="more-horiz"></iron-icon>
+            <input id="password" class="input" type="password" name="password" placeholder="password" required tabindex="2" autocomplete="password"/>
+          </div>
+
+          <button type="submit" name="button" class="button">
+            <iron-icon class="left" icon="juelich:logo"></iron-icon>
+            <span>Login</span>
+          </button>
+
+      </form>
+    </div>
+  </template>
+
+  <script>
+
+    Polymer({
+
+      is: 'webvisual-login',
+
+      properties: {
+
+        loggedIn: {
+          type: Boolean,
+          notify: true
+        }
+
+      },
+
+      ready: function() {
+        // this.$.login.submit();
+      }
+    });
+
+  </script>
+
+</dom-module>

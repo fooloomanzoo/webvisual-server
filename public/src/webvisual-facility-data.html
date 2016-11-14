@@ -19,9 +19,7 @@
 
         facilities: {
           type: Array,
-          value: function() {
-            return [];
-          },
+          computed: '_loadFacilityList(loggedIn)',
           notify: true
         },
 
@@ -54,27 +52,36 @@
           type: Boolean,
           notify: true,
           readOnly: true
+        },
+
+        loggedIn: {
+          type: Boolean,
+          notify: true
         }
       },
 
-      attached: function() {
-        this._loadFacilityList();
-      },
-
-      _loadFacilityList: function(attempts) {
-        this._getResource({
+      _loadFacilityList: function(loggedIn, attempts) {
+        return this._getResource({
           url: '/data/facilities.json',
           onLoad: function(e) {
-            this.set('facilities', JSON.parse(e.target.responseText));
-            console.log(e.target.responseText);
+            console.log(e.target.status);
+            if (e.target.status >= 400)
+              this.loggedIn = false;
+            else
+              this.set('facilities', JSON.parse(e.target.responseText));
           },
           onError: function(e) {
+            if (e.target.status === 403) {
+              this.loggedIn = false;
+            }
             this._setFailure(true);
           }
         }, attempts);
       },
 
       _getFacilityObject: function(facilityName) {
+        if (!this.facilities)
+          return null;
         for (var i = 0, c; c = this.facilities[i]; ++i) {
           if (c.name === facilityName) {
             return c;
@@ -126,6 +133,7 @@
         this._getResource({
           url: '/data/' + facilityName + '+' + system.name + '+ids.json',
           onLoad: function(e) {
+            console.log(e.target.status);
             this.set('system.items', JSON.parse(e.target.responseText));
           },
           onError: function(e) {
@@ -138,6 +146,7 @@
         var xhr = new XMLHttpRequest();
         xhr.addEventListener('load', rq.onLoad.bind(this));
         xhr.addEventListener('error', function(e) {
+          console.log(e.target.status);
           // Flaky connections might fail fetching resources
           if (attempts > 1) {
             this.debounce('_getResource', this._getResource.bind(this, rq, attempts - 1), 200);

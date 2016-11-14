@@ -1,0 +1,124 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<dom-module id="shared-styles">
+  <template>
+    <style>
+
+    /* Application theme */
+      :host {
+        font-family: FiraSans-Light;
+        font-size: calc(0.75em + 0.5vmin);
+        line-height: calc(1em + 0.5vmin);
+        word-wrap: break-word;
+
+        /* Costum Colors*/
+        --primary-color: #005B82;
+        --dark-primary-color: #345475; /* Primary Colors */
+        --bright-primary-color: #669DB4;
+
+        --primary-text-color: #1f1f1f;
+        --bright-text-color: #f1f1f1;
+        --disabled-text-color: #bbb;
+        --highlight-color: #BDE2F1;
+        --select-color: #CCF2DD;
+
+        --active-link-color: #00FF9C;
+        --warning-color: #FF9D9D;
+
+        --drawer-scim-background: rgba(0, 0, 0, 0.25);
+
+        --primary-background: #a2a2a2;
+
+        --caption-background: #ffffff;
+
+        --iron-icon-height: 24px;
+        --iron-icon-width: 24px;
+
+        --toggle-button-unchecked-bar-color: var(--primary-color);
+        --toggle-button-unchecked-button-color: var(--bright-text-color);
+        --toggle-button-unchecked-ink-color: var(--primary-color);
+        --toggle-button-checked-bar-color:	#F9643D;
+        --toggle-button-checked-button-color:	#F9643D;
+        --toggle-button-checked-ink-color:	#F9643D;
+
+        --radio-button-checked-color: var(--select-color);
+        --radio-button-unchecked-color: var(--highlight-color);
+        --radio-button-unchecked-background-color: tranparent;
+        --radio-button-system-color: currentColor;
+
+        --element-color: #12B8C3;
+        --element-state-inrange-color: #51cc41;
+        --element-state-undefined-color: #12B8C3;
+        --element-state-deceeds-color: #920bad;
+        --element-state-exceeds-color: #D91B1B;
+        --element-text-color: #333;
+        --element-state-inrange-text-color: var(--primary-text-color);
+        --element-state-undefined-text-color: var(--primary-text-color);
+        --element-state-deceeds-text-color: var(--bright-text-color);
+        --element-state-exceeds-text-color: var(--bright-text-color);
+      }
+
+      :host([dark]) {
+        /* Costum Colors*/
+        --primary-color: #345475;
+        --dark-primary-color: #111; /* Primary Colors */
+        --bright-primary-color: #669DB4;
+
+        --primary-text-color: #ccc;
+        --bright-text-color: #BDE2F1;
+        --disabled-text-color: #999;
+        --highlight-color: #57C4F0;
+        --select-color: #7AEEAE;
+
+        --primary-background: #323232;
+      }
+
+      paper-ripple {
+        color: var(--ripple-color, currentColor);
+      }
+
+      a:link {
+        color: var(--bright-text-color);
+      }
+      a:visited {
+        color: var(--highlight-color);
+      }
+
+      span {
+        font-size: inherit;
+        padding: 0;
+        margin: 0;
+      }
+
+      input.input {
+        max-width: 100%;
+        box-sizing: border-box;
+        padding: 0.5em 0 0.5em 0.5em;
+        border: none;
+        border-bottom: 1px solid currentColor;
+        font-size: 1em;
+      }
+
+      button.button {
+        max-width: 100%;
+        box-sizing: border-box;
+        border-bottom: 1px solid currentColor;
+        background: linear-gradient(to bottom, rgba(255,255,255,0.04) 5%,rgba(255,255,255,0.10) 40%);
+        cursor: pointer;
+        transition: background 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+        padding: 0.75em 1.5em;
+        margin: 0em;
+        letter-spacing: 0.2px;
+      }
+
+      radio-button-element.lightcontext {
+        --radio-button-checked-color: var(--primary-color);
+        --radio-button-unchecked-color: var(--primary-text-color);
+      }
+
+      :host > *[hidden] {
+        display: none !important;
+      }
+
+    </style>
+  </template>
+</dom-module>

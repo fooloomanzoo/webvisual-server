@@ -3,9 +3,11 @@
 <link rel="import" href="../bower_components/iron-selector/iron-selector.html">
 <link rel="import" href="webvisual-button.html">
 
+<link rel="import" href="shared-styles.html">
+
 <dom-module id="webvisual-home">
 
-  <template include="app-theme">
+  <template include="shared-styles">
 
     <style>
       :host {
@@ -45,6 +47,8 @@
         white-space: normal;
       }
       a {
+        display: inline-flex;
+        align-items: center;
         font-weight: 500;
         text-decoration: none;
       }
@@ -89,30 +93,42 @@
       }
     </style>
 
-    <div class="box">
-      <h1>Auswahl der Messanlage</h1>
-      <iron-selector id="selector" selected="{{currentFacility}}" attr-for-selected="item-name" selectable=".facility">
-        <template is="dom-repeat" items="[[facilities]]" strip-whitespace>
-          <webvisual-button raised class="item facility" item-name="[[item.name]]" aria-label$="[[item.title]]" tabindex="1">
-            <div>[[item.title]]</div>
-          </webvisual-button>
+    <template is="dom-if" if="[[!loggedIn]]">
+      <app-toolbar>
+        <a href="/login">
+          <webvisual-icon-button icon="assignment-ind" class="login-icon"></webvisual-icon-button>
+          <span>Bitte einloggen</span>
+        </a>
+      </app-toolbar>
+    </template>
 
-          <iron-collapse opened="{{_computeOpened(item.name, currentFacility)}}">
-            <div class="collapse-content">
-              <template is="dom-repeat" items="[[item.systems]]" as="system" strip-whitespace>
-                <a href$="/list/[[item.name]]/[[system.name]]" tabindex="-1">
-                  <webvisual-button raised class="item system" aria-label$="[[system.title]]" tabindex="1">
-                    <div>[[system.title]]</div>
-                  </webvisual-button>
-                </a>
-              </template>
-            </div>
-          </iron-collapse>
-        </template>
-      </iron-selector>
+    <template is="dom-if" if="[[_shouldRenderBox]]">
+      <div class="box">
+        <header>
+          <h1>Auswahl der Messanlage</h1>
+        </header>
+        <iron-selector id="selector" selected="{{currentFacility}}" attr-for-selected="item-name" selectable=".facility">
+          <template is="dom-repeat" items="[[facilities]]" strip-whitespace>
+            <webvisual-button raised class="item facility" item-name="[[item.name]]" aria-label$="[[item.title]]" tabindex="1">
+              <div>[[item.title]]</div>
+            </webvisual-button>
 
-    </div>
+            <iron-collapse opened="{{_computeOpened(item.name, currentFacility)}}">
+              <div class="collapse-content">
+                <template is="dom-repeat" items="[[item.systems]]" as="system" strip-whitespace>
+                  <a href$="/list/[[item.name]]/[[system.name]]" tabindex="-1">
+                    <webvisual-button raised class="item system" aria-label$="[[system.title]]" tabindex="1">
+                      <div>[[system.title]]</div>
+                    </webvisual-button>
+                  </a>
+                </template>
+              </div>
+            </iron-collapse>
+          </template>
+        </iron-selector>
 
+      </div>
+    </template>
 
   </template>
 
@@ -136,9 +152,22 @@
         visible: {
           type: Boolean,
           observer: '_visibleChanged'
+        },
+
+        loggedIn: {
+          type: Boolean,
+          observer: '_loggedInChanged'
+        },
+
+        _shouldRenderBox: {
+          type: Boolean,
+          computed: '_computeShouldRenderBox(facilities)'
         }
       },
 
+      _loggedInChanged: function(loggedIn) {
+        console.log('home', loggedIn);
+      },
 
       _visibleChanged: function(visible) {
         if (visible) {
@@ -148,6 +177,10 @@
 
       _computeOpened: function(title, selected) {
         return (title === selected);
+      },
+
+      _computeShouldRenderBox: function(facilities){
+        return facilities && facilities.length > 0;
       }
     });
 
