@@ -1,11 +1,12 @@
-{
-  "HNF-GDS": {
-
+[
+  {
+    "name": "GDS",
+    "title": "GDS",
     "connections": {
       "file": {
         "mode": "all",
-        "#path": "./examples/datafile/HNF_Datafile.txt",
-        "path": "//ibn-vsrv.ibn-net.kfa-juelich.de/HNF-GDS$/Datafile/HNF_Datafile.txt",
+        "#path": "examples/datafile/HNF_Datafile.txt",
+        "path": "\\\\ibn-vsrv.ibn-net.kfa-juelich.de\\HNF-GDS$\\Datafile\\HNF_Datafile.txt",
         "format": {
           "dateFormat": "DD.MM.YYYY;hh:mm:ss",
           "decimalSeparator": ".",
@@ -43,7 +44,7 @@
 
     "locals": {
       "ignore": [0, 8, 16, 17, 21, 22],
-      "ids": [{
+      "items": [{
           "id": "Binary",
           "keys": {
             "kind": "Test",
@@ -767,7 +768,7 @@
         }
       ],
 
-      "unnamedType": {
+      "unnamedItem": {
         "id": "id",
         "keys": {
           "kind": "",
@@ -800,7 +801,7 @@
       "exclusiveGroups": {
         "roomNr": {
           "Wartung und Störungen": {
-            "ids": [
+            "items": [
               "DI0-2",
               "DI7-5",
               "DI1-2",
@@ -808,7 +809,7 @@
             ]
           },
           "4006": {
-            "ids": [
+            "items": [
               "DI3-5",
               "DI4-5",
               "DI5-5",
@@ -818,7 +819,7 @@
         },
         "alarmlevel": {
           "Wartung und Störungen": {
-            "ids": [
+            "items": [
               "DI6-1",
               "DI0-2",
               "DI1-2",
@@ -829,4 +830,4 @@
       }
     }
   }
-}
+]

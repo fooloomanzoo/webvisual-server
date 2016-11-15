@@ -100,18 +100,17 @@
 
     <webvisual-facility-data
     id="facilityData"
+    facilities="[[facilities]]"
     facility-name="[[routeData.facilityName]]"
     system-name="[[routeData.systemName]]"
-    facility="{{facility}}"
-    system="{{system}}"
-    failure="{{failure}}"
-    socket-room="{{socketRoom}}"></webvisual-facility-data>
+    items="{{elements}}"></webvisual-facility-data>
 
     <webvisual-element-socket-data
-    items="[[system.items]]"
+    items="[[elements]]"
     socket-name="data"
-    socket-room="[[socketRoom]]"
-    initialized="{{initialized}}"></webvisual-element-socket-data>
+    socket-room="[[routeData.facilityName]]/[[routeData.systemName]]"
+    logged-in="{{loggedIn}}"
+    offline="[[offline]]"></webvisual-element-socket-data>
 
     <!-- <header>
       <h1>[[facility.title]]/[[system.title]]</h1>
@@ -119,7 +118,7 @@
 
     <!-- <template is="dom-if" if="{{initialized}}"> -->
       <ul class="grid" hidden$="[[failure]]">
-        <template is="dom-repeat" items="[[_getListItems(system.items)]]">
+        <template is="dom-repeat" items="[[_getListItems(elements)]]">
           <li>
             <!-- <a href$="[[_getItemHref(item)]]"> -->
               <webvisual-element-sign item="[[item]]" selectable></webvisual-element-sign>
@@ -147,6 +146,8 @@
 
         system: Object,
 
+        elements: Array,
+
         route: Object,
 
         routeData: Object,
@@ -159,6 +160,8 @@
 
         failure: Boolean,
 
+        loggedIn: Boolean,
+
         initialized: {
           type: Boolean,
           value: false,
@@ -167,7 +170,7 @@
       },
 
       observers: [
-        '_routeChanged(facility, system, visible)'
+        '_routeChanged(routeData, visible)'
       ],
 
       print: function(arg,arg2,arg3) {
@@ -193,12 +196,12 @@
         return  '(' + quantity + ' ' + pluralizedQ + ')';
       },
 
-      _routeChanged: function(facility, system, visible) {
+      _routeChanged: function(routeData, visible) {
         if (visible) {
           this.debounce('change-section', function() {
             // Notify the facility and the page's title
             this.fire('change-section', {
-              title: facility.title + '/' + system.title
+              title: routeData.facilityName + '/' + routeData.systemName
             });
           });
         }

@@ -43,7 +43,7 @@
         padding-top: 64px;
         --app-primary-color: var(--primary-color);
         --app-secondary-color: var(--dark-primary-color);
-        --app-accent-color: var(--bright-primary-color);
+        --app-accent-color: var(--highlight-color);
         -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
         color: var(--primary-text-color);
         transition: background 250ms cubic-bezier(0.6, 0, 0.2, 1);
@@ -55,6 +55,8 @@
         left: 0;
         right: 0;
         z-index: 11;
+        background: var(--primary-color);
+        color: var(--bright-text-color);
       }
       app-header::before {
         position: absolute;
@@ -63,9 +65,15 @@
         bottom: 0;
         left: 0;
         right: 0;
-        background-color: #212121;
+        background-color: var(--bright-primary-color);
         opacity: 0;
-        transition: opacity 0.5s;
+        transition: opacity 1s cubic-bezier(0.6, 0, 0.1, 1);
+      }
+      app-header[threshold-triggered]::before {
+        opacity: 1;
+      }
+      app-header[threshold-triggered] {
+        color: var(--bright-text-color);
       }
       :host([show-tabs]) {
         padding-top: 100px;
@@ -79,23 +87,12 @@
       :host([page="detail"]) {
         background: var(--primary-background);
       }
-      app-header {
-        @apply(--layout-fixed-top);
-        z-index: 2;
-        background-color: transparent;
-        --app-header-shadow: {
-          box-shadow: inset 0px 5px 6px -3px rgba(0, 0, 0, 0.2);
-          height: 10px;
-          bottom: -10px;
-        };
-      }
       app-toolbar {
         font-size: 16px;
-        color: var(--bright-text-color);
       }
 
       app-drawer {
-        z-index: 2;
+        z-index: 12;
         --app-drawer-scrim-background: var(--drawer-scim-background);
         --app-drawer-content-container: var(--drawer-content-container);
       }
@@ -159,21 +156,14 @@
       tail="{{subroute}}"></app-route>
 
     <webvisual-facility-data
-    facilities="{{facilities}}" logged-in="{{loggedIn}}"></webvisual-facility-data>
+    facilities="{{facilities}}" logged-in="{{loggedIn}}" offline="[[offline]]"></webvisual-facility-data>
 
     <iron-media-query query="max-width: 767px" query-matches="{{smallScreen}}"></iron-media-query>
 
-    <app-header role="navigation" id="header" hidden$="[[!_shouldShowHeader]]" reveals>
+    <app-header role="navigation" id="header" hidden$="[[!_shouldShowHeader]]" reveals threshold="1">
 
       <app-toolbar>
         <webvisual-icon-button icon="menu" class="menu-icon" on-tap="_toggleDrawer"></webvisual-icon-button>
-
-        <template is="dom-if" if="[[!loggedIn]]">
-          <a href="/login">
-            <webvisual-icon-button icon="assignment-ind" class="login-icon"></webvisual-icon-button>
-          </a>
-        </template>
-
 
         <webvisual-logo main-title id="logo"></webvisual-logo>
 
@@ -188,6 +178,12 @@
           <!-- <webvisual-icon-button icon="[[_computeExpandIcon(expanded)]]" class="expand-icon" on-tap="toolbarExpandToggle"></webvisual-icon-button>
           <webvisual-icon-button icon="remove" hidden$="[[forceOpened]]" class="toggle-icon control" on-tap="closeToolbar"></webvisual-icon-button> -->
 
+        </template>
+
+        <template is="dom-if" if="[[!loggedIn]]">
+          <a href="/login">
+            <webvisual-icon-button icon="assignment-ind" class="login-icon"></webvisual-icon-button>
+          </a>
         </template>
       </app-toolbar>
 
@@ -217,7 +213,7 @@
       <!-- login view-->
       <webvisual-login name="login" route="[[subroute]]" offline="[[offline]]"></webvisual-login>
       <!-- list view of items in a facility -->
-      <webvisual-list name="list" route="[[subroute]]" offline="[[offline]]"></webvisual-list>
+      <webvisual-list name="list" route="[[subroute]]" facilities="[[facilities]]" offline="[[offline]]"></webvisual-list>
       <!-- detail view of one item -->
       <webvisual-detail name="detail" route="[[subroute]]" offline="[[offline]]"></webvisual-detail>
     </iron-pages>
@@ -377,7 +373,6 @@
           this.listen(window, 'online', '_notifyNetworkStatus');
           this.listen(window, 'offline', '_notifyNetworkStatus');
         });
-        this._testLoggedIn();
       },
 
       _routePageChanged: function(page) {
@@ -449,27 +444,7 @@
         }
       },
 
-      _testLoggedIn: function() {
-        var xhr = new XMLHttpRequest();
-        xhr.addEventListener('load', function(e) {
-          console.log('_testLoggedIn', e);
-          if (e.target.status === 200) {
-            this.loggedIn = true;
-          } else {
-            this.loggedIn = false;
-          }
-        }.bind(this));
-        xhr.addEventListener('error', function(e) {
-          console.log(e);
-          this.loggedIn = false;
-        }.bind(this));
-        xhr.open('GET', '/isLoggedIn');
-        xhr.send();
-      },
-
       _loggedInChanged: function(loggedIn) {
-        console.log('app login', loggedIn);
-
         if (!this._logInStatusSnackbar) {
           this._logInStatusSnackbar = document.createElement('webvisual-snackbar');
           this._logInStatusSnackbar.setAttribute('auto-close', '');

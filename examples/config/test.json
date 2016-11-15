@@ -1,6 +1,7 @@
-{
-  "test": {
-
+[
+  {
+    "name": "test1",
+    "title": "Test Nummer 1",
     "connections": {
       "file": {
         "mode": "append",
@@ -15,9 +16,23 @@
       }
     },
 
+    "cache": {
+      "size": 10000
+    },
+
+    "clientRequest": {
+      "initial": {
+        "mobile": 300,
+        "stationary": 5400
+      },
+      "update": {
+        "interval": 1000
+      }
+    },
+
     "locals": {
       "ignore": [],
-      "ids": [
+      "items": [
         {
           "id": "DI3-3",
           "keys": {
@@ -93,7 +108,7 @@
         }
       ],
 
-      "unnamedType": {
+      "unnamedItem": {
         "id": "id",
         "keys": {
           "prompt": "id"
@@ -111,7 +126,7 @@
       "exclusiveGroups": {
         "prompt": {
           "very-important": {
-            "ids": [
+            "items": [
               "DI5-3"
             ]
           }
@@ -119,4 +134,4 @@
       }
     }
   }
-}
+]

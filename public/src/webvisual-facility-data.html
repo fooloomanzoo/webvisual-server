@@ -19,32 +19,26 @@
 
         facilities: {
           type: Array,
-          computed: '_loadFacilityList(loggedIn)',
           notify: true
         },
 
         facility: {
           type: Object,
-          computed: '_computeFacility(facilityName)',
           notify: true
         },
 
         system: {
           type: Object,
-          computed: '_computeSystem(facility, systemName)',
+          notify: true
+        },
+
+        items: {
+          type: Array,
           notify: true
         },
 
         item: {
           type: Object,
-          computed: '_computeItem(system.items, itemName)',
-          notify: true
-        },
-
-        socketRoom: {
-          type: String,
-          computed: '_computeSocketRoomName(facility.name, system.name)',
-          readOnly: true,
           notify: true
         },
 
@@ -57,87 +51,118 @@
         loggedIn: {
           type: Boolean,
           notify: true
+        },
+
+        offline: Boolean
+      },
+
+      observers: [
+        '_computeLoggedIn(offline)',
+        '_computeFacilityList(loggedIn)',
+        '_computeFacility(facilities, facilityName)',
+        '_computeSystem(facility, systemName)',
+        '_computeItems(system)',
+        '_computeItem(system.items, itemName)'
+      ],
+
+      _computeLoggedIn: function(offline) {
+        if (!offline) {
+          this._testLoggedIn()
+              .then( function() {
+                this.loggedIn = true;
+              }.bind(this))
+              .catch( function() {
+                this.loggedIn = false
+              }.bind(this));
         }
       },
 
-      _loadFacilityList: function(loggedIn, attempts) {
-        return this._getResource({
-          url: '/data/facilities.json',
-          onLoad: function(e) {
-            console.log(e.target.status);
-            if (e.target.status >= 400)
-              this.loggedIn = false;
-            else
-              this.set('facilities', JSON.parse(e.target.responseText));
-          },
-          onError: function(e) {
-            if (e.target.status === 403) {
-              this.loggedIn = false;
-            }
-            this._setFailure(true);
-          }
-        }, attempts);
+      _computeFacilityList: function(loggedIn) {
+        // if (loggedIn) {
+          this._fetchFacilityList()
+              .then(function(facilities) {
+                this.set('facilities', facilities);
+                localStorage.setItem('facilities',  JSON.stringify(facilities));
+              }.bind(this))
+              .catch(function(status) {
+                console.log('Server answered ', status);
+                var facilities = localStorage.getItem('facilities');
+                if (facilities)
+                  this.set('facilities', JSON.parse(facilities));
+              }.bind(this));
+        // }
       },
 
-      _getFacilityObject: function(facilityName) {
-        if (!this.facilities)
-          return null;
-        for (var i = 0, c; c = this.facilities[i]; ++i) {
-          if (c.name === facilityName) {
-            return c;
-          }
+      _computeFacility: function(facilities, facilityName) {
+        if (facilities && facilityName) {
+          this._getNamedArrayItem(facilities, facilityName)
+              .then(function(facility) {
+                this.set('facility', facility);
+                localStorage.setItem('facility', JSON.stringify(facility));
+              }.bind(this))
+              .catch(function(e) {
+                console.log(e);
+                var facility = localStorage.getItem('facility');
+                if (facility)
+                  this.set('facility', JSON.parse(facility));
+              }.bind(this))
         }
-        return null;
-      },
-
-      _getSystemObject: function(facility, systemName) {
-        if (!facility)
-          return null;
-        for (var i = 0, c; c = facility.systems[i]; ++i) {
-          if (c.name === systemName) {
-            return c;
-          }
-        }
-        return null;
-      },
-
-      _computeFacility: function(facilityName) {
-        var facilityObj = this._getFacilityObject(facilityName);
-        return facilityObj;
       },
 
       _computeSystem: function(facility, systemName) {
-        var systemObj = this._getSystemObject(facility, systemName);
-        this._fetchItems(systemObj, facility.name, 1);
-        return systemObj;
+        console.log('system', facility, systemName);
+        if (facility && facility.systems && systemName) {
+          this._getNamedArrayItem(facility.systems, systemName)
+              .then(function(system) {
+                this.set('system', system);
+                localStorage.setItem('system', JSON.stringify(system));
+              }.bind(this))
+              .catch(function(e) {
+                console.log(e);
+                var system = localStorage.getItem('system');
+                if (system)
+                  this.set('system', JSON.parse(system));
+              }.bind(this))
+        }
       },
 
-      _computeItem: function(items, ident) {
+      _computeItems: function(system) {
+        console.log('items', system);
+        if (system && system.items) {
+          this.set('items', system.items);
+        } else {
+          var items = localStorage.getItem('items');
+          if (items)
+            this.set('items', JSON.parse(items));
+        }
+      },
+
+      _computeItem: function(items, id) {
         for (var i = 0, item; item = items[i]; ++i) {
-          if (item.ident === ident) {
+          if (item.id === id) {
             return item;
           }
         }
       },
 
-      _computeSocketRoomName: function(facility, system) {
-        return facility + '/' + system;
-      },
-
-      _fetchItems: function(system, facilityName, attempts) {
-        this._setFailure(false);
-        // Only fetch the items of a facility if it has not been previously set.
-        if (!system || system.items) {
-          return;
-        }
+      _requestData: function(request, attempts) {
         this._getResource({
-          url: '/data/' + facilityName + '+' + system.name + '+ids.json',
+          url: '/data/' + this.facilityName + '+' + this.systemName + '+' + request + '.json',
           onLoad: function(e) {
-            console.log(e.target.status);
-            this.set('system.items', JSON.parse(e.target.responseText));
+            if (e.target.status < 400) {
+              this.set('request', JSON.parse(e.target.responseText));
+              localStorage.setItem('request', e.target.responseText);
+            } else {
+              var items = localStorage.getItem('request');
+              if (items)
+                this.set('request', JSON.parse(items));
+            }
           },
           onError: function(e) {
             this._setFailure(true);
+            var items = localStorage.getItem('request');
+            if (items)
+              this.set('request', JSON.parse(items));
           }
         }, attempts);
       },
@@ -156,13 +181,66 @@
         }.bind(this));
 
         xhr.open('GET', rq.url);
+        xhr.withCredentials = true;
         xhr.send();
       },
 
+      _fetchFacilityList: function() {
+        return new Promise( function(resolve, reject) {
+          var xhr = new XMLHttpRequest();
+          xhr.addEventListener('load', function(e) {
+            if ( e.target.status >= 400 ) {
+              reject(e.target.status);
+            }
+            else {
+              resolve( JSON.parse(e.target.responseText) );
+            }
+          });
+          xhr.addEventListener('error', function(e) {
+            reject(e.target.status);
+          });
+          xhr.open('GET', '/data/facilities.json');
+          xhr.withCredentials = true;
+          xhr.send();
+        })
+      },
+
+      _testLoggedIn: function() {
+        return new Promise(function (resolve, reject) {
+          var xhr = new XMLHttpRequest();
+          xhr.addEventListener('load', function(e) {
+            if (e.target.status === 200) {
+              resolve();
+            } else {
+              reject(e.target.status);
+            }
+          }.bind(this));
+          xhr.addEventListener('error', function(e) {
+            reject(e.target.status);
+          }.bind(this));
+          xhr.open('GET', '/auth');
+          xhr.withCredentials = true;
+          xhr.send();
+        });
+      },
+
+      _getNamedArrayItem: function(arr, name) {
+        return new Promise( function(resolve, reject) {
+          if (!arr || !name)
+            reject('empty');
+          for (var i = 0, c; c = arr[i]; ++i) {
+            if (c.name === name) {
+              resolve(c);
+            }
+          }
+          // reject('not in array\n' + name + '\n' + JSON.stringify(arr));
+        });
+      },
+
       refresh: function() {
-        if (this.facilityName) {
+        if (this.facilityName && this.systemName) {
           // Try at most 3 times to get the items.
-          this._fetchItems(this._getSystemObject(this.systemName), this.facilityName, 3);
+          this._computeItems(this.facilityName, this.systemName, 3);
         }
       }
 

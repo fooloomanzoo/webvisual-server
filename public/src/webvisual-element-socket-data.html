@@ -94,7 +94,6 @@
 
         socket.on('initial', function(message) {
           Webvisual.updateData(message);
-          this.initialized = true;
         }.bind(this));
         socket.on('update', function(message) {
           Webvisual.updateData(message);
@@ -112,9 +111,7 @@
         if (!facility || !system || !Webvisual.sockets.has(this.socketName)) {
           return;
         }
-        // if (this.initialized)
-        //   Webvisual.init();
-        // this.initialized = false;
+        Webvisual._initialized = false;
         Webvisual.sockets.get(this.socketName)
                          .emit('setup', {
                             room: socketRoom,

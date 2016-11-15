@@ -3,11 +3,13 @@
   <template>
     <style>
       :host {
-        display: inline-flex;
+        font-family: 'FiraSans-Regular', sans-serif;
+        display: inline-block;
         border-radius: inherit;
         height: auto;
         width: auto;
         flex: 1 1 auto;
+        line-height: 1.4;
         flex-direction: column;
         flex-wrap: wrap;
         cursor: default;
@@ -20,28 +22,22 @@
         padding: var(--caption-padding, 0.5em);
         margin: 0;
         border: none;
-        flex-direction: row;
-        align-items: center;
-        justify-content: flex-start;
         align-self: stretch;
       }
       .captions {
         position: relative;
         padding: 0;
         margin: 0;
-        margin-left: 0.5em;
-        vertical-align: middle;
-        font-weight: normal;
         font-size: 0.6em;
         white-space: normal;
         word-wrap: break-word;
         word-break: break-all;
       }
       .captions:first-of-type {
-        font-weight: bold;
+        font-family: 'FiraSans-Medium', sans-serif;
         font-size: 0.9em;
-        /*word-wrap: normal;
-        word-break: normal;*/
+        word-wrap: normal;
+        word-break: normal;
       }
       .captions:nth-of-type(2) {
         font-size: 0.8em;
@@ -50,13 +46,11 @@
         font-size: 0.7em;
       }
       :host([vertical]) {
+        display: inline-flex;
         flex-direction: column;
         align-items: flex-start;
         justify-content: center;
-        line-height: 1.4;
-      }
-      :host([vertical]) .captions {
-        margin-left: 0;
+        line-height: 1.5;
       }
       [hidden] {
         display: none !important;

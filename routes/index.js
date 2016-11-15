@@ -12,12 +12,19 @@ const
   cookieParser = require('cookie-parser'),
   compression = require('compression'),
   session = require('express-session'),
+  serveStatic = require('serve-static')
 
   // morgan = require('morgan'),
   RedisStore = require('connect-redis')(session);
 
-const staticMiddleware = express.static(path.join(process.cwd(), 'public'))
-    , staticDataMiddleware = express.static(path.join(process.cwd(), 'public', 'data'));
+const requiredStaticSettings = [
+  'groupMap',
+  'itemMap',
+  'groupArray',
+]
+
+const staticMiddleware = serveStatic(path.join(process.cwd(), 'public'))
+    , staticDataMiddleware = serveStatic(path.join(process.cwd(), 'public', 'data'), { index: false });
 
 class Router extends EventEmitter {
 
@@ -31,8 +38,8 @@ class Router extends EventEmitter {
 
     // this.app.use(morgan('combined'));
 
-    this.app.set('views', path.join(process.cwd(), 'views'));
-    this.app.set('view engine', 'jade');
+    // this.app.set('views', path.join(process.cwd(), 'views'));
+    // this.app.set('view engine', 'jade');
 
     // Parser
     this.app.use(cookieParser());
@@ -98,10 +105,11 @@ class Router extends EventEmitter {
       this.app.post('/login',
         this.passport.authenticate('activedirectory-login'),
         (req, res) => {
-          console.log('returnTo', path.resolve(process.cwd(), 'public', req.session.returnTo));
-          res.sendFile(path.resolve(process.cwd(), 'public', req.session.returnTo));
-          res.status(200).send('Logged In');
-            console.log(req.user, req.isAuthenticated(), req.session.returnTo, req.originalUrl, req.url);
+          // console.log('returnTo', path.resolve(process.cwd(), 'public', req.session.returnTo));
+          console.log(req.user, req.isAuthenticated(), req.session.returnTo, req.originalUrl, req.url);
+          res.redirect('/');
+          // res.status(200).send('Logged In');
+
         });
     } else {
       this.app.post('/login',
@@ -113,9 +121,10 @@ class Router extends EventEmitter {
         });
     }
 
-    this.app.get('/isLoggedIn', this.ensureLoggedIn(), function(req,res) {
-      console.log('is logged IN ?');
-      res.status(200).send('Logged In');
+    this.app.use('/auth', this.ensureLoggedIn() );
+    this.app.use('/auth', function(req, res) {
+      console.log('is logged IN ?', req.user, req.path);
+      res.sendStatus(200);
     } );
 
     // this.app.get('/login', (req, res, next) => {
@@ -132,13 +141,15 @@ class Router extends EventEmitter {
 
     this.app.get('/logout', (req, res) => {
       req.logout();
-      res.sendFile( path.join(process.cwd(), 'public', 'index.html') );
+      res.redirect('/');
     });
 
-    this.app.use('/data/*', this.ensureLoggedIn(), express.static(path.resolve( process.cwd(), 'public', 'data')) );
+    this.app.use('/data', this.ensureLoggedIn() );
+    this.app.use('/data', staticDataMiddleware );
 
     this.app.use(staticMiddleware);
     this.app.get('*', function(req, res) {
+      console.log(req.path, req.user, req.isAuthenticated());
       res.sendFile( path.join(process.cwd(), 'public', 'index.html') );
     });
   }
@@ -163,23 +174,34 @@ class Router extends EventEmitter {
 
   createStaticContent() {
     let dir = path.resolve(process.cwd(), 'public', 'data')
-      , facilities = {}
-      , tmp = []
+      , facilities = []
+      , tmp
       , p;
 
     // write json
     for (let facility in this.configuration) {
+
       let opt = this.configuration[facility];
-      facilities[facility] = {
-        title: this.settings.userConfigFiles[facility].title,
-        systems: []
-      }
-      for (let system in opt) {
-        facilities[facility].systems.push( {name: system, title: opt[system].title} );
-        let name = facility + '+' + system;
+      tmp = [];
+
+      for (let ke in opt) {
+        if (ke === '_name' || ke === '_title')
+          continue;
+
+        let system = ke;
+
+        tmp.push( {
+          name: opt[system]._name,
+          title: opt[system]._title,
+          items: opt[system].items,
+        } );
+
+        let comb = facility + '+' + system;
+
         for (let key in opt[system]) {
-          if (key === 'title') continue;
-          p = path.resolve(dir, name + '+' + key + '.json')
+          if (requiredStaticSettings.indexOf(key) === -1)
+            continue;
+          p = path.resolve(dir, comb + '+' + key + '.json')
           fs.writeFile(p, JSON.stringify(opt[system][key]), (err) => {
             if (err)
               this.emit('error', 'Writing Files for static content configuration (../public/data/) failed\n' + err);
@@ -187,29 +209,27 @@ class Router extends EventEmitter {
         }
       }
 
+      facilities.push( {
+        name: this.configuration[facility]._name,
+        title: this.configuration[facility]._title,
+        systems: tmp
+      });
     }
 
     dir = path.resolve(dir, 'facilities.json');
 
-    for (let facility in facilities) {
-      tmp.push({
-        name: facility,
-        title: facilities[facility].title,
-        systems: facilities[facility].systems
-      });
-    }
-    fs.writeFileSync( dir, JSON.stringify(tmp) );
+    fs.writeFileSync( dir, JSON.stringify(facilities) );
   }
 
   ensureLoggedIn() {
     return function(req, res, next) {
-      console.log('ensureLoggedIn', req.user, req.isAuthenticated());
       if (!req.isAuthenticated || !req.isAuthenticated()) {
+        console.log('ensureLoggedIn', req.user, req.isAuthenticated(), req.url, req.path);
         req.session.returnTo = req.originalUrl || req.url;
         console.log(403);
         res.status(403).send('Unauthorized');
       } else {
-        console.log(req.url);
+        console.log('ensureLoggedIn', req.user, req.isAuthenticated(), req.url, req.path);
         next();
       }
     }

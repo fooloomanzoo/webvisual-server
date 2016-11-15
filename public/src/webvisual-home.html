@@ -49,8 +49,8 @@
       a {
         display: inline-flex;
         align-items: center;
-        font-weight: 500;
         text-decoration: none;
+        width: 100%;
       }
       .item.facility {
         margin: 16px;
@@ -65,7 +65,9 @@
         border-width: medium;
       }
       .item.system {
-        margin: 0 48px 8px 96px;
+        margin: 0 25%;
+        box-sizing: border-box;
+        width: 100%;
         padding: 1em;
         border-radius: 8px;
         color: var(--highlight-color);
@@ -155,8 +157,7 @@
         },
 
         loggedIn: {
-          type: Boolean,
-          observer: '_loggedInChanged'
+          type: Boolean
         },
 
         _shouldRenderBox: {
@@ -165,18 +166,14 @@
         }
       },
 
-      _loggedInChanged: function(loggedIn) {
-        console.log('home', loggedIn);
-      },
-
       _visibleChanged: function(visible) {
         if (visible) {
           this.fire('change-section', { title: 'Home' });
         }
       },
 
-      _computeOpened: function(title, selected) {
-        return (title === selected);
+      _computeOpened: function(name, selected) {
+        return (name === selected);
       },
 
       _computeShouldRenderBox: function(facilities){
