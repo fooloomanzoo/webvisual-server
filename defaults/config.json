@@ -18,29 +18,22 @@
       "rejectUnauthorized": false
     }
   },
-  "userConfigFiles": {
-    "Cryostat": {
-      "path": "./examples/config/cryostat_visu.json",
-      "renderer": "Diagrammansicht"
+  "userConfigFiles": [
+    {
+      "name": "Cryostat",
+      "title": "Cryostat",
+      "path": "./examples/config/cryostat_visu.json"
     },
-    "HNF-GDS": {
-      "path": "./examples/config/HNF_GDS.json",
-      "renderer": "Alarmzustände"
+    {
+      "name": "HNF",
+      "title": "HNF",
+      "path": "./examples/config/HNF_GDS.json"
     },
-    "Tests": {
-      "path": "./examples/config/test.json",
-      "renderer": "Alarmzustände"
+    {
+      "name": "Test",
+      "title": "Test",
+      "path": "./examples/config/test.json"
     }
-  },
-  "renderer": {
-    "Alarmzustände": {
-      "icon": "juelich:alarm",
-      "path": "alarm-view.jade"
-    },
-    "Diagrammansicht": {
-      "icon": "juelich:graph",
-      "path": "chart-view.jade"
-    }
-  },
+  ],
   "database": {}
 }

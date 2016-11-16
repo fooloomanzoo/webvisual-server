@@ -1,21 +1,20 @@
 // Routing
-const
-  EventEmitter = require('events').EventEmitter,
-  express = require('express'),
-  fs = require('fs'),
-  path = require('path'),
-  mkdirp = require('mkdirp'),
+const EventEmitter = require('events').EventEmitter
+    , express = require('express')
+    , fs = require('fs')
+    , path = require('path')
+    , mkdirp = require('mkdirp')
 
-  xFrameOptions = require('x-frame-options'),
-  cookieSession = require('cookie-session'),
-  bodyParser = require('body-parser'),
-  cookieParser = require('cookie-parser'),
-  compression = require('compression'),
-  session = require('express-session'),
-  serveStatic = require('serve-static')
+    , xFrameOptions = require('x-frame-options')
+    , cookieSession = require('cookie-session')
+    , bodyParser = require('body-parser')
+    , cookieParser = require('cookie-parser')
+    , compression = require('compression')
+    , session = require('express-session')
+    , serveStatic = require('serve-static')
 
-  // morgan = require('morgan'),
-  RedisStore = require('connect-redis')(session);
+    //, morgan = require('morgan')
+    , RedisStore = require('connect-redis')(session);
 
 const requiredStaticSettings = [
   'groupMap',
@@ -115,9 +114,8 @@ class Router extends EventEmitter {
       this.app.post('/login',
         this.passport.authenticate('dummy'),
         (req, res) => {
-          res.sendFile(path.resolve(process.cwd(), 'public', req.session.returnTo));
-          res.status(200).send('Logged In');
-            console.log(req.user);
+          console.log(req.user, req.isAuthenticated(), req.session.returnTo, req.originalUrl, req.url);
+          res.redirect('/');
         });
     }
 
@@ -126,18 +124,6 @@ class Router extends EventEmitter {
       console.log('is logged IN ?', req.user, req.path);
       res.sendStatus(200);
     } );
-
-    // this.app.get('/login', (req, res, next) => {
-    //   if (this.settings.server.auth.required === true) {
-    //     res.render('login', {
-    //       user: req.user,
-    //       title: 'Login - Webvisual'
-    //     });
-    //   }
-    //   else {
-    //     res.redirect('/');
-    //   }
-    // });
 
     this.app.get('/logout', (req, res) => {
       req.logout();

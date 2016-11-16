@@ -15,10 +15,19 @@ const express = require('express'),
   spdy = require('spdy'),
   app = express();
 
-let server;
+var server;
 
 // Defaults
 const defaults = require('./defaults/config.json');
+
+var config;
+
+if (process.env['WEBVISUALSERVER']) {
+  config = process.env['WEBVISUALSERVER'];
+}
+else {
+  config = JSON.parse(JSON.stringify(defaults));
+}
 
 class WebvisualServer {
 
@@ -44,7 +53,9 @@ class WebvisualServer {
       process.send( { error: err } );
     });
 
-    // this.connect(this.config);
+    if (this.config) {
+      this.connect(this.config);
+    }
   }
 
   createServerSettings(settings) {
@@ -54,11 +65,12 @@ class WebvisualServer {
 
       this.router.setSettings(settings || this.config);
 
+      // ensuring (with defaults) that a ssl encrypting (by self-signed key-pairs)
+      // is available for the http2 server
       var sslSettings = JSON.parse(JSON.stringify(defaults.server.ssl));
       sslSettings.port = settings.server.port || process.env.port || 443;
 
       try {
-        // use https & http-redirecting
         if (settings.server.ssl &&
           settings.server.ssl.cert &&
           settings.server.ssl.key &&
@@ -108,17 +120,17 @@ class WebvisualServer {
     if (settings)
       this.config = settings;
     if (this.isRunning === false) {
-      process.send( { info: 'WebvisualServer is starting' } );
+      process.send( { info: 'WEBVISUAL SERVER is starting' } );
       this.createServerSettings(this.config)
         .then((sslSettings) => {
           this.configFilesHandler.watch(this.config.userConfigFiles);
-          if (this.http2)
-            this.http2.close();
-          this.http2 = spdy.createServer(sslSettings, app);
-          this.http2.on('error', (err) => {
+          if (this.http2Server)
+            this.http2Server.close();
+          this.http2Server = spdy.createServer(sslSettings, app);
+          this.http2Server.on('error', (err) => {
               if (err.code === 'EADDRINUSE') {
                 process.send( { error: `HTTP2 Server \n Port ${this.config.server.port} in use. Please check if node.exe is not already running on this port.` } );
-                this.http2.close();
+                this.http2Server.close();
               } else if (err.code === 'EACCES') {
                 process.send( { error: `HTTP2 Server \n Network not accessable. Port ${this.config.server.port} might be in use by another application. Try to switch the port or quit the application, which is using this port` } );
               } else {
@@ -128,8 +140,8 @@ class WebvisualServer {
             .once('listening', () => {
               process.send( { log: `HTTP2 Server is listening on port ${this.config.server.port}` } );
             });
-          this.dataHandler.setServer(this.http2);
-          this.http2.listen(this.config.server.port || process.env.port || 443);
+          this.dataHandler.setServer(this.http2Server);
+          this.http2Server.listen(this.config.server.port || process.env.port || 443);
           this.isRunning = true;
           process.send( { event: 'server-start' } );
         })
@@ -143,8 +155,8 @@ class WebvisualServer {
   }
 
   disconnect() {
-    if (this.http2)
-      this.http2.close();
+    if (this.http2Server)
+      this.http2Server.close();
     this.configFilesHandler.unwatch();
     this.dataHandler.disconnect();
     this.isRunning = false;
@@ -173,74 +185,72 @@ class WebvisualServer {
 
 // if not started as child_process of GUI
 if (!process.send) {
+  console.log('Server opened as single process');
   process.send = function(arg) {
     for (var type in arg) {
       switch (type) {
         case 'event':
-          console.info( arg[type] );
+          console.info( `${type}: ${arg[type]}` );
           break;
         case 'error':
-          console.error( arg[type] );
+          console.error( `${type}: ${arg[type]}` );
           break;
         case 'warn':
-          console.warn( arg[type] );
+          console.warn( `${type}: ${arg[type]}` );
           break;
         case 'log':
         default:
-          console.log( arg[type] )
+          console.log( `${type}: ${arg[type]}` )
       }
     }
   }
-  server = new WebvisualServer(defaults);
-
 } else {
-
-  // console.log = function() {
-  //   process.send( { log: util.format.apply(null, arguments)} );
-  // }
-  // console.info = function() {
-  //   process.send( { info: util.format.apply(null, arguments)} );
-  // }
-  // console.error = function() {
-  //   process.send( { error: util.format.apply(null, arguments)} );
-  // }
-  // console.warn = function() {
-  //   process.send( { warn: util.format.apply(null, arguments)} );
-  // }
-
-  if (process.env['WEBVISUALSERVER'])
-    server = new WebvisualServer(process.env['WEBVISUALSERVER']);
-
-  process.on("message", (arg) => {
-    if (arg.init === true && arg.config)
-      server = new WebvisualServer(arg.config);
-    else {
-      for (var func in arg) {
-        if (server && server[func]) {
-          server[func]( arg[func] );
-        }
-      }
-    }
-  })
+  console.log('Server opened as forked process');
+  console.log = function() {
+    process.send( { log: util.format.apply(null, arguments)} );
+  }
+  console.info = function() {
+    process.send( { info: util.format.apply(null, arguments)} );
+  }
+  console.error = function() {
+    process.send( { error: util.format.apply(null, arguments)} );
+  }
+  console.warn = function() {
+    process.send( { warn: util.format.apply(null, arguments)} );
+  }
 }
 
+server = new WebvisualServer(config);
+
+process.on("message", (arg) => {
+  if (arg.init === true && arg.config)
+    server = new WebvisualServer(arg.config);
+  else {
+    for (var func in arg) {
+      if (server && server[func]) {
+        server[func]( arg[func] );
+      }
+    }
+  }
+})
+
 process.on('uncaughtException', (err) => {
-  console.log('(uncaughtException)', err);
-  // server.reconnect();
+  console.log('WEBVISUAL SERVER (uncaughtException)', err || '');
+  server.reconnect();
 });
 
 process.on('ECONNRESET', (err) => {
-  console.log('(ECONNRESET)', err);
-  // server.reconnect();
+  console.log('WEBVISUAL SERVER (ECONNRESET)', err || '');
+  server.reconnect();
 });
 
 process.on('SIGINT', (err) => {
-  console.log('(SIGINT)', err);
+  console.log('WEBVISUAL SERVER (SIGINT)', err || '');
   server.disconnect();
   process.exit(0);
 });
 
 process.on('exit', (err) => {
-  console.log('(EXIT)', err);
+  console.log('WEBVISUAL SERVER (EXIT)', err || '');
   server.disconnect();
 });

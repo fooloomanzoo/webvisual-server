@@ -16,10 +16,6 @@
       }
     },
 
-    "cache": {
-      "size": 10000
-    },
-
     "clientRequest": {
       "initial": {
         "mobile": 300,

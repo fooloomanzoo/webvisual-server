@@ -113,6 +113,9 @@
     },
 
     insertValues: function(values) {
+      if (!this._initialized)
+        this._initialized = true;
+
       if (values === undefined) {
         var id = this.item.id
           , system = this.item.system
@@ -124,9 +127,11 @@
         else
           values = [];
       }
+
       if (this.noSocketConnection === true) {
         this.splice('values', this.values.length, 0, values);
       }
+      
       if (this.singleValue === true) {
         if (this.exceedable === true)
           this.checkExceedingState(values[values.length - 1]);

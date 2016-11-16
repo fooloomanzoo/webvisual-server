@@ -77,19 +77,15 @@
 
         socket.on('connect', (function() {
       			console.info("clientSocket connected to: " + window.location.host);
-      			this.opened = true;
       		}).bind(this));
         socket.on('disconnect', (function() {
       			console.warn("clientSocket disconnected to: " + window.location.host);
-      			this.opened = true;
       		}).bind(this));
         socket.on('reconnect', (function() {
       			console.info("clientSocket reconnected to: " + window.location.host);
-      			this.opened = true;
       		}).bind(this));
         socket.on('error', (function(err) {
       			console.error("clientSocket error: ", err);
-      			this.opened = true;
       		}).bind(this));
 
         socket.on('initial', function(message) {
@@ -111,7 +107,7 @@
         if (!facility || !system || !Webvisual.sockets.has(this.socketName)) {
           return;
         }
-        Webvisual._initialized = false;
+        // Webvisual._initialized = false;
         Webvisual.sockets.get(this.socketName)
                          .emit('setup', {
                             room: socketRoom,
@@ -122,7 +118,7 @@
 
       _initializeData: function(items) {
         if (items && items.length > 0) {
-          Webvisual.initializeData(items);
+          // Webvisual.initializeData(items);
         }
       }
     });

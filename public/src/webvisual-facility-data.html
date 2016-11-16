@@ -110,7 +110,7 @@
       },
 
       _computeSystem: function(facility, systemName) {
-        console.log('system', facility, systemName);
+        // console.log('system', facility, systemName);
         if (facility && facility.systems && systemName) {
           this._getNamedArrayItem(facility.systems, systemName)
               .then(function(system) {
@@ -127,7 +127,7 @@
       },
 
       _computeItems: function(system) {
-        console.log('items', system);
+        // console.log('items', system);
         if (system && system.items) {
           this.set('items', system.items);
         } else {
