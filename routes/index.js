@@ -18,7 +18,8 @@ const EventEmitter = require('events').EventEmitter
 
 const requiredStaticSettings = [
   'groups',
-  'groupingKeys'
+  'groupingKeys',
+  'svgSource'
 ]
 
 const staticMiddleware = serveStatic(path.join(process.cwd(), 'public'))
@@ -183,11 +184,12 @@ class Router extends EventEmitter {
 
         let comb = facility + '+' + system;
 
+        // create required static settings
         for (let key in opt[system]) {
           if (requiredStaticSettings.indexOf(key) === -1)
             continue;
           p = path.resolve(dir, comb + '+' + key + '.json')
-          fs.writeFile(p, JSON.stringify(opt[system][key]), (err) => {
+          fs.writeFile(p, JSON.stringify(opt[system][key] || {}), (err) => {
             if (err)
               this.emit('error', 'Writing Files for static content configuration (../public/data/) failed\n' + err);
           });
@@ -201,6 +203,7 @@ class Router extends EventEmitter {
       });
     }
 
+    // create required main overview
     dir = path.resolve(dir, 'facilities.json');
 
     fs.writeFileSync( dir, JSON.stringify(facilities) );
