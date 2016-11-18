@@ -1,10 +1,12 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
-<link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html"/>
+
 <link rel="import" href="behaviors/container-behavior.html"/>
+
 <link rel="import" href="webvisual-radio-button.html"/>
 <link rel="import" href="webvisual-dropdown.html"/>
 <link rel="import" href="webvisual-button.html"/>
-<link rel="import" href="webvisual-graph.html"/>
+<link rel="import" href="webvisual-element-graph.html"/>
+
 <script type="text/javascript" src="../bower_components/d3/d3.min.js"></script>
 
 <dom-module id="webvisual-element-chart">
@@ -66,7 +68,7 @@
       webvisual-dropdown#legend {
         --dropdown-background: rgba(255, 255, 255, 0.5);
       }
-      webvisual-graph {
+      webvisual-element-graph {
         padding: 0.25em;
       }
       webvisual-icon-button {
@@ -213,14 +215,14 @@
         </g>
       </svg>
 
-      <webvisual-icon-button id="zoombutton" icon="search" on-tap="_startZoomSession"></webvisual-icon-button>
+      <!-- <webvisual-icon-button id="zoombutton" icon="search" on-tap="_startZoomSession"></webvisual-icon-button>
 
 		  <webvisual-icon-button id="legendbutton" icon="timeline"></webvisual-icon-button>
 		  <webvisual-dropdown id="legend" for="legendbutton" target-toggle-event="tap" hiding-event="" position="bottom" align="center">
-		    <content id="collector" select="webvisual-graph"></content>
-		    <template is="dom-repeat" items="[[selectedElements]]">
-		      <webvisual-graph ident="[[item.ident]]" system="[[item.system]]" keys="[[item.keys]]" grouped-key="[[item.groupedKey]]" color="[[item.color]]" interpolation="[[interpolation]]">
-		      </webvisual-graph>
+		    <content id="collector" select="webvisual-element-graph"></content>
+		    <template is="dom-repeat" items="[[items]]">
+		      <webvisual-element-graph ident="[[item.ident]]" system="[[item.system]]" keys="[[item.keys]]" grouped-key="[[item.groupedKey]]" color="[[item.color]]" interpolation="[[interpolation]]">
+		      </webvisual-element-graph>
 		    </template>
 		  </webvisual-dropdown>
 
@@ -254,7 +256,7 @@
 		      <webvisual-button interpolate="Stufe (davor)">Stufe (davor)</webvisual-button>
 		      <webvisual-button interpolate="Stufe (danach)">Stufe (danach)</webvisual-button>
 		    </iron-selector>
-		  </webvisual-dropdown>
+		  </webvisual-dropdown> -->
 
   	</div>
 
@@ -282,7 +284,7 @@
       is: 'webvisual-element-chart',
 
       behaviors: [
-        Polymer.IronResizableBehavior,
+        // Polymer.IronResizableBehavior,
         ContainerBehavior
       ],
 
@@ -413,7 +415,7 @@
       },
 
       observers: [
-        'redraw(selectedElements.length)'
+        'redraw(items.length)'
       ],
 
       created: function() {
@@ -443,7 +445,7 @@
 
       _buildLayout: function() {
         // performance.mark('build start');
-        this.assignParentResizable(this.rootElement);
+        // this.assignParentResizable(this.rootElement);
 
         this._svg = d3.select(this.$.svgchart).attr('preserveAspectRatio', 'xMinYMin meet')
           .attr('height', null)

@@ -5,9 +5,9 @@ module.exports = {
     '/scripts/*',
     '/socket.io/*',
     '/bower_components/webcomponentsjs/webcomponents-lite.min.js',
-    '/images/*',
-    '/src/style/fonts/*',
-    '/src/style/*'
+    '/icons/*',
+    '/data/*',
+    '/fonts/*'
   ],
   navigateFallback: '/index.html',
   navigateFallbackWhitelist: [/^(?!.*\.html$|\/data\/).*/],
@@ -18,7 +18,7 @@ module.exports = {
       options: {
         cache: {
           maxEntries: 200,
-          name: 'items-cache'
+          name: 'svg-cache'
         }
       }
     },

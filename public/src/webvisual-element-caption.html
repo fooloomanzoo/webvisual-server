@@ -5,20 +5,17 @@
       :host {
         font-family: 'FiraSans-Regular', sans-serif;
         display: inline-block;
-        border-radius: inherit;
         height: auto;
         width: auto;
-        flex: 1 1 auto;
+        overflow: hidden;
         line-height: 1.4;
         flex-direction: column;
         flex-wrap: wrap;
         cursor: default;
         box-sizing: border-box;
         position: relative;
-        border-radius: inherit;
         background: var(--caption-background, white);
         color: var(--primary-text-color);
-        line-height: 1.4;
         padding: var(--caption-padding, 0.5em);
         margin: 0;
         border: none;
@@ -29,9 +26,10 @@
         padding: 0;
         margin: 0;
         font-size: 0.6em;
-        white-space: normal;
-        word-wrap: break-word;
-        word-break: break-all;
+        white-space: nowrap;
+        width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
       .captions:first-of-type {
         font-family: 'FiraSans-Medium', sans-serif;
@@ -46,11 +44,11 @@
         font-size: 0.7em;
       }
       :host([vertical]) {
-        display: inline-flex;
+        display: flex;
         flex-direction: column;
         align-items: flex-start;
         justify-content: center;
-        line-height: 1.5;
+        flex-wrap: nowrap;
       }
       [hidden] {
         display: none !important;

@@ -16,6 +16,10 @@
       }
     },
 
+    "svgPathOrigin": "",
+
+    "svgSource": "",
+
     "clientRequest": {
       "initial": {
         "mobile": 300,

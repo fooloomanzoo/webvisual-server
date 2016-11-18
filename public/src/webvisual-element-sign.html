@@ -26,9 +26,8 @@
         height: auto;
         width: auto;
         min-height: 4em;
-        min-width: 5em;
+        /*min-width: 5em;*/
         align-self: stretch;
-        border-radius: inherit;
         transition: background 300ms cubic-bezier(0.3, 0, 0.15, 1);
       }
 
@@ -62,10 +61,10 @@
         text-overflow: ellipsis;
         box-sizing: border-box;
         background: linear-gradient(180deg,rgba(255,255,255,0),rgba(255,255,255,0.15),rgba(255,255,255,0));
-        border-radius: inherit;
       }
       .value::after {
         position: absolute;
+        overflow: hidden;
         content: "";
         top: 0;
         bottom: 0;

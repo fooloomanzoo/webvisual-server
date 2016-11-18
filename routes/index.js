@@ -159,10 +159,11 @@ class Router extends EventEmitter {
   }
 
   createStaticContent() {
-    let dir = path.resolve(process.cwd(), 'public', 'data')
+    let dir
       , facilities = []
       , tmp
-      , p;
+      , pth
+      , dest;
 
     // write json
     for (let facility in this.configuration) {
@@ -183,16 +184,38 @@ class Router extends EventEmitter {
         } );
 
         let comb = facility + '+' + system;
+        dir = path.resolve(process.cwd(), 'public', 'data');
 
         // create required static settings
         for (let key in opt[system]) {
           if (requiredStaticSettings.indexOf(key) === -1)
             continue;
-          p = path.resolve(dir, comb + '+' + key + '.json')
-          fs.writeFile(p, JSON.stringify(opt[system][key] || {}), (err) => {
+          pth = path.resolve(dir, comb + '+' + key + '.json')
+          fs.writeFile(pth, JSON.stringify(opt[system][key] || {}), (err) => {
             if (err)
-              this.emit('error', 'Writing Files for static content configuration (../public/data/) failed\n' + err);
+              this.emit('error', `Writing Files for static content configuration (../public/data/) failed\n ${err}`);
           });
+        }
+
+        // copy svgContent in staticContentFolder
+        if (opt[system].svgSource && Object.keys(opt[system].svgSource).length) {
+
+          dir = opt[system].svgPathOrigin || path.resolve(process.cwd(), 'examples', 'svg');
+          dest = path.resolve(process.cwd(), 'public', 'data', 'images', facility, system);
+
+          mkdirp(dest, (err) => {
+              if (err) console.error(err)
+          });
+
+          for (var p in opt[system].svgSource) {
+            try {
+              fs.createReadStream(path.resolve(dir, p))
+                .pipe(fs.createWriteStream(path.resolve(dest, p)));
+            } catch (e) {
+              this.emit('error', `Copying SVG Files from ${dir} to ${dest} failed\n ${err}`);
+            }
+          }
+
         }
       }
 
@@ -203,8 +226,9 @@ class Router extends EventEmitter {
       });
     }
 
+
     // create required main overview
-    dir = path.resolve(dir, 'facilities.json');
+    dir = path.resolve(process.cwd(), 'public', 'data', 'facilities.json');
 
     fs.writeFileSync( dir, JSON.stringify(facilities) );
   }

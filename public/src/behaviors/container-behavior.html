@@ -67,21 +67,26 @@
       '_reproductionSelectRepeat(item)',
       '_reproductionMultiSelectRepeat(items.splices)',
       '_reproductionExceedsRepeat(exceeding.splices)',
+      'print(item)'
     ],
 
     hostAttributes: {
       container: true
     },
 
-    created: function() {
-      var sel, uniqueid;
-      while (true) {
-        uniqueid = String(Math.random().toString(16).slice(2));
-        sel = document.querySelector('[uniqueid="' + uniqueid + '"]');
-        if (!sel) break;
-      }
-      this.setAttribute('uniqueid', uniqueid);
+    print: function(arg) {
+      console.log(arg);
     },
+
+    // created: function() {
+    //   var sel, uniqueid;
+    //   while (true) {
+    //     uniqueid = String(Math.random().toString(16).slice(2));
+    //     sel = document.querySelector('[uniqueid="' + uniqueid + '"]');
+    //     if (!sel) break;
+    //   }
+    //   this.setAttribute('uniqueid', uniqueid);
+    // },
 
     detached: function() {
       this._watchSelect();

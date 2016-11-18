@@ -188,10 +188,8 @@
       /**
        * Object key of a global 'SvgSource'-Element that stores SVG-Nodes (so that their are no unesseccary reloads)
        */
-      source: {
-        type: String,
-        observer: '_debounceSourceChanged'
-      },
+      source: String,
+
       recentSource: {
         type: String
       },
@@ -221,9 +219,7 @@
       /**
        * If true, initially it is not zoomed to 'initial' if there are selected Nodes
        */
-      initiallyZoomToSelected: {
-        type: Boolean
-      },
+      initiallyZoomToSelected: Boolean,
       /**
        * If true, webvisual-element-svg is shown
        */
@@ -238,6 +234,7 @@
        */
       fullscreen: {
         type: Boolean,
+        value: false,
         reflectToAttribute: true
       },
       /**
@@ -266,47 +263,11 @@
         value: 4
       },
 
-      animatable: {
-        type: Boolean,
-        value: true
-      },
+      /**
+       * selectable paths (key as id, value as path)
+       */
+      selectable: Object
 
-      attributeAnimations: {
-        type: Object,
-        value: function() {
-          return {
-            'opened': {
-              'entry': [
-                {
-                  name: 'fade-in-animation',
-                  timing: {
-                    duration: 250
-                  }
-                }
-              ],
-              'exit': [ {
-                  name: 'fade-out-animation',
-                  timing: {
-                    duration: 250
-                  }
-                }, {
-                  name: 'scale-down-animation',
-                  node: this,
-                  timing: {
-                    duration: 300
-                  }
-                }
-              ]
-            }
-          };
-        }
-      },
-      repeatedAttributes: {
-        type: Array,
-        value: function() {
-          return [ 'opened' ];
-        }
-      }
     },
 
     /**
@@ -331,12 +292,12 @@
     _d3Zoom: Object,
 
     observers: [
-      '_selectedChanged(selectedElements.splices)',
-      '_exceedingChanged(exceedingElements.splices)'
+      '_debounceSourceChanged(source)',
+      '_selectedChanged(item)',
+      '_exceedingChanged(exceeding.splices)'
     ],
 
     listeners: {
-      'neon-animation-finish': '_onNeonAnimationFinish',
       'mozfullscreenchange': '_fullScreenChanged',
       'webkitfullscreenchange': '_fullScreenChanged',
       'mozfullscreenchange': '_fullScreenChanged',
@@ -346,18 +307,6 @@
     behaviors: [
       ContainerBehavior
     ],
-
-    getAnimatableNodes: function() {
-      return [ this.$.svgContainer ];
-    },
-
-    _onNeonAnimationFinish: function() {
-      if (!this.opened) {
-        this.$.svgContainer.style.display = 'none';
-      } else {
-        this.debounce('resetZoom', this._resetZoom, 50);
-      }
-    },
 
     _openedChanged: function() {
       if (!this.source) return;
@@ -373,26 +322,6 @@
 
     close: function() {
       this.opened = false;
-    },
-
-    factoryImpl: function(svg) {
-      this.setSvg(svg);
-    },
-
-    getSvg: function() {
-      return {source: this.source,
-              initial: this.initial,
-              selectedElements: this.selectedElements,
-              exceedingElements: this.exceedingElements,
-              selectedClass: this.selectedClass,
-              exceedingClass: this.exceedingClass };
-    },
-
-    setSvg: function(svg) {
-      this.async(function(){
-        for (key in svg)
-          this.set(key, svg[key]);
-      });
     },
 
     _sourceChanged: function() {
@@ -414,11 +343,12 @@
       return new Promise(function(resolve, reject) {
         var req = new XMLHttpRequest();
         req.onreadystatechange = function() {
-          if (this.readyState === 4) {
+          if (this.readyState === 4 && this.status < 400) {
             resolve(this.responseXML.documentElement);
           }
         }.bind(req);
         req.open("GET", source);
+        req.withCredentials = true;
         req.send();
       })
     },
@@ -465,8 +395,8 @@
 
     _selectedChanged: function(changeRecord) {
       if (changeRecord && changeRecord.indexSplices) {
-        if (this.selectedElements.length > 0) {
-          this.source = this.selectedElements[this.selectedElements.length-1].svg.source;
+        if (this.items.length > 0) {
+          this.source = this.items[this.items.length-1].svg.source;
           if (this.openOnSelect)
             this.opened = true;
         }
@@ -478,10 +408,10 @@
 
     _exceedingChanged: function(changeRecord) {
       if (changeRecord && changeRecord.indexSplices) {
-        if (this.exceedingElements.length > 0) {
+        if (this.exceeding.length > 0) {
           // setting source to last exceeding element
           if (!this.source)
-            this.source = this.exceedingElements[this.exceedingElements.length-1].svg.source;
+            this.source = this.exceeding[this.exceeding.length-1].svg.source;
           if (this.openOnExceed)
             this.opened = true;
         }
@@ -513,7 +443,7 @@
                    .classed('clicked', false);
 
         // add 'webvisual-element-svg-selectable' class and click listener
-        for (var element in this.selectedElements)
+        for (var element in this.items)
           if(element.svg && element.svg.path && element.svg.source === this.source )
             this._mainG.selectAll(element.svg.path)
                       .classed('webvisual-element-svg-selectable', true)  // for styling selectable
@@ -529,7 +459,7 @@
                       .text(function() {
                           return element.ident;
                      });
-        for (var element in this.exceedingElements)
+        for (var element in this.exceeding)
           if(element.svg && element.svg.path && element.svg.source === this.source)
             this._mainG.selectAll(element.svg.path)
                       .classed('webvisual-element-svg-selectable', true)  // for styling selectable
@@ -545,24 +475,22 @@
                       .text(function() {
                           return element.ident;
                      });
-        if (window.SvgSelectables){
-          for (var key in window.SvgSelectables[this.source])
-            this._mainG.selectAll(window.SvgSelectables[this.source][key])
-                      .classed('webvisual-element-svg-selectable', true)  // for styling selectable
-                      .classed('style-scope', true).classed('webvisual-element-svg', true) // for style-scoping in polymer
-                      .on('click dblclick',
-                        function() {
-                          self._zoomToElement(this);
-                          self._mainG.selectAll('.clicked')
-                                     .classed('clicked', false);
-                        })
-                      .classed('clicked', true)
-                      .append('title')
-                      .text(function() {
-                          return key;
-                       });
-          this._inialized = true;
-        }
+        for (var key in this.selectable)
+          this._mainG.selectAll(this.selectable[key])
+                    .classed('webvisual-element-svg-selectable', true)  // for styling selectable
+                    .classed('style-scope', true).classed('webvisual-element-svg', true) // for style-scoping in polymer
+                    .on('click dblclick',
+                      function() {
+                        self._zoomToElement(this);
+                        self._mainG.selectAll('.clicked')
+                                   .classed('clicked', false);
+                      })
+                    .classed('clicked', true)
+                    .append('title')
+                    .text(function() {
+                        return key;
+                     });
+        this._inialized = true;
     },
 
     _zoom: function () {
@@ -597,10 +525,14 @@
     },
 
     _selectSelected: function() {
-      this.select(this.selectedElements, this.selectedClass);
+      if (this.item)
+        this.select(this.item, this.selectedClass);
+      else {
+        this._resetZoom();
+      }
     },
     _selectExceeds: function() {
-      this.select(this.exceedingElements, this.exceedingClass);
+      this.select(this.exceeding, this.exceedingClass);
     },
 
     select: function(selected, selectedClass) {
@@ -611,11 +543,19 @@
 
       var elems;
       var sel = [];
-      for (var i in selected) {
-        if (selected[i].svg && selected[i].svg.path && selected[i].svg.path !== '')
-          sel.push(selected[i].svg.path);
+      if (Array.isArray(selected)) {
+        for (var i in selected) {
+          if (selected[i].svg && selected[i].svg.path && selected[i].svg.path !== '')
+            sel.push(selected[i].svg.path);
+        }
+        sel = sel.join(',');
+      } else {
+        if (selected && selected.svg && selected.svg.path)
+          sel = selected.svg.path;
+        else
+          sel = '';
       }
-      var sel = sel.join(',');
+
       if (sel === '' ||
           (elems = this._mainG.selectAll(sel)
                               .filter('.webvisual-element-svg-selectable')).classed(selectedClass, true).empty()) {
@@ -697,21 +637,24 @@
 
     _resetZoom: function() {
       // console.log('resetZoom', this.opened);
-      if (!this._mainG || !this._mainG.node || !this.opened) return;
+      if (!this._mainG || !this._mainG.node) return;
 
       // zoom to selectedItems
       if(this.initiallyZoomToSelected === true) {
-        if (this.selectedElements.length > 0) {
+        if (this.items.length > 0) {
+          console.log('items');
           this.debounce('select', this._selectSelected, 50);
           return;
         }
-        if (this.exceedingElements.length > 0) {
+        if (this.exceeding.length > 0) {
+          console.log('exceeding');
           this.debounce('select-exceeds', this._selectExceeds, 50);
           return;
         }
       }
       // zoom to initial
       if (this.initial !== '') {
+        console.log('initial');
         var initial;
         if (!(initial = this._mainG.selectAll(this.initial)
                                    .filter('.webvisual-element-svg-selectable')).empty()) {
@@ -720,6 +663,7 @@
         }
       }
       // zomm to _mainG
+      console.log('mainG');
       this._zoomToElement(this._mainG.node());
     },
 

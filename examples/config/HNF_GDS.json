@@ -6,7 +6,7 @@
       "file": {
         "mode": "all",
         "path": "examples/datafile/HNF_Datafile.txt",
-        "#path": "\\\\ibn-vsrv.ibn-net.kfa-juelich.de\\HNF-GDS$\\Datafile\\HNF_Datafile.txt",
+        "#path": "//ibn-vsrv/HNF-GDS$/Datafile/HNF_Datafile.txt",
         "format": {
           "dateFormat": "DD.MM.YYYY;hh:mm:ss",
           "decimalSeparator": ".",
@@ -26,14 +26,17 @@
 			}
 		},
 
-    "svg": {
-      "/images/HNF-GDS/E0_gaskabinet.svg": {
+    "#svgPathOrigin": "",
+    "svgPathOrigin": "//ibn-vsrv/HNF-GDS$/Maps",
+
+    "svgSource": {
+      "E0_gaskabinet.svg": {
         "Cabinets": "g#Cabinets path"
       },
-      "/images/HNF-GDS/E1_bypack.svg": {
+      "E1_bypack.svg": {
         "Cabinets": "g#Cabinets path"
       },
-      "/images/HNF-GDS/E2_reinraum.svg": {
+      "E2_reinraum.svg": {
         "Cabinets": "g#Cabinets path"
       }
     },
@@ -72,7 +75,7 @@
           },
           "svg": {
             "path": "path#path4514,path#path4512",
-            "source": "/images/HNF-GDS/E0_gaskabinet.svg"
+            "source": "E0_gaskabinet.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -91,7 +94,7 @@
           },
           "svg": {
             "path": "path#path4514,path#path4512",
-            "source": "/images/HNF-GDS/E0_gaskabinet.svg"
+            "source": "E0_gaskabinet.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -109,7 +112,7 @@
           },
           "svg": {
             "path": "path#path5110-0,path#path5112-1,path#path5114-4",
-            "source": "/images/HNF-GDS/E1_bypack.svg"
+            "source": "E1_bypack.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -127,7 +130,7 @@
           },
           "svg": {
             "path": "path#path5110-0,path#path5112-1,path#path5114-4",
-            "source": "/images/HNF-GDS/E1_bypack.svg"
+            "source": "E1_bypack.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -145,7 +148,7 @@
           },
           "svg": {
             "path": "g#H2 path",
-            "source": "/images/HNF-GDS/E2_reinraum.svg"
+            "source": "E2_reinraum.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -163,7 +166,7 @@
           },
           "svg": {
             "path": "g#H2 path",
-            "source": "/images/HNF-GDS/E2_reinraum.svg"
+            "source": "E2_reinraum.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -179,7 +182,7 @@
           },
           "svg": {
             "path": "g#H2 path",
-            "source": "/images/HNF-GDS/E2_reinraum.svg"
+            "source": "E2_reinraum.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -244,7 +247,7 @@
           },
           "svg": {
             "path": "g#HBR path, g#CL2 path",
-            "source": "/images/HNF-GDS/E0_gaskabinet.svg"
+            "source": "E0_gaskabinet.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -263,7 +266,7 @@
           },
           "svg": {
             "path": "g#NH3 path, g#SIH4 path",
-            "source": "/images/HNF-GDS/E0_gaskabinet.svg"
+            "source": "E0_gaskabinet.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -281,7 +284,7 @@
           },
           "svg": {
             "path": "g#CL2 path,g#HBR path, g#HCL path,g#NH3 path, g#SIH4 path",
-            "source": "/images/HNF-GDS/E1_bypack.svg"
+            "source": "E1_bypack.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -299,7 +302,7 @@
           },
           "svg": {
             "path": "g#CL2 path,g#HBR path, g#HCL path,g#NH3 path, g#SIH4 path",
-            "source": "/images/HNF-GDS/E2_reinraum.svg"
+            "source": "E2_reinraum.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -317,7 +320,7 @@
           },
           "svg": {
             "path": "g#HBR path",
-            "source": "/images/HNF-GDS/E2_reinraum.svg"
+            "source": "E2_reinraum.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -359,7 +362,7 @@
           },
           "svg": {
             "path": "g#CL2 path",
-            "source": "/images/HNF-GDS/E1_bypack.svg"
+            "source": "E1_bypack.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -378,7 +381,7 @@
           },
           "svg": {
             "path": "path#path4476,path#path4478",
-            "source": "/images/HNF-GDS/E0_gaskabinet.svg"
+            "source": "E0_gaskabinet.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -397,7 +400,7 @@
           },
           "svg": {
             "path": "path#path4472,path#path4470",
-            "source": "/images/HNF-GDS/E0_gaskabinet.svg"
+            "source": "E0_gaskabinet.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -439,7 +442,7 @@
           },
           "svg": {
             "path": "g#NH3 path",
-            "source": "/images/HNF-GDS/E2_reinraum.svg"
+            "source": "E2_reinraum.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -457,7 +460,7 @@
           },
           "svg": {
             "path": "",
-            "source": "/images/HNF-GDS/E1_bypack.svg"
+            "source": "E1_bypack.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -478,7 +481,7 @@
           },
           "svg": {
             "path": "path#path4508,path#path4510",
-            "source": "/images/HNF-GDS/E0_gaskabinet.svg"
+            "source": "E0_gaskabinet.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -496,7 +499,7 @@
           },
           "svg": {
             "path": "g#BCL3 path",
-            "source": "/images/HNF-GDS/E2_reinraum.svg"
+            "source": "E2_reinraum.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -514,7 +517,7 @@
           },
           "svg": {
             "path": "g#BCL3 path",
-            "source": "/images/HNF-GDS/E2_reinraum.svg"
+            "source": "E2_reinraum.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -532,7 +535,7 @@
           },
           "svg": {
             "path": "g#HBR path",
-            "source": "/images/HNF-GDS/E1_bypack.svg"
+            "source": "E1_bypack.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -550,7 +553,7 @@
           },
           "svg": {
             "path": "g#SIH4 path",
-            "source": "/images/HNF-GDS/E2_reinraum.svg"
+            "source": "E2_reinraum.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -568,7 +571,7 @@
           },
           "svg": {
             "path": "g#SIH4 path",
-            "source": "/images/HNF-GDS/E1_bypack.svg"
+            "source": "E1_bypack.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -587,7 +590,7 @@
           },
           "svg": {
             "path": "path#path4504,path#path4506",
-            "source": "/images/HNF-GDS/E0_gaskabinet.svg"
+            "source": "E0_gaskabinet.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -605,7 +608,7 @@
           },
           "svg": {
             "path": "g#CL2 path",
-            "source": "/images/HNF-GDS/E2_reinraum.svg"
+            "source": "E2_reinraum.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -625,7 +628,7 @@
           },
           "svg": {
             "path": "g#CL2 path",
-            "source": "/images/HNF-GDS/E2_reinraum.svg"
+            "source": "E2_reinraum.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -643,7 +646,7 @@
           },
           "svg": {
             "path": "g#HBR path",
-            "source": "/images/HNF-GDS/E1_bypack.svg"
+            "source": "E1_bypack.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -662,7 +665,7 @@
           },
           "svg": {
             "path": "path#path4474,path#path4470",
-            "source": "/images/HNF-GDS/E0_gaskabinet.svg"
+            "source": "E0_gaskabinet.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -681,7 +684,7 @@
           },
           "svg": {
             "path": "g#O2 path",
-            "source": "/images/HNF-GDS/E2_reinraum.svg"
+            "source": "E2_reinraum.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -700,7 +703,7 @@
           },
           "svg": {
             "path": "g#O2 path",
-            "source": "/images/HNF-GDS/E2_reinraum.svg"
+            "source": "E2_reinraum.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -719,7 +722,7 @@
           },
           "svg": {
             "path": "g#O2 path",
-            "source": "/images/HNF-GDS/E2_reinraum.svg"
+            "source": "E2_reinraum.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -738,7 +741,7 @@
           },
           "svg": {
             "path": "g#O2 path",
-            "source": "/images/HNF-GDS/E2_reinraum.svg"
+            "source": "E2_reinraum.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {

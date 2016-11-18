@@ -4,13 +4,16 @@
   "fragments": [
     "src/webvisual-login.html",
     "src/webvisual-home.html",
+    "src/webvisual-list.html",
+    "src/webvisual-groups.html",
     "src/webvisual-detail.html",
     "src/lazy-resources.html"
   ],
   "sourceGlobs": [
     "data/**/*",
     "fonts/**/*",
-    "images/**/*",
+    "icons/**/*",
+    "fonts/*",
     "src/**/*",
     "app.yaml",
     "bower.json"

@@ -17,6 +17,10 @@
 			}
 		},
 
+    "svgPathOrigin": "",
+
+    "svgSource": {},
+
 		"clientRequest": {
 			"initial": {
 				"mobile": 300,
@@ -121,9 +125,7 @@
 			}
 		},
 
-    "cache": {
-			"size": 10000
-		},
+    "svgPathOrigin": "",
 
 		"clientRequest": {
 			"initial": {

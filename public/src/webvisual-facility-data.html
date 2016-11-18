@@ -145,46 +145,6 @@
         }
       },
 
-      _requestData: function(request, attempts) {
-        this._getResource({
-          url: '/data/' + this.facilityName + '+' + this.systemName + '+' + request + '.json',
-          onLoad: function(e) {
-            if (e.target.status < 400) {
-              this.set('request', JSON.parse(e.target.responseText));
-              localStorage.setItem('request', e.target.responseText);
-            } else {
-              var items = localStorage.getItem('request');
-              if (items)
-                this.set('request', JSON.parse(items));
-            }
-          },
-          onError: function(e) {
-            this._setFailure(true);
-            var items = localStorage.getItem('request');
-            if (items)
-              this.set('request', JSON.parse(items));
-          }
-        }, attempts);
-      },
-
-      _getResource: function(rq, attempts) {
-        var xhr = new XMLHttpRequest();
-        xhr.addEventListener('load', rq.onLoad.bind(this));
-        xhr.addEventListener('error', function(e) {
-          console.log(e.target.status);
-          // Flaky connections might fail fetching resources
-          if (attempts > 1) {
-            this.debounce('_getResource', this._getResource.bind(this, rq, attempts - 1), 200);
-          } else {
-            rq.onError.call(this, e);
-          }
-        }.bind(this));
-
-        xhr.open('GET', rq.url);
-        xhr.withCredentials = true;
-        xhr.send();
-      },
-
       _fetchFacilityList: function() {
         return new Promise( function(resolve, reject) {
           var xhr = new XMLHttpRequest();

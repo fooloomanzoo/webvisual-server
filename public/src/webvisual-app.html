@@ -67,7 +67,7 @@
         bottom: 0;
         left: 0;
         right: 0;
-        background-color: var(--bright-primary-color);
+        background-color: var(--dark-primary-color);
         opacity: 0;
         transition: opacity 1s cubic-bezier(0.6, 0, 0.1, 1);
       }
@@ -80,14 +80,13 @@
       :host([show-tabs]) {
         padding-top: 100px;
       }
+      :host {
+        background: var(--primary-background);
+      }
       :host([page="login"]),
       :host([page="home"]) {
         padding-top: 0px;
         background: var(--primary-color);
-      }
-      :host([page="list"]),
-      :host([page="detail"]) {
-        background: var(--primary-background);
       }
       app-toolbar {
         font-size: 16px;
@@ -191,35 +190,35 @@
         </template>
       </app-toolbar>
 
-      <!-- <div id="tabs" sticky$="[[_shouldShowTabs]]" hidden$="[[!_shouldShowTabs]]">
+      <div id="tabs" sticky$="[[_shouldShowTabs]]" hidden$="[[!_shouldShowTabs]]">
         <template is="dom-if" if="[[_shouldRenderTabs]]">
           <webvisual-tabs
               selected="{{page}}"
               attr-for-selected="name">
               <webvisual-tab name="list">
-                <a href="/list/[[facilityName]]/[[systemName]]">Listenansicht</a>
+                <a href="/list[[subroute.path]]">Listenansicht</a>
               </webvisual-tab>
-              <webvisual-tab name="group">
-                <a href="/group/[[facilityName]]/[[systemName]]">Gruppenansicht</a>
+              <webvisual-tab name="groups">
+                <a href="/groups[[subroute.path]]">Gruppenansicht</a>
               </webvisual-tab>
               <webvisual-tab name="detail">
-                <a href="/detail/[[facilityName]]/[[systemName]]">Detailansicht</a>
+                <a href="/detail[[subroute.path]]">Detailansicht</a>
               </webvisual-tab>
           </webvisual-tabs>
         </template>
-      </div> -->
+      </div>
 
     </app-header>
 
     <iron-pages id="pageselector" role="main" selected="[[page]]" attr-for-selected="name" selected-attribute="visible">
       <!-- home view for selecting the facility -->
-      <webvisual-home name="home" facilities="[[facilities]]" logged-in="{{loggedIn}}"></webvisual-home>
+      <webvisual-home name="home" facilities="[[facilities]]" route="{{subroute}}" logged-in="{{loggedIn}}"></webvisual-home>
       <!-- login view-->
       <webvisual-login name="login" route="[[subroute]]" offline="[[offline]]"></webvisual-login>
       <!-- list view of items in a facility -->
-      <webvisual-list name="list" route="[[subroute]]" facilities="[[facilities]]" offline="[[offline]]"></webvisual-list>
+      <webvisual-list name="list" route="[[subroute]]" facilities="[[facilities]]" offline="[[offline]]" select-notify load-complete="[[loadComplete]]"></webvisual-list>
       <!-- group view of items -->
-      <webvisual-groups name="groups" route="[[subroute]]" facilities="[[facilities]]" offline="[[offline]]"></webvisual-list>
+      <webvisual-groups name="groups" route="[[subroute]]" facilities="[[facilities]]" offline="[[offline]]" load-complete="[[loadComplete]]"></webvisual-list>
       <!-- detail view of one item -->
       <webvisual-detail name="detail" route="[[subroute]]" offline="[[offline]]"></webvisual-detail>
     </iron-pages>
@@ -286,11 +285,6 @@
         </webvisual-button>
 
       </app-drawer>
-
-      <webvisual-snackbar>
-        <webvisual-element-sign item="[[item]]"></webvisual-element-sign>
-        <webvisual-element-caption keys="[[item.keys]]"></webvisual-element-caption>
-      </webvisual-snackbar>
 
     </template>
   </template>
@@ -506,7 +500,7 @@
 
 
       _computeShouldShowHeader: function(page) {
-        return (page === 'list' || page === 'group' || page === 'detail');
+        return (page !== 'home' && page !== 'login');
       },
 
       _computeShouldRenderLowerToolbar: function(page, opened) {
@@ -514,11 +508,11 @@
       },
 
       _computeShouldRenderControlButtons: function(page) {
-        return (page === 'list' || page === 'detail');
+        return (page !== 'home' && page !== 'login');
       },
 
       _computeShouldShowTabs: function(page, showTabs) {
-        return (page === 'list' || page === 'detail') && showTabs;
+        return (page !== 'home' && page !== 'login') && showTabs;
       },
 
       _computeShouldRenderTabs: function(_shouldShowTabs, loadComplete) {
@@ -526,7 +520,7 @@
       },
 
       _computeShouldRenderDrawer: function(page, loadComplete) {
-        return (page !== 'home') && loadComplete;
+        return (page !== 'home' && page !== 'login') && loadComplete;
       },
 
       _computePluralizedQuantity: function(quantity) {

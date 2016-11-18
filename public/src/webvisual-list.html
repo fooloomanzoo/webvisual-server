@@ -3,10 +3,14 @@
 
 <link rel="import" href="../bower_components/app-route/app-route.html">
 
+<link rel="import" href="behaviors/container-behavior.html"/>
+
 <link rel="import" href="webvisual-element-socket-data.html"/>
 <link rel="import" href="webvisual-facility-data.html"/>
+
 <link rel="import" href="webvisual-element-sign.html"/>
 <link rel="import" href="webvisual-element-caption.html"/>
+<link rel="import" href="webvisual-snackbar.html"/>
 
 
 <!-- TESTS -->
@@ -31,6 +35,7 @@
 
       .grid li {
         @apply(--layout-horizontal);
+        overflow: hidden;
         box-sizing: border-box;
         -webkit-flex: 1 1;
         flex: 1 1;
@@ -41,8 +46,11 @@
       }
 
       .grid li > * {
-        border: solid thin rgba(0,0,0,.5);
+        border: solid thin #757575;
         border-right-width: 0;
+        box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.14),
+                    0 1px 10px 0 rgba(0, 0, 0, 0.12),
+                    0 2px 4px -1px rgba(0, 0, 0, 0.4);
       }
       .grid li > :first-child {
         border-top-left-radius: 5px;
@@ -126,6 +134,7 @@
           <!-- <a href$="[[_getItemHref(item)]]"> -->
             <webvisual-element-sign
               item="[[item]]"
+              show-date
               selectable></webvisual-element-sign>
             <webvisual-element-caption
               keys="[[item.keys]]"></webvisual-element-caption>
@@ -134,16 +143,20 @@
       </template>
     </ul>
 
+    <webvisual-snackbar opened>
+      <webvisual-element-sign item="[[item]]"></webvisual-element-sign>
+      <webvisual-element-caption keys="[[item.keys]]" vertical></webvisual-element-caption>
+    </webvisual-snackbar>
+
   </template>
 
   <script>
     Polymer({
       is: 'webvisual-list',
 
-      // behaviors: [
-      //   Polymer.NeonSharedElementAnimatableBehavior,
-      //   GroupingBehavior
-      // ],
+      behaviors: [
+        ContainerBehavior
+      ],
 
       properties: {
 
@@ -171,6 +184,8 @@
       observers: [
         '_routeChanged(routeData, visible)'
       ],
+
+
 
       print: function(arg,arg2,arg3) {
         console.log(arg,arg2,arg3);
