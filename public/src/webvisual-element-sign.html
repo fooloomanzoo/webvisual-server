@@ -188,12 +188,12 @@
 
     <section id="dateSection" hidden$="[[!showDate]]">[[toDate(renderedValue.x)]]</section>
 
-    <svg id="bookmark" hidden$="{{hasNoBookmark}}" viewBox="0 0 24 24" aria-label="Alarme" on-click="toggleTooltip">
-      <g id="announcement"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 9h-2V5h2v6zm0 4h-2v-2h2v2z"/></g>
-    </svg>
-
     <template is="dom-if" if="[[tooltip]]">
-      <webvisual-dropdown id="tooltip" hiding-event="mouseleave" position="right" align="center" hidden$="[[hasNoBookmark]]">
+      <svg id="bookmark" hidden$="[[!hasExceeded]]" viewBox="0 0 24 24" aria-label="Alarme" on-click="toggleTooltip">
+        <g id="announcement"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 9h-2V5h2v6zm0 4h-2v-2h2v2z"/></g>
+      </svg>
+
+      <webvisual-dropdown id="tooltip" hiding-event="mouseleave" position="right" align="center" hidden$="[[!hasExceeded]]">
         <div class="title">Alarmphasen</div>
         <section id="tooltipContent">
           <webvisual-element-table id="firstStateChangeTable" caption="start" hide-header only-first-row no-socket-connection is-indicator-lamp="[[item.isIndicatorLamp]]"></webvisual-element-table>
@@ -241,11 +241,6 @@
           type: String,
           reflectToAttribute: true,
           computed: '_computeState(renderedValue.state)'
-        },
-
-        hasNoBookmark: {
-          type: Boolean,
-          computed: '_computeHasNoBookmark(hasExceeded, tooltip)'
         }
       },
 
@@ -300,10 +295,6 @@
       handleChecked: function(checked) {
         if (checked && this.tooltip)
           this._tooltip.hide();
-      },
-
-      _computeHasNoBookmark: function(hasExceeded, tooltip) {
-        return !(hasExceeded && tooltip);
       },
 
       toggleTooltip: function(e) {

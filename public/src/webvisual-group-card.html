@@ -1,6 +1,5 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="behaviors/container-behavior.html"/>
-<link rel="import" href="behaviors/attribute-repeat-animation-behavior.html"/>
 <link rel="import" href="webvisual-element-svg.html"/>
 
 <dom-module id='webvisual-group-card'>
@@ -186,7 +185,9 @@
       </section>
 
       <section id='mainContent'>
-        <content></content>
+        <ul class="grid">
+          <content></content>
+        </ul>
       </section>
 
   </template>
@@ -195,7 +196,6 @@
       is: 'webvisual-group-card',
 
       behaviors: [
-        AttributeRepeatAnimationBehavior,
         ContainerBehavior
       ],
 
@@ -224,63 +224,11 @@
           reflectToAttribute: true
         },
 
-        openOnSelect: {
-          type: Boolean,
-          observer: 'sourceChanged'
-        },
-        openOnExceed: {
-          type: Boolean,
-          observer: 'sourceChanged'
-        },
-
-        reproduce: {
-          type: Boolean,
-          value: false
-        },
-        reproductionContainer: {
-          type: String,
-          value: 'header'
-        },
-
-        draggable: {
-          type: Boolean,
-          value: true
-        },
-        droppable: {
-          type: Boolean,
-          value: true
-        },
-
         svg: {
           type: Object,
           value: {},
           observer: 'sourceChanged'
-        },
-
-        animatable: {
-          type: Boolean,
-          value: false
-        },
-        repeatedAttributes: {
-          type: Array,
-          value: function() {
-            return [ 'opened' ];
-          }
         }
-      },
-
-      factoryImpl: function(title, svg, dark, withoutWindow, hideHeader) {
-        this.set('title', title || '');
-        if (dark) {
-          this.setAttribute('dark', '');
-        }
-        if (svg) {
-          this.set('svg', svg);
-        }
-        if (withoutWindow)
-          this.swithoutWindow = true;
-        if (hideHeader)
-          this.hideHeader = true;
       },
 
       attached: function() {
@@ -290,10 +238,6 @@
       observers: [
         '_exceedingChanged(exceedingElements.splices)'
       ],
-
-      listeners: {
-        'neon-animation-finish': '_onNeonAnimationFinish'
-      },
 
       toggle: function() {
         if (!this.opened) {
@@ -316,17 +260,17 @@
       },
 
       sourceChanged: function() {
-        if (!this._initial) {
-          this._initial = {openOnSelect: this.openOnSelect, openOnExceed: this.openOnExceed};
-        }
-        if (this.svg && this.svg.source) {
-          this.openOnSelect = this._initial.openOnSelect;
-          this.openOnExceed = this._initial.openOnExceed;
-        } else {
-          this.opened = false;
-          this.openOnSelect = false;
-          this.openOnExceed = false;
-        }
+        // if (!this._initial) {
+        //   this._initial = {openOnSelect: this.openOnSelect, openOnExceed: this.openOnExceed};
+        // }
+        // if (this.svg && this.svg.source) {
+        //   this.openOnSelect = this._initial.openOnSelect;
+        //   this.openOnExceed = this._initial.openOnExceed;
+        // } else {
+        //   this.opened = false;
+        //   this.openOnSelect = false;
+        //   this.openOnExceed = false;
+        // }
       },
 
       openedChanged: function() {
@@ -335,14 +279,6 @@
           this.$.title.setAttribute('overlay', '');
         } else {
           this.$.title.removeAttribute('overlay');
-        }
-      },
-      _onNeonAnimationFinish: function() {
-        if (!this.opened) {
-          this.$.headerContent.style.display = 'none';
-          // if (this.$.header.hasAttribute('opened'))
-          //   this.$.header.removeAttribute('opened', false);
-
         }
       },
 
@@ -369,53 +305,7 @@
           this.open()
         else
           this.close();
-      },
-
-      getAnimatableNodes: function() {
-        return [this.$.headerContent, this.$.svgElement];
       }
-      // // EXPERIMENTAL RESIZING
-      // listeners: {
-      //   'iron-resize': 'resized'
-      // },
-      //
-      // resized: function() {
-      //   this.debounce('resize', this._resized, 50);
-      // },
-      //
-      // _resized: function() {
-      //   if (window.getComputedStyle(this.parentNode, null).getPropertyValue('flex-wrap') === 'wrap') {
-      //     var elemscount = this.$.mainContent.children.length;
-      //     if (elemscount > 2) {
-      //       var paddingoffset = 16, width, tmp, rowebvisual;
-      //       var elemswidth = d3.max(this.$.mainContent.children, function(c) {
-      //         return c.offsetWidth;
-      //       });
-      //       var elemsheight = d3.max(this.$.mainContent.children, function(c) {
-      //         return c.offsetHeight;
-      //       });
-      //       if (!elemswidth || !elemsheight) return;
-      //       tmp = Math.ceil(Math.sqrt(elemscount))*(elemswidth + paddingoffset);
-      //       console.log(tmp);
-      //       this.style.maxWidth = tmp ? tmp + 'px' : '';
-      //
-      //       var headerheight = this.$.header.offsetHeight;
-      //       var previous = this.previousSibling;
-      //
-      //       tmp = this.parentNode.offsetWidth - this.offsetLeft;
-      //       if (previous && previous.offsetTop === this.offsetTop && previous.offsetHeight > this.offsetHeight) {
-      //         rowebvisual = Math.floor((previous.offsetHeight - headerheight) / elemsheight);
-      //         width = Math.ceil(elemscount / rowebvisual) * (elemswidth + paddingoffset);
-      //         this.style.maxWidth = (width < tmp) ? width + 'px' : '';
-      //       }
-      //       var next = this.nextSibling;
-      //       if (next && next.offsetTop === this.offsetTop) {
-      //         width = next.offsetLeft - this.offsetLeft;
-      //         this.style.maxWidth = width + 'px';
-      //       }
-      //     }
-      //   }
-      // },
 
     });
   </script>

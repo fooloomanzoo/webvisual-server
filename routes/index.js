@@ -17,9 +17,8 @@ const EventEmitter = require('events').EventEmitter
     , RedisStore = require('connect-redis')(session);
 
 const requiredStaticSettings = [
-  'groupMap',
-  'itemMap',
   'groups',
+  'groupingKeys'
 ]
 
 const staticMiddleware = serveStatic(path.join(process.cwd(), 'public'))

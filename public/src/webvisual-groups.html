@@ -5,18 +5,20 @@
 
 <link rel="import" href="webvisual-element-socket-data.html"/>
 <link rel="import" href="webvisual-facility-data.html"/>
+<link rel="import" href="webvisual-group-data.html"/>
+
 <link rel="import" href="webvisual-element-sign.html"/>
 <link rel="import" href="webvisual-element-caption.html"/>
+<link rel="import" href="webvisual-group-card.html"/>
 
 
 <!-- TESTS -->
-<link rel="import" href="webvisual-element-checkbox.html"/>
 <link rel="import" href="behaviors/grouping-behavior.html"/>
 
 
 <link rel="import" href="shared-styles.html">
 
-<dom-module id="webvisual-list">
+<dom-module id="webvisual-groups">
   <template>
     <style include="shared-styles">
       .grid {
@@ -98,38 +100,52 @@
     </style>
 
     <app-route
-    route="[[route]]"
-    pattern="/:facilityName/:systemName"
-    data="{{routeData}}"></app-route>
+      route="[[route]]"
+      pattern="/:facilityName/:systemName"
+      data="{{routeData}}"></app-route>
 
     <webvisual-facility-data
-    id="facilityData"
-    facilities="[[facilities]]"
-    facility-name="[[routeData.facilityName]]"
-    system-name="[[routeData.systemName]]"
-    items="{{elements}}"></webvisual-facility-data>
+      id="facilityData"
+      facilities="[[facilities]]"
+      facility-name="[[routeData.facilityName]]"
+      system-name="[[routeData.systemName]]"
+      items="{{elements}}"></webvisual-facility-data>
 
     <webvisual-element-socket-data
-    items="[[elements]]"
-    socket-name="data"
-    socket-room="[[routeData.facilityName]]/[[routeData.systemName]]"
-    logged-in="{{loggedIn}}"
-    offline="[[offline]]"></webvisual-element-socket-data>
+      items="[[elements]]"
+      socket-name="data"
+      socket-room="[[routeData.facilityName]]/[[routeData.systemName]]"
+      logged-in="{{loggedIn}}"
+      offline="[[offline]]"></webvisual-element-socket-data>
+
+    <webvisual-group-data
+      subgroups="{{subgroups}}"
+      grouped-key="[[groupedKey]]"
+      facility-name="[[routeData.facilityName]]"
+      system-name="[[routeData.systemName]]"></webvisual-group-data>
 
     <!-- <header>
       <h1>[[facility.title]]/[[system.title]]</h1>
     </header> -->
 
-    <ul class="grid" hidden$="[[failure]]">
-      <template is="dom-repeat" items="[[_getListItems(elements)]]">
+    <ul class="grid">
+      <template is="dom-repeat" items="[[_getSubGroups(subgroups)]]" as="group">
         <li>
-          <!-- <a href$="[[_getItemHref(item)]]"> -->
-            <webvisual-element-sign
-              item="[[item]]"
-              selectable></webvisual-element-sign>
-            <webvisual-element-caption
-              keys="[[item.keys]]"></webvisual-element-caption>
-          <!-- </a> -->
+          <webvisual-group-card title="[[group.title]]" svg="[[group.svg]]">
+            <template is="dom-repeat" items="[[group.items]]" as="id">
+              <li>
+            <!-- <a href$="[[_getItemHref(item)]]"> -->
+                <webvisual-element-sign
+                  item="[[_getItem(id, elements)]]"
+                  show-date
+                  selectable></webvisual-element-sign>
+                <webvisual-element-caption
+                  keys="[[_getItemKeys(id, elements)]]"
+                  grouped-key='[[groupedKey]]' without-grouped-key></webvisual-element-caption>
+              <!-- </a> -->
+              </li>
+            </template>
+          </webvisual-group-card>
         </li>
       </template>
     </ul>
@@ -138,7 +154,7 @@
 
   <script>
     Polymer({
-      is: 'webvisual-list',
+      is: 'webvisual-groups',
 
       // behaviors: [
       //   Polymer.NeonSharedElementAnimatableBehavior,
@@ -151,7 +167,17 @@
 
         system: Object,
 
-        elements: Array,
+        elements: {
+          type: Array,
+          notify: true
+        },
+
+        subgroups: Array,
+
+        groupedKey: {
+          type: String,
+          value: 'roomNr'
+        },
 
         route: Object,
 
@@ -169,16 +195,39 @@
       },
 
       observers: [
-        '_routeChanged(routeData, visible)'
+        '_routeChanged(routeData, visible)',
+        'print(elements.*)'
       ],
 
       print: function(arg,arg2,arg3) {
         console.log(arg,arg2,arg3);
       },
 
-      _getListItems: function(items) {
+      _getSubGroups: function(subgroup) {
         // Return placeholder items when the items haven't loaded yet.
-        return items || [{},{},{},{},{},{},{},{},{},{}];
+        return subgroup || [{},{},{},{},{}];
+      },
+
+      _getItem: function(id, elements) {
+        if (id && elements) {
+          for (var i = 0, item; item = elements[i]; ++i) {
+            if (item.id === id) {
+              return item;
+            }
+          }
+        }
+        return {};
+      },
+
+      _getItemKeys: function(id, elements) {
+        if (id && elements) {
+          for (var i = 0, item; item = elements[i]; ++i) {
+            if (item.id === id) {
+              return item.keys;
+            }
+          }
+        }
+        return {};
       },
 
       _getItemHref: function(item) {
@@ -208,6 +257,12 @@
 
       _tryReconnect: function() {
         this.$.facilityData.refresh();
+      },
+
+      _offlineChanged: function(offline) {
+        if (!offline) {
+          this._tryReconnect();
+        }
       },
 
       created: function() {

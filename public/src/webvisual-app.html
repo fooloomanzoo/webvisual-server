@@ -24,6 +24,7 @@
 <link rel="import" href="webvisual-login.html"/>
 <link rel="import" href="webvisual-home.html"/>
 <link rel="import" href="webvisual-list.html"/>
+<link rel="import" href="webvisual-groups.html"/>
 <link rel="import" href="webvisual-detail.html"/>
 
 <link rel="import" href="../bower_components/iron-a11y-keys-behavior/iron-a11y-keys-behavior.html"/>
@@ -157,7 +158,9 @@
       tail="{{subroute}}"></app-route>
 
     <webvisual-facility-data
-    facilities="{{facilities}}" logged-in="{{loggedIn}}" offline="[[offline]]"></webvisual-facility-data>
+      facilities="{{facilities}}"
+      logged-in="{{loggedIn}}"
+      offline="[[offline]]"></webvisual-facility-data>
 
     <iron-media-query query="max-width: 767px" query-matches="{{smallScreen}}"></iron-media-query>
 
@@ -215,6 +218,8 @@
       <webvisual-login name="login" route="[[subroute]]" offline="[[offline]]"></webvisual-login>
       <!-- list view of items in a facility -->
       <webvisual-list name="list" route="[[subroute]]" facilities="[[facilities]]" offline="[[offline]]"></webvisual-list>
+      <!-- group view of items -->
+      <webvisual-groups name="groups" route="[[subroute]]" facilities="[[facilities]]" offline="[[offline]]"></webvisual-list>
       <!-- detail view of one item -->
       <webvisual-detail name="detail" route="[[subroute]]" offline="[[offline]]"></webvisual-detail>
     </iron-pages>

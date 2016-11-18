@@ -18,17 +18,39 @@
         groups: {
           type: Array,
           notify: true
+        },
+
+        subgroups: {
+          type: Array,
+          computed: '_computeSubGroups(groups, groupedKey)',
+          notify: true
+        },
+
+        groupedKey: {
+          type: String
         }
+
       },
 
       observers: [
-        '_computeGroups(facilityName, systemName)'
+        '_fetchGroups(facilityName, systemName)'
       ],
 
-      _computeGroups: function(facilityName, systemName) {
+      _fetchGroups: function(facilityName, systemName) {
         if (facilityName && systemName) {
           this._request(facilityName, systemName, 'groups');
         }
+      },
+
+      _computeSubGroups: function(groups, groupedKey) {
+        if (groups && groupedKey) {
+          for (var i = 0, group; group = groups[i]; ++i) {
+            if (group.key === groupedKey) {
+              return group.groups;
+            }
+          }
+        }
+        return [];
       },
 
       _request: function(facilityName, systemName, request, attempts) {
@@ -40,7 +62,6 @@
           onLoad: function(e) {
             if (e.target.status < 400) {
               this.set(request, JSON.parse(e.target.responseText));
-              console.log(this.request);
               localStorage.setItem(request, e.target.responseText);
             } else {
               var items = localStorage.getItem(request);
