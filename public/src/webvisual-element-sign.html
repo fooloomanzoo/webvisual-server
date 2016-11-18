@@ -3,7 +3,6 @@
 
 <link rel="import" href="behaviors/color-behavior.html"/>
 <link rel="import" href="behaviors/checked-and-select-behavior.html"/>
-<link rel="import" href="behaviors/drag-and-drop-behavior.html"/>
 <link rel="import" href="behaviors/element-behavior.html"/>
 
 <link rel="import" href="webvisual-element-table.html"/>
@@ -72,7 +71,6 @@
         bottom: 0;
         right: 0;
         left: 0;
-        /*will-change: transform;*/
         background: linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,0.08),rgba(255,255,255,0));
       }
       :host([state="1"]) .value, :host([state="-1"]) .value {
@@ -169,13 +167,17 @@
       }
     </style>
 
-    <paper-ripple hidden$="[[!selectable]]" id="ripple"></paper-ripple>
+    <template is="dom-if" if="[[selectable]]">
+      <paper-ripple id="ripple"></paper-ripple>
+    </template>
+
     <template is="dom-if" if="[[!item.isIndicatorLamp]]">
       <section class="value">
         <section id="valueSection">[[getValue(renderedValue.y)]]</section>
         <section id="unitSection" hidden$="[[!item.unit]]">[[item.unit]]</section>
       </section>
     </template>
+
     <template is="dom-if" if="[[item.isIndicatorLamp]]">
       <section class="value">
         <svg id="icon" hidden$="[[!isExceeding]]" viewBox="0 0 24 24">
@@ -183,7 +185,9 @@
         </svg>
       </section>
     </template>
+
     <section id="dateSection" hidden$="[[!showDate]]">[[toDate(renderedValue.x)]]</section>
+
     <svg id="bookmark" hidden$="{{hasNoBookmark}}" viewBox="0 0 24 24" aria-label="Alarme" on-click="toggleTooltip">
       <g id="announcement"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 9h-2V5h2v6zm0 4h-2v-2h2v2z"/></g>
     </svg>
@@ -212,33 +216,33 @@
       ],
 
       properties: {
+
         showDate: {
-          type: Boolean
-        },
-        showCaption: {
-          type: Boolean,
-          value: true
-        },
-        tooltip: {
           type: Boolean,
           value: false
         },
+
+        tooltip: Boolean,
+
         singleValue: {
           type: Boolean,
           value: true,
           readOnly: true
         },
+
         renderedValue: {
           type: Object,
           value: function() {
             return {};
           }
         },
+
         state: {
           type: String,
           reflectToAttribute: true,
           computed: '_computeState(renderedValue.state)'
         },
+
         hasNoBookmark: {
           type: Boolean,
           computed: '_computeHasNoBookmark(hasExceeded, tooltip)'

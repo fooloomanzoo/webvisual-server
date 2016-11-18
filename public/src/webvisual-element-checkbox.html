@@ -1,16 +1,17 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
+
 <link rel="import" href="behaviors/color-behavior.html"/>
 <link rel="import" href="behaviors/checked-and-select-behavior.html"/>
-<link rel="import" href="behaviors/drag-and-drop-behavior.html"/>
 <link rel="import" href="behaviors/element-behavior.html"/>
+
 <link rel="import" href="webvisual-dropdown.html"/>
-<link rel="import" href="webvisual-element-caption.html"/>
+<link rel="import" href="webvisual-element-sign.html"/>
 
 <dom-module id="webvisual-element-checkbox">
   <template strip-whitespace>
     <style>
       :host {
-        display: inline-block;
+        display: inline-flex;
         position: relative;
         line-height: 0;
         --calculated-box-size: var(--box-size, 20px);
@@ -53,7 +54,7 @@
       }
 
       #box {
-        opacity: 0.25;
+        opacity: 0.75;
         position: relative;
         box-sizing: border-box;
         position: relative;
@@ -98,7 +99,7 @@
       }
 
       #container[state="0"], #ripple {
-        color: var(---primary-text-color);
+        color: var(--primary-text-color);
       }
       #container[state="1"], #ripple {
         color: var(--element-state-exceeds-color);
@@ -154,49 +155,17 @@
       :host([disabled]) webvisual-element-caption  {
         opacity: 0.65;
       }
-
-      .value {
-        padding: 0.5em;
-        display: flex;
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        right: 0;
-        left: 0;
-        align-items: center;
-        justify-content: center;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        box-sizing: border-box;
-        background: linear-gradient(180deg,rgba(255,255,255,0),rgba(255,255,255,0.12),rgba(255,255,255,0));
-        border-radius: inherit;
-      }
-      #valueSection {
-        font-size: 0.9em;
-        padding: 0 0.25em;
-        float: left;
-      }
-      #unitSection {
-        margin-left: 0.25em;
-        font-size: 0.7em;
-        float: right;
-      }
-      #dateSection {
-        font-size: 0.6em;
-        height: auto;
-        width: auto;
-        text-align: center;
-        position: relative;
-        padding: 0.75em;
-        pointer-events: none;
-      }
       #dropdown {
-        --dropdown-background: rgba(0, 0, 0, 0.5);
-        --dropdown-text-color: var(--bright-text-color);
+        --dropdown-background: rgba(0, 0, 0, 0.75);
         border-radius: 4px;
+        border: thin solid #333;
         min-height: 3em;
         min-width: 3em;
+      }
+      #value {
+        --element-color: transparent;
+        --element-state-inrange-color: transparent;
+        --element-state-inrange-text-color: var(--bright-text-color);
       }
       [hidden] {
         display: none !important;
@@ -208,32 +177,26 @@
         <section id="box">
           <section id="arrow" hidden$="[[!checked]]"></section>
         </section>
-        <section id="ripple">
-          <paper-ripple></paper-ripple>
-        </section>
+        <template is="dom-if" if="[[selectable]]">
+          <paper-ripple id="ripple"></paper-ripple>
+        </template>
       </section>
-
-      <webvisual-element-caption vertical$="[[vertical]]" without-grouped-key grouped-key="[[groupedKey]]" keys="[[keys]]"></webvisual-element-caption>
     </section>
 
-    <template is="dom-if" if="[[showLastValue]]">
-      <webvisual-dropdown id="dropdown" for="boxContainer" target-showing-event="mouseover" target-hiding-event="mouseleave" hiding-event="tap" position="bottom" align="center" offset="4">
-        <template is="dom-if" if="[[!isIndicatorLamp]]">
-          <section class="value" hidden$="[[isIndicatorLamp]]">
-            <section id="valueSection">[[getValue(renderedValue.y)]]</section>
-            <section id="unitSection">[[unit]]</section>
-          </section>
-        </template>
-        <template is="dom-if" if="[[isIndicatorLamp]]">
-          <section class="value" hidden$="[[!isIndicatorLamp]]">
-            <svg id="icon" hidden$="[[!isExceeding]]" viewBox="0 0 24 24">
-              <g id="error-outline"><path d="M11 15h2v2h-2zm0-8h2v6h-2zm.99-5C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/></g>
-            </svg>
-          </section>
-        </template>
-        <section id="dateSection" hidden$="[[!showDate]]">[[toDate(renderedValue.x)]]</section>
+    <template is="dom-if" if="[[dropdownValue]]">
+      <webvisual-dropdown id="dropdown"
+        hiding-event="tap"
+        position="bottom"
+        align="center"
+        offset="8"
+        autoclose="4000">
+          <webvisual-element-sign id="value"
+            item="[[item]]"
+            show-date="[[showDate]]">
+          </webvisual-element-sign>
       </webvisual-dropdown>
     </template>
+
   </template>
 
   <script>
@@ -247,22 +210,24 @@
       ],
 
       properties: {
+
         showDate: {
-          type: Boolean
-        },
-        showLastValue: {
-          type: Boolean
-        },
-        vertical: {
           type: Boolean,
-          reflectToAttribute: true
+          value: false
         },
+
+        dropdownValue: Boolean,
+
         singleValue: {
           type: Boolean,
           value: true,
           readOnly: true
         }
       },
+
+      observers: [
+        '_setDropdown(dropdownValue)'
+      ],
 
       attached: function() {
         this.insertValues();
@@ -278,7 +243,34 @@
         }
 
         this.renderedValue = value;
+      },
+
+      _setDropdown: function(hasDropdown, old) {
+        if (!hasDropdown) {
+          this.$.boxContainer.removeEventListener('mouseenter', this._openDropdown, false);
+          this.$.boxContainer.removeEventListener('mouseleave', this._closeDropdown, false);
+          this._dropdown = null;
+        } else {
+          this.$.boxContainer.addEventListener('mouseenter', this._openDropdown.bind(this), false);
+          this.$.boxContainer.addEventListener('mouseleave', this._closeDropdown.bind(this), false);
+        }
+      },
+
+      _openDropdown: function() {
+        if (!this._dropdown)
+          this._dropdown = Polymer.dom(this.root).querySelector('#dropdown');
+
+        this._dropdown.open(this.$.boxContainer.getBoundingClientRect());
+      },
+
+      _closeDropdown: function() {
+        if (!this._dropdown)
+          this._dropdown = Polymer.dom(this.root).querySelector('#dropdown');
+
+        this._dropdown.close();
       }
+
+
     });
   </script>
 </dom-module>

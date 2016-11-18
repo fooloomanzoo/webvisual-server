@@ -1,19 +1,16 @@
 <script>
   ColorBehavior = {
 
-    properties: {
-      color: {
-        type: String,
-        observer: "setColor"
-      }
-    },
+    observers: [
+      'setColor(item.color)'
+    ],
 
     setColor: function(color) {
       // random color if color is not set
       if (!color) {
-        if (this.exceedable === true) {
+        if (this.item && this.item.exceedable === true) {
           this.customStyle['--element-state-inrange-color'] = "#51CC41";
-          this.color = this.customStyle['--element-state-undefined-color'];
+          this.set('item.color', this.customStyle['--element-state-undefined-color']);
         } else {
           color = '#';
           var perm = ['2C', 'F5'];
@@ -23,14 +20,14 @@
             color += ((perm[pos].length === 1) ? '0' : '') + perm[pos];
             perm.splice(pos, 1);
           }
-          this.color = color;
+          this.set('item.color', color);
         }
       } else {
-        this.customStyle['--element-color'] = this.color;
-        if (this.exceedable === false) {
-          this.customStyle['--element-state-undefined-color'] = this.color;
-          this.customStyle['--element-state-exceeds-color'] = this.color;
-          this.customStyle['--element-state-deceeds-color'] = this.color;
+        this.customStyle['--element-color'] = color;
+        if (this.item && this.item.exceedable === false) {
+          this.customStyle['--element-state-undefined-color'] = color;
+          this.customStyle['--element-state-exceeds-color'] = color;
+          this.customStyle['--element-state-deceeds-color'] = color;
         }
         this.updateStyles();
       }

@@ -104,8 +104,8 @@
 	},
 
 	{
-    "name": "Lakeshore",
-    "title": "Lakeshore",
+    "name": "Tic500",
+    "title": "Tic500",
 		"connections": {
 			"file": {
 				"mode": "append",

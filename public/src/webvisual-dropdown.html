@@ -1,8 +1,4 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
-<link rel="import" href="../bower_components/neon-animation/neon-animation-runner-behavior.html"/>
-<link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html"/>
-<link rel="import" href="../bower_components/neon-animation/animations/fade-in-animation.html"/>
-<link rel="import" href="../bower_components/neon-animation/animations/fade-out-animation.html"/>
 
 <!-- modification of polymer paper-dropdown -->
 <dom-module id="webvisual-dropdown">
@@ -15,23 +11,22 @@
         left: 0;
         flex-direction: column;
         overflow: hidden;
-        outline: none;
-        border: none !important;
+        outline-style: none;
         border-radius: inherit;
         align-items: stretch;
         align-content: stretch;
         justify-content: center;
-        box-shadow: none;
-        outline: none;
         z-index: 2;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        -webkit-user-select: none;
-        user-select: none;
-        font-size: var(--dropdown-fontsize, 0.8em);
         color: var(--dropdown-text-color, --primary-text-color);
         background: var(--dropdown-background, transparent);
-        transition: transform 300ms ease;
+        will-change: opacity;
+        transition: opacity 300ms cubic-bezier(0.6, 1, 0.2, 1);
+      }
+      :host(.opened) {
+        opacity: 1;
+      }
+      :host(:not(.opened)) {
+        opacity: 0;
       }
       :host([horizontal]) {
         flex-direction: row;
@@ -50,30 +45,12 @@
     Polymer({
       is: 'webvisual-dropdown',
 
-      behaviors: [
-        Polymer.IronResizableBehavior,
-        Polymer.NeonAnimationRunnerBehavior
-      ],
-
       properties: {
         for: {
           type: String,
           observer: '_forChanged'
         },
-        animationConfig: {
-          value: function() {
-            return {
-              'entry': {
-                name: 'fade-in-animation',
-                node: this
-              },
-              'exit': {
-                name: 'fade-out-animation',
-                node: this
-              }
-            }
-          }
-        },
+
         // options: 'left', 'right', 'bottom', 'top'
         position: {
           type: String,
@@ -92,7 +69,8 @@
         },
 
         horizontal: {
-          type: Boolean
+          type: Boolean,
+          reflectToAttribute: true
         },
 
         // e.g. tap
@@ -100,11 +78,11 @@
           type: String
         },
         // e.g. tap
-        targetShowingEvent: {
+        targetOpenEvent: {
           type: String
         },
         // e.g. iron-select
-        targetHidingEvent: {
+        targetCloseEvent: {
           type: String
         },
 
@@ -113,23 +91,32 @@
           value: "mouseleave"
         },
 
-        opened: {
-          type: Boolean,
-          value: false
-        }
+        opened: Boolean,
+
+        autoclose: Number
+
       },
 
       listeners: {
-        'iron-resize': 'updatePosition',
-        'focus': 'show',
-        'keyup': '_keyHandler',
-        'neon-animation-finish': '_onNeonAnimationFinish'
+        'transitionend': '_afterFinish'
+      },
+
+      hostAttributes: {
+        role: 'tooltip',
+        tabindex: -1
+      },
+
+      observers: [
+        '_setClass(opened)'
+      ],
+
+      attached: function () {
+        this._forChanged();
       },
 
       get target () {
         var parentNode = Polymer.dom(this).parentNode;
         var ownerRoot = Polymer.dom(this).getOwnerRoot();
-
         var target;
         if (this.for) {
           target = Polymer.dom(ownerRoot).querySelector('#' + this.for);
@@ -140,77 +127,93 @@
         return target;
       },
 
-      attached: function() {
-        this._target = this.target;
-        if (this.targetToggleEvent !== "")
-          this.listen(this._target, this.targetToggleEvent, 'toggle');
-        if (this.targetShowingEvent !== "")
-          this.listen(this._target, this.targetShowingEvent, 'show');
-        if (this.targetHidingEvent !== "")
-          this.listen(this._target, this.targetHidingEvent, 'hide');
-        if (this.hidingEvent !== "")
-          this.listen(this, this.hidingEvent, 'hide');
+      _addTargetEventListeners: function(targetOpenEvent, targetCloseEvent, targetToggleEvent) {
+        if (!this._target)
+          return;
+
+        if (targetToggleEvent)
+          this._target.addEventListener(targetToggleEvent, this.toggle.bind(this), false);
+        if (targetOpenEvent)
+          this._target.addEventListener(targetOpenEvent, this.open.bind(this), false);
+        if (targetCloseEvent)
+          this._target.addEventListener(targetCloseEvent, this.close.bind(this), false);
+      },
+
+      _removeTargetEventListeners: function(targetOpenEvent, targetCloseEvent, targetToggleEvent) {
+        if (!this._target) {
+          return;
+        }
+
+        if (targetOpenEvent)
+          this._target.removeEventListener(this._target, targetOpenEvent, this.toggle, false);
+        if (targetToggleEvent)
+          this._target.removeEventListener(this._target, targetToggleEvent, this.open, false);
+        if (targetCloseEvent)
+          this._target.removeEventListener(this._target, targetCloseEvent, this.close, false);
+      },
+
+      _addHidingEventListener: function(hidingEvent) {
+        if (hidingEvent)
+          this.addEventListener(hidingEvent, this.close.bind(this), false);
+      },
+
+      _removeHidingEventListener: function(hidingEvent) {
+        if (hidingEvent)
+          this.removeEventListener(hidingEvent, this.close, false);
       },
 
       detached: function() {
-        if (this._target) {
-          if (this.targetShowingEvent !== "")
-            this.unlisten(this._target, this.targetShowingEvent, 'toggle');
-          if (this.targetToggleEvent !== "")
-            this.unlisten(this._target, this.targetToggleEvent, 'show');
-          if (this.targetHidingEvent !== "")
-            this.unlisten(this._target, this.targetHidingEvent, 'hide');
-        }
-        if (this.hidingEvent !== "")
-          this.listen(this, this.hidingEvent, 'hide');
+        this._removeTargetEventListeners(this.targetOpenEvent, this.targetCloseEvent, this.targetToggleEvent);
+        this._removeHidingEventListener(this.hidingEvent);
       },
 
-      show: function(e) {
-        this.opened = true;
+      open: function(targetRect) {
+        if (this._closeJob) {
+          clearTimeout(this._closeJob);
+        }
+
         this.style.display = 'flex';
-        this.updatePosition();
-        this.playAnimation('entry');
-      },
-      hide: function(e) {
-        this.opened = false;
-        this.playAnimation('exit');
-      },
-      toggle: function(e) {
-        if (this.opened) this.hide();
-        else this.show();
-      },
+        this._updatePosition(targetRect);
+        this.opened = true;
 
-      open: function() {
-        this.show();
-      },
-      close: function() {
-        this.hide();
-      },
-
-      _onNeonAnimationFinish: function() {
-        this.updatePosition();
-        if (!this.opened) {
-          this.style.display = 'none';
+        if (this.autoclose) {
+          this._closeJob = setTimeout( this.close.bind(this), this.autoclose );
         }
-        this.notifyResize();
+      },
+
+      close: function() {
+        this.opened = false;
+      },
+
+      toggle: function() {
+        if (this.opened) this.close();
+        else this.open();
       },
 
       _forChanged: function() {
-        this._target = this.target;
-      },
+        this._removeTargetEventListeners(this.targetOpenEvent, this.targetCloseEvent, this.targetToggleEvent);
 
-
-      updatePosition: function() {
-        this.debounce("update-position", this._updatePosition, 15);
-      },
-
-      _updatePosition: function() {
-        if (!this._target || !this.offsetParent)
+        if (!this.for) {
+          this._target = null;
           return;
+        }
+
+        this._target = this.target;
+        this._addTargetEventListeners(this.targetOpenEvent, this.targetCloseEvent, this.targetToggleEvent);
+      },
+
+      _updatePosition: function(targetRect) {
+        if (!this.offsetParent)
+          return;
+
+        if (this._target) {
+          targetRect = this._target.getBoundingClientRect();
+        } else if (!targetRect) {
+          return;
+        }
 
         var offset = this.offset;
         var parentRect = this.offsetParent.getBoundingClientRect();
-        var targetRect = this._target.getBoundingClientRect();
         var thisRect = this.getBoundingClientRect();
         var horizontalOffset, verticalOffset;
 
@@ -265,20 +268,33 @@
             break;
         }
 
-        // Clip the left/right side.
-        if (dropdownLeft + parentRect.left + thisRect.width> window.innerWidth) {
-          dropdownLeft = window.innerWidth - (parentRect.left + thisRect.width + offset);
+        // clip the left/right side.
+        if (dropdownLeft + parentRect.left + thisRect.width > window.innerWidth) {
+          dropdownLeft = window.innerWidth - (parentRect.left + thisRect.width);
         } else if (dropdownLeft + targetRect.left < 0) {
           dropdownLeft = -targetRect.left;
         }
 
-        // Clip the top/bottom side.
+        // clip the top/bottom side.
         if (dropdownTop + thisRect.height > window.innerHeight) {
-          dropdownTop= window.innerHeight - (thisRect.height + targetRect.top + offset);
-        } else if (dropdownTop > targetRect.top) {
-          dropdownTop = targetRect.top;
+          dropdownTop = window.innerHeight - (thisRect.height + targetRect.top);
+        } else if (dropdownTop + targetRect.top < 0) {
+          dropdownTop = -targetRect.top;
         }
-        this.style.transform  = `translate(${dropdownLeft}px, ${dropdownTop}px)`;
+        this.style.transform = `translate(${dropdownLeft}px, ${dropdownTop}px)`;
+      },
+
+      _setClass: function (opened) {
+        if (opened) {
+          this.classList.add('opened');
+        } else {
+          this.classList.remove('opened');
+        }
+      },
+
+      _afterFinish: function() {
+        if (!this.opened)
+          this.style.display = 'none';
       }
 
     });

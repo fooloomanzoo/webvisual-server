@@ -27,8 +27,12 @@ WebvisualTools.prototype = {
       configurable: true,
       enumerable: true,
       get: function() {
-        return Webvisual.cache.get(mount)
-          .values;
+        var v = Webvisual.cache.get(mount);
+        if (v) {
+          return v.values;
+        } else {
+          return [];
+        }
       }
     });
   },

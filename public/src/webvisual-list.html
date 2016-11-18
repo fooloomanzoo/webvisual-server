@@ -8,7 +8,11 @@
 <link rel="import" href="webvisual-element-sign.html"/>
 <link rel="import" href="webvisual-element-caption.html"/>
 
+
+<!-- TESTS -->
+<link rel="import" href="webvisual-element-checkbox.html"/>
 <link rel="import" href="behaviors/grouping-behavior.html"/>
+
 
 <link rel="import" href="shared-styles.html">
 
@@ -121,7 +125,7 @@
         <template is="dom-repeat" items="[[_getListItems(elements)]]">
           <li>
             <!-- <a href$="[[_getItemHref(item)]]"> -->
-              <webvisual-element-sign item="[[item]]" selectable></webvisual-element-sign>
+              <webvisual-element-checkbox item="[[item]]" dropdown-value show-date selectable></webvisual-element-checkbox>
               <webvisual-element-caption keys="[[item.keys]]" grouped-key='[[groupedKey]]' without-grouped-key></webvisual-element-caption>
             <!-- </a> -->
           </li>
