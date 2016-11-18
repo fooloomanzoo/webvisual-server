@@ -1,0 +1,82 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<dom-module id="webvisual-group-data">
+
+  <script>
+  (function() {
+
+    Polymer({
+
+      is: 'webvisual-group-data',
+
+      properties: {
+
+        facilityName: String,
+
+        systemName: String,
+
+        groups: {
+          type: Array,
+          notify: true
+        }
+      },
+
+      observers: [
+        '_computeGroups(facilityName, systemName)'
+      ],
+
+      _computeGroups: function(facilityName, systemName) {
+        if (facilityName && systemName) {
+          this._request(facilityName, systemName, 'groups');
+        }
+      },
+
+      _request: function(facilityName, systemName, request, attempts) {
+        if (!(facilityName && systemName && request)) {
+          return;
+        }
+        this._getResource({
+          url: '/data/' + facilityName + '+' + systemName + '+' + request + '.json',
+          onLoad: function(e) {
+            if (e.target.status < 400) {
+              this.set(request, JSON.parse(e.target.responseText));
+              console.log(this.request);
+              localStorage.setItem(request, e.target.responseText);
+            } else {
+              var items = localStorage.getItem(request);
+              if (items)
+                this.set(request, JSON.parse(items));
+            }
+          },
+          onError: function(e) {
+            var items = localStorage.getItem(request);
+            if (items)
+              this.set(request, JSON.parse(items));
+          }
+        }, attempts);
+      },
+
+      _getResource: function(rq, attempts) {
+        var xhr = new XMLHttpRequest();
+        xhr.addEventListener('load', rq.onLoad.bind(this));
+        xhr.addEventListener('error', function(e) {
+          console.log(e.target.status);
+          // Flaky connections might fail fetching resources
+          if (attempts > 1) {
+            this.debounce('_getResource', this._getResource.bind(this, rq, attempts - 1), 200);
+          } else {
+            rq.onError.call(this, e);
+          }
+        }.bind(this));
+
+        xhr.open('GET', rq.url);
+        xhr.withCredentials = true;
+        xhr.send();
+      }
+
+    });
+
+  })();
+  </script>
+
+</dom-module>

@@ -1,19 +1,19 @@
 'use strict';
 
 // System Modules
-const express = require('express'),
-  fs = require('fs'),
-  path = require('path'),
-  util = require('util'),
+const express = require('express')
+    , fs = require('fs')
+    , path = require('path')
+    , util = require('util')
 
-  // Processing Modules
-  DataModule = require('./lib/data_module'),
-  ConfigFileProcessor = require('./lib/config_file_processor'),
-  Router = require('./routes'),
+    // Processing Modules
+    , DataModule = require('./lib/data_module')
+    , ConfigFileProcessor = require('./lib/config_file_processor')
+    , Router = require('./routes')
 
-  // Server
-  spdy = require('spdy'),
-  app = express();
+    // Server
+    , spdy = require('spdy')
+    , app = express();
 
 var server;
 
@@ -23,7 +23,7 @@ const defaults = require('./defaults/config.json');
 var config;
 
 if (process.env['WEBVISUALSERVER']) {
-  config = process.env['WEBVISUALSERVER'];
+  config = JSON.parse(process.env['WEBVISUALSERVER']);
 }
 else {
   config = JSON.parse(JSON.stringify(defaults));
@@ -68,7 +68,7 @@ class WebvisualServer {
       // ensuring (with defaults) that a ssl encrypting (by self-signed key-pairs)
       // is available for the http2 server
       var sslSettings = JSON.parse(JSON.stringify(defaults.server.ssl));
-      sslSettings.port = settings.server.port || process.env.port || 443;
+      sslSettings.port = settings.server.port || 443;
 
       try {
         if (settings.server.ssl &&

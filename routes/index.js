@@ -19,7 +19,7 @@ const EventEmitter = require('events').EventEmitter
 const requiredStaticSettings = [
   'groupMap',
   'itemMap',
-  'groupArray',
+  'groups',
 ]
 
 const staticMiddleware = serveStatic(path.join(process.cwd(), 'public'))
