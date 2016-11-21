@@ -37,11 +37,6 @@
           notify: true
         },
 
-        item: {
-          type: Object,
-          notify: true
-        },
-
         failure: {
           type: Boolean,
           notify: true,
@@ -61,8 +56,7 @@
         '_computeFacilityList(loggedIn)',
         '_computeFacility(facilities, facilityName)',
         '_computeSystem(facility, systemName)',
-        '_computeItems(system)',
-        '_computeItem(system.items, itemName)'
+        '_computeItems(system)'
       ],
 
       _computeLoggedIn: function(offline) {
@@ -134,14 +128,6 @@
           var items = localStorage.getItem('items');
           if (items)
             this.set('items', JSON.parse(items));
-        }
-      },
-
-      _computeItem: function(items, id) {
-        for (var i = 0, item; item = items[i]; ++i) {
-          if (item.id === id) {
-            return item;
-          }
         }
       },
 

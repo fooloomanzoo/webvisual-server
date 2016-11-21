@@ -200,7 +200,11 @@ class Router extends EventEmitter {
         // copy svgContent in staticContentFolder
         if (opt[system].svgSource && Object.keys(opt[system].svgSource).length) {
 
-          dir = opt[system].svgPathOrigin || path.resolve(process.cwd(), 'examples', 'svg');
+          dir = path.resolve(opt[system].svgPathOrigin);
+          if (!dir || !fs.existsSync(dir)) {
+            dir = path.resolve(process.cwd(), 'examples', 'svg');
+          }
+
           dest = path.resolve(process.cwd(), 'public', 'data', 'images', facility, system);
 
           mkdirp(dest, (err) => {

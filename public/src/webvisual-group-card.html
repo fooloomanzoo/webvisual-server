@@ -37,7 +37,7 @@
         font-size: 1em;
         height: auto;
       }
-      :host([dark]) > #header {
+      :host([dark]) #header {
         background: var(--dark-primary-color);
         color: var(--highlight-color);
       }
@@ -50,38 +50,39 @@
         background: linear-gradient(to top, rgba(255,255,255,0.05) 30%,rgba(255,255,255,0.25) 90%)
       }
       #title {
+        display: inline-flex;
         cursor: pointer;
         position: absolute;
         left: 0;
         bottom: 0;
+        height: 40px;
+        line-height: 40px;
+        width: 100%;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        font-size: 1em;
-        padding: 0.6em 0.8em;
-        box-sizing: border-box;
-        color: white;
-        text-transform: none;
+        font-size: 1.5em;
+        box-sizing: content-box;
+        color: var(--bright-text-color);
       }
-      :host(:not([opened])) #title {
-        right: 0;
+      #title span {
+        padding-left: 1em;
       }
       :host([dark]) #title {
         color: var(--highlight-color);
       }
       #mainContent {
-        flex-direction: row;
         display: flex;
+        flex-direction: row;
         position: relative;
         box-sizing: border-box;
         flex-wrap: wrap;
         align-items: flex-start;
-        justify-content: space-around;
+        justify-content: flex-start;
         border-top-width: thin;
         border-top-style: solid;
         border-top-color: inherit;
         padding-left: 0.5em;
-        background: none;
         height: auto;
         width: auto;
         pointer-events: none;
@@ -92,22 +93,16 @@
         pointer-events: auto;
       }
       :host(:not([opened])) #mainContent {
-        padding-top: 2.6em;
+        padding-top: calc(40px + 0.4em);
       }
       :host([opened]) #mainContent {
-        padding-top: calc(15vh + 120px + 0.4em);
+        padding-top: calc(15vh + 160px + 0.4em);
       }
       :host(:not([opened])) #header {
-        height: 2.6em;
+        height: 40px;
       }
       :host([opened]) #header {
         height: calc(15vh + 120px);
-      }
-      #headerContent,
-      #headerContent ::content .header {
-        height: 100%;
-        width: 100%;
-        position: relative;
       }
 
       :host(:not([title])),
@@ -118,18 +113,32 @@
         box-shadow: none !important;
         border-color: transparent !important;
       }
-      :host(:not([title])) {
-        max-width: none;
+      :host([without-window]) #title {
+        border-bottom: thin solid currentColor;
       }
-      :host(:not([title])) > #mainContent {
-        align-items: center;
-        justify-content: flex-start;
+      :host([without-window][opened]) #headerContent {
+        border-top: thin solid currentColor;
+        border-bottom: medium solid currentColor;
       }
-      [hidden] {
-        display: none !important;
+      #headerContent {
+        height: calc(100% - 40px);
+        width: 100%;
+        padding-bottom: 40px;
+        position: relative;
+        box-sizing: border-box;
       }
       :host(:not([opened])) #headerContent {
         display: none;
+      }
+      webvisual-icon-button {
+        color: var(--highlight-color);
+        border-radius: 0;
+      }
+      webvisual-icon-button.iron-selected {
+        background: rgba(255,255,255, 0.5);
+      }
+      [hidden] {
+        display: none !important;
       }
     </style>
 
@@ -146,11 +155,11 @@
         </iron-pages>
 
         <section id='title' on-tap='toggle'>
-          <span>[[title]]</span>
+          <span style="flex: 1;">[[title]]</span>
           <iron-selector selected="{{view}}" attr-for-selected="name">
-            <webvisual-icon-button icon="assessment" name="table"></webvisual-icon-button>
+            <webvisual-icon-button icon="list" name="table"></webvisual-icon-button>
             <template is="dom-if" if="[[svgSource]]">
-              <webvisual-icon-button icon="view-module" name="svg"></webvisual-icon-button>
+              <webvisual-icon-button icon="map" name="svg"></webvisual-icon-button>
             </template>
             <webvisual-icon-button icon="juelich:graph-inverted" name="chart"></webvisual-icon-button>
           </iron-selector>

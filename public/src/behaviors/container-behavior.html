@@ -11,10 +11,7 @@
 
       forceOpened: Boolean,
 
-      isExceeding: {
-        type: Boolean,
-        notify: true
-      },
+      isExceeding: Boolean,
 
       selectNotify: Boolean,
 
@@ -30,7 +27,7 @@
         value: 'exceeding'
       },
 
-      multiSelect: Boolean,
+      multi: Boolean,
 
       noAutoRemovalExceedings: Boolean,
 
@@ -48,45 +45,17 @@
         value: function() {
           return [];
         }
-      },
-
-      reproduce: Boolean,
-
-      reproductionContainer: String,
-
-      reproductionAttribute: {
-        type: String,
-        value: 'insertionpoint'
       }
-
     },
 
     observers: [
       '_watchSelect(selectNotify)',
-      '_watchExceed(exceedNotify)',
-      '_reproductionSelectRepeat(item)',
-      '_reproductionMultiSelectRepeat(items.splices)',
-      '_reproductionExceedsRepeat(exceeding.splices)',
-      'print(item)'
+      '_watchExceed(exceedNotify)'
     ],
 
     hostAttributes: {
       container: true
     },
-
-    print: function(arg) {
-      console.log(arg);
-    },
-
-    // created: function() {
-    //   var sel, uniqueid;
-    //   while (true) {
-    //     uniqueid = String(Math.random().toString(16).slice(2));
-    //     sel = document.querySelector('[uniqueid="' + uniqueid + '"]');
-    //     if (!sel) break;
-    //   }
-    //   this.setAttribute('uniqueid', uniqueid);
-    // },
 
     detached: function() {
       this._watchSelect();
@@ -139,8 +108,8 @@
     },
 
     select: function(item) {
-      this.set('item', item); // store nevertheless the multiSelect option the last selected Element
-      if (this.multiSelect === true) {
+      this.set('item', item); // store nevertheless the multi option the last selected Element
+      if (this.multi === true) {
         if (this.items.indexOf(item) === -1) {
           this.push('items', item);
         }
@@ -150,7 +119,7 @@
     },
 
     deselect: function(item) {
-      if (this.multiSelect) {
+      if (this.multi) {
         var pos = this.items.indexOf(item);
         if (pos !== -1) {
           this.splice('items', pos, 1);
@@ -201,107 +170,7 @@
       this.isExceeding = false;
     },
 
-    _handleExceeding: function(value) {},
-
-    _reproductionSelectRepeat: function(item) {
-      if (this.reproduce === false && !item) return;
-
-      var container = (this.reproductionContainer) ? Polymer.dom(this).querySelector('#' + this.reproductionContainer) || Polymer.dom(this) : Polymer.dom(this);
-
-      var elements = Polymer.dom(container).getEffectiveChildNodes().filter(function(el) {
-        return el.nodeType === Node.ELEMENT_NODE && el.hasAttribute(this.reproductionAttribute);
-      }.bind(this));
-
-      elements.forEach(function(e) {
-        e.item = {};
-        e.item = item;
-      }, this);
-    },
-
-    _reproductionMultiSelectRepeat: function(changeRecord) {
-      if (this.reproduce === false) return;
-      if (changeRecord && changeRecord.indexSplices) {
-
-        var container = (this.reproductionContainer) ? Polymer.dom(this).querySelector('#' + this.reproductionContainer) || Polymer.dom(this) : Polymer.dom(this);
-
-        var reproductionAttribute = this.reproductionAttribute;
-
-        var elements = Polymer.dom(container).getEffectiveChildNodes().filter(function(el) {
-          return el.nodeType === Node.ELEMENT_NODE && el.hasAttribute(reproductionAttribute) && !el.hasAttribute('element');
-        });
-
-        elements.forEach(function(e) {
-          e.notifySplices('items', changeRecord);
-        }, this);
-
-        // for (var i = 0; i < changeRecord.indexSplices.length; i++) {
-        //   for (var j = 0; j < changeRecord.indexSplices[i].removed.length; j++) {
-        //     item = changeRecord.indexSplices[i].removed[j];
-        //
-        //     elements.filter(function(el) {
-        //         return el.ident === item.ident && el.system === item.system;
-        //       })
-        //       .forEach(function(el) {
-        //         el.unsetElement();
-        //       }, this);
-        //     this._elements = this._elements.filter(function(el) {
-        //       return !(el.ident === item.ident && el.system === item.system);
-        //     })
-        //     containers.forEach(function(el) {
-        //       // containers should notify themselfes? "item.unsetItem(del);"
-        //       el.unsetItem(item);
-        //     }, this);
-        //   }
-        //
-        //   for (var j = 0; j < changeRecord.indexSplices[i].addedCount; j++) {
-        //     index = changeRecord.indexSplices[i].index + j;
-        //     item = changeRecord.indexSplices[i].object[index];
-        //     var element = item.getElement();
-        //
-        //     // if (this.multiSelect === false)
-        //     elements.forEach(function(el) {
-        //       el.setElement(element);
-        //     });
-        //
-        //     containers.forEach(function(el) {
-        //       el.setItem(item);
-        //     }, this);
-        //   }
-        // }
-      }
-    },
-
-    _reproductionExceedsRepeat: function(changeRecord) { // just the containers
-      if (this.reproduce === false) return;
-      if (changeRecord && changeRecord.indexSplices) {
-
-        var container = (this.reproductionContainer) ? Polymer.dom(this).querySelector('#' + this.reproductionContainer) || Polymer.dom(this) : Polymer.dom(this);
-
-        var containers = Polymer.dom(container).getEffectiveChildNodes().filter(function(el) {
-          return el.nodeType === Node.ELEMENT_NODE && el.hasAttribute('container');
-        });
-
-        containers.forEach(function(c) {
-          c.notifySplices('exceeding', changeRecord);
-        }, this);
-
-        // for (var i = 0; i < changeRecord.indexSplices.length; i++) {
-        //   for (var j = 0; j < changeRecord.indexSplices[i].removed.length; j++) {
-        //     item = changeRecord.indexSplices[i].removed[j];
-        //     containers.forEach(function(el) {
-        //       el.unsetExceeding(item);
-        //     }, this);
-        //   }
-        //   for (var j = 0; j < changeRecord.indexSplices[i].addedCount; j++) {
-        //     index = changeRecord.indexSplices[i].index + j;
-        //     item = changeRecord.indexSplices[i].object[index];
-        //
-        //     containers.forEach(function(el) {
-        //       el.setExceeding(item);
-        //     }, this);
-        //   }
-        // }
-      }
-    }
+    _handleExceeding: function(value) {}
+    
   };
 </script>
