@@ -1,17 +1,7 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
-<script type="text/javascript" src="../socket.io/socket.io.js"></script>
-<script type="text/javascript" src="../scripts/cache.js"></script>
-<script type="text/javascript" src="../scripts/webvisual-tools.js"></script>
+<script type="text/javascript" src="../scripts/webvisual-client.js"></script>
 
 <dom-module id="webvisual-element-socket-data">
-  <template>
-    <style>
-      :host {
-        display: block;
-      }
-    </style>
-
-  </template>
   <script>
     Polymer({
 
@@ -31,96 +21,28 @@
           observer: '_setupConnection'
         },
 
-        items: Array,
-
-        initialized: {
-          type: Boolean,
-          value: false,
-          notify: true
-        }
+        lazyConnect: Boolean
 
       },
 
       observers: [
-        '_createSocket(locationHost, socketName)',
-        '_initializeData(items)'
+        '_createSocketConnection(lazyConnect, locationHost, socketName)'
       ],
 
-      ready: function() {
-        // listen for online/offline
-        Polymer.RenderStatus.afterNextRender(this, function() {
-          this.listen(window, 'online', '_notifyNetworkStatus');
-          this.listen(window, 'offline', '_notifyNetworkStatus');
-        });
+      _createSocketConnection: function(lazyConnect, locationHost, socketName) {
+        if (!lazyConnect || !locationHost || !socketName) return;
 
-      },
-
-      _notifyNetworkStatus: function() {
-        var oldOffline = this.offline;
-        this.offline =  !navigator.onLine;
-
-        if (!this.socket && !this.offline) {
-          this._createSocket();
-        }
-      },
-
-      _createSocket: function(locationhost, socketName) {
-        if (!window.io || !socketName) return;
-
-        if (Webvisual.sockets.has(socketName)) {
-          return;
-        }
-
-        var socket = io.connect(locationhost + '/' + socketName, {
-      		multiplex: false
-      	});
-
-        socket.on('connect', (function() {
-      			console.info("clientSocket connected to: " + window.location.host);
-      		}).bind(this));
-        socket.on('disconnect', (function() {
-      			console.warn("clientSocket disconnected to: " + window.location.host);
-      		}).bind(this));
-        socket.on('reconnect', (function() {
-      			console.info("clientSocket reconnected to: " + window.location.host);
-      		}).bind(this));
-        socket.on('error', (function(err) {
-      			console.error("clientSocket error: ", err);
-      		}).bind(this));
-
-        socket.on('initial', function(message) {
-          Webvisual.updateData(message);
-        }.bind(this));
-        socket.on('update', function(message) {
-          Webvisual.updateData(message);
-        }.bind(this));
-        Webvisual.sockets.set(socketName, socket);
+        Webvisual.createSocketConnection(locationHost, socketName);
 
         if (this.socketRoom) {
           this._setupConnection(this.socketRoom);
         }
       },
 
-      _setupConnection: function(socketRoom, oldroom) {
-        var facility = socketRoom.split('/')[0]
-          , system = socketRoom.split('/')[1];
-        if (!facility || !system || !Webvisual.sockets.has(this.socketName)) {
-          return;
-        }
-        // Webvisual._initialized = false;
-        Webvisual.sockets.get(this.socketName)
-                         .emit('setup', {
-                            room: socketRoom,
-                            oldroom: oldroom,
-                            mobile: Webvisual.mobile
-                          });
-      },
-
-      _initializeData: function(items) {
-        if (items && items.length > 0) {
-          // Webvisual.initializeData(items);
-        }
+      _setupConnection: function(socketRoom) {
+        Webvisual.setupConnection(socketRoom);
       }
+
     });
   </script>
 </dom-module>

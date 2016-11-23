@@ -1,6 +1,6 @@
 (function() {
 	'use strict';
-	var WORKER_URL = 'js/database-worker.js';
+	var WORKER_URL = 'scripts/database-worker.js';
 	var DB_NAME = 'database';
 	var DB_STORAGE = 'entries';
 	var DB_KEYPATH = 'x';

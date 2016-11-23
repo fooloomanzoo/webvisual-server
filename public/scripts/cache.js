@@ -1,7 +1,7 @@
 (function() {
 
 	var defaults = {
-		size: 5400, // Length of each DataRow (by name in values)
+		size: 5400, // Length of each DataRow (by mount in values)
 		is: 'Array', // TODO: +ArrayBuffer
 		type: 'Float64', // TODO: TypedArray
 		primary: undefined // 'append' or 'prepend'
@@ -73,7 +73,7 @@
 			this._cache.length = 0;
 		},
 
-		request: function(len) {
+		requestLast: function(len) {
 			var start = (len >= 0 && len < this._cache.length) ? this._cache.length - len - 1 : 0;
 			return this._cache.slice(start);
 		},
@@ -157,41 +157,52 @@
 			this._cache.clear();
 		},
 
-		request: function(len, names) {
-			var ret = {};
-			if (names === undefined || !Array.isArray(names)) {
+		requestLast: function(opt) {
+      var mounts = opt.mounts
+        , len = opt.length || 1;
+
+			if (mounts === undefined || !Array.isArray(mounts)) {
+        var ret = {};
 				this._cache.forEach( function(value, key) {
-					ret[v] = value.request(len);
+					ret[v] = value.requestLast(len);
 				})
+        return ret;
+			} else if (mounts.length === 1) {
+        if (this._cache.has(mounts[0]))
+          return this._cache.get(mounts[0])
+                            .requestLast(len);
+        else return [];
 			} else {
-				for (var i in names) {
-					if (this._cache.has(names[i])) {
-						ret[names[i]] = this._cache.get(names[i]).request(len);
+        var ret = {};
+				for (var i in mounts) {
+					if (this._cache.has(mounts[i])) {
+						ret[mounts[i]] = this._cache.get(mounts[i])
+                                        .requestLast(len);
 					}
 				}
+        return ret;
 			}
-			return ret;
 		},
 
-		has: function(name) {
-			return this._cache.has(name);
+		has: function(mount) {
+			return this._cache.has(mount);
 		},
 
-		get: function(name) {
-			return this._cache.get(name);
+		get: function(mount) {
+			return this._cache.get(mount);
 		},
 
-		add: function(name) {
-			this._cache.set(name, new CacheKey(this.options));
+		add: function(mount) {
+			this._cache.set(mount, new CacheKey(this.options));
 		},
 
-		delete: function(name) {
-      if (this[name])
-        delete this[name];
-      if (!this._cache.has(name))
+		delete: function(mount) {
+      if (this[mount])
+        delete this[mount];
+      if (!this._cache.has(mount))
         return;
-			this._cache.get(name).clear();
-			return this._cache.delete(name);
+			this._cache.get(mount).clear();
+			return this._cache.delete(mount);
 		},
 
 		_max: function(array) { // inspired by d3.array
@@ -218,52 +229,56 @@
 	    return a;
 	  },
 
-	  operation: function(func, compareFn, key, names) {
+	  operation: function(func, compareFn, key, mounts) {
 			var ret = [];
-	    if (names === undefined || !Array.isArray(names)) {
+	    if (mounts === undefined || !Array.isArray(mounts)) {
 				this._cache.forEach(function(v,e) {
 					ret.push(e[func](key));
 				})
 	    } else {
-				for (var i in names) {
-					if (this._cache.has(names[i])) {
-						temp.push(this._cache.get(names[i])[func](key));
+				for (var i in mounts) {
+					if (this._cache.has(mounts[i])) {
+						ret.push(this._cache.get(mounts[i])[func](key));
 					}
 				}
 			}
-	    return compareFn(temp, key);
+	    return compareFn(ret, key);
 	  },
 
-	  min: function(names, key) {
-	    return this.operation('min', this._min, key, names);
+	  min: function(mounts, key) {
+	    return this.operation('min', this._min, key, mounts);
 	  },
-	  max: function(names, key) {
-	    return this.operation('max', this._max, key, names);
+	  max: function(mounts, key) {
+	    return this.operation('max', this._max, key, mounts);
 	  },
-	  first: function(names, key) {
-	    return this.operation('first', this._min, key, names);
+	  first: function(mounts, key) {
+	    return this.operation('first', this._min, key, mounts);
 	  },
-	  last: function(names, key) {
-	    return this.operation('last', this._max, key, names);
-	  },
-
-	  range: function(names) {
-	    return [this.first(names, 'x'), this.last(names, 'x')];
+	  last: function(mounts, key) {
+	    return this.operation('last', this._max, key, mounts);
 	  },
 
-	  rangedValues: function(names, key) {
-	    return [this.min(names, key), this.max(names, key)];
+	  range: function(mounts) {
+	    return [this.first(mounts, 'x'), this.last(mounts, 'x')];
+	  },
+
+	  rangedValues: function(mounts, key) {
+	    return [this.min(mounts, key), this.max(mounts, key)];
 	  },
 
 		append: function(data, noHeap) {
-			for (var name in data) {
-				if (!this._cache.has(name)) {
-          // console.log(name, data[name].length);
-					this._cache.set(name, new CacheKey(this.options));
+			for (var mount in data) {
+				if (!this._cache.has(mount)) {
+          // console.log(mount, data[mount].length);
+					this._cache.set(mount, new CacheKey(this.options));
 				}
-				this._cache.get(name).append(data[name], noHeap);
+				this._cache.get(mount).append(data[mount], noHeap);
 			}
 		}
 	}
-	window.ClientCache = ClientCache;
+  if (self) {
+    self.ClientCache = ClientCache;
+  } else if (window) {
+    window.ClientCache = ClientCache;
+  }
 })();
