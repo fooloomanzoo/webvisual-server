@@ -1,0 +1,54 @@
+{
+	"de": {
+		"home": {
+      "name": "Auswahl",
+      "title": "Auswahl der Messanlage"
+    },
+		"login": {
+      "name": "Einloggen",
+      "title": "Bitte loggen Sie sich ein"
+    },
+		"groups": {
+      "name": "Gruppen"
+    },
+		"list": {
+      "name": "Liste"
+    },
+		"detail": {
+      "name": "Details"
+    },
+		"settings": "Einstellungen",
+		"view": "Ansicht",
+		"layout": "Darstellung",
+		"language": "Anzeigesprache",
+		"groupedKey": "Gruppierung nach...",
+		"dark": {
+      "true": "dunkles Farblayout",
+      "false": "helles Farblayout"
+    },
+		"flat": {
+      "true": "flache Darstellung",
+      "false": "Fensterdarstellung"
+    },
+    "notification": {
+      "offline": {
+        "true": "Sie sind offline",
+        "false": "Sie sind online"
+      },
+      "loggedIn":  {
+        "true": "Sie sind eingeloggt",
+        "false": "Sie sind ausgeloggt"
+      }
+    }
+	},
+	"en": {
+	},
+	"fr": {
+	},
+	"es": {
+	},
+	"it": {
+	},
+	"ru": {
+	}
+}

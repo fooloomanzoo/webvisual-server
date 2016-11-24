@@ -18,7 +18,7 @@
 <link rel="import" href="behaviors/grouping-behavior.html"/>
 
 
-<link rel="import" href="shared-styles.html">
+<link rel="import" href="style/shared-styles.html">
 
 <dom-module id="webvisual-list">
   <template>
@@ -160,6 +160,15 @@
       ],
 
       properties: {
+        dark: {
+          type: Boolean,
+          reflectToAttribute: true
+        },
+
+        flat: {
+          type: Boolean,
+          reflectToAttribute: true
+        },
 
         facility: Object,
 

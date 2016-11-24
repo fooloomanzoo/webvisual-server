@@ -16,7 +16,7 @@
 <!-- TESTS -->
 <link rel="import" href="behaviors/grouping-behavior.html"/>
 
-<link rel="import" href="shared-styles.html">
+<link rel="import" href="style/shared-styles.html">
 
 <dom-module id="webvisual-groups">
   <template>
@@ -177,6 +177,7 @@
         <li>
           <webvisual-group-card
             title="[[group.title]]"
+            dark="[[dark]]"
             flat="[[flat]]"
             select-notify
             exceed-notify
@@ -222,6 +223,16 @@
       // ],
 
       properties: {
+
+        dark: {
+          type: Boolean,
+          reflectToAttribute: true
+        },
+
+        flat: {
+          type: Boolean,
+          reflectToAttribute: true
+        },
 
         facility: Object,
 

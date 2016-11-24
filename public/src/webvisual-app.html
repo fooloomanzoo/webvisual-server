@@ -1,25 +1,25 @@
-<link rel="import" href="../bower_components/polymer/polymer.html">
-<link rel="import" href="../bower_components/app-layout/app-header/app-header.html">
-<link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
-<link rel="import" href="../bower_components/app-layout/helpers/helpers.html">
-<link rel="import" href="../bower_components/app-route/app-location.html">
-<link rel="import" href="../bower_components/app-route/app-route.html">
-<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
-<link rel="import" href="../bower_components/iron-media-query/iron-media-query.html">
-<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
-<link rel="import" href="../bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="../bower_components/polymer/polymer.html"/>
+<link rel="import" href="../bower_components/app-layout/app-header/app-header.html"/>
+<link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html"/>
+<link rel="import" href="../bower_components/app-layout/helpers/helpers.html"/>
+<link rel="import" href="../bower_components/app-route/app-location.html"/>
+<link rel="import" href="../bower_components/app-route/app-route.html"/>
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html"/>
+<link rel="import" href="../bower_components/iron-media-query/iron-media-query.html"/>
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html"/>
+<link rel="import" href="../bower_components/iron-selector/iron-selector.html"/>
 
 <!-- <link rel="import" href="style/form-styles.html"/>
 <link rel="import" href="style/webvisual-app-style.html"/> -->
+<link rel="import" href="behaviors/localize-behavior.html"/>
 <link rel="import" href="behaviors/container-behavior.html"/>
-<link rel="import" href="behaviors/attribute-repeat-animation-behavior.html"/>
 
 <link rel="import" href="webvisual-logo.html"/>
 <link rel="import" href="webvisual-icon-button.html"/>
-<link rel="import" href="webvisual-facility-data.html"/>
-<link rel="import" href="webvisual-element-sign.html"/>
-<link rel="import" href="webvisual-element-caption.html"/>
+<link rel="import" href="webvisual-toggle-button.html"/>
 <link rel="import" href="webvisual-snackbar.html"/>
+
+<link rel="import" href="webvisual-facility-data.html"/>
 
 <link rel="import" href="webvisual-login.html"/>
 <link rel="import" href="webvisual-home.html"/>
@@ -29,24 +29,20 @@
 
 <link rel="import" href="../bower_components/iron-a11y-keys-behavior/iron-a11y-keys-behavior.html"/>
 
-<link rel="import" href="shared-styles.html">
+<link rel="import" href="style/shared-styles.html">
+<link rel="import" href="style/webvisual-select-box.html">
 
 <dom-module id="webvisual-app">
 
   <template>
 
-    <style include="shared-styles">
+    <style include="shared-styles webvisual-select-box">
       :host {
         display: flex;
         justify-content: center;
         box-sizing: border-box;
         min-height: 100vh;
         padding-top: 64px;
-        --app-primary-color: var(--primary-color);
-        --app-secondary-color: var(--dark-primary-color);
-        --app-accent-color: var(--highlight-color);
-        -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-        color: var(--primary-text-color);
         transition: background 250ms cubic-bezier(0.6, 0, 0.2, 1);
         transition: padding 250ms cubic-bezier(0.6, 0, 0.2, 1);
       }
@@ -91,21 +87,26 @@
       app-toolbar {
         font-size: 16px;
       }
+      app-toolbar {
+        font-size: 16px;
+      }
 
       app-drawer {
         z-index: 12;
-        --app-drawer-scrim-background: var(--drawer-scim-background);
-        --app-drawer-content-container: var(--drawer-content-container);
       }
       app-drawer > app-toolbar {
-        color: var(--primary-color);
+        @apply(--app-drawer-header);
+      }
+      app-drawer > * {
+        width: 100%;
+        box-sizing: border-box;
       }
       #pageselector {
         box-sizing: border-box;
         position: relative;
       }
       #tabs {
-        background: rgba(255, 255, 255, 0.5);;
+        background: rgba(255, 255, 255, 0.25);
       }
       #tabs a:link {
         color: var(--primary-text-color);
@@ -163,12 +164,12 @@
 
     <iron-media-query query="max-width: 767px" query-matches="{{smallScreen}}"></iron-media-query>
 
-    <app-header role="navigation" id="header" hidden$="[[!_shouldShowHeader]]" reveals threshold="1">
+    <app-header role="home" id="header" hidden$="[[!_shouldShowHeader]]" reveals threshold="1">
 
       <app-toolbar>
         <webvisual-icon-button icon="menu" class="menu-icon" on-tap="_toggleDrawer"></webvisual-icon-button>
 
-        <webvisual-logo main-title id="logo"></webvisual-logo>
+        <webvisual-logo id="logo" href="/home" main-title></webvisual-logo>
 
         <template is="dom-if" if="[[_shouldRenderControlButtons]]">
 
@@ -196,13 +197,13 @@
               selected="{{page}}"
               attr-for-selected="name">
               <webvisual-tab name="list">
-                <a href="/list[[subroute.path]]">Listenansicht</a>
+                <a href="/list[[subroute.path]]">{{localize('list', 'name')}}</a>
               </webvisual-tab>
               <webvisual-tab name="groups">
-                <a href="/groups[[subroute.path]]">Gruppenansicht</a>
+                <a href="/groups[[subroute.path]]">{{localize('groups', 'name')}}</a>
               </webvisual-tab>
               <webvisual-tab name="detail">
-                <a href="/detail[[subroute.path]]">Detailansicht</a>
+                <a href="/detail[[subroute.path]]">{{localize('detail', 'name')}}</a>
               </webvisual-tab>
           </webvisual-tabs>
         </template>
@@ -212,15 +213,15 @@
 
     <iron-pages id="pageselector" role="main" selected="[[page]]" attr-for-selected="name" selected-attribute="visible">
       <!-- home view for selecting the facility -->
-      <webvisual-home name="home" facilities="[[facilities]]" route="{{subroute}}" logged-in="{{loggedIn}}"></webvisual-home>
+      <webvisual-home name="home" dark="[[dark]]" flat="[[flat]]" facilities="[[facilities]]" route="{{subroute}}" logged-in="{{loggedIn}}"></webvisual-home>
       <!-- login view-->
-      <webvisual-login name="login" route="[[subroute]]" offline="[[offline]]"></webvisual-login>
+      <webvisual-login name="login" dark="[[dark]]" flat="[[flat]]" route="[[subroute]]" offline="[[offline]]"></webvisual-login>
       <!-- list view of items in a facility -->
-      <webvisual-list name="list" route="[[subroute]]" facilities="[[facilities]]" offline="[[offline]]" select-notify load-complete="[[loadComplete]]" logged-in="[[loggedIn]]"></webvisual-list>
+      <webvisual-list name="list" dark="[[dark]]" flat="[[flat]]" route="[[subroute]]" facilities="[[facilities]]" offline="[[offline]]" select-notify load-complete="[[loadComplete]]" logged-in="[[loggedIn]]"></webvisual-list>
       <!-- group view of items -->
-      <webvisual-groups name="groups" route="[[subroute]]" facilities="[[facilities]]" offline="[[offline]]" load-complete="[[loadComplete]]" logged-in="[[loggedIn]]"></webvisual-list>
+      <webvisual-groups name="groups" dark="[[dark]]" flat="[[flat]]" route="[[subroute]]" facilities="[[facilities]]" offline="[[offline]]" load-complete="[[loadComplete]]" logged-in="[[loggedIn]]"></webvisual-list>
       <!-- detail view of one item -->
-      <webvisual-detail name="detail" route="[[subroute]]" offline="[[offline]]"></webvisual-detail>
+      <webvisual-detail name="detail" dark="[[dark]]" flat="[[flat]]" route="[[subroute]]" offline="[[offline]]"></webvisual-detail>
     </iron-pages>
 
     <!-- EXCEEDING -->
@@ -246,43 +247,72 @@
     <template is="dom-if" if="[[_shouldRenderDrawer]]">
       <app-drawer id="drawerPanel" opened="{{drawerOpened}}" align="left" swipe-open tabindex="0">
         <app-toolbar class="header">
-          <webvisual-icon-button icon="settings" on-tap="_toggleDrawer"></webvisual-icon-button>
-          <div>Einstellungen</div>
+          <webvisual-icon-button icon="close" on-tap="_toggleDrawer"></webvisual-icon-button>
+          <div main-title style="text-align:end;padding-right:0.5em;">Webvisual</div>
         </app-toolbar>
 
-        <webvisual-button collapse-id="settings" class="sidemenu collapsable" on-tap="toggleCollapse">
+        <div class="spacer"></div>
+
+        <webvisual-button collapse-id="route-collapse" on-tap="_toggleCollapse">
+          <iron-icon icon="more-vert" class="left"></iron-icon>
+          <span>{{localize('view')}}</span>
+          <iron-icon icon="arrow-drop-up" class="right"></iron-icon>
+        </webvisual-button>
+
+        <iron-collapse id="route-collapse" opened>
+          <div class="collapse-content">
+            <template is="dom-if" if="[[!loggedIn]]">
+              <webvisual-button name="login">
+                <a href="/login[[subroute.path]]">{{localize('login', 'name')}}</a>
+              </webvisual-button>
+            </template>
+            <webvisual-button name="home">
+              <a href="/home[[subroute.path]]">{{localize('home', 'name')}}</a>
+            </webvisual-button>
+            <webvisual-button name="list">
+              <a href="/list[[subroute.path]]">{{localize('list', 'name')}}</a>
+            </webvisual-button>
+            <webvisual-button name="groups">
+              <a href="/groups[[subroute.path]]">{{localize('groups', 'name')}}</a>
+            </webvisual-button>
+            <webvisual-button name="detail">
+              <a href="/detail[[subroute.path]]">{{localize('detail', 'name')}}</a>
+            </webvisual-button>
+          </div>
+        </iron-collapse>
+
+        <div class="spacer"></div>
+
+        <webvisual-select-box>
+          <iron-icon icon="language"></iron-icon>
+          <span>{{localize('language')}}</span>
+
+          <select value="{{language::input}}">
+            <option value="de">deutsch</option>
+            <option value="en">english</option>
+            <option value="fr">français</option>
+            <option value="es">español</option>
+            <option value="it">italiano</option>
+            <option value="ru">русский</option>
+          </select>
+        </webvisual-select-box>
+
+        <webvisual-button collapse-id="layout-collapse" on-tap="_toggleCollapse">
           <iron-icon icon="settings" class="left"></iron-icon>
-          <section class="content">Einstellungen</section>
-          <iron-icon icon="arrow-drop-up" class="right" id="settings"></iron-icon>
+          <span>{{localize('layout')}}</span>
+          <iron-icon icon="arrow-drop-up" class="right"></iron-icon>
         </webvisual-button>
 
-            <section class="sidemenu indention collapse settings" opened>
-                <webvisual-button collapse-id="grouping" class="sidemenu" on-tap="toggleCollapse">
-                  <iron-icon icon="reorder" class="left"></iron-icon>
-                  <section class="content">Gruppierung</section>
-                  <iron-icon icon="arrow-drop-down" class="right" id="grouping"></iron-icon>
-                </webvisual-button>
-                <section id="groupingKeysButtons" class="sidemenu indention collapse grouping">
-                  <iron-selector id="groupingKeysSystemSelector" selected="[[system]]" attr-for-selected="system" selected-class="foreground">
-                    <content select="iron-selector.groupingKeySelector"></content>
-                  </iron-selector>
-                </section>
-
-                <webvisual-toggle-button class="sidemenu" on-change="toggleDateView"><iron-icon icon="date-range"></iron-icon>Zeit anzeigen</webvisual-toggle-button>
-                <webvisual-toggle-button class="sidemenu" on-change="toggleWindowDecoration" checked="{{withoutWindow}}"><iron-icon icon="editor:border-style"></iron-icon>Fensterrahmen</webvisual-toggle-button>
-                <webvisual-toggle-button class="sidemenu" on-change="toggleWindowHeader" checked="{{hideHeader}}"><iron-icon icon="editor:drag-handle"></iron-icon>Fenstertitel</webvisual-toggle-button>
-                <webvisual-toggle-button class="sidemenu" id="colorschema" on-change="toggleTheme"><iron-icon icon="settings-brightness"></iron-icon>Farbschema</webvisual-toggle-button>
-            </section>
-
-        <webvisual-button class="sidemenu" on-tap="backToSelectPage">
-          <iron-icon icon="assessment" class="left"></iron-icon>
-          <section class="content">Konfigurationsauswahl</section>
-        </webvisual-button>
-
-        <webvisual-button class="sidemenu" on-tap="backToIndex">
-          <iron-icon icon="arrow-back" class="left"></iron-icon>
-          <section class="content">Index</section>
-        </webvisual-button>
+        <iron-collapse id="layout-collapse" opened>
+          <div class="collapse-content">
+            <webvisual-toggle-button class="sidemenu" checked="{{flat}}">
+              <iron-icon icon="drag-handle"></iron-icon>{{localize('flat', flat)}}
+            </webvisual-toggle-button>
+            <webvisual-toggle-button class="sidemenu" checked="{{dark}}">
+              <iron-icon icon="settings-brightness"></iron-icon>{{localize('dark', dark)}}
+            </webvisual-toggle-button>
+          </div>
+        </iron-collapse>
 
       </app-drawer>
 
@@ -294,6 +324,7 @@
       is: 'webvisual-app',
 
       behaviors: [
+        LocalizeBehavior,
         ContainerBehavior
       ],
 
@@ -303,6 +334,18 @@
           type: String,
           reflectToAttribute: true,
           observer: '_pageChanged'
+        },
+
+        dark: {
+          type: Boolean,
+          reflectToAttribute: true,
+          observer: '_darkChanged'
+        },
+
+        flat: {
+          type: Boolean,
+          reflectToAttribute: true,
+          observer: '_flatChanged'
         },
 
         facilityName: String,
@@ -373,6 +416,7 @@
           this.listen(window, 'online', '_notifyNetworkStatus');
           this.listen(window, 'offline', '_notifyNetworkStatus');
         });
+        this._loadPresettings();
       },
 
       _routePageChanged: function(page) {
@@ -498,6 +542,32 @@
         }
       },
 
+      _loadPresettings: function() {
+        var settings = JSON.parse(localStorage.getItem('settings'));
+        for (var key in settings) {
+          this.set(key, settings[key]);
+        }
+      },
+
+      _flatChanged: function(flat, old) {
+        if (old === undefined)
+          return;
+
+        var settings = JSON.parse(localStorage.getItem('settings')) || {};
+        settings.flat = flat;
+        localStorage.setItem('settings', JSON.stringify(settings));
+      },
+
+      _darkChanged: function(dark, old) {
+        this.updateStyles();
+
+        if (old === undefined)
+          return;
+
+        var settings = JSON.parse(localStorage.getItem('settings')) || {};
+        settings.dark = dark;
+        localStorage.setItem('settings', JSON.stringify(settings));
+      },
 
       _computeShouldShowHeader: function(page) {
         return (page !== 'home' && page !== 'login');
@@ -525,6 +595,26 @@
 
       _computePluralizedQuantity: function(quantity) {
         return quantity + ' ' + (quantity === 1 ? 'item' : 'items');
+      },
+
+      _toggleCollapse: function(e){
+        var button = e.currentTarget;
+        if (!button.hasAttribute('collapse-id')) {
+          return;
+        }
+        var id = button.getAttribute('collapse-id');
+        var collapse = this.$[id];
+        var iconbutton = button.querySelector('iron-icon.right');
+
+        if (collapse && collapse.toggle) {
+          collapse.toggle();
+          if (iconbutton) {
+            if (iconbutton.icon === 'arrow-drop-down')
+              iconbutton.set('icon','arrow-drop-up');
+            else
+              iconbutton.set('icon','arrow-drop-down');
+          }
+        }
       }
 
     });
@@ -657,7 +747,7 @@
     //         this.$.toolbarFooter.removeAttribute('opened');
     //       }
     //     }
-    //     this.notifyResize();
+    //     this.notifyResize();route
     //   },
     //
     //   previousPanel: function() {

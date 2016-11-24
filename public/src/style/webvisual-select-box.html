@@ -1,0 +1,51 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<dom-module id="webvisual-select-box">
+  <template>
+    <style>
+      webvisual-select-box {
+        display: inline-flex;
+        box-sizing: border-box;
+        align-items: center;
+        padding: 0.75em 1.5em;
+      }
+
+      webvisual-select-box > *:not(:first-child) {
+        margin-left: 0.75em;
+      }
+
+      webvisual-select-box > span {
+        flex: 1;
+        text-align: center;
+      }
+
+      webvisual-select-box > iron-icon {
+        height: 100%;
+      }
+
+      webvisual-select-box > select {
+        font-size: 0.8em;
+        font-family: inherit;
+        color: currentColor;
+        padding: 0.5em;
+        box-sizing: border-box;
+        background: var(--select-background, transparent);
+        border-color: var(--select-border, currentColor);
+        outline: none;
+        border: none;
+        border-bottom-width: 2px;
+        border-bottom-style: solid;
+      }
+
+      webvisual-select-box option {
+        padding: 0.5em;
+        box-sizing: border-box;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: currentColor;
+        background: var(--option-background, var(--primary-background));
+      }
+    </style>
+
+</dom-module>

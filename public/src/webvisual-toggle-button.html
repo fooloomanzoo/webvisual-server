@@ -14,7 +14,7 @@
         box-sizing: border-box;
         float: left;
         clear: both;
-        padding: 0.5em 1em;
+        padding: 0.75em 1.5em;
         cursor: pointer;
       }
 
@@ -109,18 +109,20 @@
         margin: 0.25em 1px;
       }
 
-      .toggle-system {
+      .toggle-content {
         position: relative;
         display: inline-block;
         vertical-align: middle;
         padding-left: 0.75em;
         pointer-events: none;
         white-space: nowrap;
-        color: var(--toggle-button-system-color, --primary-text-color);
+        text-overflow: ellipsis;
+        overflow: hidden;
+        color: inherit;
       }
 
       ::content iron-icon {
-        margin-right: 0.5em;
+        margin-right: 0.75em;
       }
     </style>
 
@@ -130,7 +132,7 @@
       <section id="toggleButton" class="toggle-button"></section>
     </section>
 
-    <section class="toggle-system"><content></content></section>
+    <section class="toggle-content"><content></content></section>
 
   </template>
 
