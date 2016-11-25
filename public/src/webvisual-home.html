@@ -1,6 +1,9 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
 <link rel="import" href="../bower_components/iron-selector/iron-selector.html">
+
+<link rel="import" href="behaviors/localize-behavior.html">
+
 <link rel="import" href="webvisual-button.html">
 
 <link rel="import" href="style/shared-styles.html">
@@ -80,10 +83,6 @@
         margin-bottom: 32px;
       }
 
-
-      @media (max-width: 767px) {
-
-      }
       a:link {
         color: var(--bright-text-color);
       }
@@ -93,13 +92,19 @@
       a:visited {
         color: var(--highlight-color);
       }
+
+      @media (min-width: 767px) {
+        .box {
+          max-width: 68vw;
+        }
+      }
     </style>
 
     <template is="dom-if" if="[[!loggedIn]]">
       <app-toolbar>
         <a href="/login">
           <webvisual-icon-button icon="assignment-ind" class="login-icon"></webvisual-icon-button>
-          <span>Bitte einloggen</span>
+          <span>{{localize('login', 'title')}}</span>
         </a>
       </app-toolbar>
     </template>
@@ -107,7 +112,7 @@
     <template is="dom-if" if="[[_shouldRenderBox]]">
       <div class="box">
         <header>
-          <h1>Auswahl der Messanlage</h1>
+          <h1>{{localize('home', 'title')}}</h1>
         </header>
         <iron-selector id="selector" selected="{{currentFacility}}" attr-for-selected="item-name" selectable=".facility">
           <template is="dom-repeat" items="[[facilities]]" strip-whitespace>
@@ -139,6 +144,10 @@
     Polymer({
 
       is: 'webvisual-home',
+
+      behaviors: [
+        LocalizeBehavior
+      ],
 
       properties: {
 

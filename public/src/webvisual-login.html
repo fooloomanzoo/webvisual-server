@@ -1,5 +1,9 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
+
+<link rel="import" href="behaviors/localize-behavior.html">
+
 <link rel="import" href="webvisual-button.html">
+
 <link rel="import" href="style/shared-styles.html">
 
 <dom-module id="webvisual-login">
@@ -95,7 +99,7 @@
 
     <div class="box">
       <header>
-        <h1>Webvisual Login</h1>
+        <h1>Webvisual {{localize('login', 'name')}}</h1>
       </header>
 
 
@@ -113,7 +117,7 @@
 
           <button type="submit" name="button" class="button">
             <iron-icon class="left" icon="juelich:logo"></iron-icon>
-            <span>Login</span>
+            <span>{{localize('login', 'name')}}</span>
           </button>
 
       </form>
@@ -126,6 +130,10 @@
 
       is: 'webvisual-login',
 
+      behaviors: [
+        LocalizeBehavior
+      ],
+
       properties: {
 
         loggedIn: {
@@ -133,10 +141,6 @@
           notify: true
         }
 
-      },
-
-      ready: function() {
-        // this.$.login.submit();
       }
     });
 

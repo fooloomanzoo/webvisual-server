@@ -1,7 +1,7 @@
 {
 	"de": {
 		"login": {
-			"name": "Einloggen",
+			"name": "Login",
 			"title": "Bitte loggen Sie sich ein"
 		},
 		"home": {
@@ -21,10 +21,10 @@
 		"view": "Ansicht",
 		"layout": "Darstellung",
 		"language": "Anzeigesprache",
-		"groupedKey": "Gruppierung nach...",
+		"groupedKey": "Gruppierung",
 		"dark": {
-      "true": "dunkles Farblayout",
-      "false": "helles Farblayout"
+      "true": "dunkles Farbschema",
+      "false": "helles Farbschema"
     },
 		"plain": {
       "true": "ebene Darstellung",
@@ -38,7 +38,8 @@
       "loggedIn":  {
         "true": "Sie sind eingeloggt",
         "false": "Sie sind ausgeloggt"
-      }
+      },
+      "loaded": "geladen"
     }
 	},
 	"en": {
@@ -63,7 +64,7 @@
 		"view": "View",
 		"layout": "Layout",
 		"language": "Language",
-		"groupedKey": "Group by...",
+		"groupedKey": "Grouping",
 		"dark": {
 			"true": "dark color scheme",
 			"false": "bright color scheme"
@@ -80,7 +81,8 @@
 			"loggedIn":  {
 				"true": "You are logged in",
 				"false": "You are logged out"
-			}
+			},
+      "loaded": "loaded"
 		}
 	},
 	"fr": {
@@ -105,7 +107,7 @@
 		"view": "Affichage",
 		"layout": "Mise en Page",
 		"language": "Langue",
-		"groupedKey": "Arrangez...",
+		"groupedKey": "Arrangez",
 		"dark": {
 			"true": "schéma-encreur foncé",
 			"false": "schéma-encreur clair"
@@ -122,7 +124,8 @@
 			"loggedIn":  {
 				"true": "Vous avez connecté",
 				"false": "Vous avez déconnecté"
-			}
+			},
+      "loaded": "charge"
 		}
 	},
 	"es": {
@@ -147,7 +150,7 @@
 		"view": "Punto de Vista",
 		"layout": "Mise en Page",
 		"language": "Lengua",
-		"groupedKey": "Agrupar...",
+		"groupedKey": "Agrupar",
 		"dark": {
 			"true": "oscuro esquema",
 			"false": "claro esquema"
@@ -164,7 +167,8 @@
 			"loggedIn":  {
 				"true": "Ha iniciado la sesión",
 				"false": "Estás desconectado"
-			}
+			},
+      "loaded": "cargado"
 		}
 	},
 	"it": {
@@ -189,7 +193,7 @@
 		"view": "Veduta",
 		"layout": "Menabò",
 		"language": "Lingua",
-		"groupedKey": "Ordinare dare...",
+		"groupedKey": "Ordinare dare",
 		"dark": {
 			"true": "cupo scheme a colori",
 			"false": "chiaro scheme a colori"
@@ -206,7 +210,8 @@
 			"loggedIn":  {
 				"true": "Sei connesso",
 				"false": "Ora sei disconnesso"
-			}
+			},
+      "loaded": "caricato"
 		}
 	},
 	"ru": {
@@ -231,7 +236,7 @@
 		"view": "взгляд",
 		"layout": "расположе́ние",
 		"language": "язы́к",
-		"groupedKey": "гру́ппами...",
+		"groupedKey": "гру́ппами",
 		"dark": {
 			"true": "Тьма",
 			"false": "светлый"
@@ -248,7 +253,8 @@
 			"loggedIn":  {
 				"true": "Вы вошли",
 				"false": "Вы вышли из учётной записи"
-			}
+			},
+      "loaded": "заряжен"
 		}
 	},
 	"zh": {
@@ -273,7 +279,7 @@
 		"view": "图示",
 		"layout": "版式",
 		"language": "语言",
-		"groupedKey": "分类...",
+		"groupedKey": "分类",
 		"dark": {
 			"true": "黑",
 			"false": "亮"
@@ -290,7 +296,8 @@
 			"loggedIn":  {
 				"true": "登入",
 				"false": "您尚未登录"
-			}
+			},
+      "loaded": "加載完成"
 		}
 	}
 }

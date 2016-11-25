@@ -97,16 +97,27 @@
       app-drawer > app-toolbar {
         @apply(--app-drawer-header);
       }
-      app-drawer > * {
+      app-drawer .spacer {
+        margin-bottom: 1em;
+      }
+      app-drawer webvisual-select-box,
+      app-drawer webvisual-button,
+      app-drawer webvisual-toggle-button {
         width: 100%;
+        padding: 0.75em 1em;
         box-sizing: border-box;
       }
       app-drawer iron-collapse > .collapse-content {
-        padding: 0.5em 1.5em;
+        padding: 0.5em 1em;
       }
       app-drawer iron-collapse > .collapse-content > * {
         width: 100%;
+        font-size: 0.85em;
       }
+      app-drawer iron-collapse.iron-collapse-opened {
+        box-shadow: 0 5px 5px -5px rgba(0,0,0,0.1) inset;
+      }
+
       #pageselector {
         box-sizing: border-box;
         position: relative;
@@ -135,23 +146,11 @@
         }
       }
 
-  		.tab-icon {
-  			display: none !important;
-  		}
       .error-icon {
         color: var(--warning-color);
       }
       #logo {
         padding-left: 16px;
-      }
-      @media all and (max-width: 520px) {
-        #panelSelector ::content .panel {
-          display: block;
-          padding: 0em;
-        }
-
-      }
-      @media all and (min-width: 520px) and (max-width: 600px){
       }
 
     </style>
@@ -216,13 +215,13 @@
 
     <iron-pages id="pageselector" role="main" selected="[[page]]" attr-for-selected="name" selected-attribute="visible">
       <!-- home view for selecting the facility -->
-      <webvisual-home name="home" dark="[[dark]]" plain="[[plain]]" facilities="[[facilities]]" route="{{subroute}}" logged-in="{{loggedIn}}"></webvisual-home>
+      <webvisual-home name="home" dark="[[dark]]" plain="[[plain]]" facilities="[[facilities]]" route="{{subroute}}" logged-in="{{loggedIn}}" language="[[language]]" language-resources="[[languageResources]]"></webvisual-home>
       <!-- login view-->
-      <webvisual-login name="login" dark="[[dark]]" plain="[[plain]]" route="[[subroute]]" offline="[[offline]]"></webvisual-login>
+      <webvisual-login name="login" dark="[[dark]]" plain="[[plain]]" route="[[subroute]]" offline="[[offline]]" language="[[language]]" language-resources="[[languageResources]]"></webvisual-login>
       <!-- list view of items in a facility -->
       <webvisual-list name="list" dark="[[dark]]" plain="[[plain]]" route="[[subroute]]" facilities="[[facilities]]" offline="[[offline]]" select-notify load-complete="[[loadComplete]]" logged-in="[[loggedIn]]"></webvisual-list>
       <!-- group view of items -->
-      <webvisual-groups name="groups" dark="[[dark]]" plain="[[plain]]" route="[[subroute]]" facilities="[[facilities]]" offline="[[offline]]" load-complete="[[loadComplete]]" logged-in="[[loggedIn]]" grouped-key="[[groupedKey]]"></webvisual-groups>
+      <webvisual-groups name="groups" dark="[[dark]]" plain="[[plain]]" route="[[subroute]]" facilities="[[facilities]]" offline="[[offline]]" load-complete="[[loadComplete]]" logged-in="[[loggedIn]]" grouped-key="{{groupedKey}}" grouping-keys="{{groupingKeys}}"></webvisual-groups>
       <!-- detail view of one item -->
       <webvisual-detail name="detail" dark="[[dark]]" plain="[[plain]]" route="[[subroute]]" offline="[[offline]]"></webvisual-detail>
     </iron-pages>
@@ -254,33 +253,67 @@
           <div main-title style="text-align:end;padding-right:0.5em;">Webvisual</div>
         </app-toolbar>
 
-        <div class="spacer"></div>
-
-        <webvisual-button collapse-id="route-collapse" on-tap="_toggleCollapse">
+        <webvisual-button for="route-collapse" on-tap="_toggleCollapse">
           <iron-icon icon="more-vert" class="left"></iron-icon>
           <span>{{localize('view')}}</span>
           <iron-icon icon="arrow-drop-up" class="right"></iron-icon>
         </webvisual-button>
 
-        <iron-collapse id="route-collapse" opened>
+        <iron-collapse id="route-collapse">
           <div class="collapse-content">
             <template is="dom-if" if="[[!loggedIn]]">
-              <webvisual-button name="login">
-                <a href="/login[[subroute.path]]">{{localize('login', 'name')}}</a>
-              </webvisual-button>
+              <a href="/login">
+                <webvisual-button name="login">
+                  <iron-icon icon="perm-identity" class="left"></iron-icon>
+                  {{localize('login', 'name')}}
+                </webvisual-button>
+              </a>
             </template>
-            <webvisual-button name="home">
-              <a href="/home[[subroute.path]]">{{localize('home', 'name')}}</a>
-            </webvisual-button>
-            <webvisual-button name="list">
-              <a href="/list[[subroute.path]]">{{localize('list', 'name')}}</a>
-            </webvisual-button>
-            <webvisual-button name="groups">
-              <a href="/groups[[subroute.path]]">{{localize('groups', 'name')}}</a>
-            </webvisual-button>
-            <webvisual-button name="detail">
-              <a href="/detail[[subroute.path]]">{{localize('detail', 'name')}}</a>
-            </webvisual-button>
+            <a href="/home">
+              <webvisual-button name="home">
+                <iron-icon icon="exit-to-app" class="left"></iron-icon>
+                {{localize('home', 'name')}}
+              </webvisual-button>
+            </a>
+            <a href="/list[[subroute.path]]">
+              <webvisual-button name="list">
+                <iron-icon icon="view-list" class="left"></iron-icon>
+                {{localize('list', 'name')}}
+              </webvisual-button>
+            </a>
+            <a href="/groups[[subroute.path]]">
+              <webvisual-button name="groups">
+                <iron-icon icon="view-module" class="left"></iron-icon>
+                {{localize('groups', 'name')}}
+              </webvisual-button>
+            </a>
+            <a href="/detail[[subroute.path]]">
+              <webvisual-button name="detail">
+                <iron-icon icon="search" class="left"></iron-icon>
+                {{localize('detail', 'name')}}
+              </webvisual-button>
+            </a>
+          </div>
+        </iron-collapse>
+
+        <div class="spacer"></div>
+
+        <webvisual-button for="layout-collapse" on-tap="_toggleCollapse">
+          <iron-icon icon="settings" class="left"></iron-icon>
+          <span>{{localize('layout')}}</span>
+          <iron-icon icon="arrow-drop-up" class="right"></iron-icon>
+        </webvisual-button>
+
+        <iron-collapse id="layout-collapse">
+          <div class="collapse-content">
+            <webvisual-toggle-button checked="{{plain}}">
+              <iron-icon icon="border-style"></iron-icon>
+              {{localize('plain', plain)}}
+            </webvisual-toggle-button>
+            <webvisual-toggle-button checked="{{dark}}">
+              <iron-icon icon="invert-colors"></iron-icon>
+              {{localize('dark', dark)}}
+            </webvisual-toggle-button>
           </div>
         </iron-collapse>
 
@@ -301,22 +334,20 @@
           </select>
         </webvisual-select-box>
 
-        <webvisual-button collapse-id="layout-collapse" on-tap="_toggleCollapse">
-          <iron-icon icon="settings" class="left"></iron-icon>
-          <span>{{localize('layout')}}</span>
-          <iron-icon icon="arrow-drop-up" class="right"></iron-icon>
-        </webvisual-button>
+        <template is="dom-if" if="[[_shouldRenderGroupingKeys]]">
+          <webvisual-select-box>
+            <iron-icon icon="filter-list"></iron-icon>
+            <span>{{localize('groupedKey')}}</span>
 
-        <iron-collapse id="layout-collapse" opened>
-          <div class="collapse-content">
-            <webvisual-toggle-button class="sidemenu" checked="{{plain}}">
-              <iron-icon icon="drag-handle"></iron-icon>{{localize('plain', plain)}}
-            </webvisual-toggle-button>
-            <webvisual-toggle-button class="sidemenu" checked="{{dark}}">
-              <iron-icon icon="settings-brightness"></iron-icon>{{localize('dark', dark)}}
-            </webvisual-toggle-button>
-          </div>
-        </iron-collapse>
+            <select value="{{groupedKey::input}}">
+
+              <template is="dom-repeat" items="[[groupingKeys]]">
+                <option value="[[item]]">[[item]]</option>
+              </template>
+
+            </select>
+          </webvisual-select-box>
+        </template>
 
       </app-drawer>
 
@@ -340,6 +371,11 @@
           observer: '_pageChanged'
         },
 
+        languageResourcePath: {
+          type: String,
+          value: '../locales.json'
+        },
+
         dark: {
           type: Boolean,
           reflectToAttribute: true,
@@ -356,9 +392,9 @@
 
         systemName: String,
 
-        numItems: {
-          type: Number,
-          value: 0
+        groupedKey: {
+          type: String,
+          notify: true
         },
 
         loggedIn: {
@@ -390,6 +426,10 @@
 
         _shouldRenderDrawer: {
           computed: '_computeShouldRenderDrawer(page, loadComplete)'
+        },
+
+        _shouldRenderGroupingKeys: {
+          computed: '_computeShouldRenderGroupingKeys(page, loadComplete)'
         }
       },
 
@@ -436,13 +476,13 @@
         if (page != null) {
           // home route is eagerly loaded
           if (page === 'home' || page === 'login') {
-            this._pageLoaded(Boolean(oldPage) && (page === 'list' || page === 'detail'));
+            this._pageLoaded(Boolean(oldPage));
           // other routes are lazy loaded
           } else {
             this.importHref(
               this.resolveUrl('webvisual-' + page + '.html'),
               function() {
-                this._pageLoaded(Boolean(oldPage) && (page === 'list' || page === 'detail'));
+                this._pageLoaded(Boolean(oldPage));
               }, null, true);
           }
         }
@@ -486,8 +526,8 @@
             this._networkSnackbar.setAttribute('auto-close', '');
             Polymer.dom(this.root).appendChild(this._networkSnackbar);
           }
-          Polymer.dom(this._networkSnackbar).innerHTML = this.offline ?
-              'You are offline' : 'You are online';
+          Polymer.dom(this._networkSnackbar).innerHTML = this.localize ? this.localize('notification', 'offline', offline) : (offline ?
+            'You are offline' : 'You are online');
           this._networkSnackbar.open();
         }
       },
@@ -498,8 +538,8 @@
           this._logInStatusSnackbar.setAttribute('auto-close', '');
           Polymer.dom(this.root).appendChild(this._logInStatusSnackbar);
         }
-        Polymer.dom(this._logInStatusSnackbar).innerHTML = loggedIn ?
-          'Sie sind eingeloggt' : 'Sie sind nicht eingeloggt';
+        Polymer.dom(this._logInStatusSnackbar).innerHTML = this.localize ? this.localize('notification', 'loggedIn', loggedIn) : (loggedIn ?
+          'You are logged in' : 'You are not logged in');
         this._logInStatusSnackbar.open();
       },
 
@@ -517,7 +557,7 @@
         // Announce the page's title
         if (detail.title) {
           document.title = detail.title + ' - Webvisual';
-          this._announce(detail.title + ', loaded');
+          this._announce(detail.title + ', ' + (this.localize ? this.localize('notification', 'loaded') : 'loaded'));
         }
         // set SocketConnection
       },
@@ -607,17 +647,18 @@
         return (page !== 'home' && page !== 'login') && loadComplete;
       },
 
-      _computePluralizedQuantity: function(quantity) {
-        return quantity + ' ' + (quantity === 1 ? 'item' : 'items');
+      _computeShouldRenderGroupingKeys: function(page, loadComplete) {
+        return page === 'groups' && loadComplete;
       },
 
-      _toggleCollapse: function(e){
+      _toggleCollapse: function(e) {
+        // TODO: very probable that this will change in Polymer 2.0
         var button = e.currentTarget;
-        if (!button.hasAttribute('collapse-id')) {
+        if (!button.hasAttribute('for')) {
           return;
         }
-        var id = button.getAttribute('collapse-id');
-        var collapse = this.$[id];
+        var id = button.getAttribute('for');
+        var collapse = this.$$('#'+id);
         var iconbutton = button.querySelector('iron-icon.right');
 
         if (collapse && collapse.toggle) {

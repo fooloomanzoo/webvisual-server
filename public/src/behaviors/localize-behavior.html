@@ -6,6 +6,16 @@ modification of PolymerElements/app-localize-behavior for simplification reasons
 
 <script>
 
+__supportedLanguages = [
+  'de',
+  'en',
+  'fr',
+  'es',
+  'it',
+  'ru',
+  'zh'
+]
+
 LocalizeBehavior = {
 
   properties: {
@@ -13,7 +23,8 @@ LocalizeBehavior = {
     language: {
       type: String,
       notify: true,
-      value: window.navigator.language
+      value: window.navigator.language,
+      observer: '_checkLanguage'
     },
 
     fallbackLanguage: {
@@ -27,14 +38,9 @@ LocalizeBehavior = {
      *  'en': { 'greeting': 'Hello!' }, 'fr' : { 'greeting': 'Bonjour!' }
      * }
      */
-    languageResources: {
-      type: Object
-    },
+    languageResources: Object,
 
-    languageResourcePath: {
-      type: String,
-      value: '/locales.json'
-    },
+    languageResourcePath: String,
 
     /**
      * Translates a string to the current `language`. Any parameters to the
@@ -55,6 +61,7 @@ LocalizeBehavior = {
     var xhr = new XMLHttpRequest();
     xhr.addEventListener('load', function(e) {
       if (e.target.status < 400) {
+        console.log(path);
         this.set('languageResources', JSON.parse(e.target.responseText));
         localStorage.setItem('languageResources', e.target.responseText);
       } else {
@@ -78,27 +85,28 @@ LocalizeBehavior = {
    */
   __computeLocalize: function(language, languageResources) {
     var fallback = this.fallbackLanguage;
+    console.log('__computeLocalize', language, fallback);
     return function() {
       var fallbackLanguage = fallback;
 
-      if (!arguments[0] || !languageResources || !language || !languageResources[language])
+      if (!arguments[0] || !languageResources || !language)
         return;
 
       var translatedValue = languageResources[language];
 
       for (var i = 0; i < arguments.length; i++) {
-        translatedValue = translatedValue[arguments[i]];
         if (!translatedValue)
           break;
+        translatedValue = translatedValue[arguments[i]];
       }
 
       // if not present in resources, then use fallbackLanguage
       if (!translatedValue) {
         translatedValue = languageResources[fallbackLanguage];
         for (var i = 0; i < arguments.length; i++) {
-          translatedValue = translatedValue[arguments[i]];
           if (!translatedValue)
             break;
+          translatedValue = translatedValue[arguments[i]];
         }
       }
 
@@ -109,6 +117,18 @@ LocalizeBehavior = {
 
       return translatedValue;
     };
+  },
+
+  _checkLanguage: function(language) {
+    if (!language)
+      return;
+    var lang = language.split('-')[0];
+    console.log(lang, language, __supportedLanguages.indexOf(lang), __supportedLanguages);
+    if (__supportedLanguages.indexOf(lang) !== -1) {
+      this.set('language', lang);
+    } else {
+      this.set('language', this.fallbackLanguage);
+    }
   }
 }
 

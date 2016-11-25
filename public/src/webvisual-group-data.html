@@ -15,6 +15,18 @@
 
         systemName: String,
 
+        groupedKey: {
+          type: String,
+          notify: true,
+          observer: '_groupedKeyChanged'
+        },
+
+        groupingKeys: {
+          type: Array,
+          notify: true,
+          observer: '_groupingKeysChanged'
+        },
+
         groups: {
           type: Array,
           notify: true
@@ -24,10 +36,6 @@
           type: Array,
           computed: '_computeSubGroups(groups, groupedKey)',
           notify: true
-        },
-
-        groupedKey: {
-          type: String
         }
 
       },
@@ -39,6 +47,7 @@
       _fetchGroups: function(facilityName, systemName) {
         if (facilityName && systemName) {
           this._request(facilityName, systemName, 'groups');
+          this._request(facilityName, systemName, 'groupingKeys');
         }
       },
 
@@ -93,6 +102,32 @@
         xhr.open('GET', rq.url);
         xhr.withCredentials = true;
         xhr.send();
+      },
+
+      _groupingKeysChanged: function(groupingKeys) {
+        console.log(groupingKeys);
+        var groupedKey = localStorage.getItem('groupedKey');
+        if (groupedKey && groupedKey in this.groupingKeys) {
+          this.set('groupedKey', groupedKey);
+        } else {
+          this._getResource({
+            url: '/data/' + this.facilityName + '+' + this.systemName + '+preferedGroupingKey.json',
+            onLoad: function(e) {
+              if (e.target.status < 400) {
+                this.set('groupedKey', JSON.parse(e.target.responseText));
+              }
+            },
+            onError: function(e) {
+              console.log(e);
+            }
+          });
+        }
+      },
+
+      _groupedKeyChanged: function(groupedKey, old) {
+        if (groupedKey) {
+          localStorage.setItem('groupedKey', groupedKey);
+        }
       }
 
     });

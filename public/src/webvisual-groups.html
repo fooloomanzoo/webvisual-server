@@ -28,6 +28,7 @@
         padding: 0;
         list-style: none;
         box-sizing: border-box;
+        flex: 1;
       }
 
       .grid li {
@@ -159,7 +160,8 @@
 
     <webvisual-group-data
       subgroups="{{subgroups}}"
-      grouped-key="[[groupedKey]]"
+      grouped-key="{{groupedKey}}"
+      grouping-keys="{{groupingKeys}}"
       facility-name="[[routeData.facilityName]]"
       system-name="[[routeData.systemName]]"></webvisual-group-data>
 
@@ -242,7 +244,12 @@
 
         groupedKey: {
           type: String,
-          value: 'roomNr'
+          notify: true
+        },
+
+        groupingKeys: {
+          type: Array,
+          notify: true
         },
 
         route: Object,
@@ -314,14 +321,6 @@
         // By returning null when `itemId` is undefined, the href attribute won't be set and
         // the link will be disabled.
         return item.name ? ['/detail', this.facility.name, this.system.name, item.name].join('/') : null;
-      },
-
-      _getPluralizedQuantity: function(quantity) {
-        if (!quantity) {
-          return '';
-        }
-        var pluralizedQ = quantity === 1 ? 'item' : 'items';
-        return  '(' + quantity + ' ' + pluralizedQ + ')';
       },
 
       _routeChanged: function(routeData, visible) {

@@ -19,6 +19,7 @@ const EventEmitter = require('events').EventEmitter
 const requiredStaticSettings = [
   'groups',
   'groupingKeys',
+  'preferedGroupingKey',
   'svgSource'
 ]
 
