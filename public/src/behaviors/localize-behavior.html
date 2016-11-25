@@ -6,15 +6,7 @@ modification of PolymerElements/app-localize-behavior for simplification reasons
 
 <script>
 
-__supportedLanguages = [
-  'de',
-  'en',
-  'fr',
-  'es',
-  'it',
-  'ru',
-  'zh'
-]
+__supportedLanguages = [ 'de', 'en', 'fr', 'es', 'it', 'ru', 'zh' ];
 
 LocalizeBehavior = {
 
@@ -22,8 +14,6 @@ LocalizeBehavior = {
 
     language: {
       type: String,
-      notify: true,
-      value: window.navigator.language,
       observer: '_checkLanguage'
     },
 
@@ -61,7 +51,6 @@ LocalizeBehavior = {
     var xhr = new XMLHttpRequest();
     xhr.addEventListener('load', function(e) {
       if (e.target.status < 400) {
-        console.log(path);
         this.set('languageResources', JSON.parse(e.target.responseText));
         localStorage.setItem('languageResources', e.target.responseText);
       } else {
@@ -85,7 +74,6 @@ LocalizeBehavior = {
    */
   __computeLocalize: function(language, languageResources) {
     var fallback = this.fallbackLanguage;
-    console.log('__computeLocalize', language, fallback);
     return function() {
       var fallbackLanguage = fallback;
 
@@ -122,8 +110,10 @@ LocalizeBehavior = {
   _checkLanguage: function(language) {
     if (!language)
       return;
+
+    // check for sub groups of languages and set them to main member of language sets (for simplification)
     var lang = language.split('-')[0];
-    console.log(lang, language, __supportedLanguages.indexOf(lang), __supportedLanguages);
+
     if (__supportedLanguages.indexOf(lang) !== -1) {
       this.set('language', lang);
     } else {

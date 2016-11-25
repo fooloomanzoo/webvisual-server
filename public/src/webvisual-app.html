@@ -371,9 +371,16 @@
           observer: '_pageChanged'
         },
 
+        language: {
+          type: String,
+          notify: true,
+          value: window.navigator.language,
+          observer: '_checkLanguage'
+        },
+
         languageResourcePath: {
           type: String,
-          value: '../locales.json'
+          value: './locales.json'
         },
 
         dark: {
