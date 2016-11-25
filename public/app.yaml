@@ -33,6 +33,11 @@ handlers:
   upload: manifest.json
   secure: always
 
+- url: /locales.json
+  static_files: locales.json
+  upload: locales.json
+  secure: always
+
 - url: /.*
   static_files: index.html
   upload: index.html

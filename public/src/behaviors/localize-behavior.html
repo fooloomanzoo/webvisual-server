@@ -47,7 +47,7 @@ LocalizeBehavior = {
     '_loadLanguageResources(languageResourcePath)'
   ],
 
-  _loadLanguageResources: function(path) {
+  _loadLanguageResources: function(url) {
     var xhr = new XMLHttpRequest();
     xhr.addEventListener('load', function(e) {
       if (e.target.status < 400) {
@@ -65,7 +65,8 @@ LocalizeBehavior = {
         this.set('languageResources', JSON.parse(items));
     }.bind(this));
 
-    xhr.open('GET', path);
+    xhr.open('GET', url);
+    xhr.withCredentials = true;
     xhr.send();
   },
 

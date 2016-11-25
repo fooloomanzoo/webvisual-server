@@ -2,6 +2,9 @@
 **/bower_components
 **/data/**
 
+# build
+public/build/*
+
 # Logs
 logs
 *.log

@@ -68,9 +68,6 @@
         flex-shrink: 0;
         box-sizing: border-box;
       }
-      :host([dark]) #title {
-        color: var(--highlight-color);
-      }
       #mainContent {
         display: flex;
         flex-direction: row;
@@ -94,13 +91,13 @@
         pointer-events: auto;
       }
       :host(:not([opened])) #mainContent {
-        padding-top: 3em;
+        padding-top: 3.4em;
       }
       :host([opened]) #mainContent {
-        padding-top: calc(15vh + 120px + 0.5em);
+        padding-top: calc(15vh + 120px + 0.4em);
       }
       :host(:not([opened])) #header {
-        height: 2.5em;
+        height: 3em;
       }
       :host([opened]) #header {
         height: calc(15vh + 120px);
@@ -129,9 +126,9 @@
         border-top: none;
       }
       #headerContent {
-        height: calc(100% - 2.5em);
+        height: calc(100% - 3em);
         width: 100%;
-        padding-bottom: 2.5em;
+        padding-bottom: 3em;
         position: relative;
         box-sizing: border-box;
       }

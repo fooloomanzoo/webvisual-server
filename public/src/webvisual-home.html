@@ -52,9 +52,12 @@
       a {
         display: inline-flex;
         align-items: center;
+
+        justify-content: center;
         text-decoration: none;
         width: 100%;
       }
+
       .item.facility {
         margin: 16px;
         padding: 1.5em;
@@ -83,16 +86,18 @@
         margin-bottom: 32px;
       }
 
-      a:link {
+      a:link,
+      a:visited {
         color: var(--bright-text-color);
       }
       a:active {
         color: var(--active-link-color);
       }
-      a:visited {
-        color: var(--highlight-color);
-      }
 
+      app-toolbar > a {
+        justify-content: center;
+        color: var(--warning-color) !important;
+      }
       @media (min-width: 767px) {
         .box {
           max-width: 68vw;

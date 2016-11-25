@@ -27,17 +27,19 @@
         --select-color: #CCF2DD;
 
         --active-link-color: #68D97B;
-        --warning-color: #FF9D9D;
+        --warning-color: #FCFFBB;
 
         --caption-background: #ffffff;
         --group-card-background: #e5e5e5;
 
+        --border-color: #777;
+
         --iron-icon-height: 24px;
         --iron-icon-width: 24px;
 
-        --toggle-button-unchecked-bar-color: var(--primary-color);
-        --toggle-button-unchecked-button-color: var(--bright-text-color);
-        --toggle-button-unchecked-ink-color: var(--primary-color);
+        --toggle-button-unchecked-bar-color: #005B82;
+        --toggle-button-unchecked-button-color: #f1f1f1;
+        --toggle-button-unchecked-ink-color: #005B82;
         --toggle-button-checked-bar-color:	#68D97B;
         --toggle-button-checked-button-color:	#68D97B;
         --toggle-button-checked-ink-color:	#68D97B;
@@ -48,10 +50,10 @@
         --radio-button-system-color: currentColor;
 
         --element-color: #12B8C3;
+        --element-text-color: #252525;
         --element-state-inrange-color: #51cc41;
         --element-state-deceeds-color: #920bad;
         --element-state-exceeds-color: #D91B1B;
-        --element-text-color: #333;
         --element-state-inrange-text-color: var(--primary-text-color);
         --element-state-deceeds-text-color: var(--bright-text-color);
         --element-state-exceeds-text-color: var(--bright-text-color);
@@ -70,11 +72,11 @@
 
       :host([dark]) {
         --primary-color: #345475;
-        --dark-primary-color: #252525; /* Primary Colors */
-        --bright-primary-color: #005B82;
+        --dark-primary-color: #243241; /* Primary Colors */
+        --bright-primary-color: #3170B0;
 
-        --primary-text-color: #252525;
-        --bright-text-color: #BDE2F1;
+        --primary-text-color: #c5c5c5;
+        --bright-text-color: #e1e1e1;
         --disabled-text-color: #bbb;
         --highlight-color: #BDE2F1;
         --select-color: #CCF2DD;
@@ -82,15 +84,28 @@
         --active-link-color: #00FF9C;
         --warning-color: #FF9D9D;
 
-        --caption-background: #bbb;
-        --group-card-background: #858585;
+        --caption-background: #696969;
+        --group-card-background: #555;
+
+        --border-color: #444;
+
+        --toggle-button-unchecked-bar-color: #454545;
+        --toggle-button-unchecked-button-color: #BDE2F1;
+        --toggle-button-unchecked-ink-color: #454545;
+
+        --element-state-inrange-text-color: #000;
+        --element-text-color: #000;
+
+        --app-drawer-header: {
+          color: #f1f1f1;
+        };
       }
 
       :host(:not([plain])) {
-        --primary-background: #999;;
+        --primary-background: #999;
       }
       :host(:not([plain])[dark]) {
-        --primary-background: #555;;
+        --primary-background: #333;
       }
       :host([plain]) {
         --primary-background: var(--primary-color);

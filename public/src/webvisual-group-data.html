@@ -105,7 +105,6 @@
       },
 
       _groupingKeysChanged: function(groupingKeys) {
-        console.log(groupingKeys);
         var groupedKey = localStorage.getItem('groupedKey');
         if (groupedKey && groupedKey in this.groupingKeys) {
           this.set('groupedKey', groupedKey);

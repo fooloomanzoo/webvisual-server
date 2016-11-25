@@ -14,8 +14,10 @@
     "fonts/**/*",
     "icons/**/*",
     "fonts/*",
+    "scripts/*",
     "src/**/*",
     "app.yaml",
+    "locales.json",
     "bower.json"
   ],
   "includeDependencies": [

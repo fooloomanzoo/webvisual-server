@@ -94,8 +94,16 @@
       app-drawer {
         z-index: 12;
       }
+      app-drawer > * {
+        width: calc(100% - 32px);
+        margin: 0 16px;
+      }
       app-drawer > app-toolbar {
         @apply(--app-drawer-header);
+        width: 100%;
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0 32px;
       }
       app-drawer .spacer {
         margin-bottom: 1em;
@@ -103,7 +111,6 @@
       app-drawer webvisual-select-box,
       app-drawer webvisual-button,
       app-drawer webvisual-toggle-button {
-        width: 100%;
         padding: 0.75em 1em;
         box-sizing: border-box;
       }
@@ -250,7 +257,7 @@
       <app-drawer id="drawerPanel" opened="{{drawerOpened}}" align="left" swipe-open tabindex="0">
         <app-toolbar class="header">
           <webvisual-icon-button icon="close" on-tap="_toggleDrawer"></webvisual-icon-button>
-          <div main-title style="text-align:end;padding-right:0.5em;">Webvisual</div>
+          <!-- <div main-title style="text-align:end;padding-right:0.5em;">Webvisual</div> -->
         </app-toolbar>
 
         <webvisual-button for="route-collapse" on-tap="_toggleCollapse">
@@ -380,7 +387,7 @@
 
         languageResourcePath: {
           type: String,
-          value: './locales.json'
+          value: '/locales.json'
         },
 
         dark: {
