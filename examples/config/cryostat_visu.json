@@ -97,8 +97,8 @@
 				"color": "#B63614"
 			},
 
-			"groupingKeys": [ "Bezeichner", "*" ],
-			"preferedGroupingKey": "*",
+			"groupingKeys": [ "Bezeichner" ],
+			"preferedGroupingKey": "",
 
 			"exclusiveGroups": {
 				"bel. Eigenschaft": {
@@ -251,8 +251,8 @@
 				"color": "#B61462"
 			},
 
-			"groupingKeys": [ "Bezeichner", "*" ],
-			"preferedGroupingKey": "*",
+			"groupingKeys": [ "Bezeichner" ],
+			"preferedGroupingKey": "",
 
 			"exclusiveGroups": {
 				"Bezeichner": {}

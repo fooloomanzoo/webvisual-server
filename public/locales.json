@@ -1,12 +1,12 @@
 {
 	"de": {
+		"login": {
+			"name": "Einloggen",
+			"title": "Bitte loggen Sie sich ein"
+		},
 		"home": {
       "name": "Auswahl",
       "title": "Auswahl der Messanlage"
-    },
-		"login": {
-      "name": "Einloggen",
-      "title": "Bitte loggen Sie sich ein"
     },
 		"groups": {
       "name": "Gruppen"
@@ -26,8 +26,8 @@
       "true": "dunkles Farblayout",
       "false": "helles Farblayout"
     },
-		"flat": {
-      "true": "flache Darstellung",
+		"plain": {
+      "true": "ebene Darstellung",
       "false": "Fensterdarstellung"
     },
     "notification": {
@@ -42,13 +42,255 @@
     }
 	},
 	"en": {
+		"home": {
+			"name": "Measuring Facilities",
+			"title": "Select a measuring facility"
+		},
+		"login": {
+			"name": "Log In",
+			"title": "Please log in"
+		},
+		"groups": {
+			"name": "Groups"
+		},
+		"list": {
+			"name": "List"
+		},
+		"detail": {
+			"name": "Details"
+		},
+		"settings": "Settings",
+		"view": "View",
+		"layout": "Layout",
+		"language": "Language",
+		"groupedKey": "Group by...",
+		"dark": {
+			"true": "dark color scheme",
+			"false": "bright color scheme"
+		},
+		"plain": {
+			"true": "plain presentation",
+			"false": "windowed presentation"
+		},
+		"notification": {
+			"offline": {
+				"true": "You are offline",
+				"false": "You are online"
+			},
+			"loggedIn":  {
+				"true": "You are logged in",
+				"false": "You are logged out"
+			}
+		}
 	},
 	"fr": {
+		"home": {
+			"name": "Installation de Mesure",
+			"title": "choisissez une installation de mesure, s'il vous plaît"
+		},
+		"login": {
+			"name": "Connectez",
+			"title": "connectez, s'il vous plaît"
+		},
+		"groups": {
+			"name": "Groupe"
+		},
+		"list": {
+			"name": "Liste"
+		},
+		"detail": {
+			"name": "Details"
+		},
+		"settings": "Paramètres",
+		"view": "Affichage",
+		"layout": "Mise en Page",
+		"language": "Langue",
+		"groupedKey": "Arrangez...",
+		"dark": {
+			"true": "schéma-encreur foncé",
+			"false": "schéma-encreur clair"
+		},
+		"plain": {
+			"true": "présentation méplate",
+			"false": "presentation de fenêtrage"
+		},
+		"notification": {
+			"offline": {
+				"true": "Vous avez débranché",
+				"false": "Vous avez en ligne"
+			},
+			"loggedIn":  {
+				"true": "Vous avez connecté",
+				"false": "Vous avez déconnecté"
+			}
+		}
 	},
 	"es": {
+		"home": {
+			"name": "Instalación de Medición",
+			"title": "Elegid la instalación de medición"
+		},
+		"login": {
+			"name": "Iniciar Sesión",
+			"title": "Iniciar Sesión"
+		},
+		"groups": {
+			"name": "Grupo"
+		},
+		"list": {
+			"name": "Lista"
+		},
+		"detail": {
+			"name": "Detalle"
+		},
+		"settings": "Configuración",
+		"view": "Punto de Vista",
+		"layout": "Mise en Page",
+		"language": "Lengua",
+		"groupedKey": "Agrupar...",
+		"dark": {
+			"true": "oscuro esquema",
+			"false": "claro esquema"
+		},
+		"plain": {
+			"true": "plato punto de vista",
+			"false": "punto de vista de ventanilla"
+		},
+		"notification": {
+			"offline": {
+				"true": "Estas desconectado",
+				"false": "Estás en línea"
+			},
+			"loggedIn":  {
+				"true": "Ha iniciado la sesión",
+				"false": "Estás desconectado"
+			}
+		}
 	},
 	"it": {
+		"home": {
+			"name": "Impianto di Misurazione",
+			"title": "seleziona uno impianto di misurazione"
+		},
+		"login": {
+			"name": "Log In",
+			"title": "accedi"
+		},
+		"groups": {
+			"name": "Gruppo"
+		},
+		"list": {
+			"name": "Serie"
+		},
+		"detail": {
+			"name": "Dettagli"
+		},
+		"settings": "Impostazione",
+		"view": "Veduta",
+		"layout": "Menabò",
+		"language": "Lingua",
+		"groupedKey": "Ordinare dare...",
+		"dark": {
+			"true": "cupo scheme a colori",
+			"false": "chiaro scheme a colori"
+		},
+		"plain": {
+			"true": "appiattita presentazione",
+			"false": "presentazione a finestra"
+		},
+		"notification": {
+			"offline": {
+				"true": "Non in linea",
+				"false": "In linea"
+			},
+			"loggedIn":  {
+				"true": "Sei connesso",
+				"false": "Ora sei disconnesso"
+			}
+		}
 	},
 	"ru": {
+		"home": {
+			"name": "Система физических величин",
+			"title": "Система физических величин"
+		},
+		"login": {
+			"name": "Логин",
+			"title": "Логин"
+		},
+		"groups": {
+			"name": "группиро́вка"
+		},
+		"list": {
+			"name": "пе́речень"
+		},
+		"detail": {
+			"name": "дета́ль"
+		},
+		"settings": "Настройка",
+		"view": "взгляд",
+		"layout": "расположе́ние",
+		"language": "язы́к",
+		"groupedKey": "гру́ппами...",
+		"dark": {
+			"true": "Тьма",
+			"false": "светлый"
+		},
+		"plain": {
+			"true": "Плоский Интерфейс",
+			"false": "Интерфейс пользователя"
+		},
+		"notification": {
+			"offline": {
+				"true": "Оффлайн",
+				"false": "Онлайн"
+			},
+			"loggedIn":  {
+				"true": "Вы вошли",
+				"false": "Вы вышли из учётной записи"
+			}
+		}
+	},
+	"zh": {
+		"home": {
+			"name": "测量​设备",
+			"title": "测量​设备"
+		},
+		"login": {
+			"name": "登录",
+			"title": "請登錄"
+		},
+		"groups": {
+			"name": "分批"
+		},
+		"list": {
+			"name": "目录"
+		},
+		"detail": {
+			"name": "細部"
+		},
+		"settings": "构型",
+		"view": "图示",
+		"layout": "版式",
+		"language": "语言",
+		"groupedKey": "分类...",
+		"dark": {
+			"true": "黑",
+			"false": "亮"
+		},
+		"plain": {
+			"true": "平",
+			"false": "視窗系統"
+		},
+		"notification": {
+			"offline": {
+				"true": "離線",
+				"false": "線上"
+			},
+			"loggedIn":  {
+				"true": "登入",
+				"false": "您尚未登录"
+			}
+		}
 	}
 }

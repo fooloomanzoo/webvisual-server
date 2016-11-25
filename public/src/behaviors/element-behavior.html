@@ -157,6 +157,38 @@
       }
     },
 
+    requestLastValue: function(mount, len) {
+
+      return new Promise(function(resolve, reject) {
+        if (!this.webworker) {
+          reject();
+        }
+
+        var lastMessageId = this._lastMessageId++;
+
+        this.webworker.addEventListener('message', function onMessage(e) {
+          if (e.data
+           && e.data.messageId
+           && e.data.messageId === lastMessageId) {
+             this.webworker.removeEventListener('message', onMessage);
+             resolve(e.data.values);
+           }
+        }.bind(this));
+
+        this.webworker.postMessage(
+          {
+            request: {
+                requestLast: {
+                  messageId: lastMessageId,
+                  mounts: [mount],
+                  length: len || 1
+                }
+            }
+          });
+
+      }.bind(Webvisual))
+    },
+
     renderInsertedValues: function(values) {
     },
 

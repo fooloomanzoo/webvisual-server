@@ -101,6 +101,12 @@
         width: 100%;
         box-sizing: border-box;
       }
+      app-drawer iron-collapse > .collapse-content {
+        padding: 0.5em 1.5em;
+      }
+      app-drawer iron-collapse > .collapse-content > * {
+        width: 100%;
+      }
       #pageselector {
         box-sizing: border-box;
         position: relative;
@@ -179,9 +185,6 @@
 
           <webvisual-icon-button icon="more-vert" checked="{{showTabs}}"></webvisual-icon-button>
 
-          <!-- <webvisual-icon-button icon="[[_computeExpandIcon(expanded)]]" class="expand-icon" on-tap="toolbarExpandToggle"></webvisual-icon-button>
-          <webvisual-icon-button icon="remove" hidden$="[[forceOpened]]" class="toggle-icon control" on-tap="closeToolbar"></webvisual-icon-button> -->
-
         </template>
 
         <template is="dom-if" if="[[!loggedIn]]">
@@ -213,15 +216,15 @@
 
     <iron-pages id="pageselector" role="main" selected="[[page]]" attr-for-selected="name" selected-attribute="visible">
       <!-- home view for selecting the facility -->
-      <webvisual-home name="home" dark="[[dark]]" flat="[[flat]]" facilities="[[facilities]]" route="{{subroute}}" logged-in="{{loggedIn}}"></webvisual-home>
+      <webvisual-home name="home" dark="[[dark]]" plain="[[plain]]" facilities="[[facilities]]" route="{{subroute}}" logged-in="{{loggedIn}}"></webvisual-home>
       <!-- login view-->
-      <webvisual-login name="login" dark="[[dark]]" flat="[[flat]]" route="[[subroute]]" offline="[[offline]]"></webvisual-login>
+      <webvisual-login name="login" dark="[[dark]]" plain="[[plain]]" route="[[subroute]]" offline="[[offline]]"></webvisual-login>
       <!-- list view of items in a facility -->
-      <webvisual-list name="list" dark="[[dark]]" flat="[[flat]]" route="[[subroute]]" facilities="[[facilities]]" offline="[[offline]]" select-notify load-complete="[[loadComplete]]" logged-in="[[loggedIn]]"></webvisual-list>
+      <webvisual-list name="list" dark="[[dark]]" plain="[[plain]]" route="[[subroute]]" facilities="[[facilities]]" offline="[[offline]]" select-notify load-complete="[[loadComplete]]" logged-in="[[loggedIn]]"></webvisual-list>
       <!-- group view of items -->
-      <webvisual-groups name="groups" dark="[[dark]]" flat="[[flat]]" route="[[subroute]]" facilities="[[facilities]]" offline="[[offline]]" load-complete="[[loadComplete]]" logged-in="[[loggedIn]]"></webvisual-list>
+      <webvisual-groups name="groups" dark="[[dark]]" plain="[[plain]]" route="[[subroute]]" facilities="[[facilities]]" offline="[[offline]]" load-complete="[[loadComplete]]" logged-in="[[loggedIn]]" grouped-key="[[groupedKey]]"></webvisual-groups>
       <!-- detail view of one item -->
-      <webvisual-detail name="detail" dark="[[dark]]" flat="[[flat]]" route="[[subroute]]" offline="[[offline]]"></webvisual-detail>
+      <webvisual-detail name="detail" dark="[[dark]]" plain="[[plain]]" route="[[subroute]]" offline="[[offline]]"></webvisual-detail>
     </iron-pages>
 
     <!-- EXCEEDING -->
@@ -294,6 +297,7 @@
             <option value="es">español</option>
             <option value="it">italiano</option>
             <option value="ru">русский</option>
+            <option value="zh">中文</option>
           </select>
         </webvisual-select-box>
 
@@ -305,8 +309,8 @@
 
         <iron-collapse id="layout-collapse" opened>
           <div class="collapse-content">
-            <webvisual-toggle-button class="sidemenu" checked="{{flat}}">
-              <iron-icon icon="drag-handle"></iron-icon>{{localize('flat', flat)}}
+            <webvisual-toggle-button class="sidemenu" checked="{{plain}}">
+              <iron-icon icon="drag-handle"></iron-icon>{{localize('plain', plain)}}
             </webvisual-toggle-button>
             <webvisual-toggle-button class="sidemenu" checked="{{dark}}">
               <iron-icon icon="settings-brightness"></iron-icon>{{localize('dark', dark)}}
@@ -342,10 +346,10 @@
           observer: '_darkChanged'
         },
 
-        flat: {
+        plain: {
           type: Boolean,
           reflectToAttribute: true,
-          observer: '_flatChanged'
+          observer: '_plainChanged'
         },
 
         facilityName: String,
@@ -547,26 +551,36 @@
         for (var key in settings) {
           this.set(key, settings[key]);
         }
+
+        if (this.loadComplete) {
+          this.updateStyles();
+        }
       },
 
-      _flatChanged: function(flat, old) {
+      _plainChanged: function(plain, old) {
         if (old === undefined)
           return;
 
         var settings = JSON.parse(localStorage.getItem('settings')) || {};
-        settings.flat = flat;
+        settings.plain = plain;
         localStorage.setItem('settings', JSON.stringify(settings));
+
+        if (this.loadComplete) {
+          this.updateStyles();
+        }
       },
 
       _darkChanged: function(dark, old) {
-        this.updateStyles();
-
         if (old === undefined)
           return;
 
         var settings = JSON.parse(localStorage.getItem('settings')) || {};
         settings.dark = dark;
         localStorage.setItem('settings', JSON.stringify(settings));
+
+        if (this.loadComplete) {
+          this.updateStyles();
+        }
       },
 
       _computeShouldShowHeader: function(page) {

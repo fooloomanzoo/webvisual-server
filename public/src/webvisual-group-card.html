@@ -106,9 +106,9 @@
         height: calc(15vh + 120px);
       }
 
-      :host([flat]),
-      :host([flat]) #header,
-      :host([flat]) #background {
+      :host([plain]),
+      :host([plain]) #header,
+      :host([plain]) #background {
         background: transparent !important;
         box-shadow: none !important;
         border-color: transparent !important;
@@ -118,14 +118,14 @@
         border-bottom-width: thin;
         border-bottom-color: inherit;
       }
-      :host([flat]) #title {
+      :host([plain]) #title {
         border-color: currentColor;
       }
-      :host([flat][opened]) #headerContent {
+      :host([plain][opened]) #headerContent {
         border-top: thin solid currentColor;
         border-bottom: medium solid currentColor;
       }
-      :host(:not([flat])) #mainContent {
+      :host(:not([plain])) #mainContent {
         border-top: none;
       }
       #headerContent {
@@ -156,7 +156,7 @@
       }
     </style>
 
-      <section id='header' hidden$='[[_hidetitle(title, flat, hideHeader)]]'>
+      <section id='header' hidden$='[[_hidetitle(title, plain, hideHeader)]]'>
         <section id="background"></section>
 
         <iron-pages id="headerContent" selected="[[view]]" attr-for-selected="name" selected-attribute="opened">
@@ -202,7 +202,7 @@
           reflectToAttribute: true
         },
 
-        flat: {
+        plain: {
           type: Boolean,
           reflectToAttribute: true
         },
@@ -257,8 +257,8 @@
         this.setAttribute('aria-system', title);
       },
 
-      _hidetitle: function(title, flat, hideHeader) {
-        if (flat || hideHeader)
+      _hidetitle: function(title, plain, hideHeader) {
+        if (plain || hideHeader)
           return true;
         else
           return false;

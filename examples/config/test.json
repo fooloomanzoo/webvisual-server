@@ -120,7 +120,7 @@
         }]
       },
 
-      "groupingKeys": ["prompt","secondprompt", "*"],
+      "groupingKeys": ["prompt", "secondprompt"],
       "preferedGroupingKey": "prompt",
 
       "exclusiveGroups": {

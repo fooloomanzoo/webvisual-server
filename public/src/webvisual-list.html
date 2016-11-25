@@ -59,7 +59,7 @@
         border-right-width: thin;
       }
 
-      :host(:not([flat])) .grid li > * {
+      :host(:not([plain])) .grid li > * {
         box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14),
                     0 1px 5px 0 rgba(0, 0, 0, 0.12),
                     0 3px 1px -2px rgba(0, 0, 0, 0.2);
@@ -125,30 +125,28 @@
       socket-room="[[routeData.facilityName]]/[[routeData.systemName]]"
       lazy-connect="[[shouldConnectSocket]]"></webvisual-element-socket-data>
 
-    <!-- <header>
-      <h1>[[facility.title]]/[[system.title]]</h1>
-    </header> -->
+    <!-- <template is="dom-if" if="[[visible]]" restamp> -->
+      <ul class="grid" hidden$="[[failure]]">
+        <template is="dom-repeat" items="[[_getListItems(elements)]]">
+          <li>
+            <!-- <a href$="[[_getItemHref(item)]]"> -->
+              <webvisual-element-sign
+                item="[[item]]"
+                show-date
+                selectable></webvisual-element-sign>
+              <webvisual-element-caption
+                keys="[[item.keys]]"></webvisual-element-caption>
+            <!-- </a> -->
+          </li>
+        </template>
+      </ul>
 
-    <ul class="grid" hidden$="[[failure]]">
-      <template is="dom-repeat" items="[[_getListItems(elements)]]">
-        <li>
-          <!-- <a href$="[[_getItemHref(item)]]"> -->
-            <webvisual-element-sign
-              item="[[item]]"
-              show-date
-              selectable></webvisual-element-sign>
-            <webvisual-element-caption
-              keys="[[item.keys]]"></webvisual-element-caption>
-          <!-- </a> -->
-        </li>
-      </template>
-    </ul>
+      <webvisual-snackbar opened>
+        <webvisual-element-sign item="[[item]]"></webvisual-element-sign>
+        <webvisual-element-caption keys="[[item.keys]]" vertical></webvisual-element-caption>
+      </webvisual-snackbar>
 
-    <webvisual-snackbar opened>
-      <webvisual-element-sign item="[[item]]"></webvisual-element-sign>
-      <webvisual-element-caption keys="[[item.keys]]" vertical></webvisual-element-caption>
-    </webvisual-snackbar>
-
+    <!-- </template> -->
   </template>
 
   <script>
@@ -165,7 +163,7 @@
           reflectToAttribute: true
         },
 
-        flat: {
+        plain: {
           type: Boolean,
           reflectToAttribute: true
         },
@@ -182,7 +180,11 @@
 
         failure: Boolean,
 
-        visible: Boolean,
+        visible: {
+          type: Boolean,
+          value: false,
+          reflectToAttribute: true
+        },
 
         offline: Boolean,
 
@@ -210,20 +212,6 @@
       _getListItems: function(items) {
         // Return placeholder items when the items haven't loaded yet.
         return items || [{},{},{},{},{},{},{},{},{},{}];
-      },
-
-      _getItemHref: function(item) {
-        // By returning null when `itemId` is undefined, the href attribute won't be set and
-        // the link will be disabled.
-        return item.name ? ['/detail', this.facility.name, this.system.name, item.name].join('/') : null;
-      },
-
-      _getPluralizedQuantity: function(quantity) {
-        if (!quantity) {
-          return '';
-        }
-        var pluralizedQ = quantity === 1 ? 'item' : 'items';
-        return  '(' + quantity + ' ' + pluralizedQ + ')';
       },
 
       _routeChanged: function(routeData, visible) {

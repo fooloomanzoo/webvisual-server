@@ -47,7 +47,7 @@
         border-radius: 12px;
       }
 
-      :host(:not([flat])) .grid li > * {
+      :host(:not([plain])) .grid li > * {
         box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.14),
                     0 1px 10px 0 rgba(0, 0, 0, 0.12),
                     0 2px 4px -1px rgba(0, 0, 0, 0.4);
@@ -168,48 +168,43 @@
       facility-name="[[routeData.facilityName]]"
       system-name="[[routeData.systemName]]"></webvisual-svg-data>
 
-    <!-- <header>
-      <h1>[[facility.title]]/[[system.title]]</h1>
-    </header> -->
+    <!-- <template is="dom-if" if="[[visible]]" restamp> -->
 
-    <ul class="grid">
-      <template is="dom-repeat" items="[[_getSubGroups(subgroups)]]" as="group">
-        <li>
-          <webvisual-group-card
-            title="[[group.title]]"
-            dark="[[dark]]"
-            flat="[[flat]]"
-            select-notify
-            exceed-notify
-            multi
-            svg-source="/data/images/[[routeData.facilityName]]/[[routeData.systemName]]/[[group.svg.source]]"
-            svg-selectable="[[_getSvgSelectable(group.svg.source, svgSource)]]">
-            <!-- <template is="dom-if" if="[[group.svg.source]]">
-              <webvisual-element-svg class="header"
-                source="/data/images/[[routeData.facilityName]]/[[routeData.systemName]]/[[group.svg.source]]"
-                selectable="[[_getSvgSelectable(group.svg.source, svgSource)]]"></webvisual-element-svg>
-            </template> -->
-            <ul class="grid sign">
-              <template is="dom-repeat" items="[[group.items]]" as="id">
-                <li>
-              <!-- <a href$="[[_getItemHref(item)]]"> -->
-                  <webvisual-element-sign
-                    item="[[_getItem(id, elements)]]"
-                    show-date
-                    selectable></webvisual-element-sign>
-                  <webvisual-element-caption
-                    vertical
-                    keys="[[_getItemKeys(id, elements)]]"
-                    grouped-key='[[groupedKey]]' without-grouped-key></webvisual-element-caption>
-                <!-- </a> -->
-                </li>
-              </template>
-            </ul>
-          </webvisual-group-card>
-        </li>
-      </template>
+      <ul class="grid">
+        <template is="dom-repeat" items="[[_getSubGroups(subgroups)]]" as="group">
+          <li>
+            <webvisual-group-card
+              title="[[group.title]]"
+              dark="[[dark]]"
+              plain="[[plain]]"
+              select-notify
+              exceed-notify
+              multi
+              svg-source="/data/images/[[routeData.facilityName]]/[[routeData.systemName]]/[[group.svg.source]]"
+              svg-selectable="[[_getSvgSelectable(group.svg.source, svgSource)]]">
 
-    </ul>
+              <ul class="grid sign">
+                <template is="dom-repeat" items="[[group.items]]" as="id">
+                  <li>
+                <!-- <a href$="[[_getItemHref(item)]]"> -->
+                    <webvisual-element-sign
+                      item="[[_getItem(id, elements)]]"
+                      show-date
+                      selectable></webvisual-element-sign>
+                    <webvisual-element-caption
+                      vertical
+                      keys="[[_getItemKeys(id, elements)]]"
+                      grouped-key='[[groupedKey]]' without-grouped-key></webvisual-element-caption>
+                  <!-- </a> -->
+                  </li>
+                </template>
+              </ul>
+            </webvisual-group-card>
+          </li>
+        </template>
+      </ul>
+
+    <!-- </template> -->
 
   </template>
 
@@ -229,7 +224,7 @@
           reflectToAttribute: true
         },
 
-        flat: {
+        plain: {
           type: Boolean,
           reflectToAttribute: true
         },
@@ -258,7 +253,11 @@
 
         failure: Boolean,
 
-        visible: Boolean,
+        visible: {
+          type: Boolean,
+          value: false,
+          reflectToAttribute: true
+        },
 
         offline: Boolean,
 

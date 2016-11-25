@@ -66,7 +66,7 @@ WebvisualClient.prototype = {
         .add(element);
 
     if (!element._initialized)
-      this.requestLastValue(mount)
+      element.requestLastValue(mount)
              .then( function(values) {
                element.insertValues(values);
              })
@@ -74,11 +74,13 @@ WebvisualClient.prototype = {
   },
 
   retractElement: function(element, item) {
-    var mount = item.mount; // item(.mount) is used, because properties might be already deleted from element
-
-    if (!mount)
+    if (!element || !item || !item.mount)
       return;
 
+    var mount = item.mount; // item(.mount) is used, because properties might be already deleted from element
+
+    element._initialized = false;
+    
     delete element.values;
 
     if (!this.nodes.has(mount))
@@ -86,6 +88,7 @@ WebvisualClient.prototype = {
 
     this.nodes.get(mount)
       .delete(element);
+
   },
   //
   // initializeData: function(items) {
@@ -98,38 +101,6 @@ WebvisualClient.prototype = {
   //     this._initialized = true;
   //   }
   // },
-
-  requestLastValue: function(mounts, len) {
-    if (!Array.isArray(mounts))
-      mounts = [mounts];
-
-    return new Promise(function(resolve, reject) {
-      if (!this.webworker) {
-        reject();
-      }
-
-      var lastMessageId = this._lastMessageId++;
-
-      this.webworker.postMessage(
-        {
-          request: {
-              requestLast: {
-                messageId: lastMessageId,
-                mounts: mounts,
-                length: 1
-              }
-          }
-        });
-
-      this.webworker.addEventListener('message', function(e) {
-        if (e.data
-         && e.data.messageId
-         && e.data.messageId === lastMessageId) {
-           resolve(e.data.values);
-         }
-      })
-    }.bind(this))
-  },
 
   updateNodes: function(message) {
     if (!message) return;
