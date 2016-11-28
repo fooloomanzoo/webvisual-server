@@ -102,21 +102,6 @@
 
         --element-state-inrange-text-color: #000;
         --element-text-color: #000;
-
-        --app-drawer-header: {
-          color: #f1f1f1;
-        };
-        --app-header: {
-          background: var(--dark-primary-color);
-          color: var(--bright-text-color);
-        };
-        --app-header-before: {
-          background: var(--saturated-primary-color);
-        };
-        --app-drawer-content-container: {
-          color: var(--bright-text-color);
-          background-color: #222;
-        };
       }
 
       :host(:not([plain])) {
@@ -136,16 +121,62 @@
         --groupcard-header-background: var(--dark-primary-color);
         --groupcard-header-color: var(--bright-text-color);
         --grid-border-color: #656565;
+        --app-drawer-header: {
+          color: #f1f1f1;
+        };
+        --app-header: {
+          background: var(--dark-primary-color);
+          color: var(--bright-text-color);
+        };
+        --app-header-before: {
+          background: var(--saturated-primary-color);
+        };
+        --app-drawer-content-container: {
+          color: var(--bright-text-color);
+          background-color: #222;
+        };
       }
       :host([plain]) {
-        --primary-background: var(--primary-color);
+        --primary-background: var(--bright-primary-color);
         --groupcard-background: transparent;
         --groupcard-header-background: transparent;
         --groupcard-header-color: var(--bright-text-color);
         --grid-border-color: transparent;
+        --toggle-button-unchecked-bar-color: var(--bright-primary-color);
+        --toggle-button-unchecked-button-color: #f1f1f1;
+        --toggle-button-unchecked-ink-color: var(--bright-primary-color);
+        --app-header-before: {
+          background: var(--primary-color);
+        };
+        --app-drawer-content-container: {
+          min-width: 256px;
+          color: var(--bright-text-color);
+          background-color: var(--primary-color);
+        };
+        --app-drawer-header: {
+          color: var(--bright-text-color);
+        };
+        --app-header: {
+          background: var(--bright-primary-color);
+          color: var(--bright-text-color);
+        };
       }
       :host([plain][dark]) {
         --primary-background: var(--dark-primary-color);
+        --app-drawer-header: {
+          color: #f1f1f1;
+        };
+        --app-header: {
+          background: var(--dark-primary-color);
+          color: var(--bright-text-color);
+        };
+        --app-header-before: {
+          background: var(--saturated-primary-color);
+        };
+        --app-drawer-content-container: {
+          color: var(--bright-text-color);
+          background-color: #222;
+        };
       }
 
       paper-ripple {

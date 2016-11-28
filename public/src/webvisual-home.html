@@ -95,6 +95,8 @@
 
       .login {
         justify-content: center;
+      }
+      a.login-ref {
         color: var(--notification-color);
       }
       @media (min-width: 767px) {
@@ -105,9 +107,9 @@
     </style>
 
     <template is="dom-if" if="[[!loggedIn]]">
-      <app-toolbar "login">
-        <a href="/login">
-          <webvisual-icon-button icon="assignment-ind" class="login-icon"></webvisual-icon-button>
+      <app-toolbar class="login">
+        <a href="/login" class="login-ref">
+          <webvisual-icon-button icon="assignment-ind"></webvisual-icon-button>
           <span>{{localize('login', 'title')}}</span>
         </a>
       </app-toolbar>

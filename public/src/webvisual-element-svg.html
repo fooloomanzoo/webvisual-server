@@ -36,15 +36,13 @@
 <style>
   :host {
     color: var(--primary-text-color);
-    background: linear-gradient(to top, rgba(255,255,255,0.05) 30%,rgba(255,255,255,0.25) 90%)
     border-radius: inherit;
-    -webkit-touch-callout: none; -webkit-tap-highlight-color:rgba(0,0,0,0);
-    flex: 1;
-    display: flex;
+    -webkit-overflow-scrolling: touch;
+    -webkit-tap-highlight-color:rgba(0,0,0,0);
+    display: block;
     position: relative;
     width: 100%;
     height: 100%;
-    visibility: visible;
     font-family: inherit;
     letter-spacing: normal;
     user-select: none !important;
@@ -53,26 +51,22 @@
     border-radius: inherit;
     user-select: none !important;
   }
-  #host {
-    border-radius: inherit;
-    display: flex;
-    flex: 1;
-    position: relative;
-    height: 100%;
-    width: 100%;
-  }
-  :host([fullscreen]), :-webkit-full-screen, :fullscreen {
+  :host([fullscreen]),
+  :-webkit-full-screen,
+  :fullscreen {
     background-color: var(--dark-primary-color);
   }
   #svgContainer {
     border-radius: inherit;
-    display: flex;
+    display: block;
     width: 100%;
-    height: auto;
+    height: 100%;
   }
   #svgContainer svg {
     position: relative;
     width: 100%;
+    height: 100%;
+    display: block;
   }
   #control {
     position: absolute;
