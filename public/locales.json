@@ -2,7 +2,9 @@
 	"de": {
 		"login": {
 			"name": "Login",
-			"title": "Bitte loggen Sie sich ein"
+			"title": "Bitte loggen Sie sich ein",
+			"username": "Benutzername",
+			"password": "Passwort"
 		},
 		"home": {
       "name": "Auswahl",
@@ -45,7 +47,9 @@
 	"en": {
 		"home": {
 			"name": "Measuring Facilities",
-			"title": "Select a measuring facility"
+			"title": "Select a measuring facility",
+			"username": "Username",
+			"password": "Password"
 		},
 		"login": {
 			"name": "Log In",
@@ -88,7 +92,9 @@
 	"fr": {
 		"home": {
 			"name": "Installation de Mesure",
-			"title": "choisissez une installation de mesure, s'il vous plaît"
+			"title": "choisissez une installation de mesure, s'il vous plaît",
+			"username": "nom d'utilisateur",
+			"password": "mot de passe"
 		},
 		"login": {
 			"name": "Connectez",
@@ -131,7 +137,9 @@
 	"es": {
 		"home": {
 			"name": "Instalación de Medición",
-			"title": "Elegid la instalación de medición"
+			"title": "Elegid la instalación de medición",
+			"username": "nombre de usuario",
+			"password": "clave"
 		},
 		"login": {
 			"name": "Iniciar Sesión",
@@ -174,7 +182,9 @@
 	"it": {
 		"home": {
 			"name": "Impianto di Misurazione",
-			"title": "seleziona uno impianto di misurazione"
+			"title": "seleziona uno impianto di misurazione",
+			"username": "nome utente",
+			"password": "password"
 		},
 		"login": {
 			"name": "Log In",
@@ -217,7 +227,9 @@
 	"ru": {
 		"home": {
 			"name": "Система физических величин",
-			"title": "Система физических величин"
+			"title": "Система физических величин",
+			"username": "имя пользователя",
+			"password": "пароль"
 		},
 		"login": {
 			"name": "Логин",
@@ -260,7 +272,9 @@
 	"zh": {
 		"home": {
 			"name": "测量​设备",
-			"title": "测量​设备"
+			"title": "测量​设备",
+			"username": "以标明用户的身份",
+			"password": "密码"
 		},
 		"login": {
 			"name": "登录",

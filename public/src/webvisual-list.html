@@ -5,24 +5,18 @@
 
 <link rel="import" href="behaviors/container-behavior.html"/>
 
-<link rel="import" href="webvisual-element-socket-data.html"/>
-<link rel="import" href="webvisual-facility-data.html"/>
+<link rel="import" href="data/webvisual-element-socket-data.html"/>
+<link rel="import" href="data/webvisual-facility-data.html"/>
 
 <link rel="import" href="webvisual-element-sign.html"/>
 <link rel="import" href="webvisual-element-caption.html"/>
-<link rel="import" href="webvisual-snackbar.html"/>
-
-
-<!-- TESTS -->
-<link rel="import" href="webvisual-element-checkbox.html"/>
-<link rel="import" href="behaviors/grouping-behavior.html"/>
-
 
 <link rel="import" href="style/shared-styles.html">
+<link rel="import" href="style/webvisual-button.html">
 
 <dom-module id="webvisual-list">
   <template>
-    <style include="shared-styles">
+    <style include="shared-styles webvisual-button">
       .grid {
         @apply(--layout-horizontal);
         @apply(--layout-wrap);
@@ -46,9 +40,7 @@
       }
 
       .grid li > * {
-        border-style: solid;
-        border-width: thin;
-        border-color: var(--border-color);
+        border: thin solid var(--grid-border-color);
         border-right-width: 0;
       }
       .grid li > :first-child {

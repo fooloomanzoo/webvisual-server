@@ -5,9 +5,6 @@ function WebvisualClient() {
   this.locationHost = '';
   this.socketName = '';
   this.socketRoom = '';
-
-  this.online = false;
-  this._lastMessageId = 0;
 }
 
 WebvisualClient.prototype = {
@@ -66,7 +63,7 @@ WebvisualClient.prototype = {
         .add(element);
 
     if (!element._initialized)
-      element.requestLastValue(mount)
+      element.requestLastValue(mount, element.uniqueid)
              .then( function(values) {
                element.insertValues(values);
              })
@@ -80,27 +77,13 @@ WebvisualClient.prototype = {
     var mount = item.mount; // item(.mount) is used, because properties might be already deleted from element
 
     element._initialized = false;
-    
-    delete element.values;
 
     if (!this.nodes.has(mount))
       return;
 
     this.nodes.get(mount)
       .delete(element);
-
   },
-  //
-  // initializeData: function(items) {
-  //   if (items) {
-  //     this.cache.clear();
-  //     this.nodes.clear();
-  //     items.forEach(function(item) {
-  //       this.cache.add(item.mount);
-  //     }.bind(this));
-  //     this._initialized = true;
-  //   }
-  // },
 
   updateNodes: function(message) {
     if (!message) return;

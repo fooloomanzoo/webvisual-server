@@ -18,7 +18,7 @@
       if (!system || !groupedKey || !Groups[system] || !Groups[system][groupedKey] || PreferedGroupingKeys[groupedKey] === groupedKey)
         return;
 
-      var oldgroups = this.queryAllEffectiveChildren('group-card');
+      var oldgroups = this.queryAllEffectiveChildren('groupcard');
       var elements = {};
 
       for (var i in oldgroups) {

@@ -3,14 +3,14 @@
 
 <link rel="import" href="../bower_components/app-route/app-route.html">
 
-<link rel="import" href="webvisual-element-socket-data.html"/>
-<link rel="import" href="webvisual-facility-data.html"/>
-<link rel="import" href="webvisual-group-data.html"/>
-<link rel="import" href="webvisual-svg-data.html"/>
+<link rel="import" href="data/webvisual-element-socket-data.html"/>
+<link rel="import" href="data/webvisual-facility-data.html"/>
+<link rel="import" href="data/webvisual-group-data.html"/>
+<link rel="import" href="data/webvisual-svg-data.html"/>
 
 <link rel="import" href="webvisual-element-sign.html"/>
 <link rel="import" href="webvisual-element-caption.html"/>
-<link rel="import" href="webvisual-group-card.html"/>
+<link rel="import" href="webvisual-groupcard.html"/>
 <link rel="import" href="webvisual-element-svg.html"/>
 
 <!-- TESTS -->
@@ -44,18 +44,25 @@
       }
 
       .grid li > * {
-        border-style: solid;
-        border-width: thin;
-        border-color: var(--border-color);
-        border-radius: 12px;
+        border: thin solid var(--grid-border-color);
       }
 
       :host(:not([plain])) .grid li > * {
+        border-radius: 6px;
         box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.14),
                     0 1px 10px 0 rgba(0, 0, 0, 0.12),
                     0 2px 4px -1px rgba(0, 0, 0, 0.4);
       }
 
+      :host([plain]) .grid li > * {
+        border-radius: 4px;
+      }
+      :host(:not([plain])) .grid.sign li > * {
+        border-radius: 12px;
+      }
+      :host([plain]) .grid.sign li > * {
+        border-radius: 6px;
+      }
       .grid.sign li > * {
         box-shadow: none;
       }
@@ -177,9 +184,8 @@
       <ul class="grid">
         <template is="dom-repeat" items="[[_getSubGroups(subgroups)]]" as="group">
           <li>
-            <webvisual-group-card
+            <webvisual-groupcard
               title="[[group.title]]"
-              dark="[[dark]]"
               plain="[[plain]]"
               select-notify
               exceed-notify
@@ -203,7 +209,7 @@
                   </li>
                 </template>
               </ul>
-            </webvisual-group-card>
+            </webvisual-groupcard>
           </li>
         </template>
       </ul>

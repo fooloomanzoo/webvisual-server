@@ -2,16 +2,18 @@
 
 <link rel="import" href="behaviors/container-behavior.html"/>
 
-<link rel="import" href="webvisual-radio-button.html"/>
-<link rel="import" href="webvisual-dropdown.html"/>
-<link rel="import" href="webvisual-button.html"/>
+<link rel="import" href="components/webvisual-radio-button.html"/>
+<link rel="import" href="components/webvisual-dropdown.html"/>
+
+<link rel="import" href="style/webvisual-button.html"/>
+
 <link rel="import" href="webvisual-element-graph.html"/>
 
 <script type="text/javascript" src="../bower_components/d3/d3.min.js"></script>
 
 <dom-module id="webvisual-element-chart">
   <template>
-    <style>
+    <style include="webvisual-button">
       :host {
         display: inline-flex;
 				padding: 4px;

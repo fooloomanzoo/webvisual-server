@@ -1,7 +1,8 @@
-<link rel="import" href="../bower_components/polymer/polymer.html">
-<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
-<link rel="import" href="../bower_components/paper-behaviors/paper-button-behavior.html">
-<link rel="import" href="../bower_components/paper-behaviors/paper-checked-element-behavior.html">
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-ripple/paper-ripple.html">
+<link rel="import" href="../../bower_components/iron-icon/iron-icon.html">
+
+<link rel="import" href="webvisual-icon-set.html">
 <!-- Modification of polymers paper-icon-button because of conflicts with paper-style -->
 
 <dom-module id="webvisual-icon-button">
@@ -56,8 +57,13 @@
         --iron-icon-width: var(--calculated-icon-size);
         --iron-icon-height: var(--calculated-icon-size);
       }
-    </style>
 
+      #ripple {
+        color: currentColor;
+        border-radius: inherit;
+      }
+    </style>
+    <paper-ripple id="ripple"></paper-ripple>
     <iron-icon id="icon" icon="[[icon]]" alt$="[[alt]]"></iron-icon>
   </template>
 
@@ -65,24 +71,19 @@
     Polymer({
       is: 'webvisual-icon-button',
 
-      behaviors: [
-        Polymer.PaperCheckedElementBehavior,
-        Polymer.PaperButtonBehavior
-      ],
-
       properties: {
-        raised: {
-          type: Boolean,
-          reflectToAttribute: true,
-          value: false,
-          observer: '_calculateElevation'
-        },
         icon: {
           type: String
         },
         alt: {
           type: String,
           observer: "_altChanged"
+        },
+        checked: {
+          type: Boolean,
+          value: false,
+          notify: true,
+          reflectToAttribute: true
         }
       },
 

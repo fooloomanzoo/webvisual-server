@@ -1,6 +1,6 @@
 # bower components
 **/bower_components
-**/data/**
+public/data/**
 
 # build
 public/build/*

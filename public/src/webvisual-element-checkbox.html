@@ -4,7 +4,8 @@
 <link rel="import" href="behaviors/checked-and-select-behavior.html"/>
 <link rel="import" href="behaviors/element-behavior.html"/>
 
-<link rel="import" href="webvisual-dropdown.html"/>
+<link rel="import" href="components/webvisual-dropdown.html"/>
+
 <link rel="import" href="webvisual-element-sign.html"/>
 
 <dom-module id="webvisual-element-checkbox">
@@ -59,7 +60,7 @@
         box-sizing: border-box;
         position: relative;
         height: 100%;
-        border: solid var(--box-border, 2px);
+        border: var(--checkbox-border, var(--grid-border));
         border-radius: 2px;
         background: rgba(255, 255, 255, 0.9);
         pointer-events: none;
@@ -80,12 +81,6 @@
         -webkit-transform-origin: 97% 86%;
         transform-origin: 97% 86%;
         box-sizing: content-box; /* protect against page-level box-sizing */
-      }
-
-      webvisual-element-caption {
-        --caption-background: transparent;
-        --caption-dark-background: transparent;
-        --caption-padding: 0 0 0 0.35em;
       }
 
       #container[state="0"] #box {
@@ -152,9 +147,7 @@
         background-color: var(--disabled-text-color, --primary-text-color);
         opacity: 0.5;
       }
-      :host([disabled]) webvisual-element-caption  {
-        opacity: 0.65;
-      }
+
       #dropdown {
         --dropdown-background: rgba(0, 0, 0, 0.75);
         border-radius: 4px;
@@ -172,7 +165,7 @@
       }
     </style>
 
-    <section id="container" state$="[[renderedValue.state]]" on-click="select">
+    <section id="container" state$="[[lastValue.state]]" on-click="select">
       <section id="boxContainer">
         <section id="box">
           <section id="arrow" hidden$="[[!checked]]"></section>
@@ -242,7 +235,7 @@
           }
         }
 
-        this.renderedValue = value;
+        this.lastValue = value;
       },
 
       _setDropdown: function(hasDropdown, old) {

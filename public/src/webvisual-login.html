@@ -2,15 +2,15 @@
 
 <link rel="import" href="behaviors/localize-behavior.html">
 
-<link rel="import" href="webvisual-button.html">
-
 <link rel="import" href="style/shared-styles.html">
+<link rel="import" href="style/webvisual-button.html">
+<link rel="import" href="style/webvisual-input.html">
 
 <dom-module id="webvisual-login">
 
-  <template include="shared-styles">
+  <template>
 
-    <style>
+    <style include="shared-styles webvisual-input webvisual-button">
       :host {
         @apply(--layout-vertical);
         @apply(--layout-justified);
@@ -46,80 +46,70 @@
         margin-bottom: 32px;
       }
 
-      h1 {
+      h1, h2 {
         font-weight: normal;
-        font-size: 2em;
-        margin: 0;
         text-align: center;
         white-space: normal;
       }
-
-      .input-container {
-        display: flex;
-        justify-content: space-around;
+      h1 {
+        font-size: 2em;
+        margin: 0;
+      }
+      input-box {
+        display: inline-flex;
         align-items: center;
       }
-
-      input.input {
-        color: inherit;
-        max-width: 100%;
-        box-sizing: border-box;
-        padding: 0.6em 0 0.6em 0.6em;
-        border: none;
-        background: transparent;
-        border-bottom: 1px solid currentColor;
-        font-size: 1em;
-      }
-
-      button.button {
-        display: flex;
-        align-items: center;
-        color: inherit;
-        max-width: 100%;
-        border-radius: 5px;
-        box-sizing: border-box;
-        border: 1px solid currentColor;
-        background: linear-gradient(to bottom, rgba(255,255,255,0.04) 5%,rgba(255,255,255,0.10) 40%);
-        cursor: pointer;
-        transition: background 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-        padding: 1em 1.5em;
-        margin: 0em;
-        letter-spacing: 0.2px;
-      }
-
-      iron-icon {
+      .left {
         margin-right: 0.75em;
       }
-
-      button.button:hover {
-        background: linear-gradient(to bottom, rgba(255,255,255,0.06) 5%,rgba(255,255,255,0.15) 40%);
+      .right {
+        margin-left: 0.75em;
       }
 
     </style>
 
     <div class="box">
+
       <header>
-        <h1>Webvisual {{localize('login', 'name')}}</h1>
+        <h1>Webvisual</h1>
       </header>
 
+      <form id="login"
+        action="/login"
+        method="post">
 
-      <form id="login" action="/login" method="post">
+        <h2 id="loginInfo">{{localize('login', 'name')}}</h2>
 
-          <div class="input-container">
-            <iron-icon class="left" icon="perm-identity"></iron-icon>
-            <input id="username" class="input" type="text" name="username" placeholder="username(@fz-juelich.de)" required tabindex="1" autocomplete="username"/>
-          </div>
+        <input-box>
+          <iron-icon class="left" icon="perm-identity"></iron-icon>
+          <webvisual-input>
+            <input id="username" type="text" name="username" placeholder$="{{localize('login', 'username')}}(@fz-juelich.de)" autofocus required tabindex="1"
+            aria-labelledby="usernameLabel loginInfo" autocomplete="username"/>
+            <webvisual-md-decorator error-message="Invalid Username" aria-hidden="true">
+              <label id="usernameLabel">{{localize('login', 'username')}}</label>
+              <webvisual-underline></webvisual-underline>
+            </webvisual-md-decorator>
+          </webvisual-input>
+        </input-box>
 
-          <div class="input-container">
-            <iron-icon class="left" icon="more-horiz"></iron-icon>
-            <input id="password" class="input" type="password" name="password" placeholder="password" required tabindex="2" autocomplete="password"/>
-          </div>
+        <input-box>
+          <iron-icon class="left" icon="more-horiz"></iron-icon>
+          <webvisual-input>
+            <input id="password" class="input" type="password" name="password" placeholder="{{localize('login', 'password')}}" required tabindex="2" autocomplete="password"
+            aria-labelledby="passwordLabel loginInfo" autocomplete="password"/>
+            <webvisual-md-decorator error-message="Invalid Password" aria-hidden="true">
+              <label id="passwordLabel">{{localize('login', 'password')}}</label>
+              <webvisual-underline></webvisual-underline>
+            </webvisual-md-decorator>
+          </webvisual-input>
+        </input-box>
 
+        <webvisual-button>
           <button type="submit" name="button" class="button">
             <iron-icon class="left" icon="juelich:logo"></iron-icon>
             <span>{{localize('login', 'name')}}</span>
           </button>
-
+        </webvisual-button>
       </form>
     </div>
   </template>

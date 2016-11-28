@@ -1,51 +1,52 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 
-<dom-module id="webvisual-select-box">
+<dom-module id="webvisual-selectbox">
   <template>
     <style>
-      webvisual-select-box {
+      webvisual-selectbox {
         display: inline-flex;
         box-sizing: border-box;
         align-items: center;
         padding: 0.75em 1.5em;
       }
 
-      webvisual-select-box > *:not(:first-child) {
+      webvisual-selectbox > *:not(:first-child):not(:only-child) {
         margin-left: 0.75em;
       }
 
-      webvisual-select-box > span {
+      webvisual-selectbox > span {
         flex: 1;
         text-align: center;
       }
 
-      webvisual-select-box > iron-icon {
+      webvisual-selectbox > iron-icon {
         height: 100%;
       }
 
-      webvisual-select-box > select {
+      webvisual-selectbox > select {
         font-size: 0.8em;
         font-family: inherit;
-        color: currentColor;
-        padding: 0.5em;
+        text-align: center;
         box-sizing: border-box;
         outline: none;
-        background: var(--select-background, transparent);
-        border-color: var(--select-border, var(--dark-primary-color));
+        padding: 0.5em;
+        color: var(--selectbox-color, currentColor);
+        background-color: var(--selectbox-background, transparent);
+        border-color: var(--selectbox-border, var(--dark-primary-color));
         border-radius: 6px;
         border-width: thin;
         border-style: solid;
       }
 
-      webvisual-select-box option {
+      webvisual-selectbox option {
         padding: 0.5em;
         box-sizing: border-box;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        color: currentColor;
-        background: var(--option-background, var(--primary-background));
+        color: var(--option-color, currentColor);
+        background-color: var(--option-background, transparent);
       }
     </style>
-
+  </template>
 </dom-module>

@@ -9,18 +9,10 @@
 
       values: Array,
 
-      groupedKey: String,
-
-      firstStateChange: {
-        type: Array,
+      lastValue: {
+        type: Object,
         value: function() {
-          return [];
-        }
-      },
-      lastStateChange: {
-        type: Array,
-        value: function() {
-          return [];
+          return {};
         }
       },
 
@@ -42,25 +34,13 @@
 
       singleValue: Boolean,
 
-      renderedValue: Object
     },
 
     observers: [
-      '_checkExceeding(isExceeding)',
-      'hasExceededChanged(hasExceeded)',
+      '_exceedingChanged(isExceeding)',
+      '_hasExceededChanged(hasExceeded)',
       '_setSocketConnection(noSocketConnection)'
     ],
-
-    get containerRoot() {
-      var root = Polymer.dom(this).getOwnerRoot();
-      if (!root)
-        return Polymer.dom(this).parentNode;
-      else if (root.nodeType == Node.DOCUMENT_FRAGMENT_NODE)
-        return root.host;
-      else {
-        return undefined;
-      }
-    },
 
     hostAttributes: {
       element: true
@@ -109,28 +89,16 @@
     },
 
     getValue: function(y) {
-      return this.isIndicatorLamp ? '' : y;
+      return (this.item && this.item.isIndicatorLamp) ? '' : y;
     },
 
     insertValues: function(values) {
+      if (values === undefined) {
+        return;
+      }
+
       if (!this._initialized)
         this._initialized = true;
-
-      if (values === undefined) {
-        var id = this.item.id
-          , system = this.item.system
-          , facility = this.item.facility;
-
-        var name = facility + '/' + system + '/' + id;
-        if (Webvisual.cache.has(name))
-          values = Webvisual.cache.get(name).values;
-        else
-          values = [];
-      }
-
-      if (this.noSocketConnection === true) {
-        this.splice('values', this.values.length, 0, values);
-      }
 
       if (this.singleValue === true) {
         if (this.exceedable === true)
@@ -157,14 +125,11 @@
       }
     },
 
-    requestLastValue: function(mount, len) {
-
+    requestLastValue: function(mount, uniqueid, len) {
       return new Promise(function(resolve, reject) {
         if (!this.webworker) {
           reject();
         }
-
-        var lastMessageId = this._lastMessageId++;
 
         this.webworker.addEventListener('message', function onMessage(e) {
           if (e.data
@@ -179,13 +144,12 @@
           {
             request: {
                 requestLast: {
-                  messageId: lastMessageId,
+                  messageId: uniqueid,
                   mounts: [mount],
                   length: len || 1
                 }
             }
           });
-
       }.bind(Webvisual))
     },
 
@@ -194,7 +158,8 @@
 
     clearValues: function() {
       this.resetState();
-      this.renderedValue = {};
+      this.values = [];
+      this.lastValue = {};
       // if (this.values)
       //   this.renderSplicedValues(this.values);
     },
@@ -204,12 +169,10 @@
 
       if (value.state === 0) {
         if (this.isExceeding === true) {
-          this.setLastStateChange(value);
           this.isExceeding = false;
         }
       } else {
         if (this.isExceeding !== true) {
-          this.setFirstStateChange(value);
           this.isExceeding = true;
           if (this.hasExceeded === false)
             this.set('hasExceeded', true);
@@ -217,15 +180,7 @@
       }
     },
 
-    setFirstStateChange: function(value) {
-      this.firstStateChange.push(value);
-    },
-
-    setLastStateChange: function(value) {
-      this.lastStateChange.push(value);
-    },
-
-    _checkExceeding: function(isExceeding, old) {
+    _exceedingChanged: function(isExceeding, old) {
       if (this.exceedable === true) {
         if (this.bubbles === true) {
           this.dispatchEvent(new CustomEvent('exceeding', {detail: { item: this.item, value: isExceeding }}), {bubbles: true });
@@ -233,7 +188,7 @@
       }
     },
 
-    hasExceededChanged: function() {},
+    _hasExceededChanged: function() {},
 
     resetState: function() {
       this.isExceeding = false;

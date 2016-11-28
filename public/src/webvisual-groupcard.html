@@ -4,12 +4,9 @@
 
 <link rel="import" href="behaviors/container-behavior.html">
 
-<link rel="import" href="webvisual-element-svg.html">
-<link rel="import" href="webvisual-element-chart.html">
-<link rel="import" href="webvisual-element-table.html">
-<link rel="import" href="webvisual-icon-button.html">
+<link rel="import" href="components/webvisual-icon-button.html">
 
-<dom-module id='webvisual-group-card'>
+<dom-module id='webvisual-groupcard'>
   <template>
     <style>
       :host {
@@ -18,7 +15,7 @@
         box-sizing: border-box;
         -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
         -webkit-touch-callout: none; -webkit-tap-highlight-color:rgba(0,0,0,0);
-        background: var(--group-card-background, #e5e5e5);
+        background: var(--groupcard-background, #e5e5e5);
         border: none;
       }
       #header {
@@ -29,18 +26,20 @@
         box-sizing: border-box;
         border-top-left-radius: inherit;
         border-top-right-radius: inherit;
-        background: var(--bright-primary-color);
-        color: var(--bright-text-color);
+        background: var(--groupcard-header-background, var(--bright-primary-color));
+        color: var(--groupcard-header-color, var(--bright-text-color));
+
         border-color: inherit;
         height: auto;
       }
-      #background {
+      #header::before {
         position: absolute;
+        content: '';
         overflow: hidden;
         left: 0; top: 0; right: 0; bottom: 0;
         border-top-left-radius: inherit;
         border-top-right-radius: inherit;
-        background: linear-gradient(to top, rgba(255,255,255,0.05) 30%,rgba(255,255,255,0.25) 90%)
+        background: transparent;
       }
       #title {
         display: inline-flex;
@@ -48,11 +47,11 @@
         justify-content: space-between;
         cursor: pointer;
         position: absolute;
-        left: 0;
-        bottom: 0;
-        height: 100%;
-        width: 100%;
-        box-sizing: border-box;
+        top: 0; bottom: 0; left: 0; right: 0;
+        padding-top: 0;
+        height: 3em;
+        will-change: padding;
+        transition: padding 250ms cubic-bezier(0.6, 0, 0.2, 1);
         color: var(--bright-text-color);
       }
       #title > span {
@@ -93,8 +92,15 @@
       :host(:not([opened])) #mainContent {
         padding-top: 3.4em;
       }
+      :host(:not([plain])) #header::before,
+      :host([opened]) #header::before {
+        background: linear-gradient(to top, rgba(255,255,255,0.01) 38%,rgba(255,255,255,0.2) 100%)
+      }
       :host([opened]) #mainContent {
         padding-top: calc(15vh + 120px + 0.4em);
+      }
+      :host([opened]) #title {
+        padding-top: calc(15vh + 120px - 3em);
       }
       :host(:not([opened])) #header {
         height: 3em;
@@ -103,17 +109,13 @@
         height: calc(15vh + 120px);
       }
 
-      :host([plain]),
-      :host([plain]) #header,
-      :host([plain]) #background {
-        background: transparent !important;
-        box-shadow: none !important;
-        border-color: transparent !important;
-      }
       :host #title {
         border-bottom-style: solid;
         border-bottom-width: thin;
         border-bottom-color: inherit;
+      }
+      :host([plain]) {
+        border-color: transparent;
       }
       :host([plain]) #title {
         border-color: currentColor;
@@ -131,6 +133,11 @@
         padding-bottom: 3em;
         position: relative;
         box-sizing: border-box;
+        opacity: 0;
+        transition: opacity 250ms cubic-bezier(0.6, 0, 0.2, 1);
+      }
+      #headerContent.visible {
+        opacity: 1;
       }
       :host(:not([opened])) #headerContent {
         display: none;
@@ -153,19 +160,8 @@
       }
     </style>
 
-      <section id='header' hidden$='[[_hidetitle(title, plain, hideHeader)]]'>
-        <section id="background"></section>
-
-        <iron-pages id="headerContent" selected="[[view]]" attr-for-selected="name" selected-attribute="opened">
-          <webvisual-element-table name="table" item="[[item]]"></webvisual-element-table>
-          <template is="dom-if" if="[[svgSource]]">
-            <webvisual-element-svg name="svg" source="[[svgSource]]" selectable="svgSelectable" item="[[item]]" exceeding="[[exceeding]]"></webvisual-element-svg>
-          </template>
-
-          <webvisual-element-chart name="chart" item="[[item]]" items="[[item]]" exceeding="[[exceeding]]"></webvisual-element-chart>
-        </iron-pages>
-
-        <section id='title' on-tap='toggle'>
+      <section id='header'>
+        <section id='title' on-tap='toggle' on-transitionend="_onOpened">
           <span>[[title]]</span>
           <div>
             <iron-selector selected="{{view}}" attr-for-selected="name">
@@ -177,6 +173,14 @@
             </iron-selector>
           </div>
         </section>
+        <iron-pages id="headerContent" selected="[[view]]" attr-for-selected="name" selected-attribute="opened" on-transitionend="_onClosed">
+          <webvisual-element-table name="table" item="[[item]]"></webvisual-element-table>
+          <template is="dom-if" if="[[svgSource]]">
+            <webvisual-element-svg name="svg" source="[[svgSource]]" selectable="svgSelectable" item="[[item]]" exceeding="[[exceeding]]"></webvisual-element-svg>
+          </template>
+
+          <webvisual-element-chart name="chart" item="[[item]]" items="[[item]]" exceeding="[[exceeding]]"></webvisual-element-chart>
+        </iron-pages>
       </section>
 
       <section id='mainContent'>
@@ -186,18 +190,13 @@
   </template>
   <script>
     WebvisualGroupCard = Polymer({
-      is: 'webvisual-group-card',
+      is: 'webvisual-groupcard',
 
       behaviors: [
         ContainerBehavior
       ],
 
       properties: {
-
-        dark: {
-          type: Boolean,
-          reflectToAttribute: true
-        },
 
         plain: {
           type: Boolean,
@@ -222,6 +221,7 @@
 
       },
 
+
       observers: [
         '_exceedingChanged(exceedingElements.splices)'
       ],
@@ -236,29 +236,33 @@
       },
 
       open: function() {
-        this.opened = true;
+        if (!this.opened) {
+          this.opened = true;
+        }
       },
 
       close: function() {
-        this.opened = false;
+        if (this.opened && this.$.headerContent.classList.contains('visible')) {
+          this.$.headerContent.classList.remove('visible');
+        }
+      },
+
+      _onOpened: function() {
+        if (this.opened && !this.$.headerContent.classList.contains('visible')) {
+          this.$.headerContent.classList.add('visible');
+          console.log('opened', this.$.headerContent.classList);
+        }
+      },
+
+      _onClosed: function() {
+        console.log('closed', this.$.headerContent.classList);
+        if (this.opened && !this.$.headerContent.classList.contains('visible')) {
+          this.opened = false;
+        }
       },
 
       _titleChanged: function(title) {
-        if (!title) {
-          this.title = 'unknown';
-          this.$.title.style.color = 'transparent';
-          return;
-        } else {
-          this.$.title.style.color = '';
-        }
         this.setAttribute('aria-system', title);
-      },
-
-      _hidetitle: function(title, plain, hideHeader) {
-        if (plain || hideHeader)
-          return true;
-        else
-          return false;
       }
 
     });

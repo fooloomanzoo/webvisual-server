@@ -2,117 +2,177 @@
 
 <dom-module id="webvisual-input">
   <template>
-    <style is="custom-style">
+    <style>
 
       webvisual-input {
-        display: flex;
-        position: relative;
+        display: inline-block;
         box-sizing: border-box;
+        margin: 1em 0;
+      }
+      webvisual-input > input::-webkit-input-placeholder {
+        color: transparent;
+      }
+      webvisual-input > input::-moz-placeholder {
+        color: transparent;
+      }
+      webvisual-input > input:-ms-input-placeholder {
+        color: transparent;
+      }
+      webvisual-input > input::-ms-input-placeholder {
+        color: transparent;
       }
       webvisual-input > input {
-        display: inline-flex;
-        color: currentColor;
+        font-size: 1em;
+        font-weight: 300;
         box-sizing: border-box;
-        height: auto;
-        width: 100%;
-        position: relative;
-        font-family: inherit;
-        font-size: 0.8em;
-        font-style: normal;
-        line-height: normal;
-        outline-width: 0;
-        outline: none;
+        color: var(--input-color, currentColor);
+        background: var(--input-background, transparent);
         border: none;
-        background: linear-gradient(to bottom, rgba(255,255,255,0.01) 5%,rgba(255,255,255,0.05) 40%);
-        transition: background 0.14s cubic-bezier(0.4, 0, 0.2, 1);
-        letter-spacing: 0.2px;
-        margin-top: 0.75em;
-        padding: 0.5em 0.25em 0.5em 0.25em;
-        border-bottom: 1px solid rgba(0,0,0, 0.12);
-      }
-
-      webvisual-input > input:-webkit-autofill,
-      webvisual-input > input:-webkit-autofill:hover,
-      webvisual-input > input:-webkit-autofill:focus,
-      webvisual-input > input:-webkit-autofill:active {
-        -webkit-transition: "color 9999s ease-out, background-color 9999s ease-out";
-        -webkit-transition-delay: 9999s;
-      }
-
-      webvisual-input > input:hover {
-        background: linear-gradient(to bottom, rgba(255,255,255,0.02) 5%,rgba(255,255,255,0.10) 40%);
-      }
-
-      webvisual-input > input[disabled] {
-        border-bottom: 1px dashed rgba(0,0,0, 0.12);
-        background-color: transparent;
-      }
-
-      webvisual-input > input:focus {
+        padding: 0.5em 0.25em;
+        width: 100%;
         outline: none;
       }
-
-      webvisual-input > .inputcontainer > input ~ system {
-        font-size: 0.8em;
+      webvisual-input > input:invalid {
+        /* reset the default style in FF */
+        box-shadow: none;
+      }
+      webvisual-input > webvisual-md-decorator {
+        display: block;
+        height: 1px;
+        width: 100%;
+        margin: auto;
+        border-top: 1px solid #ccc;
+        position: relative;
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+      }
+      webvisual-input webvisual-underline {
+        display: block;
+        height: 2px;
+        width: 100%;
+        margin: auto;
+        background-color: var(--app-accent-color);
         position: absolute;
+        top: -1px;
+        left: 0;
+        -webkit-transform: scale3d(0, 1, 1);
+        transform: scale3d(0, 1, 1);
+        transition: -webkit-transform 0.2s ease-in;
+        transition: transform 0.2s ease-in;
+      }
+      /* input label */
+      webvisual-input > webvisual-md-decorator > label {
+        display: block;
         pointer-events: none;
+        opacity: 0.5;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        -webkit-transform-origin: 0 0;
+        transform-origin: 0 0;
+        transition-property: opacity, -webkit-transform;
+        transition-property: opacity, transform;
+        transition-duration: 0.15s;
+        transition-timing-function: ease-out;
+        will-change: transform;
+        -webkit-transform: translate3d(0px, -1.9em, 0px);
+        transform: translate3d(0px, -1.9em, 0px);
+      }
+      /* Error message */
+      webvisual-input > webvisual-md-decorator::after {
+        position: absolute;
+        top: 0;
         left: 0;
         right: 0;
-        top: 0;
-        line-height: normal;
-        padding-top: 0.75em;
-        padding-left: 0.25em;
-        color: rgba(0, 0, 0, 0.26);
-        transition: 0.2s ease all;
-        -moz-transition: 0.2s ease all;
-        -webkit-transition: 0.2s ease all;
-        @apply(--input-system);
+        font-size: 0.65em;
+        color: #dd2c00;
+        content: attr(error-message);
+        display: none;
+        white-space: nowrap;
       }
-
-      webvisual-input > .inputcontainer > input ~ .focusline {
-        background-color: var(--form-valid);
-        height: 2px;
-        width: 5%;
-        bottom: 0em;
-        left: 45%;
-        visibility: hidden;
-        pointer-events: none;
-        position: absolute;
-        transition: 0.2s ease all;
-        -moz-transition: 0.2s ease all;
-        -webkit-transition: 0.2s ease
+      webvisual-input > input:focus + webvisual-md-decorator > webvisual-underline {
+        -webkit-transform: scale3d(1, 1, 1);
+        transform: scale3d(1, 1, 1);
+        transition: -webkit-transform 0.2s ease-out;
+        transition: transform 0.2s ease-out;
       }
-
-      webvisual-input > .inputcontainer > input:focus ~ .focusline {
-        visibility: visible;
-        width: 100%;
-        left: 0;
+      /* Label: valid state */
+      webvisual-input > input:focus + webvisual-md-decorator > label {
+        -webkit-transform: translate3d(0px, -3.4em, 0px) scale(0.8, 0.8);
+        transform: translate3d(0px, -3.4em, 0px) scale(0.8, 0.8);
+        opacity: 1;
       }
-
-      webvisual-input > .inputcontainer > input:active ~ system,
-      webvisual-input > .inputcontainer > input:focus ~ system,
-      webvisual-input > .inputcontainer > input:valid ~ system,
-      webvisual-input > .inputcontainer > input:invalid ~ system {
-        top: 0;
-        font-size: 0.75em;
-        padding-top: 0;
+      webvisual-input > input:optional:not(:placeholder-shown) + webvisual-md-decorator > label {
+        -webkit-transform: translate3d(0px, -3.4em, 0px) scale(0.8, 0.8);
+        transform: translate3d(0px, -3.4em, 0px) scale(0.8, 0.8);
+        opacity: 1;
       }
-
-      webvisual-input > .inputcontainer > input:invalid ~ system {
-        color: var(--form-valid);
+      _:-ms-lang(x), webvisual-input > input + webvisual-md-decorator > label {
+        -webkit-transform: translate3d(0px, -3.4em, 0px) scale(0.8, 0.8);
+        transform: translate3d(0px, -3.4em, 0px) scale(0.8, 0.8);
+        opacity: 1;
       }
-      webvisual-input > .inputcontainer > input:invalid ~ system {
-        color: var(--form-invalid);
+      webvisual-input > input:optional:-moz-ui-valid + webvisual-md-decorator > label {
+        -webkit-transform: translate3d(0px, -3.4em, 0px) scale(0.8, 0.8);
+        transform: translate3d(0px, -3.4em, 0px) scale(0.8, 0.8);
+        opacity: 1;
       }
-
-      webvisual-input > .inputcontainer > input:invalid ~ .focusline {
-        background-color: var(--form-invalid);
+      /* Underline */
+      webvisual-input > input:not(:focus):not(:placeholder-shown):invalid + webvisual-md-decorator > webvisual-underline {
+        background-color: #dd2c00;
+        -webkit-transform: scale3d(1, 1, 1);
+        transform: scale3d(1, 1, 1);
+        transition: -webkit-transform 0.2s ease-out;
+        transition: transform 0.2s ease-out;
       }
-
-      webvisual-input > input[required]:placeholder-shown,
-      webvisual-input > input:invalid {
-        box-shadow: none;
-        border-color: var(--form-invalid);
+      webvisual-input > input:not(:focus):-moz-ui-invalid:invalid + webvisual-md-decorator > webvisual-underline {
+        background-color: #dd2c00;
+        -webkit-transform: scale3d(1, 1, 1);
+        transform: scale3d(1, 1, 1);
+        transition: -webkit-transform 0.2s ease-out;
+        transition: transform 0.2s ease-out;
+      }
+      webvisual-input > input[aria-invalid='true']:not(:valid) + webvisual-md-decorator > webvisual-underline {
+        background-color: #dd2c00;
+        -webkit-transform: scale3d(1, 1, 1);
+        transform: scale3d(1, 1, 1);
+        transition: -webkit-transform 0.2s ease-out;
+        transition: transform 0.2s ease-out;
+      }
+      /* Error message */
+      webvisual-input > input:not(:focus):not(:placeholder-shown):invalid + webvisual-md-decorator::after {
+        display: block;
+      }
+      webvisual-input > input:not(:focus):-moz-ui-invalid:invalid + webvisual-md-decorator::after {
+        display: block;
+      }
+      webvisual-input > input[aria-invalid='true']:not(:valid) + webvisual-md-decorator::after {
+        display: block;
+      }
+      /* Error label */
+      webvisual-input > input:not(:focus):not(:placeholder-shown):invalid + webvisual-md-decorator > label {
+        -webkit-transform: translate3d(0px, -3.4em, 0px) scale(0.8, 0.8);
+        transform: translate3d(0px, -3.4em, 0px) scale(0.8, 0.8);
+        opacity: 1;
+        color: #dd2c00;
+      }
+      webvisual-input > input:not(:focus):-moz-ui-invalid:invalid + webvisual-md-decorator > label {
+        -webkit-transform: translate3d(0px, -3.4em, 0px) scale(0.8, 0.8);
+        transform: translate3d(0px, -3.4em, 0px) scale(0.8, 0.8);
+        opacity: 1;
+        color: #dd2c00;
+      }
+      webvisual-input > input[aria-invalid='true']:not(:valid) + webvisual-md-decorator > label {
+        -webkit-transform: translate3d(0px, -3.4em, 0px) scale(0.8, 0.8);
+        transform: translate3d(0px, -3.4em, 0px) scale(0.8, 0.8);
+        opacity: 1;
+        color: #dd2c00;
+      }
+      /* Valid label */
+      webvisual-input > input:not(:focus):required:valid + webvisual-md-decorator > label {
+        -webkit-transform: translate3d(0px, -3.4em, 0px) scale(0.8, 0.8);
+        transform: translate3d(0px, -3.4em, 0px) scale(0.8, 0.8);
+        opacity: 1;
       }
 
     </style>

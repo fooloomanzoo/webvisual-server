@@ -5,9 +5,6 @@
 <link rel="import" href="behaviors/checked-and-select-behavior.html"/>
 <link rel="import" href="behaviors/element-behavior.html"/>
 
-<link rel="import" href="webvisual-element-table.html"/>
-<link rel="import" href="webvisual-dropdown.html"/>
-
 <dom-module id="webvisual-element-sign">
   <template>
     <style>
@@ -48,7 +45,7 @@
       }
       .value {
         padding: 0.5em 0.5em 0.75em 0.5em;
-        display: flex;
+        display: inline-flex;
         position: absolute;
         top: 0;
         bottom: 0;
@@ -76,6 +73,7 @@
         background: transparent;
       }
       :host([state="1"]) .value::after, :host([state="-1"]) .value::after {
+        will-change: transform;
         animation-name: sign-background-rotate;
         animation-duration: 1800ms;
         animation-fill-mode: both;
@@ -138,28 +136,6 @@
         transform: scale(1.4);
         opacity: 1;
       }
-      #tooltip {
-        --dropdown-background: rgba(77,77,77, 0.8);
-        border-radius: 5px;
-      }
-      #tooltip .title {
-        color: #f1f1f1;
-        font-size: 0.6em;
-        padding: 0.5em;
-        text-align: center;
-      }
-      #tooltipContent {
-        display: flex;
-        height: 100%;
-      }
-      #tooltipContent webvisual-element-table:first-child {
-        border-right: solid thin #BBB;
-      }
-      #tooltipContent webvisual-element-table {
-        background: transparent;
-        color: #f1f1f1;
-        min-width: 7em;
-      }
       [hidden] {
         pointer-events: none;
         display: none !important;
@@ -170,36 +146,24 @@
       <paper-ripple id="ripple"></paper-ripple>
     </template>
 
-    <template is="dom-if" if="[[!item.isIndicatorLamp]]">
-      <section class="value">
-        <section id="valueSection">[[getValue(renderedValue.y)]]</section>
-        <section id="unitSection" hidden$="[[!item.unit]]">[[item.unit]]</section>
-      </section>
-    </template>
+    <section class="value" hidden$="[[item.isIndicatorLamp]]">
+      <section id="valueSection">[[getValue(lastValue.y)]]</section>
+      <section id="unitSection" hidden$="[[!item.unit]]">[[item.unit]]</section>
+    </section>
 
-    <template is="dom-if" if="[[item.isIndicatorLamp]]">
-      <section class="value">
-        <svg id="icon" hidden$="[[!isExceeding]]" viewBox="0 0 24 24">
-          <g id="error-outline"><path d="M11 15h2v2h-2zm0-8h2v6h-2zm.99-5C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/></g>
-        </svg>
-      </section>
-    </template>
-
-    <section id="dateSection" hidden$="[[!showDate]]">[[toDate(renderedValue.x)]]</section>
-
-    <template is="dom-if" if="[[tooltip]]">
-      <svg id="bookmark" hidden$="[[!hasExceeded]]" viewBox="0 0 24 24" aria-label="Alarme" on-click="toggleTooltip">
-        <g id="announcement"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 9h-2V5h2v6zm0 4h-2v-2h2v2z"/></g>
+    <section class="value" hidden$="[[!item.isIndicatorLamp]]">
+      <svg id="icon" hidden$="[[!isExceeding]]" aria-label="Alarm" viewBox="0 0 24 24">
+        <g id="error-outline"><path d="M11 15h2v2h-2zm0-8h2v6h-2zm.99-5C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/></g>
       </svg>
+    </section>
 
-      <webvisual-dropdown id="tooltip" hiding-event="mouseleave" position="right" align="center" hidden$="[[!hasExceeded]]">
-        <div class="title">Alarmphasen</div>
-        <section id="tooltipContent">
-          <webvisual-element-table id="firstStateChangeTable" caption="start" hide-header only-first-row no-socket-connection is-indicator-lamp="[[item.isIndicatorLamp]]"></webvisual-element-table>
-          <webvisual-element-table id="lastStateChangeTable" caption="end" hide-header only-first-row no-socket-connection is-indicator-lamp="[[item.isIndicatorLamp]]"></webvisual-element-table>
-        </section>
-      </webvisual-dropdown>
-    </template>
+    <section id="dateSection" hidden$="[[!showDate]]">[[toDate(lastValue.x)]]</section>
+
+    <svg id="bookmark" hidden$="[[!hasExceeded]]"
+      viewBox="0 0 24 24"
+      ontap="_requestExceedingDetails">
+      <g id="announcement"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 9h-2V5h2v6zm0 4h-2v-2h2v2z"/></g>
+    </svg>
 
   </template>
 
@@ -221,25 +185,16 @@
           value: false
         },
 
-        tooltip: Boolean,
-
         singleValue: {
           type: Boolean,
           value: true,
           readOnly: true
         },
 
-        renderedValue: {
-          type: Object,
-          value: function() {
-            return {};
-          }
-        },
-
         state: {
           type: String,
           reflectToAttribute: true,
-          computed: '_computeState(renderedValue.state)'
+          computed: '_computeState(lastValue.state)'
         }
       },
 
@@ -247,15 +202,9 @@
         'tap': 'select'
       },
 
-      observers: [
-        '_setTooltip(tooltip)'
-      ],
-
       hostAttributes: {
         tabindex: '0'
       },
-
-      _tooltip: Object,
 
       renderInsertedValues: function(value) {
         if (value === undefined) {
@@ -266,42 +215,18 @@
           }
         }
 
-        this.renderedValue = value;
+        this.set('lastValue', value);
       },
 
       _computeState: function(state) {
         return state;
       },
 
-      _setTooltip: function(tooltip) {
-        if (tooltip) {
-          this._tooltip = this.$.tooltip;
-          this.$.firstStateChangeTable.insertValues(this.firstStateChange);
-          this.$.lastStateChangeTable.insertValues(this.lastStateChange);
-        }
-      },
-
-      setFirstStateChange: function(value) {
-        this.firstStateChange.push(value);
-        this.$.firstStateChangeTable.insertValues([value]);
-      },
-
-      setLastStateChange: function(value) {
-        this.lastStateChange.push(value);
-        this.$.lastStateChangeTable.insertValues([value]);
-      },
-
-      handleChecked: function(checked) {
-        if (checked && this.tooltip)
-          this._tooltip.hide();
-      },
-
-      toggleTooltip: function(e) {
-        if (!this._tooltip) return;
-
-        e.preventDefault();
-        this._tooltip.toggle();
-        e.stopPropagation();
+      _requestExceedingDetails: function() {
+        this.dispatchEvent(new CustomEvent('request-exceeding-details', {
+          detail: {
+            item: this.item
+          }}), {bubbles: true});
       }
     });
   </script>
