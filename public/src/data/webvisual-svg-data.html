@@ -27,7 +27,9 @@
 
       _fetchSvgSource: function(facilityName, systemName) {
         if (facilityName && systemName) {
-          this._request(facilityName, systemName, 'svgSource');
+          this.async( function() {
+            this._request(facilityName, systemName, 'svgSource');
+          }.bind(this));
         }
       },
 

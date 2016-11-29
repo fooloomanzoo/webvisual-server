@@ -62,7 +62,7 @@ WebvisualClient.prototype = {
     this.nodes.get(mount)
         .add(element);
 
-    if (!element._initialized)
+    if (!element._initialized && element.uniqueid)
       element.requestLastValue(mount, element.uniqueid)
              .then( function(values) {
                element.insertValues(values);
@@ -86,35 +86,42 @@ WebvisualClient.prototype = {
   },
 
   updateNodes: function(message) {
-    if (!message) return;
+    if (!message || message.hasOwnProperty('messageId')) return;
 
-    requestAnimationFrame( function() {
+    requestAnimationFrame(processMessage.bind(this));
 
-      for (var mount in message) {
+    function processMessage(taskStartTime) {
+      var v, mount, taskFinishTime;
+      do {
+        mount = Object.keys(message)[0];
+        v = message[mount];
 
-        if (!this.nodes.has(mount)) {
-          // console.warn('no Nodes for Update', mount);
-          continue;
+        if (this.nodes.has(mount)) {
+          if (v.values) {
+            this.nodes.get(mount)
+              .forEach(function(element, key) {
+                element.insertValues(v.values);
+              });
+            v.values.length = 0;
+          }
+
+          if (v.splices) {
+            this.nodes.get(mount)
+              .forEach(function(element, key) {
+                element.spliceValues(v.splices);
+              });
+            v.splices.length = 0;
+          }
         }
 
-        if (message[mount].values) {
-          this.nodes.get(mount)
-            .forEach(function(element, key) {
-              element.insertValues(message[mount].values);
-            });
-          message[mount].values.length = 0;
-        }
+        delete message[mount];
+        taskFinishTime = window.performance.now();
+      } while (taskFinishTime - taskStartTime < 3);
 
-        if (message[mount].splices) {
-          this.nodes.get(mount)
-            .forEach(function(element, key) {
-              element.spliceValues(message[mount].splices);
-            });
-          message[mount].splices.length = 0;
-        }
-      }
+      if (Object.keys(message).length > 0)
+        requestAnimationFrame(processMessage.bind(this));
 
-    }.bind(this));
+    };
 
   },
 

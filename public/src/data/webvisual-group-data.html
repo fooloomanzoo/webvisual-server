@@ -46,8 +46,10 @@
 
       _fetchGroups: function(facilityName, systemName) {
         if (facilityName && systemName) {
-          this._request(facilityName, systemName, 'groups');
-          this._request(facilityName, systemName, 'groupingKeys');
+          this.async( function() {
+            this._request(facilityName, systemName, 'groups');
+            this._request(facilityName, systemName, 'groupingKeys');
+          }.bind(this));
         }
       },
 

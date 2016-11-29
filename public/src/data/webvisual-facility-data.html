@@ -61,18 +61,23 @@
 
       _computeLoggedIn: function(offline) {
         if (!offline) {
-          this._testLoggedIn()
-              .then( function() {
-                this.loggedIn = true;
-              }.bind(this))
-              .catch( function() {
-                this.loggedIn = false
-              }.bind(this));
+          this.async( function() {
+            this._testLoggedIn()
+                .then( function() {
+                  this.loggedIn = true;
+                }.bind(this))
+                .catch( function() {
+                  this.loggedIn = false
+                }.bind(this));
+          }.bind(this));
         }
       },
 
       _computeFacilityList: function(loggedIn) {
-        // if (loggedIn) {
+        this.async( function() {
+          var facilities = localStorage.getItem('facilities');
+          if (facilities)
+            this.set('facilities', JSON.parse(facilities));
           this._fetchFacilityList()
               .then(function(facilities) {
                 this.set('facilities', facilities);
@@ -80,43 +85,44 @@
               }.bind(this))
               .catch(function(status) {
                 console.log('Server answered ', status);
-                var facilities = localStorage.getItem('facilities');
-                if (facilities)
-                  this.set('facilities', JSON.parse(facilities));
               }.bind(this));
-        // }
+        }.bind(this));
       },
 
       _computeFacility: function(facilities, facilityName) {
         if (facilities && facilityName) {
-          this._getNamedArrayItem(facilities, facilityName)
-              .then(function(facility) {
-                this.set('facility', facility);
-                localStorage.setItem('facility', JSON.stringify(facility));
-              }.bind(this))
-              .catch(function(e) {
-                console.log(e);
-                var facility = localStorage.getItem('facility');
-                if (facility)
-                  this.set('facility', JSON.parse(facility));
-              }.bind(this))
+          this.async( function() {
+            this._getNamedArrayItem(facilities, facilityName)
+                .then(function(facility) {
+                  this.set('facility', facility);
+                  localStorage.setItem('facility', JSON.stringify(facility));
+                }.bind(this))
+                .catch(function(e) {
+                  console.log(e);
+                  var facility = localStorage.getItem('facility');
+                  if (facility)
+                    this.set('facility', JSON.parse(facility));
+                }.bind(this))
+          }.bind(this));
         }
       },
 
       _computeSystem: function(facility, systemName) {
         // console.log('system', facility, systemName);
         if (facility && facility.systems && systemName) {
-          this._getNamedArrayItem(facility.systems, systemName)
-              .then(function(system) {
-                this.set('system', system);
-                localStorage.setItem('system', JSON.stringify(system));
-              }.bind(this))
-              .catch(function(e) {
-                console.log(e);
-                var system = localStorage.getItem('system');
-                if (system)
-                  this.set('system', JSON.parse(system));
-              }.bind(this))
+          this.async( function() {
+            this._getNamedArrayItem(facility.systems, systemName)
+                .then(function(system) {
+                  this.set('system', system);
+                  localStorage.setItem('system', JSON.stringify(system));
+                }.bind(this))
+                .catch(function(e) {
+                  console.log(e);
+                  var system = localStorage.getItem('system');
+                  if (system)
+                    this.set('system', JSON.parse(system));
+                }.bind(this))
+          }.bind(this));
         }
       },
 
