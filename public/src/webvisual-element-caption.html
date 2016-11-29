@@ -4,19 +4,20 @@
     <style>
       :host {
         font-family: 'FiraSans-Regular', sans-serif;
-        display: inline-block;
+        display: inline-flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-start;
+        flex-wrap: wrap;
         height: auto;
         width: auto;
         overflow: hidden;
         line-height: 1.4;
-        flex-direction: column;
-        flex-wrap: wrap;
         cursor: default;
-        box-sizing: border-box;
         position: relative;
         background: var(--caption-background, white);
         color: var(--caption-color, #252525);
-        padding: var(--caption-padding, 0.5em);
+        padding: var(--caption-padding, 0.4em 0.5em);
         margin: 0;
         border: none;
         align-self: stretch;
@@ -27,7 +28,6 @@
         margin: 0;
         font-size: 0.6em;
         white-space: nowrap;
-        width: 100%;
         overflow: hidden;
         text-overflow: ellipsis;
       }
@@ -44,11 +44,16 @@
         font-size: 0.7em;
       }
       :host([vertical]) {
-        display: flex;
         flex-direction: column;
         align-items: flex-start;
         justify-content: center;
         flex-wrap: nowrap;
+      }
+      :host(:not([vertical])) .captions {
+        margin-left: 0.35em;
+      }
+      :host([vertical]) .captions {
+        width: 100%;
       }
       [hidden] {
         display: none !important;

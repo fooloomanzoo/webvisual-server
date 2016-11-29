@@ -17,9 +17,6 @@
         vertical-align: middle;
       }
 
-      #ripple {
-        padding: 0.6em 1.2em;
-      }
       #overlay {
         pointer-events: none;
         display: none;
@@ -31,14 +28,19 @@
         @apply(--webvisual-tab-overlay);
       }
 
+      #content {
+        padding: 0.6em 1.2em;
+      }
+
       :host(.webvisual-tabs-overlay-static-above) #overlay {
         display: block;
       }
     </style>
     <div id="overlay"></div>
-    <webvisual-ripple-container id="ripple">
+    <div id="content">
       <content></content>
-    </webvisual-ripple-container>
+    </div>
+
   </template>
   <script>
     Polymer({

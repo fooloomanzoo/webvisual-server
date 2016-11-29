@@ -94,8 +94,8 @@
 			<iron-list id='list' items="[[values]]" as="value">
 				<template>
 	        <div class="tr" state$="[[value.state]]" onlyfirstrow$="[[onlyFirstRow]]">
-		        <span>[[toDate(value.x)]]</span>
-		        <span>[[getValue(value.y, value.state)]]</span>
+		        <span>[[computeDate(value.x)]]</span>
+		        <span>[[computeValue(value.y, value.state)]]</span>
 	        </div>
 	      </template>
 			</iron-list>
@@ -154,7 +154,7 @@
 				}, this._list)
 			},
 
-      getValue: function(y, state) {
+      computeValue: function(y, state) {
         return this.isIndicatorLamp ? ( state ? '✗' : '✓' ) : y;
       },
 

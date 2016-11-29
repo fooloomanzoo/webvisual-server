@@ -86,7 +86,7 @@
         flex: 1 0 auto;
       }
       webvisual-element-sign {
-        flex: 1 0 auto;
+        /*flex: 1 0 auto;*/
       }
 
       @media (max-width: 2299px) {
@@ -120,6 +120,13 @@
           -webkit-flex-basis: 33%;
           flex-basis: 33%;
           max-width: 33%;
+        }
+      }
+      @media (min-width: 768px) and (max-width: 899px) {
+        .grid.sign li {
+          -webkit-flex-basis: 50%;
+          flex-basis: 50%;
+          max-width: 50%;
         }
       }
       @media (max-width: 767px) {

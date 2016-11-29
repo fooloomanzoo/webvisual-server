@@ -8,6 +8,7 @@
     /* Application theme */
       :host {
         font-family: 'FiraSans-Regular';
+        font-weight: normal;
         font-size: calc(0.75em + 0.5vmin);
         line-height: calc(1em + 0.5vmin);
         word-wrap: break-word;
@@ -30,26 +31,9 @@
         --highlight-color: #BDE2F1;
         --select-color: #CCF2DD;
 
-        --selectbox-color: var(--primary-text-color);
-        --selectbox-background: rgba(255,255,255,0.5);
-        --option-color: var(--primary-text-color);
-        --option-background: #f1f1f1;
-
         --active-link-color: #68D97B;
         --notification-color: #FCFFBB;
         --warning-color: #ffdae4;
-
-        --toggle-button-unchecked-bar-color: #005B82;
-        --toggle-button-unchecked-button-color: #f1f1f1;
-        --toggle-button-unchecked-ink-color: #005B82;
-        --toggle-button-checked-bar-color:	#68D97B;
-        --toggle-button-checked-button-color:	#68D97B;
-        --toggle-button-checked-ink-color:	#68D97B;
-
-        --radio-button-checked-color: var(--select-color);
-        --radio-button-unchecked-color: var(--highlight-color);
-        --radio-button-unchecked-background-color: tranparent;
-        --radio-button-system-color: currentColor;
 
         --element-color: #12B8C3;
         --element-text-color: #252525;
@@ -59,28 +43,6 @@
         --element-state-inrange-text-color: var(--primary-text-color);
         --element-state-deceeds-text-color: var(--bright-text-color);
         --element-state-exceeds-text-color: var(--bright-text-color);
-
-        --app-drawer-width: 20em;
-        --app-drawer-scim-background: rgba(0, 0, 0, 0.25);
-        --app-drawer-content-container: {
-          min-width: 256px;
-          color: var(--primary-text-color);
-          background-color: var(--bright-primary-color);
-        };
-        --app-drawer-header: {
-          color: var(--dark-primary-color);
-        };
-        --app-header: {
-          background: var(--primary-color);
-          color: var(--bright-text-color);
-        };
-        --app-header-before: {
-          background: var(--dark-primary-color);
-        };
-        --webvisual-tab-overlay: {
-          background: rgba(255, 255, 255, 0.15);
-          border-bottom: 2px solid var(--highlight-color);
-        }
       }
 
       :host([dark]) {
@@ -105,7 +67,6 @@
       }
 
       :host(:not([plain])) {
-        --primary-background: #999;
         --caption-background: #fff;
         --caption-color: var(--primary-text-color);
         --groupcard-background: #ddd;
@@ -114,30 +75,14 @@
         --grid-border-color: #959595;
       }
       :host(:not([plain])[dark]) {
-        --primary-background: #252525;
         --caption-background: #999;
         --caption-color: #000;
         --groupcard-background: #505050;
         --groupcard-header-background: var(--dark-primary-color);
         --groupcard-header-color: var(--bright-text-color);
         --grid-border-color: #656565;
-        --app-drawer-header: {
-          color: #f1f1f1;
-        };
-        --app-header: {
-          background: var(--dark-primary-color);
-          color: var(--bright-text-color);
-        };
-        --app-header-before: {
-          background: var(--saturated-primary-color);
-        };
-        --app-drawer-content-container: {
-          color: var(--bright-text-color);
-          background-color: #222;
-        };
       }
       :host([plain]) {
-        --primary-background: var(--bright-primary-color);
         --groupcard-background: transparent;
         --groupcard-header-background: transparent;
         --groupcard-header-color: var(--bright-text-color);
@@ -145,38 +90,6 @@
         --toggle-button-unchecked-bar-color: var(--bright-primary-color);
         --toggle-button-unchecked-button-color: #f1f1f1;
         --toggle-button-unchecked-ink-color: var(--bright-primary-color);
-        --app-header-before: {
-          background: var(--primary-color);
-        };
-        --app-drawer-content-container: {
-          min-width: 256px;
-          color: var(--bright-text-color);
-          background-color: var(--primary-color);
-        };
-        --app-drawer-header: {
-          color: var(--bright-text-color);
-        };
-        --app-header: {
-          background: var(--bright-primary-color);
-          color: var(--bright-text-color);
-        };
-      }
-      :host([plain][dark]) {
-        --primary-background: var(--dark-primary-color);
-        --app-drawer-header: {
-          color: #f1f1f1;
-        };
-        --app-header: {
-          background: var(--dark-primary-color);
-          color: var(--bright-text-color);
-        };
-        --app-header-before: {
-          background: var(--saturated-primary-color);
-        };
-        --app-drawer-content-container: {
-          color: var(--bright-text-color);
-          background-color: #222;
-        };
       }
 
       paper-ripple {
@@ -187,10 +100,12 @@
       a:visited {
         color: currentColor;
         text-decoration: none;
+        font-weight: normal;
       }
 
       a:active {
         font-family: 'FiraSans-Medium';
+        font-weight: normal;
       }
 
       span {

@@ -495,8 +495,8 @@
     _zoomToElement: function(elem) {
       if (elem === undefined) return;
       // calc centered zoom coordinates
-      let transform = this._calcCenterZoom(elem);
-      let t = d3.zoomIdentity.translate(transform.x, transform.y).scale(transform.k)
+      var transform = this._calcCenterZoom(elem);
+      var t = d3.zoomIdentity.translate(transform.x, transform.y).scale(transform.k)
 
       // if (isNaN(transform.x) || isNaN(transform.y) || isNaN(transform.k)) return;
 

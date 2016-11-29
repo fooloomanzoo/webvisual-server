@@ -88,38 +88,41 @@ WebvisualClient.prototype = {
   updateNodes: function(message) {
     if (!message || message.hasOwnProperty('messageId')) return;
 
-    requestAnimationFrame(processMessage.bind(this));
+    var nodes = this.nodes;
+
+    requestAnimationFrame(processMessage);
 
     function processMessage(taskStartTime) {
-      var v, mount, taskFinishTime;
+      var v, mount, taskFinishTime, nodeList;
       do {
         mount = Object.keys(message)[0];
         v = message[mount];
+        nodeList = nodes.get(mount);
 
-        if (this.nodes.has(mount)) {
+        if (nodeList) {
           if (v.values) {
-            this.nodes.get(mount)
-              .forEach(function(element, key) {
-                element.insertValues(v.values);
-              });
-            v.values.length = 0;
+            var values = v.values;
+            nodeList.forEach(function(element) {
+              element.insertValues(values);
+            });
           }
 
           if (v.splices) {
-            this.nodes.get(mount)
-              .forEach(function(element, key) {
-                element.spliceValues(v.splices);
-              });
-            v.splices.length = 0;
+            var splices = v.splices;
+            nodeList.forEach(function(element) {
+              element.spliceValues(splices);
+            });
           }
         }
 
+        nodeList = undefined;
+        v = undefined;
         delete message[mount];
         taskFinishTime = window.performance.now();
-      } while (taskFinishTime - taskStartTime < 3);
+      } while (taskFinishTime - taskStartTime < 12);
 
       if (Object.keys(message).length > 0)
-        requestAnimationFrame(processMessage.bind(this));
+        requestAnimationFrame(processMessage);
 
     };
 

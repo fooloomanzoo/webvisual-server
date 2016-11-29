@@ -16,7 +16,10 @@
         }
       },
 
-      exceedable: Boolean,
+      exceedable: {
+        type: Boolean,
+        reflectToAttribute: true
+      },
 
       isExceeding: {
         type: Boolean,
@@ -84,11 +87,11 @@
       return this.properties;
     },
 
-    toDate: function(x) {
+    computeDate: function(x) {
       return x ? (this.showFullDate ? new Date(x).toLocaleString() : new Date(x).toLocaleTimeString()) : '';
     },
 
-    getValue: function(y) {
+    computeValue: function(y) {
       return (this.item && this.item.isIndicatorLamp) ? '' : y;
     },
 
@@ -101,9 +104,11 @@
         this._initialized = true;
 
       if (this.singleValue === true) {
+        var value = values.pop();
         if (this.exceedable === true)
-          this.checkExceedingState(values[values.length - 1]);
-          this.renderInsertedValues(values[values.length - 1]);
+          this.checkExceedingState(value);
+        this.renderInsertedValues(value);
+        values.length = 0;
       } else {
         if (this.exceedable === true) {
           values.forEach(function (value) {

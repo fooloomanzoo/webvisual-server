@@ -3,6 +3,18 @@
 <dom-module id="webvisual-selectbox">
   <template>
     <style>
+      :host {
+        --selectbox-color: var(--primary-text-color);
+        --selectbox-background: rgba(255,255,255,0.5);
+        --option-color: var(--primary-text-color);
+        --option-background: #f1f1f1;
+      }
+
+      webvisual-selectbox:focus,
+      webvisual-selectbox:hover {
+        opacity: 1;
+      }
+
       webvisual-selectbox {
         display: inline-flex;
         box-sizing: border-box;
