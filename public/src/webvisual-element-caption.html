@@ -1,9 +1,9 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
-<dom-module id='webvisual-element-caption'>
+<dom-module id="webvisual-element-caption">
   <template>
     <style>
       :host {
-        font-family: 'FiraSans-Regular', sans-serif;
+        font-family: "FiraSans-Regular", sans-serif;
         display: inline-flex;
         flex-direction: row;
         align-items: center;
@@ -11,15 +11,12 @@
         flex-wrap: wrap;
         height: auto;
         width: auto;
-        overflow: hidden;
         line-height: 1.4;
-        cursor: default;
         position: relative;
         background: var(--caption-background, white);
         color: var(--caption-color, #252525);
         padding: var(--caption-padding, 0.4em 0.5em);
         margin: 0;
-        border: none;
         align-self: stretch;
       }
       .captions {
@@ -31,8 +28,11 @@
         overflow: hidden;
         text-overflow: ellipsis;
       }
+      .captions:after {
+        content: attr(title);
+      }
       .captions:first-of-type {
-        font-family: 'FiraSans-Medium', sans-serif;
+        font-family: "FiraSans-Medium", sans-serif;
         font-size: 0.9em;
         word-wrap: normal;
         word-break: normal;
@@ -60,8 +60,8 @@
       }
     </style>
 
-    <template is='dom-repeat' items='[[reducedCaptionKeys]]' as='captionKey'>
-      <span class='captions' hidden$='[[isEmptyCaption(captionKey, groupedKey)]]'>[[getKey(captionKey, groupedKey, keys.*)]]</span>
+    <template is="dom-repeat" items="[[reducedCaptionKeys]]" as="captionKey">
+      <span class="captions" hidden$="[[isEmptyCaption(captionKey, groupedKey)]]" title="[[getKey(captionKey, groupedKey, keys.*)]]"></span>
     </template>
 
   </template>

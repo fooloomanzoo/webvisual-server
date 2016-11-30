@@ -37,6 +37,12 @@
 
       singleValue: Boolean,
 
+      title: {
+        type: String,
+        reflectToAttribute: true,
+        computed: '_computeTitle(item.id)'
+      }
+
     },
 
     observers: [
@@ -215,6 +221,10 @@
       } else {
         this._unlinkElement(this.item);
       }
+    },
+
+    _computeTitle: function(id) {
+      return id;
     }
   };
 </script>

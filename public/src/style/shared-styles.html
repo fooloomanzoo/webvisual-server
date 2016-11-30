@@ -31,9 +31,22 @@
         --highlight-color: #BDE2F1;
         --select-color: #CCF2DD;
 
+        --selectbox-color: var(--primary-text-color);
+        --selectbox-background: rgba(255,255,255,0.5);
+        --option-color: var(--primary-text-color);
+        --option-background: #f1f1f1;
+
         --active-link-color: #68D97B;
         --notification-color: #FCFFBB;
         --warning-color: #ffdae4;
+
+        --icon-color: var(--bright-text-color);
+        --svg-text: {
+          mix-blend-mode: exclusion;
+          fill: var(--bright-text-color) !important;
+          font-family: inherit !important;
+        };
+        --svg-fullscreen-background-color: #999;
 
         --element-color: #12B8C3;
         --element-text-color: #252525;
@@ -57,6 +70,8 @@
         --selectbox-background: rgba(255,255,255,0.5);
         --option-color: var(--bright-text-color);
         --option-background: var(--primary-color);
+
+        --svg-fullscreen-background-color: #080808;
 
         --toggle-button-unchecked-bar-color: #454545;
         --toggle-button-unchecked-button-color: #BDE2F1;
@@ -96,6 +111,10 @@
         color: var(--ripple-color, currentColor);
       }
 
+      a {
+        line-height: normal;
+        font-weight: normal;
+      }
       a:link,
       a:visited {
         color: currentColor;

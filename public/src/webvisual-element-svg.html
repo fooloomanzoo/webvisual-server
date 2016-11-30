@@ -1,6 +1,8 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="behaviors/container-behavior.html"/>
 
+<link rel="import" href="components/webvisual-icon-button.html"/>
+
 <script type="text/javascript" src="../bower_components/d3/d3.min.js"></script>
 
 <!--
@@ -35,7 +37,6 @@
 <template>
 <style>
   :host {
-    color: var(--primary-text-color);
     border-radius: inherit;
     -webkit-overflow-scrolling: touch;
     -webkit-tap-highlight-color:rgba(0,0,0,0);
@@ -46,15 +47,23 @@
     font-family: inherit;
     letter-spacing: normal;
     user-select: none !important;
+    background-color: none;
+  }
+  :host([fullscreen]) {
+    background-color: var(--svg-fullscreen-background-color);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 0px;
+  }
+  :host(:-webkit-full-screen) {
+    background-color: var(--svg-fullscreen-background-color);
   }
   svg {
     border-radius: inherit;
     user-select: none !important;
-  }
-  :host([fullscreen]),
-  :-webkit-full-screen,
-  :fullscreen {
-    background-color: var(--dark-primary-color);
   }
   #svgContainer {
     border-radius: inherit;
@@ -70,38 +79,18 @@
   }
   #control {
     position: absolute;
-    bottom: 4px;
-    right: 8px;
-  }
-  #control[top] {
-    top: 16px;
-    right: 12px;
+    top: 0.25em;
+    right: 0.25em;
     bottom: auto;
   }
-  .icon {
-    box-sizing: border-box;
-    margin-right: 4px;
-    padding: 4px;
-    cursor: pointer;
-    outline: none;
-    height: 32px;
-    width: 32px;
-    fill: #999;
-    background: rgba(255,255,255, 0.3);
-    border-radius: 50%;
-    opacity: 0.8;
-    transition: opacity 250ms cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  .icon:hover {
-    opacity: 0.9;
-    background: rgba(255,255,255, 0.8);
+  webvisual-icon-button {
+    mix-blend-mode: exclusion;
   }
   text {
-    fill: var(--primary-text-color) !important;
     pointer-events: none !important;
     cursor: default !important;
-    font-family: inherit !important;
     letter-spacing: normal !important;
+    @apply(--svg-text);
   }
   .webvisual-element-svg-selectable {
     cursor: pointer;
@@ -115,7 +104,7 @@
     animation-timing-function: linear;
     animation-iteration-count: 1;
     animation-fill-mode: forwards;
-    @apply(--clicked-webvisual-element-svg);
+    @apply(--svg-clicked);
   }
   @keyframes clicked-animation {
     50% {
@@ -163,10 +152,9 @@
   <!-- <div id="host"> -->
     <div id="svgContainer">
     </div>
-    <div id="control" top$="[[fullscreen]]">
-      <svg class="icon" viewBox="0 -4 16 24" on-tap="_resetZoom"><title>focus</title><g id="focus"> <path d="M 16,5.5 13,8 16,10.5 Z" /> <path d="M 10.5,16 8,13 5.5,16 Z" /> <path d="M 0,10.5 3,7.9999999 0,5.5 Z" /><path d="M 5.5,0 8,3 10.5,0 Z"/><circle r="1.5" cx="8" cy="8" /></g></svg>
-      <svg class="icon" viewBox="0 0 24 24" hidden$="[[fullscreen]]" on-tap="_requestFullscreen"><title>fullscreen</title><g id="fullscreen"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></g></svg>
-      <svg class="icon" viewBox="0 0 24 24" hidden$="[[!fullscreen]]" on-tap="_exitFullscreen"><title>close</title><g id="fullscreen-exit"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></g></svg>
+    <div id="control" >
+      <webvisual-icon-button title="focus" icon="filter-center-focus"></webvisual-icon-button>
+      <webvisual-icon-button title="fullscreen" icon="[[_computeFullscreenIcon(fullscreen)]]" on-tap="_toggleFullscreen"></webvisual-icon-button>
     </div>
   <!-- </div> -->
 </template>
@@ -292,15 +280,49 @@
     ],
 
     listeners: {
+      'contextmenu': '_resetZoom',
       'mozfullscreenchange': '_fullScreenChanged',
       'webkitfullscreenchange': '_fullScreenChanged',
-      'mozfullscreenchange': '_fullScreenChanged',
-      'webkitfullscreenchange': '_fullScreenChanged'
+      'mozfullscreenchange': '_fullScreenChanged'
     },
 
     behaviors: [
       ContainerBehavior
     ],
+
+    get _fullscreen() {
+      return document.fullscreen
+          || document.webkitIsFullScreen
+          || document.mozFullScreen
+          || document.msFullscreenElement;
+    },
+
+    attached: function() {
+      // fullscreen
+      if (this.requestFullscreen) {
+        this.exitFullscreen = document.exitFullscreen;
+        this.addEventListener('fullscreenchange', this._fullScreenChanged.bind(this), false);
+      } else if (this.webkitRequestFullScreen) {
+        this.requestFullscreen = this.webkitRequestFullScreen;
+        this.exitFullscreen = document.webkitCancelFullScreen;
+        this.addEventListener('webkitfullscreenchange', this._fullScreenChanged.bind(this), false);
+      } else if (this.mozRequestFullScreen) {
+        this.requestFullscreen = this.mozRequestFullScreen;
+        this.exitFullscreen = document.mozCancelFullScreen;
+        this.addEventListener('mozfullscreenchange', this._fullScreenChanged.bind(this), false);
+      } else if (this.msRequestFullscreen) {
+        this.requestFullscreen = this.msRequestFullscreen;
+        this.exitFullscreen = document.msExitFullscreen;
+        this.addEventListener('msfullscreenchange', this._fullScreenChanged.bind(this), false);
+      }
+    },
+
+    detached: function() {
+      this.removeEventListener('fullscreenchange', this._fullScreenChanged.bind(this), false);
+      this.removeEventListener('webkitfullscreenchange', this._fullScreenChanged.bind(this), false);
+      this.removeEventListener('mozfullscreenchange', this._fullScreenChanged.bind(this), false);
+      this.removeEventListener('msfullscreenchange', this._fullScreenChanged.bind(this), false);
+    },
 
     _openedChanged: function() {
       if (!this.source) return;
@@ -432,7 +454,7 @@
         // previous selectable elements: remove 'webvisual-element-svg-selectable' class and click listener
         this._mainG.selectAll('.webvisual-element-svg-selectable')
                   .classed('webvisual-element-svg-selectable', false)
-                  .on('click dblclick', null);
+                  .on('click', null);
         this._mainG.selectAll('.clicked')
                    .classed('clicked', false);
 
@@ -442,7 +464,7 @@
             this._mainG.selectAll(element.svg.path)
                       .classed('webvisual-element-svg-selectable', true)  // for styling selectable
                       .classed('style-scope', true).classed('webvisual-element-svg', true) // for style-scoping in polymer
-                      .on('click dblclick',
+                      .on('click',
                         function() {
                           self._zoomToElement(this);
                           self._mainG.selectAll('.clicked')
@@ -458,7 +480,7 @@
             this._mainG.selectAll(element.svg.path)
                       .classed('webvisual-element-svg-selectable', true)  // for styling selectable
                       .classed('style-scope', true).classed('webvisual-element-svg', true) // for style-scoping in polymer
-                      .on('click dblclick',
+                      .on('click',
                         function() {
                           self._zoomToElement(this);
                           self._mainG.selectAll('.clicked')
@@ -473,7 +495,7 @@
           this._mainG.selectAll(this.selectable[key])
                     .classed('webvisual-element-svg-selectable', true)  // for styling selectable
                     .classed('style-scope', true).classed('webvisual-element-svg', true) // for style-scoping in polymer
-                    .on('click dblclick',
+                    .on('click',
                       function() {
                         self._zoomToElement(this);
                         self._mainG.selectAll('.clicked')
@@ -631,7 +653,7 @@
 
     _resetZoom: function() {
       // console.log('resetZoom', this.opened);
-      if (!this._mainG || !this._mainG.node) return;
+      if (!this.opened || !this._mainG || !this._mainG.node) return;
 
       // zoom to selectedItems
       if(this.initiallyZoomToSelected === true) {
@@ -657,33 +679,23 @@
         }
       }
       // zomm to _mainG
-      console.log('mainG');
+      console.log('zoom to maing');
       this._zoomToElement(this._mainG.node());
     },
 
-    _requestFullscreen: function() {
-      if (document.fullscreen || document.webkitIsFullScreen || document.mozFullScreen || document.msFullscreenElement) {
+    _toggleFullscreen: function() {
+      if (this._fullscreen) {
         this._exitFullscreen();
       }
-      var f = this.requestFullscreen;
-      if (!f) {
-        ['mozRequestFullScreen',
-         'msRequestFullscreen',
-         'webkitRequestFullScreen'].forEach(function (req) {
-           f = f || this[req];
-        }.bind(this));
-      }
-      f.call(this);
-      this.style.zIndex = 10000;
+      this.requestFullscreen();
     },
 
     _exitFullscreen: function() {
-      var f = document.exitFullscreen || document.mozCancelFullScreen || document.webkitCancelFullScreen || document.msExitFullscreen;
-      f.call(document);
+      this.exitFullscreen.call(document);
     },
 
     _fullScreenChanged: function() {
-      if (document.fullscreen || document.webkitIsFullScreen || document.mozFullScreen || document.msFullscreenElement) {
+      if (this._fullscreen) {
         this.old = { zoomPartition: this.zoomPartition,
                      maxZoom: this.maxZoom,
                      minZoom: this.minZoom }
@@ -691,7 +703,7 @@
         this.maxZoom *= 1.25;
         this.minZoom = 1;
         this.fullscreen = true;
-        this.style.zIndex = 'initial';
+        document.body.classList.add('fullscreen');
       } else {
         if (this.old) {
           this.zoomPartition = this.old.zoomPartition;
@@ -699,8 +711,13 @@
           this.minZoom = this.old.minZoom;
         }
         this.fullscreen = false;
+        document.body.classList.remove('fullscreen');
       }
       this.debounce('resetZoom', this._resetZoom, 500);
+    },
+
+    _computeFullscreenIcon: function(fullscreen) {
+      return fullscreen ? 'fullscreen-exit' : 'fullscreen';
     }
   });
 </script>

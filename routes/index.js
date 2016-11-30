@@ -1,3 +1,16 @@
+const dir = {
+  dest: 'public',
+  origin: 'views',
+  data: 'public/data'
+}
+
+const requiredStaticSettings = [
+  'groups',
+  'groupingKeys',
+  'preferedGroupingKey',
+  'svgSource'
+]
+
 // Routing
 const EventEmitter = require('events').EventEmitter
     , express = require('express')
@@ -16,15 +29,16 @@ const EventEmitter = require('events').EventEmitter
     //, morgan = require('morgan')
     , RedisStore = require('connect-redis')(session);
 
-const requiredStaticSettings = [
-  'groups',
-  'groupingKeys',
-  'preferedGroupingKey',
-  'svgSource'
-]
+function resolvePath() {
+  let p = process.cwd();
+  for (var i = 0; i < arguments.length; i++) {
+    p = path.join(p, arguments[i]);
+  }
+  return p;
+}
 
-const staticMiddleware = serveStatic(path.join(process.cwd(), 'public'))
-    , staticDataMiddleware = serveStatic(path.join(process.cwd(), 'public', 'data'), { index: false });
+const staticMiddleware = serveStatic( resolvePath( dir.dest ) )
+    , staticDataMiddleware = serveStatic( resolvePath( dir.data ), { index: false });
 
 class Router extends EventEmitter {
 
@@ -137,7 +151,7 @@ class Router extends EventEmitter {
     this.app.use(staticMiddleware);
     this.app.get('*', function(req, res) {
       console.log(req.path, req.user, req.isAuthenticated());
-      res.sendFile( path.join(process.cwd(), 'public', 'index.html') );
+      res.sendFile( resolvePath( dir.dest, 'index.html') );
     });
   }
 
@@ -145,7 +159,7 @@ class Router extends EventEmitter {
     this.settings.userConfigFiles = userConfigFiles;
 
     // init facilities.json
-    fs.writeFileSync(path.resolve(process.cwd(), 'public', 'data', 'facilities.json'), JSON.stringify([]));
+    fs.writeFileSync( resolvePath ( dir.data, 'facilities.json' ), JSON.stringify([]));
   }
 
   setConfiguration(opt, facility) {
@@ -160,11 +174,11 @@ class Router extends EventEmitter {
   }
 
   createStaticContent() {
-    let dir
-      , facilities = []
+    let facilities = []
       , tmp
       , pth
-      , dest;
+      , dest
+      , svgDest;
 
     // write json
     for (let facility in this.configuration) {
@@ -185,37 +199,37 @@ class Router extends EventEmitter {
         } );
 
         let comb = facility + '+' + system;
-        dir = path.resolve(process.cwd(), 'public', 'data');
+        dest = resolvePath( dir.data );
 
         // create required static settings
         for (let key in opt[system]) {
           if (requiredStaticSettings.indexOf(key) === -1)
             continue;
-          pth = path.resolve(dir, comb + '+' + key + '.json')
+          pth = path.resolve(dest, comb + '+' + key + '.json')
           fs.writeFile(pth, JSON.stringify(opt[system][key] || {}), (err) => {
             if (err)
-              this.emit('error', `Writing Files for static content configuration (../public/data/) failed\n ${err}`);
+              this.emit('error', `Writing Files for static content configuration data (${dir.data}) failed\n ${err}`);
           });
         }
 
         // copy svgContent in staticContentFolder
         if (opt[system].svgSource && Object.keys(opt[system].svgSource).length) {
 
-          dir = path.resolve(opt[system].svgPathOrigin);
-          if (!dir || !fs.existsSync(dir)) {
-            dir = path.resolve(process.cwd(), 'examples', 'svg');
+          dest = path.resolve(opt[system].svgPathOrigin);
+          if (!dest || !fs.existsSync(dest)) {
+            dest = resolvePath('examples', 'svg');
           }
 
-          dest = path.resolve(process.cwd(), 'public', 'data', 'images', facility, system);
+          svgDest = resolvePath(dir.data, 'images', facility, system);
 
-          mkdirp(dest, (err) => {
+          mkdirp(svgDest, (err) => {
               if (err) console.error(err)
           });
 
           for (var p in opt[system].svgSource) {
             try {
-              fs.createReadStream(path.resolve(dir, p))
-                .pipe(fs.createWriteStream(path.resolve(dest, p)));
+              fs.createReadStream(path.resolve(svgDest, p))
+                .pipe(fs.createWriteStream(path.resolve(svgDest, p)));
             } catch (e) {
               this.emit('error', `Copying SVG Files from ${dir} to ${dest} failed\n ${err}`);
             }
@@ -233,9 +247,9 @@ class Router extends EventEmitter {
 
 
     // create required main overview
-    dir = path.resolve(process.cwd(), 'public', 'data', 'facilities.json');
+    dest = resolvePath(dir.data, 'facilities.json');
 
-    fs.writeFileSync( dir, JSON.stringify(facilities) );
+    fs.writeFileSync( dest, JSON.stringify(facilities) );
   }
 
   ensureLoggedIn() {

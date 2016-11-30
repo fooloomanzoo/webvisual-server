@@ -103,12 +103,19 @@
            url('/fonts/FiraSans-Medium.ttf') format('truetype');
     }
 
+    html {
+      background: #005B82;
+    }
+
     body {
       margin: 0;
+      position: relative;
       font-family: 'FiraSans-Regular', sans-serif;
-      font-size: 1em;
-      line-height: 1.5;
       min-height: 100vh;
+    }
+
+    body.fullscreen {
+      overflow: hidden;
     }
 
     /* styling for render while resources are loading */
