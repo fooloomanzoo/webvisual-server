@@ -14,6 +14,9 @@ const path = require('path');
 const gulp = require('gulp');
 const gulpif = require('gulp-if');
 
+process.chdir( path.join(process.cwd(), 'public') );
+
+console.log('GULP CWD ---------------- ', process.cwd());
 // Got problems? Try logging 'em
 // const logging = require('plylog');
 // logging.setVerbose();
@@ -23,7 +26,7 @@ const gulpif = require('gulp-if');
 global.config = {
   polymerJsonPath: path.join(process.cwd(), 'polymer.json'),
   build: {
-    rootDirectory: 'build',
+    rootDirectory: path.join(process.cwd(), 'build'),
     bundledDirectory: 'bundled',
     unbundledDirectory: 'unbundled',
     // Accepts either 'bundled', 'unbundled', or 'both'
@@ -31,7 +34,7 @@ global.config = {
     // will not have its files combined (this is for projects using HTTP/2
     // server push). Using the 'both' option will create two output projects,
     // one for bundled and one for unbundled
-    bundleType: 'both'
+    bundleType: 'unbundled'
   },
   // Path to your service worker, relative to the build root directory
   serviceWorkerPath: 'service-worker.js',

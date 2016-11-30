@@ -1,27 +1,27 @@
 {
-  "entrypoint": "index.html",
-  "shell": "src/webvisual-app.html",
+  "entrypoint": "/index.html",
+  "shell": "/src/webvisual-app.html",
   "fragments": [
-    "src/webvisual-login.html",
-    "src/webvisual-home.html",
-    "src/webvisual-list.html",
-    "src/webvisual-groups.html",
-    "src/webvisual-detail.html",
-    "src/lazy-resources.html"
+    "/src/webvisual-login.html",
+    "/src/webvisual-home.html",
+    "/src/webvisual-list.html",
+    "/src/webvisual-groups.html",
+    "/src/webvisual-detail.html",
+    "/src/lazy-resources.html"
   ],
   "sourceGlobs": [
-    "data/**/*",
-    "fonts/**/*",
-    "icons/**/*",
-    "fonts/*",
-    "scripts/*",
-    "src/**/*",
-    "app.yaml",
-    "locales.json",
-    "bower.json"
+    "/data/**/*",
+    "/fonts/**/*",
+    "/icons/**/*",
+    "/fonts/*",
+    "/scripts/*",
+    "/src/**/*",
+    "/app.yaml",
+    "/locales.json",
+    "/bower.json"
   ],
   "includeDependencies": [
-    "manifest.json",
-    "bower_components/webcomponentsjs/webcomponents-lite.min.js"
+    "/manifest.json",
+    "/bower_components/webcomponentsjs/webcomponents-lite.min.js"
   ]
 }
