@@ -1,6 +1,6 @@
 const dir = {
-  dest: 'public',
-  origin: 'views',
+  dest: 'project',
+  src: 'public',
   data: 'public/data'
 }
 
@@ -11,13 +11,14 @@ const requiredStaticSettings = [
   'svgSource'
 ]
 
-// Routing
+
 const EventEmitter = require('events').EventEmitter
     , express = require('express')
     , fs = require('fs')
     , path = require('path')
     , mkdirp = require('mkdirp')
 
+// Routing
     , xFrameOptions = require('x-frame-options')
     , cookieSession = require('cookie-session')
     , bodyParser = require('body-parser')
@@ -26,8 +27,14 @@ const EventEmitter = require('events').EventEmitter
     , session = require('express-session')
     , serveStatic = require('serve-static')
 
-    //, morgan = require('morgan')
-    , RedisStore = require('connect-redis')(session);
+// Session Store
+    , RedisStore = require('connect-redis')(session)
+
+// Polymer CLI Dependecies
+    , gulp = require('gulp');
+    require( resolvePath( dir.src, 'gulpfile.js' ) ); // import the gulp file
+
+
 
 function resolvePath() {
   let p = process.cwd();
@@ -170,7 +177,14 @@ class Router extends EventEmitter {
       clearTimeout( this._activeWriteJob );
     this._activeWriteJob = setTimeout(() => {
       this.createStaticContent();
+      setTimeout(() => {
+        this.createWebApp();
+      }, 250)
     }, 250);
+  }
+
+  createWebApp() {
+    const result = gulp.task('default')()
   }
 
   createStaticContent() {

@@ -236,12 +236,16 @@ process.on("message", (arg) => {
 
 process.on('uncaughtException', (err) => {
   console.log('WEBVISUAL SERVER (uncaughtException)', err || '');
-  server.reconnect();
+  setTimeout(() => {
+    server.reconnect();
+  }, 2000)
 });
 
 process.on('ECONNRESET', (err) => {
   console.log('WEBVISUAL SERVER (ECONNRESET)', err || '');
-  server.reconnect();
+  setTimeout(() => {
+    server.reconnect();
+  }, 2000)
 });
 
 process.on('SIGINT', (err) => {

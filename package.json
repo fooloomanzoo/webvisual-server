@@ -22,26 +22,31 @@
     "body-parser": "^1.15.2",
     "chokidar": "*",
     "compression": "*",
-    "connect-flash": "*",
     "connect-redis": "^3.1.0",
     "cookie-parser": "*",
     "cookie-session": "*",
     "dateformat": "*",
     "express": "*",
-    "jade": "*",
     "merge-defaults": "*",
     "mkdirp": "*",
-    "morgan": "^1.7.0",
     "passport": "*",
     "passport-local": "*",
-    "polymer-build": "^0.5.0",
     "serve-static": "^1.11.1",
     "socket.io": "*",
     "spdy": "*",
     "underscore": "*",
-    "x-frame-options": "*"
+    "x-frame-options": "*",
+    "del": "*",
+    "gulp": "gulpjs/gulp",
+    "gulp-if": "*",
+    "gulp-imagemin": "*",
+    "merge-stream": "*",
+    "plylog": "*",
+    "polymer-build": "*"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "gulp": "github:gulpjs/gulp#4.0"
+  },
   "engines": {
     "node": ">= 6.0",
     "npm": "*"

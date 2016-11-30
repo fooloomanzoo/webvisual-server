@@ -1,12 +1,14 @@
 module.exports = {
   staticFileGlobs: [
     '/index.html',
+    '/bower_components/webcomponentsjs/webcomponents-lite.min.js',
     '/manifest.json',
     '/locales.json',
+    '/app.yaml',
     '/scripts/*',
     '/socket.io/*',
-    '/bower_components/webcomponentsjs/webcomponents-lite.min.js',
-    '/icons/*',
+    '/icons/favicon.ico',
+    '/icons/manifest/*',
     '/data/*',
     '/data/**/*',
     '/fonts/*'
