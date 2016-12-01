@@ -9,7 +9,7 @@ const express = require('express')
     // Processing Modules
     , DataModule = require('./lib/data_module')
     , ConfigFileProcessor = require('./lib/config_file_processor')
-    , Router = require('./routes')
+    , Router = require('./router')
 
     // Server
     , spdy = require('spdy')

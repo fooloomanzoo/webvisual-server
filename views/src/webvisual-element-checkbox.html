@@ -1,0 +1,269 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<link rel="import" href="behaviors/color-behavior.html"/>
+<link rel="import" href="behaviors/checked-and-select-behavior.html"/>
+<link rel="import" href="behaviors/element-behavior.html"/>
+
+<link rel="import" href="components/webvisual-dropdown.html"/>
+
+<link rel="import" href="webvisual-element-sign.html"/>
+
+<dom-module id="webvisual-element-checkbox">
+  <template strip-whitespace>
+    <style>
+      :host {
+        display: inline-flex;
+        position: relative;
+        line-height: 0;
+        --calculated-box-size: var(--box-size, 20px);
+        padding: 0.25em 0.5em;
+        transition: background-color 200ms ease;
+        cursor: pointer;
+      }
+
+      #container {
+        display: inline-flex;
+        white-space: nowrap;
+        position: relative;
+        line-height: 0;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      #boxContainer {
+        display: inline-block;
+				align-self: center;
+        position: relative;
+        width: var(--calculated-box-size);
+        height: var(--calculated-box-size);
+        min-width: var(--calculated-box-size);
+        margin: var(--box-margin, initial);
+        vertical-align: var(--box-vertical-align, middle);
+        background-color: var(--box-unchecked-background-color, transparent);
+      }
+
+      #ripple {
+        position: absolute;
+        /* Center the ripple in the box by negative offsetting it by
+         * (rippleWidth - rippleWidth) / 2 */
+        top: calc(0px - (2.66 * var(--calculated-box-size) - var(--calculated-box-size)) / 2);
+        left: calc(0px - (2.66 * var(--calculated-box-size) - var(--calculated-box-size)) / 2);
+        width: calc(2.66 * var(--calculated-box-size));
+        height: calc(2.66 * var(--calculated-box-size));
+        color: var(--box-unchecked-ripple-color, --bright-text-color);
+        opacity: 0.25;
+        pointer-events: none;
+      }
+
+      #box {
+        opacity: 0.75;
+        position: relative;
+        box-sizing: border-box;
+        position: relative;
+        height: 100%;
+        border: var(--checkbox-border, var(--grid-border));
+        border-radius: 2px;
+        background: rgba(255, 255, 255, 0.9);
+        pointer-events: none;
+        -webkit-transition: background-color 150ms, border-color 150ms, opacity 150ms;
+        transition: background-color 150ms, border-color 150ms, opacity 150ms;
+      }
+
+      #arrow {
+        position: absolute;
+        width: 36%;
+        height: 70%;
+        border-style: solid;
+        border-top: none;
+        border-left: none;
+        border-right-width: calc(2/15 * var(--calculated-box-size));
+        border-bottom-width: calc(2/15 * var(--calculated-box-size));
+        border-color: var(--box-arrow-color, white);
+        -webkit-transform-origin: 97% 86%;
+        transform-origin: 97% 86%;
+        box-sizing: content-box; /* protect against page-level box-sizing */
+      }
+
+      #container[state="0"] #box {
+        background-color: var(--element-color);
+      }
+      #container[state="1"] #box {
+        background-color: var(--element-state-exceeds-color);
+      }
+      #container[state="-1"] #box {
+        background-color: var(--element-state-deceeds-color);
+      }
+
+      #container[state="0"], #ripple {
+        color: var(--primary-text-color);
+      }
+      #container[state="1"], #ripple {
+        color: var(--element-state-exceeds-color);
+      }
+      #container[state="-1"], #ripple {
+        color: var(--element-state-deceeds-color);
+      }
+
+      :host([checked]) #box {
+        opacity: 1;
+      }
+
+      :host([checked]) {
+        background-color: var(--box-checked-background, rgba(255, 255, 255, 0.9));
+      }
+
+      :host(:focus) {
+        outline: 1px var(--bright-primary-color);
+      }
+
+      /* box checked animations */
+      :host([checked]) #arrow {
+        -webkit-animation: arrow-expand 150ms ease-out forwards;
+        animation: arrow-expand 150ms ease-out forwards;
+      }
+
+      @-webkit-keyframes arrow-expand {
+        0% {
+          -webkit-transform: scale(0, 0) rotate(45deg);
+        }
+        100% {
+          -webkit-transform: scale(1, 1) rotate(45deg);
+        }
+      }
+
+      @keyframes arrow-expand {
+        0% {
+          transform: scale(0, 0) rotate(45deg);
+        }
+        100% {
+          transform: scale(1, 1) rotate(45deg);
+        }
+      }
+
+      :host([disabled]) #box {
+        opacity: 0.5;
+        border-color: var(--box-unchecked-color, --primary-text-color);
+      }
+      :host([disabled][checked]) #box {
+        background-color: var(--disabled-text-color, --primary-text-color);
+        opacity: 0.5;
+      }
+
+      #dropdown {
+        --dropdown-background: rgba(0, 0, 0, 0.75);
+        border-radius: 4px;
+        border: thin solid #333;
+        min-height: 3em;
+        min-width: 3em;
+      }
+      #value {
+        --element-color: transparent;
+        --element-state-inrange-color: transparent;
+        --element-state-inrange-text-color: var(--bright-text-color);
+      }
+      [hidden] {
+        display: none !important;
+      }
+    </style>
+
+    <section id="container" state$="[[lastValue.state]]" on-click="select">
+      <section id="boxContainer">
+        <section id="box">
+          <section id="arrow" hidden$="[[!checked]]"></section>
+        </section>
+        <template is="dom-if" if="[[selectable]]">
+          <paper-ripple id="ripple"></paper-ripple>
+        </template>
+      </section>
+    </section>
+
+    <template is="dom-if" if="[[dropdownValue]]">
+      <webvisual-dropdown id="dropdown"
+        hiding-event="tap"
+        position="bottom"
+        align="center"
+        offset="8"
+        autoclose="4000">
+          <webvisual-element-sign id="value"
+            item="[[item]]"
+            show-date="[[showDate]]">
+          </webvisual-element-sign>
+      </webvisual-dropdown>
+    </template>
+
+  </template>
+
+  <script>
+    Polymer({
+      is: 'webvisual-element-checkbox',
+
+      behaviors: [
+        WebvisualBehaviors.ColorBehavior,
+        WebvisualBehaviors.CheckedAndSelectBehavior,
+        WebvisualBehaviors.ElementBehavior
+      ],
+
+      properties: {
+
+        showDate: {
+          type: Boolean,
+          value: false
+        },
+
+        dropdownValue: Boolean,
+
+        singleValue: {
+          type: Boolean,
+          value: true,
+          readOnly: true
+        }
+      },
+
+      observers: [
+        '_setDropdown(dropdownValue)'
+      ],
+
+      attached: function() {
+        this.insertValues();
+      },
+
+      renderInsertedValues: function(value) {
+        if (value === undefined) {
+          if (this.values && this.values.length) {
+            value = this.values[this.values.length - 1];
+          } else {
+            return;
+          }
+        }
+
+        this.lastValue = value;
+      },
+
+      _setDropdown: function(hasDropdown, old) {
+        if (!hasDropdown) {
+          this.$.boxContainer.removeEventListener('mouseenter', this._openDropdown, false);
+          this.$.boxContainer.removeEventListener('mouseleave', this._closeDropdown, false);
+          this._dropdown = null;
+        } else {
+          this.$.boxContainer.addEventListener('mouseenter', this._openDropdown.bind(this), false);
+          this.$.boxContainer.addEventListener('mouseleave', this._closeDropdown.bind(this), false);
+        }
+      },
+
+      _openDropdown: function() {
+        if (!this._dropdown)
+          this._dropdown = Polymer.dom(this.root).querySelector('#dropdown');
+
+        this._dropdown.open(this.$.boxContainer.getBoundingClientRect());
+      },
+
+      _closeDropdown: function() {
+        if (!this._dropdown)
+          this._dropdown = Polymer.dom(this.root).querySelector('#dropdown');
+
+        this._dropdown.close();
+      }
+
+
+    });
+  </script>
+</dom-module>

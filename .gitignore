@@ -1,9 +1,10 @@
 # bower components
 **/bower_components
-public/data/**
 
 # build
 public/build/*
+# public/**
+public/data/**
 
 # Logs
 logs

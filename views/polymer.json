@@ -1,0 +1,28 @@
+{
+  "entrypoint": "index.html",
+  "shell": "src/webvisual-app.html",
+  "fragments": [
+    "src/webvisual-login.html",
+    "src/webvisual-home.html",
+    "src/webvisual-list.html",
+    "src/webvisual-groups.html",
+    "src/webvisual-detail.html",
+    "src/lazy-resources.html"
+  ],
+  "sources": [
+    "app.yaml",
+    "locales.json",
+    "fonts/**/*",
+    "icons/**/*",
+    "fonts/**/*",
+    "scripts/*",
+    "src/*",
+    "src/**/*",
+    "bower.json"
+  ],
+  "extraDependencies": [
+    "manifest.json",
+    "bower_components/webcomponentsjs/webcomponents-lite.min.js",
+    "data/*"
+  ]
+}

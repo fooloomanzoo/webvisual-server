@@ -1,0 +1,306 @@
+const dir = {
+  dist: 'public',
+  distData: 'public/data',
+  data: 'public/data'
+}
+
+const requiredStaticSettings = [
+  'groups',
+  'groupingKeys',
+  'preferedGroupingKey',
+  'svgSource'
+]
+
+
+const EventEmitter = require('events').EventEmitter
+    , express = require('express')
+    , fs = require('fs')
+    , path = require('path')
+    , mkdirp = require('mkdirp')
+
+// Routing
+    , xFrameOptions = require('x-frame-options')
+    , cookieSession = require('cookie-session')
+    , bodyParser = require('body-parser')
+    , cookieParser = require('cookie-parser')
+    , compression = require('compression')
+    , session = require('express-session')
+    , serveStatic = require('serve-static')
+
+// Session Store
+    , RedisStore = require('connect-redis')(session)
+
+// Image Minimizing
+    , imagemin = require('imagemin')
+    , imageminSvgo = require('imagemin-svgo');
+
+// Polymer Build Dependecies
+    // , gulp = require('gulp');
+    // require('./views/gulpfile.js'); // import the gulp file
+
+
+
+function resolvePath() {
+  let p = process.cwd();
+  for (var i = 0; i < arguments.length; i++) {
+    p = path.join(p, arguments[i]);
+  }
+  mkdirp(path.dirname(p), (err) => {
+      if (err) console.error(err)
+  });
+  return p;
+}
+
+const staticMiddleware = serveStatic( resolvePath( dir.dist ) )
+    , staticDataMiddleware = serveStatic( resolvePath( dir.distData ), { index: false });
+
+class Router extends EventEmitter {
+
+  constructor(server) {
+    super();
+    this.app = server;
+
+    this.passport = require('passport');
+    this.settings = {};
+    this.configuration = {};
+
+    // this.app.use(morgan('combined'));
+
+    // this.app.set('views', path.join(process.cwd(), 'views'));
+    // this.app.set('view engine', 'jade');
+
+    // Parser
+    this.app.use(cookieParser());
+    this.app.use(bodyParser.json());
+    this.app.use(bodyParser.urlencoded({ extended: true }));
+
+
+    this.app.use( session( {
+      store: new RedisStore( {
+        host: 'localhost',
+        port: 6379
+      } ),
+      maxAge: 24*3600*365,
+      secret: 'String(Math.random().toString(16).slice(2)',
+      cachControl: 'no-cache',
+      resave: true,
+      saveUninitialized: false,
+      cookie: { secure: true }
+    } ));
+
+    // Prevent Clickjacking
+    this.app.use(xFrameOptions());
+
+    // register for authentification
+    this.app.use(this.passport.initialize());
+
+    // init session handler
+    this.app.use(this.passport.session());
+
+    // compress responses
+    this.app.use( compression() );
+
+    this.passport.serializeUser(function(user, done) {
+      done(null, user);
+    });
+
+    this.passport.deserializeUser(function(user, done) {
+      done(null, user);
+    });
+  }
+
+  setSettings(options) {
+    if (options === undefined)
+      this.emit('error', 'Empty Configuration passed to Router');
+    for (let key in options) {
+      if (key == 'server')
+        this.setServer(options.server);
+      else if (key == 'userConfigFiles')
+        this.setUserConfig(options.userConfigFiles);
+      else {
+        this.settings[key] = options[key];
+      }
+    }
+  }
+
+  setServer(opt) {
+    this.settings.server = opt;
+
+    require('./auth/activedirectory.js')(this.passport, this.settings.server.auth.ldap); // register custom ldap-passport-stategy
+    require('./auth/dummy.js')(this.passport); // register dummy-stategy
+
+    let authNeeded = this.settings.server.auth.required;
+
+    this.app.post('/login',
+      authNeeded
+        ? this.passport.authenticate('activedirectory-login')
+        : this.passport.authenticate('dummy'),
+      (req, res) => {
+        // console.log('returnTo', path.resolve(process.cwd(), 'public', req.session.returnTo));
+        res.redirect('/');
+        // res.status(200).send('Logged In');
+
+      });
+
+    this.app.use('/auth', authNeeded ? ensureLoggedIn.is : ensureLoggedIn.not );
+    this.app.use('/auth', (req, res) => {
+      res.sendStatus(200);
+    } );
+
+    this.app.get('/logout', (req, res) => {
+      req.logout();
+      res.redirect('/');
+    });
+
+    this.app.use('/data', authNeeded ? ensureLoggedIn.is : ensureLoggedIn.not );
+    this.app.use('/data', staticDataMiddleware );
+
+    this.app.use(staticMiddleware);
+    // this.app.get('*', (req, res) => {
+    //   res.sendFile( resolvePath( dir.dist, 'index.html') );
+    // });
+  }
+
+  setUserConfig(userConfigFiles) {
+    this.settings.userConfigFiles = userConfigFiles;
+
+    // init facilities.json
+    fs.writeFileSync( resolvePath ( dir.data, 'facilities.json' ), JSON.stringify([]));
+  }
+
+  setConfiguration(opt, facility) {
+    this.configuration[facility] = opt;
+
+    // workaround, to catch all emidiate changes
+    if (this._activeWriteJob)
+      clearTimeout( this._activeWriteJob );
+    this._activeWriteJob = setTimeout(() => {
+      this.createStaticContent();
+      // setTimeout(() => {
+      //   this.createWebApp();
+      // }, 250)
+    }, 250);
+  }
+
+  // createWebApp() {
+  //   const result = gulp.task('build')()
+  // }
+
+  createStaticContent() {
+    let facilities = []
+      , tmp
+      , pth
+      , dest
+      , svgDest;
+
+    // write json
+    for (let facility in this.configuration) {
+
+      let opt = this.configuration[facility];
+      tmp = [];
+
+      for (let ke in opt) {
+        if (ke === '_name' || ke === '_title')
+          continue;
+
+        let system = ke;
+
+        tmp.push( {
+          name: opt[system]._name,
+          title: opt[system]._title,
+          items: opt[system].items,
+        } );
+
+        let comb = facility + '+' + system;
+        dest = resolvePath( dir.data );
+
+        // create required static settings
+        for (let key in opt[system]) {
+          if (requiredStaticSettings.indexOf(key) === -1)
+            continue;
+          pth = path.resolve(dest, comb + '+' + key + '.json')
+          fs.writeFile(pth, JSON.stringify(opt[system][key] || {}), (err) => {
+            if (err)
+              this.emit('error', `Writing Files for static content configuration data (${dir.data}) failed\n ${err}`);
+          });
+        }
+
+        // copy svgContent in staticContentFolder
+        if (opt[system].svgSource && Object.keys(opt[system].svgSource).length) {
+          let images = [];
+
+          // path folder
+          svgDest = resolvePath(dir.data, 'images', facility, system);
+          mkdirp(svgDest, (err) => {
+            if (err) console.error(err)
+          });
+
+          // image origin folder
+          dest = path.resolve(opt[system].svgPathOrigin);
+          if (!dest || !fs.existsSync(dest)) {
+            dest = resolvePath('examples', 'svg');
+          }
+
+          for (var p in opt[system].svgSource) {
+            try {
+              fs.createReadStream(path.resolve(dest, p))
+                .pipe(fs.createWriteStream(path.resolve(svgDest, p)));
+            } catch (e) {
+              this.emit('error', `Copying SVG Files from ${dest} to ${svgDest} failed\n ${err}`);
+            }
+          }
+
+          //
+          // for (var p in opt[system].svgSource) {
+          //   images.push(path.resolve(dest, p));
+          // }
+          // console.log(dest);
+          // imagemin( [dest+'\\**'], svgDest, {
+          //     progressive: true,
+          //     interlaced: true,
+          //     plugins: [
+          //       imageminSvgo({
+          //           plugins: [
+          //               {removeViewBox: false}
+          //           ]
+          //       })
+          //     ]
+          // }).then(files => {
+          //     console.log(files);
+          //     //=> [{data: <Buffer 89 50 4e …>, path: 'build/images/foo.jpg'}, …]
+          // }).catch(e => {
+          //   this.emit('error', `Copying SVG Files from ${dest} to ${svgDest} failed\n ${e}`);
+          // });
+        }
+      }
+
+      facilities.push( {
+        name: this.configuration[facility]._name,
+        title: this.configuration[facility]._title,
+        systems: tmp
+      });
+    }
+
+
+    // create required main overview
+    dest = resolvePath(dir.data, 'facilities.json');
+
+    fs.writeFileSync( dest, JSON.stringify(facilities) );
+  }
+}
+
+const ensureLoggedIn = {
+  is: function(req, res, next) {
+    if (!req.isAuthenticated || !req.isAuthenticated()) {
+      req.session.returnTo = req.originalUrl || req.url;
+      res.status(403).send('Unauthorized');
+    } else {
+      next();
+    }
+  },
+  not: function(req, res, next) {
+    next();
+  }
+}
+
+module.exports = Router;

@@ -1,0 +1,232 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
+
+<link rel="import" href="../bower_components/app-route/app-route.html">
+
+<link rel="import" href="behaviors/container-behavior.html"/>
+
+<link rel="import" href="data/webvisual-element-socket-data.html"/>
+<link rel="import" href="data/webvisual-facility-data.html"/>
+
+<link rel="import" href="webvisual-element-sign.html"/>
+<link rel="import" href="webvisual-element-caption.html"/>
+
+<link rel="import" href="style/shared-styles.html">
+<link rel="import" href="style/webvisual-button.html">
+
+<dom-module id="webvisual-list">
+  <template>
+    <style include="shared-styles webvisual-button">
+      .grid {
+        @apply(--layout-horizontal);
+        @apply(--layout-wrap);
+        @apply(--layout-justified);
+        margin: 0.25em 0.75em 2em 0.75em;
+        padding: 0;
+        list-style: none;
+        box-sizing: border-box;
+      }
+
+      .grid li {
+        @apply(--layout-horizontal);
+        overflow: hidden;
+        box-sizing: border-box;
+        -webkit-flex: 1 1;
+        flex: 1 1;
+        -webkit-flex-basis: 20%;
+        flex-basis: 20%;
+        max-width: 20%;
+        padding: 0.25em;
+      }
+
+      .grid li > * {
+        border: thin solid var(--grid-border-color);
+        border-right-width: 0;
+      }
+      .grid li > :first-child {
+        border-top-left-radius: 5px;
+        border-bottom-left-radius: 5px;
+      }
+      .grid li > :last-child {
+        border-top-right-radius: 5px;
+        border-bottom-right-radius: 8px;
+        border-right-width: thin;
+      }
+
+      :host(:not([plain])) .grid li > * {
+        box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14),
+                    0 1px 5px 0 rgba(0, 0, 0, 0.12),
+                    0 3px 1px -2px rgba(0, 0, 0, 0.2);
+      }
+
+      .grid a {
+        display: block;
+        text-decoration: none;
+      }
+      webvisual-element-caption {
+        flex: 1 1 50%;
+      }
+      webvisual-element-sign {
+        /*flex: 1 0 auto;*/
+      }
+
+      @media (max-width: 1599px) {
+        .grid  li {
+          -webkit-flex-basis: 25%;
+          flex-basis: 25%;
+          max-width: 25%;
+        }
+      }
+
+      @media (max-width: 1279px) {
+        .grid  li {
+          -webkit-flex-basis: 33%;
+          flex-basis: 33%;
+          max-width: 33%;
+        }
+      }
+
+      @media (max-width: 767px) {
+        .grid  li {
+          -webkit-flex-basis: 50%;
+          flex-basis: 50%;
+          max-width: 50%;
+        }
+      }
+      @media (max-width: 379px) {
+        .grid  li {
+          -webkit-flex-basis: 100%;
+          flex-basis: 100%;
+          max-width: 100%;
+        }
+      }
+    </style>
+
+    <app-route
+      route="[[route]]"
+      pattern="/:facilityName/:systemName"
+      data="{{routeData}}"></app-route>
+
+    <webvisual-facility-data
+      id="facilityData"
+      facilities="[[facilities]]"
+      facility-name="[[routeData.facilityName]]"
+      system-name="[[routeData.systemName]]"
+      items="{{elements}}"></webvisual-facility-data>
+
+    <webvisual-element-socket-data
+      socket-name="data"
+      socket-room="[[routeData.facilityName]]/[[routeData.systemName]]"
+      lazy-connect="[[shouldConnectSocket]]"></webvisual-element-socket-data>
+
+    <!-- <template is="dom-if" if="[[visible]]" restamp> -->
+      <ul class="grid" hidden$="[[failure]]">
+        <template is="dom-repeat" items="[[_getListItems(elements)]]">
+          <li>
+            <!-- <a href$="[[_getItemHref(item)]]"> -->
+              <webvisual-element-sign
+                item="[[item]]"
+                show-date
+                selectable></webvisual-element-sign>
+              <webvisual-element-caption
+                keys="[[item.keys]]"></webvisual-element-caption>
+            <!-- </a> -->
+          </li>
+        </template>
+      </ul>
+
+      <webvisual-snackbar opened>
+        <webvisual-element-sign item="[[item]]"></webvisual-element-sign>
+        <webvisual-element-caption keys="[[item.keys]]" vertical></webvisual-element-caption>
+      </webvisual-snackbar>
+
+    <!-- </template> -->
+  </template>
+
+  <script>
+    Polymer({
+      is: 'webvisual-list',
+
+      behaviors: [
+        WebvisualBehaviors.ContainerBehavior
+      ],
+
+      properties: {
+        dark: {
+          type: Boolean,
+          reflectToAttribute: true
+        },
+
+        plain: {
+          type: Boolean,
+          reflectToAttribute: true
+        },
+
+        facility: Object,
+
+        system: Object,
+
+        elements: Array,
+
+        route: Object,
+
+        routeData: Object,
+
+        failure: Boolean,
+
+        visible: {
+          type: Boolean,
+          value: false,
+          reflectToAttribute: true
+        },
+
+        offline: Boolean,
+
+        loadComplete: Boolean,
+
+        loggedIn: Boolean,
+
+        shouldConnectSocket: {
+          type: Boolean,
+          computed: '_computeShouldConnectSocket(offline, visible, loggedIn, loadComplete)'
+        }
+
+      },
+
+      observers: [
+        '_routeChanged(routeData, visible)'
+      ],
+
+
+
+      print: function(arg,arg2,arg3) {
+        console.log(arg,arg2,arg3);
+      },
+
+      _getListItems: function(items) {
+        // Return placeholder items when the items haven't loaded yet.
+        return items || [{},{},{},{},{},{},{},{},{},{}];
+      },
+
+      _routeChanged: function(routeData, visible) {
+        if (visible) {
+          this.debounce('change-section', function() {
+            // Notify the facility and the page's title
+            this.fire('change-section', {
+              title: routeData.facilityName + '/' + routeData.systemName
+            });
+          });
+        }
+      },
+
+      _tryReconnect: function() {
+        this.$.facilityData.refresh();
+      },
+
+      _computeShouldConnectSocket: function(offline, visible, loggedIn, loadComplete) {
+        return !offline && visible && loadComplete && loggedIn;
+      }
+    });
+  </script>
+
+</dom-module>

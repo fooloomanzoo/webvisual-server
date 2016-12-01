@@ -1,0 +1,231 @@
+<script>
+  window.WebvisualBehaviors = window.WebvisualBehaviors || {};
+
+  /**
+   * Behavior that adds functionality to assign to socket and adds exceed events
+   *
+   * @polymerBehavior
+   */
+
+  WebvisualBehaviors.ElementBehavior = {
+
+    properties: {
+      item: {
+        type: Object,
+        observer: '_linkElement'
+      },
+
+      values: Array,
+
+      exceedable: {
+        type: Boolean,
+        reflectToAttribute: true
+      },
+
+      isExceeding: {
+        type: Boolean,
+        value: false
+      },
+
+      hasExceeded: {
+        type: Boolean,
+        value: false
+      },
+
+      bubbles: Boolean,
+
+      noSocketConnection: Boolean,
+
+      singleValue: Boolean,
+
+      title: {
+        type: String,
+        reflectToAttribute: true,
+        computed: '_computeTitle(item.id)'
+      }
+
+    },
+
+    observers: [
+      '_exceedingChanged(isExceeding)',
+      '_hasExceededChanged(hasExceeded)',
+      '_setSocketConnection(noSocketConnection)'
+    ],
+
+    hostAttributes: {
+      element: true
+    },
+
+    created: function() {
+      var sel, uniqueid;
+      while (true) {
+        uniqueid = String(Math.random().toString(16).slice(2));
+        sel = document.querySelector("[uniqueid='" + uniqueid + "']");
+        if (!sel) break;
+      }
+      this.setAttribute('uniqueid', uniqueid);
+    },
+
+    factoryImpl: function(obj, properties) {
+      this._linkElement(obj, properties);
+    },
+
+    detached: function() {
+      Webvisual.retractElement(this, this.item);
+      this._unlinkElement();
+      this.clearValues();
+    },
+
+    _linkElement: function(item, olditem) {
+      this._unlinkElement(olditem);
+      this.clearValues();
+      if (item && Object.keys(item).length !== 0) {
+        Webvisual.assignElement(this);
+      }
+    },
+
+    _unlinkElement: function(item) {
+      if (item && Object.keys(item).length !== 0) {
+        Webvisual.retractElement(this, item);
+      }
+    },
+
+    getElement: function() {
+      return this.properties;
+    },
+
+    computeDate: function(x) {
+      return x ? (this.showFullDate ? new Date(x).toLocaleString() : new Date(x).toLocaleTimeString()) : '';
+    },
+
+    computeValue: function(y) {
+      return (this.item && this.item.isIndicatorLamp) ? '' : y;
+    },
+
+    insertValues: function(values) {
+      if (values === undefined) {
+        return;
+      }
+
+      if (!this._initialized)
+        this._initialized = true;
+
+      if (this.singleValue === true) {
+        var value = values.pop();
+        if (this.exceedable === true)
+          this.checkExceedingState(value);
+        this.renderInsertedValues(value);
+        values.length = 0;
+      } else {
+        if (this.exceedable === true) {
+          values.forEach(function (value) {
+            this.checkExceedingState(value);
+          }, this)
+        }
+        this.renderInsertedValues(values);
+      }
+    },
+
+    spliceValues: function(splices) {
+      if (splices) {
+        if (this.noSocketConnection === true) {
+          this.splice('values', 0, splices.length);
+        }
+        if (this.renderSplicedValues) {
+          this.renderSplicedValues(splices);
+        }
+      }
+    },
+
+    requestLastValue: function(mount, uniqueid, len) {
+      return new Promise(function(resolve, reject) {
+        if (!this.webworker) {
+          reject();
+        }
+
+        this.webworker.addEventListener('message', function onMessage(e) {
+          if (e.data
+           && e.data.messageId
+           && e.data.messageId === lastMessageId) {
+             this.webworker.removeEventListener('message', onMessage);
+             resolve(e.data.values);
+           }
+        }.bind(this));
+
+        this.webworker.postMessage(
+          {
+            request: {
+                requestLast: {
+                  messageId: uniqueid,
+                  mounts: [mount],
+                  length: len || 1
+                }
+            }
+          });
+      }.bind(Webvisual))
+    },
+
+    renderInsertedValues: function(values) {
+    },
+
+    clearValues: function() {
+      this.resetState();
+      this.values = [];
+      this.lastValue = {};
+      // if (this.values)
+      //   this.renderSplicedValues(this.values);
+    },
+
+    checkExceedingState: function(value) {
+      if (this.exceedable === false || value === undefined) return;
+
+      if (value.state === 0) {
+        if (this.isExceeding === true) {
+          this.isExceeding = false;
+        }
+      } else {
+        if (this.isExceeding !== true) {
+          this.isExceeding = true;
+          if (this.hasExceeded === false)
+            this.set('hasExceeded', true);
+        }
+      }
+    },
+
+    _exceedingChanged: function(isExceeding, old) {
+      if (this.exceedable === true) {
+        if (this.bubbles === true) {
+          this.dispatchEvent(new CustomEvent('exceeding', {detail: { item: this.item, value: isExceeding }}), {bubbles: true });
+        }
+      }
+    },
+
+    _hasExceededChanged: function() {},
+
+    resetState: function() {
+      this.isExceeding = false;
+      this.hasExceeded = false;
+    },
+
+    _setSocketConnection: function(nosocket) {
+      // sets a global Object 'Webvisual', for updating the values of the elements
+      if (!this.item) {
+        return;
+      }
+      if (!nosocket) {
+        try {
+          Webvisual.assignElement(this);
+          // this.insertValues(this.values || []);
+        } catch (e) {
+          console.log(this.nodeName, e);
+        }
+      } else {
+        this._unlinkElement(this.item);
+      }
+    },
+
+    _computeTitle: function(id) {
+      return id;
+    }
+  };
+</script>

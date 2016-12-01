@@ -1,0 +1,1083 @@
+<link rel="import" href="../bower_components/polymer/polymer.html"/>
+<link rel="import" href="../bower_components/app-layout/app-header/app-header.html"/>
+<link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html"/>
+
+<link rel="import" href="../bower_components/app-route/app-location.html"/>
+<link rel="import" href="../bower_components/app-route/app-route.html"/>
+
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html"/>
+<link rel="import" href="../bower_components/iron-selector/iron-selector.html"/>
+
+<link rel="import" href="behaviors/localize-behavior.html"/>
+<link rel="import" href="behaviors/container-behavior.html"/>
+
+<link rel="import" href="webvisual-logo.html"/>
+<link rel="import" href="components/webvisual-icon-button.html"/>
+
+<link rel="import" href="data/webvisual-facility-data.html"/>
+
+<link rel="import" href="webvisual-login.html"/>
+<link rel="import" href="webvisual-home.html"/>
+<link rel="import" href="webvisual-list.html"/>
+<link rel="import" href="webvisual-groups.html"/>
+<link rel="import" href="webvisual-detail.html"/>
+
+<link rel="import" href="style/shared-styles.html">
+<link rel="import" href="style/webvisual-selectbox.html">
+<link rel="import" href="style/webvisual-button.html">
+<link rel="import" href="style/webvisual-app-style.html">
+
+<dom-module id="webvisual-app">
+
+  <template>
+
+    <style include="shared-styles webvisual-selectbox webvisual-button webvisual-app-style">
+      :host {
+        display: flex;
+        justify-content: center;
+        box-sizing: border-box;
+        min-height: 100vh;
+        transition: background 250ms cubic-bezier(0.6, 0, 0.2, 1);
+      }
+      app-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 11;
+        @apply(--app-header);
+      }
+      app-header::before {
+        position: absolute;
+        content: '';
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        opacity: 0;
+        transition: opacity 1s cubic-bezier(0.6, 0, 0.1, 1);
+        @apply(--app-header-before);
+      }
+      app-header[threshold-triggered]::before {
+        opacity: 1;
+      }
+      app-header[threshold-triggered] {
+        color: var(--bright-text-color);
+      }
+      :host {
+        background: var(--primary-background);
+      }
+      :host([page="login"]),
+      :host([page="home"]) {
+        background: var(--bright-primary-color);
+      }
+      app-toolbar {
+        font-size: 16px;
+      }
+
+      app-drawer {
+        z-index: 12;
+      }
+      app-drawer > app-drawer-content {
+        display: block;
+        height: calc(100% - 64px); 
+        padding: 0 16px;
+        overflow-x: hidden;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      app-drawer > app-toolbar {
+        width: 100%;
+        margin: 0;
+        padding: 0 32px;
+        @apply(--app-drawer-header);
+      }
+      app-drawer .spacer {
+        margin-bottom: 1em;
+      }
+      app-drawer-content webvisual-selectbox,
+      app-drawer-content webvisual-button,
+      app-drawer-content webvisual-toggle-button {
+        width: 100%;
+        padding: 0.75em 1em;
+        box-sizing: border-box;
+      }
+      app-drawer-content iron-collapse > .collapse-content {
+        padding: 0.5em 1em;
+        width: 100%;
+        display: inline-flex;
+        flex-direction: column;
+        box-sizing: border-box;
+        border-left: thin solid rgba(255,255,255,0.1);
+        border-right: thin solid rgba(255,255,255,0.1);
+        box-shadow: 0 5px 15px -10px rgba(0,0,0,0.25) inset;
+      }
+      app-drawer-content iron-collapse > .collapse-content > * {
+        box-sizing: border-box;
+        width: 100%;
+        font-size: 0.8em;
+      }
+      #pageselector {
+        padding-top: 64px;
+        transition: padding-top 250ms cubic-bezier(0.6, 0, 0.2, 1);
+      }
+      :host([show-tabs]) #pageselector {
+        padding-top: calc(64px + 2.5em);
+      }
+      :host([page="login"]) #pageselector,
+      :host([page="home"]) #pageselector {
+        padding-top: 0px;
+      }
+      .login-icon {
+        color: var(--notification-color);
+      }
+      .error-icon {
+        color: var(--warning-color);
+      }
+      #logo {
+        padding-left: 16px;
+      }
+      #tabs {
+        position: relative;
+        height: 2.5em;
+      }
+      webvisual-selectbox.toolbar.grouping {
+        background: url(data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22%3E%3Cg%3E%3Cpath d=%22M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z%22 fill=%22%23FFFFFF%22%3E%3C/path%3E%3C/g%3E%3C/svg%3E);
+        background-repeat: no-repeat;
+        background-position: 6px center;
+        background-size: 18px 18px;
+        height: 64px;
+        padding: 0;
+        margin: 0 8px;
+      }
+      webvisual-selectbox.toolbar > select {
+        height: 30px;
+        font-size: 12px;
+        padding: 0 0 0 24px;
+      }
+
+    </style>
+
+    <app-location route="{{route}}"></app-location>
+    <app-route
+      route="{{route}}"
+      pattern="/:page"
+      data="{{routeData}}"
+      tail="{{subroute}}"></app-route>
+
+    <webvisual-facility-data
+      facilities="{{facilities}}"
+      logged-in="{{loggedIn}}"
+      offline="[[offline]]"></webvisual-facility-data>
+
+    <app-header role="home" id="header" hidden$="[[!_shouldShowHeader]]" reveals threshold="1">
+
+      <app-toolbar>
+        <webvisual-icon-button icon="menu" class="menu-icon" on-tap="_toggleDrawer"></webvisual-icon-button>
+
+        <webvisual-logo id="logo" href="/home" main-title></webvisual-logo>
+
+        <template is="dom-if" if="[[_shouldRenderControlButtons]]">
+
+          <template is="dom-if" if="[[_shouldRenderGroupingKeys]]">
+            <webvisual-selectbox class="toolbar grouping">
+              <select value="{{groupedKey::input}}">
+                <template is="dom-repeat" items="[[groupingKeys]]">
+                  <option value="[[item]]">[[item]]</option>
+                </template>
+              </select>
+            </webvisual-selectbox>
+          </template>
+
+          <template is="dom-if" if="[[isExceeding]]">
+            <webvisual-icon-button icon="error-outline" class="error-icon control"
+            on-tap="_toggleAlarmDrawer" hidden$="[[!isExceeding]]"></webvisual-icon-button>
+          </template>
+
+          <webvisual-icon-button icon="more-vert" checked="{{showTabs}}"></webvisual-icon-button>
+
+        </template>
+
+        <template is="dom-if" if="[[!loggedIn]]">
+          <a href="/login">
+            <webvisual-icon-button icon="assignment-ind" class="login-icon"></webvisual-icon-button>
+          </a>
+        </template>
+      </app-toolbar>
+
+      <div id="tabs" sticky$="[[_shouldShowTabs]]" hidden$="[[!_shouldShowTabs]]">
+        <template is="dom-if" if="[[_shouldRenderTabs]]">
+          <webvisual-tabs
+              selected="{{page}}"
+              attr-for-selected="name">
+              <webvisual-tab name="list">
+                <a href="/list[[subroute.path]]">{{localize('list', 'name')}}</a>
+              </webvisual-tab>
+              <webvisual-tab name="groups">
+                <a href="/groups[[subroute.path]]">{{localize('groups', 'name')}}</a>
+              </webvisual-tab>
+              <webvisual-tab name="detail">
+                <a href="/detail[[subroute.path]]">{{localize('detail', 'name')}}</a>
+              </webvisual-tab>
+          </webvisual-tabs>
+        </template>
+      </div>
+
+    </app-header>
+
+    <iron-pages id="pageselector" role="main" selected="[[page]]" attr-for-selected="name" selected-attribute="visible">
+      <!-- home view for selecting the facility -->
+      <webvisual-home name="home" dark="[[dark]]" plain="[[plain]]"
+        facilities="[[facilities]]"
+        route="{{subroute}}"
+        logged-in="{{loggedIn}}"
+        language="[[language]]"
+        language-resources="[[languageResources]]"></webvisual-home>
+      <!-- login view-->
+      <webvisual-login name="login" dark="[[dark]]" plain="[[plain]]"
+        route="[[subroute]]"
+        offline="[[offline]]"
+        language="[[language]]"
+        language-resources="[[languageResources]]"></webvisual-login>
+      <!-- list view of items in a facility -->
+      <webvisual-list name="list" dark="[[dark]]" plain="[[plain]]"
+        route="[[subroute]]"
+        facilities="[[facilities]]"
+        offline="[[offline]]"
+        select-notify
+        load-complete="[[loadComplete]]"
+        logged-in="[[loggedIn]]"></webvisual-list>
+      <!-- group view of items -->
+      <webvisual-groups name="groups" dark="[[dark]]" plain="[[plain]]"
+        route="[[subroute]]"
+        facilities="[[facilities]]"
+        offline="[[offline]]"
+        load-complete="[[loadComplete]]"
+        logged-in="[[loggedIn]]"
+        grouped-key="{{groupedKey}}"
+        grouping-keys="{{groupingKeys}}"></webvisual-groups>
+      <!-- detail view of one item -->
+      <webvisual-detail name="detail" dark="[[dark]]" plain="[[plain]]"
+        route="[[subroute]]"
+        offline="[[offline]]"></webvisual-detail>
+    </iron-pages>
+
+    <!-- EXCEEDING -->
+    <template is="dom-if" if="[[isExceeding]]">
+      <app-drawer id="alarmDrawer" opened="{{alarmDrawerOpened}}" align="right" swipe-open tabindex="0">
+        <app-toolbar class="header">
+          <webvisual-icon-button icon="warning" on-tap="_toggleAlarmDrawer"></webvisual-icon-button>
+          <div>Alarme</div>
+        </app-toolbar>
+
+        <webvisual-swipeable-container id="exceedingElementsList"
+           is-exceeding="{{isExceeding}}"
+           notify-parent="{{!noExceedNotify}}"
+           no-select-notify
+           no-auto-removal-exceeding-elements>
+        </webvisual-swipeable-container>
+
+        <section style="padding: 0em 0.75em 0.75em 0.75em; float: right;"><a href="#" on-click="_clearExceedingElementsFromList">Liste leeren</a></section>
+      </app-drawer>
+    </template>
+
+    <!-- SIDEMENU -->
+    <template is="dom-if" if="[[_shouldRenderDrawer]]">
+      <app-drawer id="drawerPanel" opened="{{drawerOpened}}" align="left" swipe-open tabindex="0">
+        <app-toolbar class="header">
+          <webvisual-icon-button icon="close" on-tap="_toggleDrawer"></webvisual-icon-button>
+          <!-- <div main-title style="text-align:end;padding-right:0.5em;">Webvisual</div> -->
+        </app-toolbar>
+
+        <app-drawer-content>
+          <webvisual-button for="route-collapse" on-tap="_toggleCollapse">
+            <iron-icon icon="more-vert" class="left"></iron-icon>
+            <span>{{localize('view')}}</span>
+            <iron-icon icon="arrow-drop-up" class="right"></iron-icon>
+          </webvisual-button>
+
+          <iron-collapse id="route-collapse">
+            <div class="collapse-content">
+              <template is="dom-if" if="[[!loggedIn]]">
+                <a href="/login">
+                  <webvisual-button name="login">
+                    <iron-icon icon="perm-identity" class="left"></iron-icon>
+                    {{localize('login', 'name')}}
+                  </webvisual-button>
+                </a>
+              </template>
+              <a href="/home">
+                <webvisual-button name="home">
+                  <iron-icon icon="exit-to-app" class="left"></iron-icon>
+                  {{localize('home', 'name')}}
+                </webvisual-button>
+              </a>
+              <a href="/list[[subroute.path]]">
+                <webvisual-button name="list">
+                  <iron-icon icon="list" class="left"></iron-icon>
+                  {{localize('list', 'name')}}
+                </webvisual-button>
+              </a>
+              <a href="/groups[[subroute.path]]">
+                <webvisual-button name="groups">
+                  <iron-icon icon="grid-on" class="left"></iron-icon>
+                  {{localize('groups', 'name')}}
+                </webvisual-button>
+              </a>
+              <a href="/detail[[subroute.path]]">
+                <webvisual-button name="detail">
+                  <iron-icon icon="chrome-reader-mode" class="left"></iron-icon>
+                  {{localize('detail', 'name')}}
+                </webvisual-button>
+              </a>
+            </div>
+          </iron-collapse>
+
+          <div class="spacer"></div>
+
+          <webvisual-button for="layout-collapse" on-tap="_toggleCollapse">
+            <iron-icon icon="settings" class="left"></iron-icon>
+            <span>{{localize('layout')}}</span>
+            <iron-icon icon="arrow-drop-up" class="right"></iron-icon>
+          </webvisual-button>
+
+          <iron-collapse id="layout-collapse">
+            <div class="collapse-content">
+              <webvisual-toggle-button checked="{{plain}}">
+                <iron-icon icon="border-style"></iron-icon>
+                {{localize('plain', plain)}}
+              </webvisual-toggle-button>
+              <webvisual-toggle-button checked="{{dark}}">
+                <iron-icon icon="invert-colors"></iron-icon>
+                {{localize('dark', dark)}}
+              </webvisual-toggle-button>
+            </div>
+          </iron-collapse>
+
+          <div class="spacer"></div>
+
+          <webvisual-selectbox>
+            <iron-icon icon="language"></iron-icon>
+            <span>{{localize('language')}}</span>
+
+            <select value="{{language::input}}">
+              <option value="de">deutsch</option>
+              <option value="en">english</option>
+              <option value="fr">français</option>
+              <option value="es">español</option>
+              <option value="it">italiano</option>
+              <option value="ru">русский</option>
+              <option value="zh">中文</option>
+            </select>
+          </webvisual-selectbox>
+
+          <template is="dom-if" if="[[_shouldRenderGroupingKeys]]">
+            <webvisual-selectbox class="grouping">
+              <iron-icon icon="filter-list"></iron-icon>
+              <span>{{localize('groupedKey')}}</span>
+
+              <select value="{{groupedKey::input}}">
+
+                <template is="dom-repeat" items="[[groupingKeys]]">
+                  <option value="[[item]]">[[item]]</option>
+                </template>
+
+              </select>
+            </webvisual-selectbox>
+          </template>
+        </app-drawer-content>
+      </app-drawer>
+
+    </template>
+  </template>
+
+  <script>
+    Polymer({
+      is: 'webvisual-app',
+
+      behaviors: [
+        WebvisualBehaviors.LocalizeBehavior,
+        WebvisualBehaviors.ContainerBehavior
+      ],
+
+      properties: {
+
+        page: {
+          type: String,
+          reflectToAttribute: true,
+          observer: '_pageChanged'
+        },
+
+        language: {
+          type: String,
+          notify: true,
+          value: window.navigator.language,
+          observer: '_checkLanguage'
+        },
+
+        languageResourcePath: {
+          type: String,
+          value: '/locales.json'
+        },
+
+        dark: {
+          type: Boolean,
+          notify: true,
+          reflectToAttribute: true,
+          observer: '_darkChanged'
+        },
+
+        plain: {
+          type: Boolean,
+          notify: true,
+          reflectToAttribute: true,
+          observer: '_plainChanged'
+        },
+
+        facilityName: String,
+
+        systemName: String,
+
+        groupedKey: {
+          type: String,
+          notify: true
+        },
+
+        loggedIn: {
+          type: Boolean,
+          notify: true,
+          observer: '_loggedInChanged'
+        },
+
+        showTabs: {
+          type: Boolean,
+          reflectToAttribute: true
+        },
+
+        _shouldShowHeader: {
+          computed: '_computeShouldShowHeader(page)'
+        },
+
+        _shouldRenderControlButtons: {
+          computed: '_computeShouldRenderControlButtons(page)'
+        },
+
+        _shouldShowTabs: {
+          computed: '_computeShouldShowTabs(page, showTabs)'
+        },
+
+        _shouldRenderTabs: {
+          computed: '_computeShouldRenderTabs(_shouldShowTabs, loadComplete)'
+        },
+
+        _shouldRenderDrawer: {
+          computed: '_computeShouldRenderDrawer(page, loadComplete)'
+        },
+
+        _shouldRenderGroupingKeys: {
+          computed: '_computeShouldRenderGroupingKeys(page, loadComplete)'
+        }
+      },
+
+      observers: [
+        '_routePageChanged(routeData.page)',
+        '_groupedKeyChanged(_shouldRenderGroupingKeys)'
+      ],
+
+      listeners: {
+        'change-section': '_onChangeSection',
+        'announce': '_onAnnounce',
+        'dom-change': '_domChange',
+        'element-select': 'print'
+      },
+
+      print: function(arg, arg2) {
+        console.log(arg, arg2);
+      },
+
+      created: function() {
+        window.performance && performance.mark && performance.mark('webvisual-app.created');
+        // Custom elements polyfill safe way to indicate an element has been upgraded.
+        this.removeAttribute('unresolved');
+      },
+
+      ready: function() {
+        // listen for online/offline
+        Polymer.RenderStatus.afterNextRender(this, function() {
+          this.listen(window, 'online', '_notifyNetworkStatus');
+          this.listen(window, 'offline', '_notifyNetworkStatus');
+        });
+        this._loadPresettings();
+      },
+
+      _routePageChanged: function(page) {
+        this.page = page || 'home';
+        // Scroll to the top of the page on every *route* change. Use 'Polymer.AppLayout.scroll'
+        // with 'behavior: 'silent'' to disable header scroll effects during the scroll.
+        Polymer.AppLayout.scroll({ top: 0, behavior: 'silent' });
+        // Close the drawer - in case the *route* change came from a link in the drawer.
+        this.drawerOpened = false;
+      },
+
+      _pageChanged: function(page, oldPage) {
+        if (page != null) {
+          // home route is eagerly loaded
+          if (page === 'home' || page === 'login') {
+            this._pageLoaded(Boolean(oldPage));
+          // other routes are lazy loaded
+          } else {
+            this.importHref(
+              this.resolveUrl('webvisual-' + page + '.html'),
+              function() {
+                this._pageLoaded(Boolean(oldPage));
+              }, null, true);
+          }
+        }
+      },
+
+      _pageLoaded: function(shouldResetLayout) {
+        this._ensureLazyLoaded();
+        if (shouldResetLayout) {
+          // The size of the header depends on the page (e.g. on some pages the tabs
+          // do not appear), so reset the header's layout only when switching pages.
+          this.async(function() {
+            this.$.header.resetLayout();
+          }, 1);
+        }
+      },
+
+      _ensureLazyLoaded: function() {
+        // load lazy resources after render and set 'loadComplete' when done.
+        if (!this.loadComplete) {
+          Polymer.RenderStatus.afterNextRender(this, function() {
+            this.importHref(this.resolveUrl('lazy-resources.html'), function() {
+              // Register service worker if supported.
+              if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/service-worker.js');
+              }
+              this._notifyNetworkStatus();
+              this.loadComplete = true;
+            });
+          });
+        }
+      },
+
+      _notifyNetworkStatus: function() {
+        var oldOffline = this.offline;
+        this.offline =  !navigator.onLine;
+        // Show the snackbar if the user is offline when starting a new session
+        // or if the network status changed.
+        if (this.offline || (!this.offline && oldOffline === true)) {
+          if (!this._networkSnackbar) {
+            this._networkSnackbar = document.createElement('webvisual-snackbar');
+            this._networkSnackbar.setAttribute('auto-close', '');
+            Polymer.dom(this.root).appendChild(this._networkSnackbar);
+          }
+          Polymer.dom(this._networkSnackbar).innerHTML = this.localize ? this.localize('notification', 'offline', this.offline) : (this.offline ?
+            'You are offline' : 'You are online');
+          this._networkSnackbar.open();
+        }
+      },
+
+      _loggedInChanged: function(loggedIn) {
+        if (!this._logInStatusSnackbar) {
+          this._logInStatusSnackbar = document.createElement('webvisual-snackbar');
+          this._logInStatusSnackbar.setAttribute('auto-close', '');
+          Polymer.dom(this.root).appendChild(this._logInStatusSnackbar);
+        }
+        Polymer.dom(this._logInStatusSnackbar).innerHTML = this.localize ? this.localize('notification', 'loggedIn', loggedIn) : (loggedIn ?
+          'You are logged in' : 'You are not logged in');
+        this._logInStatusSnackbar.open();
+      },
+
+      _toggleDrawer: function() {
+        this.drawerOpened = !this.drawerOpened;
+      },
+      _toggleAlarmDrawer: function() {
+        this.alarmDrawerOpened = !this.alarmDrawerOpened;
+      },
+
+      // Elements in the app can notify section changes.
+      // Response by a11y announcing the section and syncronizing the facility.
+      _onChangeSection: function(event) {
+        var detail = event.detail;
+        // Announce the page's title
+        if (detail.title) {
+          document.title = detail.title + ' - Webvisual';
+          this._announce(detail.title + ', ' + (this.localize ? this.localize('notification', 'loaded') : 'loaded'));
+        }
+        // set SocketConnection
+      },
+
+      // Elements in the app can notify a change to be a11y announced.
+      _onAnnounce: function(e) {
+        this._announce(e.detail);
+      },
+
+      // A11y announce the given message.
+      _announce: function(message) {
+        this._a11yLabel = '';
+        this.debounce('_a11yAnnouncer', function() {
+          this._a11yLabel = message;
+        }, 100);
+      },
+
+      // This is for performance logging only.
+      _domChange: function(e) {
+        if (window.performance && performance.mark && !this.__loggedDomChange) {
+          var target = Polymer.dom(e).rootTarget;
+          if (target.domHost.is.match(this.page)) {
+            this.__loggedDomChange = true;
+            performance.mark(target.domHost.is + '.domChange');
+          }
+        }
+      },
+
+      _loadPresettings: function() {
+        var settings = JSON.parse(localStorage.getItem('settings'));
+        for (var key in settings) {
+          this.set(key, settings[key]);
+        }
+
+        this._updateStyles();
+      },
+
+      _plainChanged: function(plain, old) {
+        if (old === undefined)
+          return;
+
+        var settings = JSON.parse(localStorage.getItem('settings')) || {};
+        settings.plain = plain;
+        localStorage.setItem('settings', JSON.stringify(settings));
+
+        this._updateStyles();
+      },
+
+      _darkChanged: function(dark, old) {
+        if (old === undefined)
+          return;
+
+        var settings = JSON.parse(localStorage.getItem('settings')) || {};
+        settings.dark = dark;
+        localStorage.setItem('settings', JSON.stringify(settings));
+
+        this._updateStyles();
+      },
+
+      _updateStyles: function() {
+        this.debounce('update-styles', this.updateStyles, 1);
+      },
+
+      _groupedKeyChanged: function() {
+        // Hack: initial binding to native select value property is not bound
+        this.async(function() {
+          var groupedKey = this.groupedKey;
+          var groupingSelectors = Polymer.dom(this.root).querySelectorAll('webvisual-selectbox.grouping');
+
+          Array.prototype.forEach.call(groupingSelectors, function(el) {
+            var sel = el.querySelector('select');
+            if (sel)
+              sel.value = groupedKey;
+          })
+        },1);
+      },
+
+      _computeShouldShowHeader: function(page) {
+        return (page !== 'home' && page !== 'login');
+      },
+
+      _computeShouldRenderLowerToolbar: function(page, opened) {
+        return (page === 'list') && opened;
+      },
+
+      _computeShouldRenderControlButtons: function(page) {
+        return (page !== 'home' && page !== 'login');
+      },
+
+      _computeShouldShowTabs: function(page, showTabs) {
+        return (page !== 'home' && page !== 'login') && showTabs;
+      },
+
+      _computeShouldRenderTabs: function(_shouldShowTabs, loadComplete) {
+        return _shouldShowTabs && loadComplete;
+      },
+
+      _computeShouldRenderDrawer: function(page, loadComplete) {
+        return (page !== 'home' && page !== 'login') && loadComplete;
+      },
+
+      _computeShouldRenderGroupingKeys: function(page, loadComplete) {
+        return page === 'groups' && loadComplete;
+      },
+
+      _toggleCollapse: function(e) {
+        // TODO: very probable that this will change in Polymer 2.0
+        var button = e.currentTarget;
+        if (!button.hasAttribute('for')) {
+          return;
+        }
+        var id = button.getAttribute('for');
+        var collapse = this.$$('#'+id);
+        var iconbutton = button.querySelector('iron-icon.right');
+
+        if (collapse && collapse.toggle) {
+          collapse.toggle();
+          if (iconbutton) {
+            if (iconbutton.icon === 'arrow-drop-down')
+              iconbutton.set('icon','arrow-drop-up');
+            else
+              iconbutton.set('icon','arrow-drop-down');
+          }
+        }
+      }
+
+    });
+
+    //   behaviors: [
+    //     Polymer.IronA11yKeysBehavior,
+    //     Polymer.IronResizableBehavior,
+    //     Polymer.NeonSharedElementAnimatableBehavior
+    //   ],
+    //
+    //   properties: {
+    //
+    //     reproductionContainer: {
+    //       type: String,
+    //       value: 'toolbarFooter'
+    //     },
+    //
+    //     animatable: {
+    //       type: Boolean,
+    //       reflectToAttribute: true
+    //     },
+    //
+    //     repeatedAttributes: {
+    //       type: Array,
+    //       value: function() {
+    //         return ['opened', 'expanded']
+    //       }
+    //     },
+    //
+    //     attributeAnimations: {
+    //       type: Object,
+    //       value: function() {
+    //         return {
+    //           'opened': {
+    //             'exit': {
+    //               name: 'fade-out-animation',
+    //               timing: {
+    //                 duration: 250
+    //               }
+    //             }
+    //           }
+    //         };
+    //       }
+    //     },
+    //
+    //     isExceeding: {
+    //       type: Boolean,
+    //       value: false,
+    //       observer: '_handleExceeding'
+    //     },
+    //
+    //     nativeNotification: {
+    //       type: Boolean,
+    //       value: false,
+    //       observer: 'requestNotificationPermission'
+    //     }
+    //   },
+    //
+    //   listeners: {
+    //     'neon-animation-finish': '_onNeonAnimationFinish'
+    //   },
+    //
+    //   keyBindings: {
+    //      'left': 'previousPanel', // same as 'space:keydown'
+    //      'right': 'nextPanel',
+    //      'down': 'contractToolbar',
+    //      'up': 'expandToolbar',
+    //      'esc': 'backToSelectPage'
+    //    },
+    //
+    //   attached: function() {
+    //     Polymer.dom(this.$.groupingKeysSystemSelector)
+    //            .observeNodes(function(info) {
+    //              for (var i in info.addedNodes)
+    //               if (info.addedNodes[i].nodeName === "IRON-SELECTOR")
+    //                 info.addedNodes[i].addEventListener("iron-select", function(e) {
+    //                   this.regroup(e.currentTarget.selected);
+    //                 }.bind(this));
+    //            }.bind(this));
+    //   },
+    //
+    //   getAnimatableNodes: function() {
+    //     return this.getEffectiveChildNodes
+    //                  .call(this.$.toolbarFooter)
+    //                  .filter(function(el) {
+    //                    return (el.nodeType === Node.ELEMENT_NODE);
+    //                  });
+    //   },
+    //
+    //   // Toolbar Actions
+    //   openedChanged: function() {
+    //     if (this.opened || this.forceOpened) {
+    //       this.opened = true;
+    //       this.$.toolbarFooter.setAttribute('opened', true);
+    //     }
+    //   },
+    //   forceOpenedChanged: function() {
+    //     if (this.opened || this.forceOpened) {
+    //       if (this.opened === false) {
+    //         this.opened = true;
+    //       }
+    //     }
+    //   },
+    //   toolbarExpandToggle: function() {
+    //     if (this.opened || this.forceOpened) {
+    //       if (this.expanded) {
+    //         this.contractToolbar();
+    //       } else {
+    //         this.expandToolbar();
+    //       }
+    //     }
+    //   },
+    //   contractToolbar: function() {
+    //     this.expanded = false;
+    //   },
+    //   expandToolbar: function() {
+    //     if (this.opened || this.forceOpened) {
+    //       this.expanded = true
+    //     } else {
+    //       this.opened = true;
+    //     }
+    //   },
+    //   closeToolbar: function(newSystem, oldSystem) {
+    //     this.clearSelectedElements();
+    //     this.opened = false;
+    //   },
+    //   _onNeonAnimationFinish: function() {
+    //     if (this.opened === false) {
+    //       if (this.$.toolbarFooter.hasAttribute('opened')) {
+    //         this.$.toolbarFooter.removeAttribute('opened');
+    //       }
+    //     }
+    //     this.notifyResize();route
+    //   },
+    //
+    //   previousPanel: function() {
+    //     this.$.panelSelector.selectPrevious();
+    //   },
+    //
+    //   nextPanel: function() {
+    //     this.$.panelSelector.selectNext();
+    //   },
+    //
+    //   _computeOpened: function(opened, forceOpened) {
+    //     return opened || forceOpened;
+    //   },
+    //   _computeExpandIcon: function() {
+    //     if (this.expanded)
+    //       return 'expand-less';
+    //     else
+    //       return 'expand-more';
+    //   },
+    //
+    //   _handleExceeding: function(value) {
+    //     if(value && !(this.$.alarmPanel.classList.contains("alarm-panel-opened"))) {
+    //       this.openAlarmPanel();
+    //       this.debounce('alarm-notification', this.createAlarmNotification, 750);
+    //     }
+    //     else if (this.$.exceedingElementsList.exceedingElements.length === 0) {
+    //       this.debounce('close-alarm-panel', this.closeAlarmPanel, 1000);
+    //     }
+    //   },
+    //   // app Control
+    //   backToSelectPage: function() {
+    //     this.clearSelectedElements();
+    //     this.fire("clear-selected-elements");
+    //     this.closeDrawer();
+    //     this.closeToolbar();
+    //     PageSelector.select("0");
+    //   },
+    //   backToIndex: function() {
+    //     window.location.pathname = '/index';
+    //   },
+    //   // Panel Control
+    //   _systemChanged: function(newSystem, oldSystem) {
+    //     // this._selectPanel(newSystem, oldSystem);
+    //     this.clearSelectedElements();
+    //     this.fire("clear-selected-elements");
+    //   },
+    //   _selectPanel: function(newSystem, oldSystem) {
+    //     var newpanel = this.queryEffectiveChildren.call(this.$.panelSelector,'[system=' + newSystem + ']'),
+    //         newebvisualelector = this.queryEffectiveChildren.call(this.$.groupingKeysSystemSelector,'[system=' + newSystem + ']');
+    //     var oldpanel = this.queryEffectiveChildren.call(this.$.panelSelector,'[system=' + oldSystem + ']'),
+    //         oldselector = this.queryEffectiveChildren.call(this.$.groupingKeysSystemSelector,'[system=' + oldSystem + ']');
+    //
+    //     if (newebvisualelector && newpanel) {
+    //       newebvisualelector.style.display = '';
+    //       newebvisualelector.classList.add("foreground");
+    //       newpanel.style.display = '';
+    //       newpanel.classList.add("foreground");
+    //     }
+    //
+    //     if (this.animatable) {
+    //       if (oldpanel) {
+    //         oldpanel.addEventListener("transitionend", function(e) {
+    //           if (newpanel)
+    //             newpanel.classList.add("selected");
+    //           oldpanel.classList.remove("foreground");
+    //           oldpanel.removeEventListener(e.type, arguments.callee);
+    //         });
+    //         oldpanel.classList.remove("selected");
+    //         if (oldselector)
+    //           oldselector.classList.remove("foreground");
+    //       }
+    //       else if (newpanel) {
+    //         newpanel.classList.add("selected");
+    //       }
+    //     }
+    //     else {
+    //       if (newpanel)
+    //         newpanel.classList.add("selected");
+    //       if (oldpanel) {
+    //         oldpanel.classList.remove("foreground");
+    //         oldpanel.classList.remove("selected");
+    //         if (oldselector)
+    //           oldselector.classList.remove("foreground");
+    //       }
+    //     }
+    //   },
+    //   // Grouping Options
+    //   regroup: function(key) {
+    //     var system = this.system;
+    //     var panel = this.queryEffectiveChildren('.panel[system="'+system+'"]');
+    //     if (panel)
+    //       panel.groupedKey = key;
+    //   },
+    //
+    //   _clearExceedingElementsFromList: function() {
+    //     this.$.exceedingElementsList.clearExceedingElements();
+    //     this.closeAlarmPanel();
+    //   },
+    //
+    //   requestNotificationPermission: function() {
+    //     // Notifications
+    //     if (!("Notification" in window)) {
+    //       console.warn("This browebvisualer does not support desktop notification");
+    //     }
+    //     //  ask the user for permission
+    //     else if (this.notification && Notification.permission !== 'denied') {
+    //       Notification.requestPermission(function (permission) {
+    //         // If the user accepts, let's create a notification
+    //         if (permission === "granted") {
+    //           var notification = new Notification("Notifikationen aktiv", {icon: '../../img/icons/webicon.png', body: '', tag: ''});
+    //         }
+    //       });
+    //     }
+    //   },
+    //
+    //   createAlarmNotification: function() {
+    //     if (Notification.permission !== 'denied') {
+    //       var count = this.exceedingElements.length;
+    //       var msg = '';
+    //
+    //       var notification = new Notification(count + ' Elemente im Alarmzustand',
+    //         { icon: '../../img/icons/warning.png',
+    //           body: msg,
+    //           tag: msg });
+    //     }
+    //   },
+    //
+    //   toggleTheme: function(){
+    //     var elems = document.querySelectorAll('*');
+    //     if(this.dark === true) {
+    //       for (i = 0; i < elems.length; ++i) {
+    //         elems[i].removeAttribute("dark");
+    //       }
+    //       this.set("dark", false);
+    //     }
+    //     else {
+    //       for (i = 0; i < elems.length; ++i) {
+    //         elems[i].setAttribute("dark", '');
+    //       }
+    //       this.set("dark", true);
+    //     }
+    //     this.updateStyles();
+    //   },
+    //   toggleWindowDecoration: function(){
+    //     var elems = document.querySelectorAll('webvisual-groupcard');
+    //     for (i = 0; i < elems.length; ++i) {
+    //       elems[i].toggleAttribute("without-window");
+    //     }
+    //   },
+    //   toggleWindowHeader: function(){
+    //     var elems = document.querySelectorAll('webvisual-groupcard');
+    //     for (i = 0; i < elems.length; ++i) {
+    //       elems[i].toggleAttribute("hide-header");
+    //     }
+    //   },
+    //   toggleDateView: function(){
+    //     var elems = document.querySelectorAll('[updatable]');
+    //     for (i = 0; i < elems.length; ++i) {
+    //       elems[i].toggleAttribute("show-date");
+    //     }
+    //   },
+    //   toggleCollapse: function(e){
+    //     var button = e.currentTarget;
+    //     if (!button.hasAttribute('collapse-id')) {
+    //       return;
+    //     }
+    //     var id = button.getAttribute('collapse-id');
+    //     var collapse = Polymer.dom(this.root).querySelector('section.collapse.'+id);
+    //     var iconbutton = Polymer.dom(button).querySelector('iron-icon.right');
+    //     if (collapse) {
+    //       if (collapse.hasAttribute('opened')) {
+    //         collapse.removeAttribute('opened')
+    //       } else {
+    //         collapse.setAttribute('opened', '');
+    //       }
+    //       if (iconbutton) {
+    //         if (iconbutton.icon === 'arrow-drop-down')
+    //           iconbutton.set('icon','arrow-drop-up');
+    //         else
+    //           iconbutton.set('icon','arrow-drop-down');
+    //       }
+    //     }
+    //   },
+    //   // Panel Control
+    //   openAlarmPanel: function() {
+    //     this.$.alarmPanel.classList.add("alarm-panel-opened");
+    //   },
+    //   closeAlarmPanel: function() {
+    //     this.$.alarmPanel.classList.remove("alarm-panel-opened");
+    //   },
+    //   toggleAlarmPanel: function() {
+    //     this.$.alarmPanel.classList.toggle("alarm-panel-opened");
+    //   },
+    //   toggleDrawer: function(){
+    //     this.$.drawerPanel.classList.toggle("drawer-opened");
+    //     this.$.backdrop.classList.toggle("backdrop-opened");
+    //   },
+    //   closeDrawer: function(){
+    //     this.$.drawerPanel.classList.remove("drawer-opened");
+    //     this.$.backdrop.classList.remove("backdrop-opened");
+    //   },
+    //   toggleTabs: function(){
+    //     this.$.systemsTabs.classList.toggle("tabs-opened");
+		// 		this.fire('resize');
+    //   },
+    //   closeTabs: function(){
+    //     this.$.systemsTabs.classList.remove("tabs-opened");
+		// 		this.fire('resize');
+    //   },
+    //   activeChanged: function() {
+    //     var preconf = JSON.parse(localStorage.getItem(window.Name));
+    //     if (this.active === true && preconf && preconf.selectedSystems) {
+    //       this.$.panelSelector.select(preconf.selectedSystems[0]);
+    //     }
+    //     this.notifyResize();
+    //   }
+    // });
+  </script>
+</dom-module>

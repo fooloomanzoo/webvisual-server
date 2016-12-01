@@ -1,0 +1,73 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<dom-module id="webvisual-spinner">
+  <template>
+  <style>
+    :host {
+      display: flex;
+      flex-direction: row;
+      align-self: center;
+      align-items: center;
+    }
+    .circle {
+      height: 18px;
+      transform: scale(0);
+      transform-origin: center;
+      animation-timing-function: ease;
+      animation-duration: 750ms;
+      animation-fill-mode: both;
+      animation-iteration-count: infinite;
+    }
+    .circle:nth-child(1) { animation-delay: 50ms; fill: #39C5ff; }
+    .circle:nth-child(2) { animation-delay: 100ms; fill: #1EE41A; }
+    .circle:nth-child(3) { animation-delay: 150ms; fill: #E4D61A; }
+    .circle:nth-child(4) { animation-delay: 200ms; fill: #E45D1A; }
+    .circle:nth-child(5) { animation-delay: 250ms; fill: #E41A1A; }
+
+    :host([animated]) .circle {
+      animation-name: scaleup;
+    }
+    @keyframes scaleup {
+      0%   { transform: scale(0) }
+      80%  { transform: scale(1) }
+      100%  { transform: scale(0) }
+    }
+  </style>
+
+  <svg class="circle" viewBox="0 0 32 18">
+    <circle r="8" cy="9" cx="16" stroke="#252D36" stroke-width="0.25"/>
+  </svg>
+  <svg class="circle" viewBox="0 0 32 18">
+    <circle r="8" cy="9" cx="16" stroke="#252D36" stroke-width="0.25"/>
+  </svg>
+  <svg class="circle" viewBox="0 0 32 18">
+    <circle r="8" cy="9" cx="16" stroke="#252D36" stroke-width="0.25"/>
+  </svg>
+  <svg class="circle" viewBox="0 0 32 18">
+    <circle r="8" cy="9" cx="16" stroke="#252D36" stroke-width="0.25"/>
+  </svg>
+  <svg class="circle" viewBox="0 0 32 18">
+    <circle r="8" cy="9" cx="16" stroke="#252D36" stroke-width="0.25"/>
+  </svg>
+
+</template>
+
+  <script>
+    Polymer({
+      is: 'webvisual-spinner',
+      attached: function() {
+        this.container = this.$.container;
+      },
+      play: function() {
+        if (!this.hasAttribute('animated')) {
+          this.setAttribute('animated', '');
+        }
+      },
+      cancel: function() {
+        if (this.hasAttribute('animated')) {
+          this.removeAttribute('animated');
+        }
+      }
+    });
+  </script>
+</dom-module>
