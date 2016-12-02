@@ -14,8 +14,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "stop": "taskkill /IM node.exe /F",
-    "postinstall": "bower update"
+    "stop": "taskkill /IM node.exe /F"
   },
   "dependencies": {
     "activedirectory": "^0.7.1",
@@ -26,10 +25,8 @@
     "cookie-parser": "*",
     "cookie-session": "*",
     "dateformat": "*",
+    "deep-diff": "^0.3.4",
     "express": "*",
-    "gulp-if": "^2.0.2",
-    "gulp-imagemin": "^3.1.1",
-    "gulp-util": "^3.0.7",
     "merge-defaults": "*",
     "merge-stream": "*",
     "mkdirp": "*",
@@ -38,7 +35,7 @@
     "serve-static": "^1.11.1",
     "socket.io": "*",
     "spdy": "*",
-    "svgo": "^0.7.1",
+    "svgo": "*",
     "underscore": "*",
     "x-frame-options": "*"
   },

@@ -11,6 +11,41 @@ const requiredStaticSettings = [
   'svgSource'
 ]
 
+const svgMinifyOptions = {
+  cleanupNumericValues: {
+    floatPrecision: 4,
+    leadingZero: true,
+    defaultPx: true,
+    convertToPx: true
+  },
+  removeUnknownsAndDefaults: {
+    unknownContent: true,
+    unknownAttrs: true,
+    defaultAttrs: true,
+    uselessOverrides: true,
+    keepDataAttrs: true
+  },
+  // convertTransform: {
+    // convertToShorts: true,
+    // floatPrecision: 4,
+    // transformPrecision: 6,
+    // matrixToTransform: true,
+    // shortTranslate: true,
+    // shortScale: true,
+    // shortRotate: true,
+    // removeUseless: true,
+    // collapseIntoOne: true,
+    // leadingZero: true,
+    // negativeExtraSpace: false
+  // },
+  removeEmptyContainers: true,
+  removeUselessDefs: true,
+  removeDesc: true,
+  removeMetadata: true,
+  removeComments: true,
+  removeEmptyAttrs: true
+}
+
 const EventEmitter = require('events').EventEmitter
     , express = require('express')
     , fs = require('fs')
@@ -31,7 +66,7 @@ const EventEmitter = require('events').EventEmitter
 
 // Image Minimizing
     , SVGO = require('svgo')
-    , svgo = new SVGO();
+    , svgo = new SVGO(svgMinifyOptions);
 
 function resolvePath() {
   let p = process.cwd();
@@ -225,7 +260,8 @@ class Router extends EventEmitter {
           // path folder
           svgDest = resolvePath(dir.data, 'images', facility, system);
           mkdirp(svgDest, (err) => {
-            if (err) console.error(err)
+            if (err) console.error(`SVG-File Destination folder failed to create \n ${err}`);
+            return;
           });
 
           // image origin folder
@@ -237,19 +273,22 @@ class Router extends EventEmitter {
           // Optimize SVGs
           function copy(opath, dpath) {
             return new Promise( (resolve, reject) => {
-              fs.readFile(opath, "utf8", (err, data) => {
+              fs.readFile(opath, 'utf8', (err, data) => {
               if (err) reject(err);
               resolve(data);
               });
             }).then( data => {
-              console.log(typeof data);
               svgo.optimize(data, result => {
                 fs.writeFile(dpath, result.data, 'utf8', (err) => {
-                  if (err) console.log(err);;
+                  if (err) {
+                    console.error(`Transfer SVG-File from ${opath} to ${dpath} failed \n ${err}`);
+                    return;
+                  }
+                  console.log(`Transfer SVG-File from ${opath} to ${dpath} successful`);
                 });
               });
             }).catch( err => {
-              console.log(err);
+              console.error(`Transfer SVG-File from ${opath} to ${dpath} failed \n ${err}`);
             });
           }
 
@@ -262,7 +301,7 @@ class Router extends EventEmitter {
           }
           Promise.all(promises)
                 .then( () => {} )
-                .catch( err => { console.log(err); });
+                .catch( err => { console.error(`Transfer SVG-Files from ${dest} to ${svgDest} failed \n ${err}`); });
         }
       }
 
