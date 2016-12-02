@@ -11,15 +11,14 @@
   "dependencies": {
     "css-slam": "^1.2.1",
     "del": "*",
-    "html-minifier": "^3.0.1",
     "gulp-if": "^2.0.2",
-    "uglify-js": "^2.7.0",
+    "gulp-imagemin": "^3.1.1",
+    "html-minifier": "^3.0.1",
     "merge-stream": "*",
-    "plylog": "*",
+    "plylog": "^0.4.0",
     "polymer-build": "*",
-    "vinyl-fs": "*",
-    "gulp-imagemin": "^3.1.1"
+    "uglify-js": "^2.7.0",
+    "vinyl-fs": "*"
   },
-  "devDependencies": {
-  }
+  "devDependencies": {}
 }
