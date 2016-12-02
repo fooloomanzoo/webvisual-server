@@ -11,7 +11,6 @@ const requiredStaticSettings = [
   'svgSource'
 ]
 
-
 const EventEmitter = require('events').EventEmitter
     , express = require('express')
     , fs = require('fs')
@@ -31,14 +30,8 @@ const EventEmitter = require('events').EventEmitter
     , RedisStore = require('connect-redis')(session)
 
 // Image Minimizing
-    , imagemin = require('imagemin')
-    , imageminSvgo = require('imagemin-svgo');
-
-// Polymer Build Dependecies
-    // , gulp = require('gulp');
-    // require('./views/gulpfile.js'); // import the gulp file
-
-
+    , SVGO = require('svgo')
+    , svgo = new SVGO();
 
 function resolvePath() {
   let p = process.cwd();
@@ -241,36 +234,35 @@ class Router extends EventEmitter {
             dest = resolvePath('examples', 'svg');
           }
 
-          for (var p in opt[system].svgSource) {
-            try {
-              fs.createReadStream(path.resolve(dest, p))
-                .pipe(fs.createWriteStream(path.resolve(svgDest, p)));
-            } catch (e) {
-              this.emit('error', `Copying SVG Files from ${dest} to ${svgDest} failed\n ${err}`);
-            }
+          // Optimize SVGs
+          function copy(opath, dpath) {
+            return new Promise( (resolve, reject) => {
+              fs.readFile(opath, "utf8", (err, data) => {
+              if (err) reject(err);
+              resolve(data);
+              });
+            }).then( data => {
+              console.log(typeof data);
+              svgo.optimize(data, result => {
+                fs.writeFile(dpath, result.data, 'utf8', (err) => {
+                  if (err) console.log(err);;
+                });
+              });
+            }).catch( err => {
+              console.log(err);
+            });
           }
 
-          //
-          // for (var p in opt[system].svgSource) {
-          //   images.push(path.resolve(dest, p));
-          // }
-          // console.log(dest);
-          // imagemin( [dest+'\\**'], svgDest, {
-          //     progressive: true,
-          //     interlaced: true,
-          //     plugins: [
-          //       imageminSvgo({
-          //           plugins: [
-          //               {removeViewBox: false}
-          //           ]
-          //       })
-          //     ]
-          // }).then(files => {
-          //     console.log(files);
-          //     //=> [{data: <Buffer 89 50 4e …>, path: 'build/images/foo.jpg'}, …]
-          // }).catch(e => {
-          //   this.emit('error', `Copying SVG Files from ${dest} to ${svgDest} failed\n ${e}`);
-          // });
+          var promises = [];
+
+          for (var p in opt[system].svgSource) {
+            let opath = path.resolve(dest, p);
+            let dpath = path.resolve(svgDest, p);
+            promises.push(copy(opath, dpath));
+          }
+          Promise.all(promises)
+                .then( () => {} )
+                .catch( err => { console.log(err); });
         }
       }
 
@@ -301,6 +293,14 @@ const ensureLoggedIn = {
   not: function(req, res, next) {
     next();
   }
+}
+
+// Returns a WriteableStream to process images
+function minify() {
+  return imagemin({
+    progressive: true,
+    interlaced: true
+  });
 }
 
 module.exports = Router;

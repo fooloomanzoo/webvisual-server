@@ -14,10 +14,10 @@
     "locales.json",
     "fonts/**/*",
     "icons/**/*",
-    "fonts/**/*",
     "scripts/*",
-    "src/*",
+    "src/behaviors/*",
     "src/**/*",
+    "src/*",
     "bower.json"
   ],
   "extraDependencies": [

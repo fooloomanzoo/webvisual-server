@@ -34,12 +34,12 @@ module.exports = {
       }
     },
     {
-      urlPattern: /\/fonts\/.*json/,
+      urlPattern: /\/fonts\/.*/,
       handler: 'cacheFirst',
       options: {
         cache: {
           maxEntries: 10,
-          name: 'data-cache'
+          name: 'font-cache'
         }
       }
     }

@@ -1,0 +1,25 @@
+{
+  "name": "webvisual-app",
+  "version": "0.5.0",
+  "description": "Web Application for webvisual-server",
+  "main": "build.js",
+  "scripts": {
+    "build": "node build.js"
+  },
+  "author": "fooloomanzoo",
+  "license": "MIT",
+  "dependencies": {
+    "css-slam": "^1.2.1",
+    "del": "*",
+    "html-minifier": "^3.0.1",
+    "gulp-if": "^2.0.2",
+    "uglify-js": "^2.7.0",
+    "merge-stream": "*",
+    "plylog": "*",
+    "polymer-build": "*",
+    "vinyl-fs": "*",
+    "gulp-imagemin": "^3.1.1"
+  },
+  "devDependencies": {
+  }
+}

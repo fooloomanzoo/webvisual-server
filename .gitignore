@@ -3,8 +3,9 @@
 
 # build
 public/build/*
-# public/**
+public/**
 public/data/**
+**/build/**
 
 # Logs
 logs
@@ -40,6 +41,9 @@ jspm_packages
 
 # Optional REPL history
 .node_repl_history
+
+# vscode
+**/.vscode
 
 # =========================
 # Operating System Files
