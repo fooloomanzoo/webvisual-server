@@ -25,19 +25,6 @@ const svgMinifyOptions = {
     uselessOverrides: true,
     keepDataAttrs: true
   },
-  // convertTransform: {
-    // convertToShorts: true,
-    // floatPrecision: 4,
-    // transformPrecision: 6,
-    // matrixToTransform: true,
-    // shortTranslate: true,
-    // shortScale: true,
-    // shortRotate: true,
-    // removeUseless: true,
-    // collapseIntoOne: true,
-    // leadingZero: true,
-    // negativeExtraSpace: false
-  // },
   removeEmptyContainers: true,
   removeUselessDefs: true,
   removeDesc: true,
@@ -193,6 +180,10 @@ class Router extends EventEmitter {
     this.settings.userConfigFiles = userConfigFiles;
 
     // init facilities.json
+    mkdirp(dir.data, (err) => {
+      if (err) console.error(`Failed to create ${dir.data}\n ${err}`);
+      return;
+    });
     fs.writeFileSync( resolvePath ( dir.data, 'facilities.json' ), JSON.stringify([]));
   }
 
@@ -261,47 +252,46 @@ class Router extends EventEmitter {
           svgDest = resolvePath(dir.data, 'images', facility, system);
           mkdirp(svgDest, (err) => {
             if (err) console.error(`SVG-File Destination folder failed to create \n ${err}`);
-            return;
-          });
 
-          // image origin folder
-          dest = path.resolve(opt[system].svgPathOrigin);
-          if (!dest || !fs.existsSync(dest)) {
-            dest = resolvePath('examples', 'svg');
-          }
+            // image origin folder
+            dest = path.resolve(opt[system].svgPathOrigin);
+            if (!dest || !fs.existsSync(dest)) {
+              dest = resolvePath('examples', 'svg');
+            }
 
-          // Optimize SVGs
-          function copy(opath, dpath) {
-            return new Promise( (resolve, reject) => {
-              fs.readFile(opath, 'utf8', (err, data) => {
-              if (err) reject(err);
-              resolve(data);
-              });
-            }).then( data => {
-              svgo.optimize(data, result => {
-                fs.writeFile(dpath, result.data, 'utf8', (err) => {
-                  if (err) {
-                    console.error(`Transfer SVG-File from ${opath} to ${dpath} failed \n ${err}`);
-                    return;
-                  }
-                  console.log(`Transfer SVG-File from ${opath} to ${dpath} successful`);
+            // Optimize SVGs
+            function copy(opath, dpath) {
+              return new Promise( (resolve, reject) => {
+                fs.readFile(opath, 'utf8', (err, data) => {
+                if (err) reject(err);
+                resolve(data);
                 });
+              }).then( data => {
+                svgo.optimize(data, result => {
+                  fs.writeFile(dpath, result.data, 'utf8', (err) => {
+                    if (err) {
+                      console.error(`Transfer SVG-File failed \n from ${opath} \n ${err}`);
+                      return;
+                    }
+                    console.log(`Transfer SVG-File successful \n from ${opath} \n to ${dpath}`);
+                  });
+                });
+              }).catch( err => {
+                console.error(`Transfer SVG-File successful \n from ${opath} \n ${err}`);
               });
-            }).catch( err => {
-              console.error(`Transfer SVG-File from ${opath} to ${dpath} failed \n ${err}`);
-            });
-          }
+            }
 
-          var promises = [];
+            var promises = [];
 
-          for (var p in opt[system].svgSource) {
-            let opath = path.resolve(dest, p);
-            let dpath = path.resolve(svgDest, p);
-            promises.push(copy(opath, dpath));
-          }
-          Promise.all(promises)
-                .then( () => {} )
-                .catch( err => { console.error(`Transfer SVG-Files from ${dest} to ${svgDest} failed \n ${err}`); });
+            for (var p in opt[system].svgSource) {
+              let opath = path.resolve(dest, p);
+              let dpath = path.resolve(svgDest, p);
+              promises.push(copy(opath, dpath));
+            }
+            Promise.all(promises)
+                  .then( () => {} )
+                  .catch( err => { console.error(`Transfer SVG-Files \n from ${dest} \n to ${svgDest} failed \n ${err}`); });
+          });
         }
       }
 
@@ -312,8 +302,11 @@ class Router extends EventEmitter {
       });
     }
 
-
     // create required main overview
+    mkdirp(dir.data, (err) => {
+      if (err) console.error(`Failed to create ${dir.data}\n ${err}`);
+      return;
+    });
     dest = resolvePath(dir.data, 'facilities.json');
 
     fs.writeFileSync( dest, JSON.stringify(facilities) );

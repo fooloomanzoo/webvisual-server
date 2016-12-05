@@ -5,10 +5,12 @@
 
 const path = require('path');
 const gulpif = require('gulp-if');
+const chokidar = require('chokidar');
 
 let config = {
   polymerJsonPath: path.join(process.cwd(), 'polymer.json'),
   build: {
+    keep: '../public/data/',
     rootDirectory: '../public/',
     bundledDirectory: 'bundled',
     unbundledDirectory: '',
@@ -34,18 +36,22 @@ let config = {
 
 // Got problems? Try logging 'em
 const logging = require('plylog');
-// logging.setVerbose();
+logging.setVerbose();
 
 // Add your own custom gulp tasks to the gulp-tasks directory
 // A few sample tasks are provided for you
 // A task should return either a WriteableStream or a Promise
-const clean = require('./lib/clean')([config.build.rootDirectory]);
+const clean = require('./lib/clean')( [
+    path.resolve(config.build.rootDirectory) + '/**'
+  , '!' + path.resolve(config.build.rootDirectory)
+  , '!' + path.resolve(config.build.keep) + '/**' ] );
+
 // const images = require('./lib/images.js');
 const projectGenerator = require('./lib/project');
-const project = new projectGenerator(config);
 const streamOptimizer = require('./lib/streamoptimizer');
 const images = require('./lib/images.js');
 
+var project;
 
 // The source task will split all of your source files into one
 // big ReadableStream. Source files are those in src/** as well as anything
@@ -88,6 +94,7 @@ function runSerial(tasks) {
 }
 
 function build() {
+  project = new projectGenerator(config);;
   Promise.resolve()
         .then( () => {
           return clean();
@@ -99,12 +106,26 @@ function build() {
           return project.serviceWorker();
         })
         .then( () => {
-          console.log(" ---- done ----");
+          console.log(' ---- BUILD DONE ----');
         })
         .catch( err => {
           console.log(err);
         });
   }
+
+function watch() {
+  console.log(' ---- START WATCHING ' + __dirname + ' ----');
+  var activeTimeout;
+  var watcher = chokidar.watch(__dirname, {
+                  ignored: /[\/\\]\./,
+                  persistent: true
+                });
+  watcher.on('change', path => {
+    if (activeTimeout)
+      clearTimeout(activeTimeout);
+    activeTimeout = setTimeout( build, 5000);
+  });
+}
 
 if (module.parent) {
   exports = build;

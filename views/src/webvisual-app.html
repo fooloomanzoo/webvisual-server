@@ -47,6 +47,14 @@
         z-index: 11;
         @apply(--app-header);
       }
+      /*app-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 11;
+        @apply(--app-header);
+      }*/
       app-header::before {
         position: absolute;
         content: '';
@@ -80,7 +88,7 @@
       }
       app-drawer > app-drawer-content {
         display: block;
-        height: calc(100% - 64px); 
+        height: calc(100% - 64px);
         padding: 0 16px;
         overflow-x: hidden;
         overflow-y: auto;
@@ -553,7 +561,8 @@
             this.importHref(this.resolveUrl('lazy-resources.html'), function() {
               // Register service worker if supported.
               if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('/service-worker.js');
+                window.WebvisualServiceWorker = window.WebvisualServiceWorker || {};
+                window.WebvisualServiceWorker = navigator.serviceWorker.register('/service-worker.js');
               }
               this._notifyNetworkStatus();
               this.loadComplete = true;

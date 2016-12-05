@@ -6,11 +6,12 @@
   "scripts": {
     "build": "node build.js",
     "start": "node build.js",
-    "postinstall": "bower update"
+    "postinstall": "bower update && node build.js"
   },
   "author": "fooloomanzoo",
   "license": "MIT",
   "dependencies": {
+    "chokidar": "^1.6.1",
     "css-slam": "^1.2.1",
     "del": "*",
     "gulp-if": "^2.0.2",

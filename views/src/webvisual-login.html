@@ -55,7 +55,7 @@
         font-size: 2em;
         margin: 0;
       }
-      input-box {
+      .input-box {
         display: inline-flex;
         align-items: center;
       }
@@ -80,7 +80,7 @@
 
         <h2 id="loginInfo">{{localize('login', 'name')}}</h2>
 
-        <input-box>
+        <section class="input-box">
           <iron-icon class="left" icon="perm-identity"></iron-icon>
           <webvisual-input>
             <input id="username" type="text" name="username" placeholder$="{{localize('login', 'username')}}(@fz-juelich.de)" autofocus required tabindex="1"
@@ -90,21 +90,22 @@
               <webvisual-underline></webvisual-underline>
             </webvisual-md-decorator>
           </webvisual-input>
-        </input-box>
+        </section>
 
-        <input-box>
+        <section class="input-box">
           <iron-icon class="left" icon="more-horiz"></iron-icon>
           <webvisual-input>
             <input id="password" class="input" type="password" name="password" placeholder="{{localize('login', 'password')}}" required tabindex="2" autocomplete="password"
-            aria-labelledby="passwordLabel loginInfo" autocomplete="password"/>
+            aria-labelledby="passwordLabel loginInfo" autocomplete="password" />
             <webvisual-md-decorator error-message="Invalid Password" aria-hidden="true">
               <label id="passwordLabel">{{localize('login', 'password')}}</label>
               <webvisual-underline></webvisual-underline>
             </webvisual-md-decorator>
+            <input id="csrf_token" hidden type="hidden" name="csrf_token" value="{{csrf_token}}" />
           </webvisual-input>
-        </input-box>
+        </section>
 
-        <webvisual-button>
+        <webvisual-button on-tap="_onSignIn">
           <button type="submit" name="button" class="button">
             <iron-icon class="left" icon="juelich:logo"></iron-icon>
             <span>{{localize('login', 'name')}}</span>
@@ -129,9 +130,211 @@
         loggedIn: {
           type: Boolean,
           notify: true
+        },
+
+        authUrl: {
+          type: String,
+          value: '/auth'
         }
 
+      },
+
+      observers: [
+        '_visibleChanged(visible)'
+      ],
+
+      /**
+       * Let users sign-in without typing credentials
+       * @param  {Boolean} unmediated Determines if user mediation is required.
+       * @return {Promise} Resolves if credential info is available.
+       */
+      _autoSignIn: function(unmediated) {
+        if (navigator.credentials) {
+          // Actual Credential Management API call to get credential object
+          return navigator.credentials.get({
+            password: true,
+            unmediated: unmediated
+          }).then(function(cred) {
+            // If credential object is available
+            if (cred) {
+              console.log('auto sign-in performed');
+
+              switch (cred.type) {
+                case 'password':
+                  // Change form `id` name to `username`
+                  cred.idName = 'username';
+                  // Include CSRF token in the credential object
+                  var csrf_token = new FormData();
+                  csrf_token.append('csrf_token',
+                      this.$.csrf_token.value);
+                  // `.additionalData` accepts `FormData`
+                  // You can include CSRF token etc.
+                  cred.additionalData = csrf_token;
+                  // Return Promise from `pwSignIn`
+                  return this.pwSignIn(cred);
+              }
+            } else {
+              console.log('auto sign-in not performed');
+
+              // Resolve if credential object is not available
+              return Promise.resolve();
+            }
+          }.bind(this));
+        } else {
+          // Resolve if Credential Management API is not available
+          return Promise.resolve();
+        }
+      },
+
+      /**
+       * Authentication flow with our own server
+       * @param  {String} provider Credential type string.
+       * @param  {FormData} form FormData to POST to the server
+       * @return {Promise} Resolves when successfully authenticated
+       */
+      _authenticateWithServer: function(url, form) {
+
+        return fetch(url, {
+          method:      'POST',
+          // `credentials:'include'` is required to include cookies on `fetch`
+          credentials: 'include',
+          body:        form
+        }).then(function(res) {
+          // Convert JSON string to an object
+          if (res.status === 200) {
+            return res.json();
+          } else {
+            return Promise.reject();
+          }
+        }).then(this.signedIn);
+      },
+
+      /**
+       * When password sign-in button is pressed.
+       * @return {void}
+       */
+      onPwSignIn: function(e) {
+        e.preventDefault();
+
+        var signinForm = e.target;
+
+        // Polymer `iron-form` feature to validate the form
+        if (!signinForm.validate()) return;
+
+        if (navigator.credentials) {
+          // Construct `FormData` object from actual `form`
+          var cred = new PasswordCredential(signinForm);
+
+          // Sign-In with our own server
+          this.pwSignIn(cred)
+          .then( function(profile) {
+            this.loggedIn = true;
+
+            // `profile` may involve user name returned by the server
+            cred.username = profile.username;
+            // Store credential information before posting
+            navigator.credentials.store(cred);
+            this.fire('show-toast', {
+              text: 'You are signed in'
+            });
+          }.bind(this), function() {
+            this.loggedIn = false;
+            // Polymer event to notice user that 'Authentication failed'.
+            this.fire('show-toast', {
+              text: 'Authentication failed'
+            });
+          }.bind(this) );
+        } else {
+          this._authenticateWithServer(this.authUrl, new FormData(signinForm))
+          .then(function() {
+            this.loggedIn = true;
+
+            this.fire('show-toast', {
+              text: 'You are signed in'
+            });
+          }.bind(this), function() {
+            this.loggedIn = false;
+
+            this.fire('show-toast', {
+              text: 'Authentication failed'
+            });
+          }.bind(this));
+        }
+      },
+
+      /**
+       * Let user sign-in using id/password
+       * @param  {CredentialObject} cred FormData or CredentialObject
+       * @return {Promise} Returns result of `_authenticateWithServer()`
+       */
+      pwSignIn: function(cred) {
+        // POST-ing credential object will be converted to FormData object
+        return fetch('/auth/password', {
+          method:       'POST',
+          // Include the credential object as `credentials`
+          credentials:  cred
+        }).then(function(res) {
+          // Convert JSON string to an object
+          if (res.status === 200) {
+            return res.json();
+          } else {
+            return Promise.reject();
+          }
+        }).then(this.signedIn);
+      },
+
+      /**
+       * User is signed in. Fill user info.
+       * @param  {Object} profile Profile information object
+       * @return {Promise} Resolves when authentication succeeded.
+       */
+      signedIn: function(profile) {
+        if (profile && && profile.username) {
+          this.userProfile = {
+            username:    profile.username
+          };
+          return Promise.resolve(profile);
+        } else {
+          return Promise.reject();
+        }
+      },
+
+      /**
+       * Polymer event handler to show a toast.
+       * @param  {Event} e Polymer custom event object
+       * @return {void}
+       */
+      showToast: function(e) {
+        this.$.toast.text = e.detail.text;
+        this.$.toast.show();
+      },
+
+      /**
+       * Invoked when 'Sign-In' button is pressed, perform auto-sign-in and
+       * open dialog if it fails.
+       * @return {void}
+       */
+      _onSignIn: function() {
+        // Try auto sign-in before opening the dialog
+        this._autoSignIn(false)
+        .then(function(profile) {
+          // When auto sign-in didn't resolve with a profile
+          // it's failed to get credential information.
+          // Open the form so the user can enter id/password
+          // or select federated login manually
+          if (!profile) {
+            this.$.dialog.open();
+          }
+        }, function() {
+          this.$.dialog.open();
+          // When rejected, authentication was performed but failed.
+          this.fire('show-toast', {
+            text: 'Authentication failed'
+          });
+        });
       }
+
+
     });
 
   </script>

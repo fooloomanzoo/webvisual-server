@@ -15,7 +15,7 @@ const del = require('del');
 // Returns a function that returns a Promise to delete directories
 function clean(directories) {
   return function clean() {
-    return del(directories, { force: true });
+    return del.sync(directories, { force: true });
   };
 }
 

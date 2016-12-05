@@ -1,4 +1,8 @@
 module.exports = {
+  cacheId: 'webvisual-cache',
+  importScripts: [
+    '/service-worker-add-on.js'
+  ],
   staticFileGlobs: [
    '/index.html',
    '/bower_components/webcomponentsjs/webcomponents-lite.min.js',
@@ -11,7 +15,7 @@ module.exports = {
    '/fonts/**/*'
   ],
   navigateFallback: 'index.html',
-  navigateFallbackWhitelist: [/^(?!.*\.html$|\/data\/).*/],
+  navigateFallbackWhitelist: [/^(?!.*\.html$|\/data\/).*|\/auth\/).*/],
   runtimeCaching: [
     {
       urlPattern: /\/data\/images\/.*/,
@@ -25,7 +29,7 @@ module.exports = {
     },
     {
       urlPattern: /\/data\/.*json/,
-      handler: 'fastest',
+      handler: 'cacheFirst',
       options: {
         cache: {
           maxEntries: 100,
@@ -35,10 +39,10 @@ module.exports = {
     },
     {
       urlPattern: /\/fonts\/.*/,
-      handler: 'cacheFirst',
+      handler: 'cacheOnly',
       options: {
         cache: {
-          maxEntries: 10,
+          maxEntries: 12,
           name: 'font-cache'
         }
       }
