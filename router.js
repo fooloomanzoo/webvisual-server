@@ -1,7 +1,7 @@
 const dir = {
-  dist: 'public',
-  distData: 'public/data',
-  data: 'public/data'
+  dist: '/public',
+  data: '/public/data',
+  img: '/public/images',
 }
 
 const requiredStaticSettings = [
@@ -11,27 +11,22 @@ const requiredStaticSettings = [
   'svgSource'
 ]
 
-const svgMinifyOptions = {
-  cleanupNumericValues: {
-    floatPrecision: 4,
-    leadingZero: true,
-    defaultPx: true,
-    convertToPx: true
-  },
-  removeUnknownsAndDefaults: {
-    unknownContent: true,
-    unknownAttrs: true,
-    defaultAttrs: true,
-    uselessOverrides: true,
-    keepDataAttrs: true
-  },
-  removeEmptyContainers: true,
-  removeUselessDefs: true,
-  removeDesc: true,
-  removeMetadata: true,
-  removeComments: true,
-  removeEmptyAttrs: true
-}
+// const svgMinifyOptions = {
+//   cleanupNumericValues: {
+//     floatPrecision: 4,
+//     leadingZero: true,
+//     defaultPx: true,
+//     convertToPx: true
+//   },
+//   removeUnknownsAndDefaults: false,
+//   cleanupIDs: false,
+//   removeEmptyContainers: true,
+//   removeUselessDefs: true,
+//   removeDesc: true,
+//   removeMetadata: true,
+//   removeComments: true,
+//   removeEmptyAttrs: true
+// }
 
 const EventEmitter = require('events').EventEmitter
     , express = require('express')
@@ -51,9 +46,9 @@ const EventEmitter = require('events').EventEmitter
 // Session Store
     , RedisStore = require('connect-redis')(session)
 
-// Image Minimizing
-    , SVGO = require('svgo')
-    , svgo = new SVGO(svgMinifyOptions);
+// Image Minimizing TODO: find alternativ (svg structure too much changed)
+    // , SVGO = require('svgo')
+    // , svgo = new SVGO(svgMinifyOptions);
 
 function resolvePath() {
   let p = process.cwd();
@@ -67,7 +62,8 @@ function resolvePath() {
 }
 
 const staticMiddleware = serveStatic( resolvePath( dir.dist ) )
-    , staticDataMiddleware = serveStatic( resolvePath( dir.distData ), { index: false });
+    , staticDataMiddleware = serveStatic( resolvePath( dir.data ), { index: false })
+    , staticImageMiddleware = serveStatic( resolvePath( dir.img ), { index: false });
 
 class Router extends EventEmitter {
 
@@ -80,9 +76,6 @@ class Router extends EventEmitter {
     this.configuration = {};
 
     // this.app.use(morgan('combined'));
-
-    // this.app.set('views', path.join(process.cwd(), 'views'));
-    // this.app.set('view engine', 'jade');
 
     // Parser
     this.app.use(cookieParser());
@@ -141,11 +134,14 @@ class Router extends EventEmitter {
   setServer(opt) {
     this.settings.server = opt;
 
+    // Auth Methods
     require('./auth/activedirectory.js')(this.passport, this.settings.server.auth.ldap); // register custom ldap-passport-stategy
     require('./auth/dummy.js')(this.passport); // register dummy-stategy
 
+    // Optional Auth
     let authNeeded = this.settings.server.auth.required;
 
+    // Signin
     this.app.post('/login',
       authNeeded
         ? this.passport.authenticate('activedirectory-login')
@@ -157,23 +153,33 @@ class Router extends EventEmitter {
 
       });
 
+    // Auth Test
     this.app.use('/auth', authNeeded ? ensureLoggedIn.is : ensureLoggedIn.not );
     this.app.use('/auth', (req, res) => {
       res.sendStatus(200);
     } );
 
+    // Signout
     this.app.get('/logout', (req, res) => {
       req.logout();
       res.redirect('/');
-    });
+    } );
 
+    // Secured Data
     this.app.use('/data', authNeeded ? ensureLoggedIn.is : ensureLoggedIn.not );
     this.app.use('/data', staticDataMiddleware );
 
+    this.app.use('/images', authNeeded ? ensureLoggedIn.is : ensureLoggedIn.not );
+    this.app.use('/images', staticImageMiddleware );
+
+    // Public Data
     this.app.use(staticMiddleware);
-    // this.app.get('*', (req, res) => {
-    //   res.sendFile( resolvePath( dir.dist, 'index.html') );
-    // });
+
+    // Fallback
+    this.app.get('*', (req, res) => {
+      res.sendFile( resolvePath( dir.dist, 'index.html') );
+    });
+
   }
 
   setUserConfig(userConfigFiles) {
@@ -249,7 +255,7 @@ class Router extends EventEmitter {
           let images = [];
 
           // path folder
-          svgDest = resolvePath(dir.data, 'images', facility, system);
+          svgDest = resolvePath(dir.img, facility, system);
           mkdirp(svgDest, (err) => {
             if (err) console.error(`SVG-File Destination folder failed to create \n ${err}`);
 
@@ -267,15 +273,15 @@ class Router extends EventEmitter {
                 resolve(data);
                 });
               }).then( data => {
-                svgo.optimize(data, result => {
-                  fs.writeFile(dpath, result.data, 'utf8', (err) => {
+                // svgo.optimize(data, result => {
+                  fs.writeFile(dpath, data.replace(/\s+/g, ' '), 'utf8', (err) => { // trim all whitespaces for data reduction
                     if (err) {
                       console.error(`Transfer SVG-File failed \n from ${opath} \n ${err}`);
                       return;
                     }
                     console.log(`Transfer SVG-File successful \n from ${opath} \n to ${dpath}`);
                   });
-                });
+                // });
               }).catch( err => {
                 console.error(`Transfer SVG-File successful \n from ${opath} \n ${err}`);
               });

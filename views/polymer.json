@@ -12,8 +12,8 @@
   "sources": [
     "app.yaml",
     "locales.json",
-    "fonts/**/*",
-    "icons/**/*",
+    "fonts/*",
+    "icons/*",
     "scripts/*",
     "src/behaviors/*",
     "src/**/*",
@@ -23,6 +23,6 @@
   "extraDependencies": [
     "manifest.json",
     "bower_components/webcomponentsjs/webcomponents-lite.min.js",
-    "data/*"
+    "service-worker-add-on.js"
   ]
 }

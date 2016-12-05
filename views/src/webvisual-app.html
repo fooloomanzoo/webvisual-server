@@ -95,9 +95,9 @@
         -webkit-overflow-scrolling: touch;
       }
       app-drawer > app-toolbar {
-        width: 100%;
+        width: calc(100% - 32px);
         margin: 0;
-        padding: 0 32px;
+        padding: 0 16px;
         @apply(--app-drawer-header);
       }
       app-drawer .spacer {
@@ -453,8 +453,7 @@
 
         loggedIn: {
           type: Boolean,
-          notify: true,
-          observer: '_loggedInChanged'
+          notify: true
         },
 
         showTabs: {
@@ -586,17 +585,6 @@
             'You are offline' : 'You are online');
           this._networkSnackbar.open();
         }
-      },
-
-      _loggedInChanged: function(loggedIn) {
-        if (!this._logInStatusSnackbar) {
-          this._logInStatusSnackbar = document.createElement('webvisual-snackbar');
-          this._logInStatusSnackbar.setAttribute('auto-close', '');
-          Polymer.dom(this.root).appendChild(this._logInStatusSnackbar);
-        }
-        Polymer.dom(this._logInStatusSnackbar).innerHTML = this.localize ? this.localize('notification', 'loggedIn', loggedIn) : (loggedIn ?
-          'You are logged in' : 'You are not logged in');
-        this._logInStatusSnackbar.open();
       },
 
       _toggleDrawer: function() {

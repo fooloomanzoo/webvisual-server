@@ -27,6 +27,8 @@
     "dateformat": "*",
     "deep-diff": "^0.3.4",
     "express": "*",
+    "express-session": "^1.14.2",
+    "gulp-use": "0.0.4",
     "merge-defaults": "*",
     "merge-stream": "*",
     "mkdirp": "*",

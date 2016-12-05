@@ -232,7 +232,7 @@
        height="426.69943"
        width="1061.5449"
        id="Background"
-       style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#cccccc;stroke:#626262;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:22.92558479;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate" />
+       style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;fill:#cccccc;stroke:#626262;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:22.92558479;enable-background:accumulate" />
     <g
        id="Rooms">
       <rect
@@ -241,28 +241,28 @@
          height="405.9726"
          width="252.36195"
          id="R2032"
-         style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#cccccc;stroke:none;stroke-width:13.2139473;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate" />
+         style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;fill:#cccccc;stroke:none;stroke-width:13.2139473;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;enable-background:accumulate" />
       <rect
          y="54.477566"
          x="306.85324"
          height="405.00369"
          width="261.80026"
          id="R2031"
-         style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#cccccc;stroke:none;stroke-width:0.73367077;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate" />
+         style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;fill:#cccccc;stroke:none;stroke-width:0.73367077;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;enable-background:accumulate" />
       <rect
          y="54.465389"
          x="569.70837"
          height="404.51245"
          width="248.21498"
          id="R2030"
-         style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#cccccc;stroke:none;stroke-width:0.70915657;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate" />
+         style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;fill:#cccccc;stroke:none;stroke-width:0.70915657;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;enable-background:accumulate" />
       <rect
          y="54.412716"
          x="841.0946"
          height="403.76825"
          width="241.01822"
          id="R2029"
-         style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#cccccc;stroke:none;stroke-width:0.7008723;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate" />
+         style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;fill:#cccccc;stroke:none;stroke-width:0.7008723;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;enable-background:accumulate" />
     </g>
     <g
        id="Doors">
@@ -453,7 +453,7 @@
          style="fill:#ececec;stroke:#1a1a18;stroke-width:1.9992286;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:16.46279335"
          id="path4340" />
       <rect
-         style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;fill:#ececec;stroke:#1a1a18;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:16.46279335;stroke-opacity:1;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+         style="color:#000000;clip-rule:nonzero;display:inline;overflow:visible;fill:#ececec;stroke:#1a1a18;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:16.46279335;enable-background:accumulate"
          id="rect6677"
          width="1069.6799"
          height="23"
@@ -471,7 +471,7 @@
          id="lightning"
          d="m 531.22194,234.55202 -5.36936,15.95096 9.05964,-4.10568 -1.71598,10.45546 -2.19572,-2.09109 2.10346,6.8343 5.33245,-6.04376 -3.39505,1.63207 5.314,-14.43364 -9.9084,3.97817 6.95617,-12.12578 z" />
       <text
-         style="font-size:15px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start;fill:#1a1a18;stroke:none"
+         style="font-size:15px;"
          id="text4352"
          x="60.069492"
          y="109.60543">
@@ -481,7 +481,7 @@
            id="tspan6752">He/Ar</tspan>
       </text>
       <text
-         style="font-size:15px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start;fill:#1a1a18;stroke:none"
+         style="font-size:15px;"
          id="text4356"
          x="247.0937"
          y="110.00463">
@@ -491,7 +491,7 @@
            id="tspan6740">He/Ar</tspan>
       </text>
       <text
-         style="font-size:15px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start;fill:#1a1a18;stroke:none"
+         style="font-size:15px;"
          id="text4360"
          x="65.730171"
          y="143.80545">
@@ -501,18 +501,18 @@
            id="tspan6750">SiH₄</tspan>
       </text>
       <text
-         style="font-size:15px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start;fill:#1a1a18;stroke:none"
+         style="font-size:15px;"
          id="text4364"
          x="73.092422"
          y="203.42191">
         <tspan
-           style="font-size:15px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start"
+           style="font-size:15px;line-height:100%;text-anchor:start"
            x="73.092422"
            y="203.42191"
            id="tspan4366">H₂</tspan>
       </text>
       <text
-         style="font-size:15px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start;fill:#1a1a18;stroke:none"
+         style="font-size:15px;"
          id="text4368"
          x="255.47061"
          y="144.20425">
@@ -522,7 +522,7 @@
            id="tspan6738">NH₃</tspan>
       </text>
       <text
-         style="font-size:15px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start;fill:#1a1a18;stroke:none"
+         style="font-size:15px;"
          id="text4384"
          x="771.66321"
          y="87.842064">
@@ -532,7 +532,7 @@
            id="tspan6710">He/Ar</tspan>
       </text>
       <text
-         style="font-size:15px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start;fill:#1a1a18;stroke:none"
+         style="font-size:15px;"
          id="text4388"
          x="772.06042"
          y="187.69482">
@@ -542,7 +542,7 @@
            id="tspan6706">He/Ar</tspan>
       </text>
       <text
-         style="font-size:15px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start;fill:#1a1a18;stroke:none"
+         style="font-size:15px;"
          id="text4392"
          x="771.68579"
          y="288.26913">
@@ -552,7 +552,7 @@
            id="tspan6712">He/Ar</tspan>
       </text>
       <text
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:15px;line-height:100%;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#1a1a18;stroke:none"
+         style="font-size:15px;"
          id="text4396"
          x="778.53516"
          y="324.80225">
@@ -562,7 +562,7 @@
            y="324.80225">BCl₃</tspan>
       </text>
       <text
-         style="font-size:15px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start;fill:#1a1a18;stroke:none"
+         style="font-size:15px;"
          id="text4400"
          x="782.94244"
          y="224.10059">
@@ -572,7 +572,7 @@
            id="tspan6704">Cl₂</tspan>
       </text>
       <text
-         style="font-size:15px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start;fill:#1a1a18;stroke:none"
+         style="font-size:15px;"
          id="text4404"
          x="781.00232"
          y="124.24419">
@@ -582,7 +582,7 @@
            id="tspan4542">HBr</tspan>
       </text>
       <text
-         style="font-size:15px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start;fill:#1a1a18;stroke:none"
+         style="font-size:15px;"
          id="text4418"
          x="1032.5313"
          y="90.322929">
@@ -592,7 +592,7 @@
            id="tspan6734">He/Ar</tspan>
       </text>
       <text
-         style="font-size:15px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start;fill:#1a1a18;stroke:none"
+         style="font-size:15px;"
          id="text4422"
          x="1037.0038"
          y="188.31458">
@@ -602,7 +602,7 @@
            id="tspan6730">CHF₃</tspan>
       </text>
       <text
-         style="font-size:15px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start;fill:#1a1a18;stroke:none"
+         style="font-size:15px;"
          id="text4426"
          x="1039.3308"
          y="288.02356">
@@ -612,7 +612,7 @@
            id="tspan6726">C₄F₆</tspan>
       </text>
       <text
-         style="font-size:15px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start;fill:#1a1a18;stroke:none"
+         style="font-size:15px;"
          id="text4430"
          x="1042.4393"
          y="238.96182">
@@ -622,7 +622,7 @@
            id="tspan6728">CF₄</tspan>
       </text>
       <text
-         style="font-size:15px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start;fill:#1a1a18;stroke:none"
+         style="font-size:15px;"
          id="text4434"
          x="1042.8529"
          y="139.14609">
@@ -632,7 +632,7 @@
            id="tspan6732">SF₆</tspan>
       </text>
       <text
-         style="font-size:15px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start;fill:#1a1a18;stroke:none"
+         style="font-size:15px;"
          id="text4446"
          x="851.13446"
          y="288.66879">
@@ -642,7 +642,7 @@
            id="tspan6720">N₂O</tspan>
       </text>
       <text
-         style="font-size:15px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start;fill:#1a1a18;stroke:none"
+         style="font-size:15px;"
          id="text4450"
          x="853.96893"
          y="338.20251">
@@ -652,7 +652,7 @@
            id="tspan6718">He</tspan>
       </text>
       <text
-         style="font-size:15px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start;fill:#1a1a18;stroke:none"
+         style="font-size:15px;"
          id="text4454"
          x="854.91888"
          y="113.59728">
@@ -662,7 +662,7 @@
            id="tspan6724">O₂</tspan>
       </text>
       <text
-         style="font-size:15px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start;fill:#1a1a18;stroke:none"
+         style="font-size:15px;"
          id="text4458"
          x="856.02332"
          y="212.42874">
@@ -678,7 +678,7 @@
            y="299.81079"
            x="599.38666"
            id="text4480"
-           style="font-size:12.5px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start;fill:#1a1a18;stroke:none">
+           style="font-size:12.5px;">
           <tspan
              id="tspan6533"
              x="599.38666"
@@ -688,7 +688,7 @@
            y="279.81079"
            x="125.85731"
            id="text4516"
-           style="font-size:12.5px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start;fill:#1a1a18;stroke:none">
+           style="font-size:12.5px;">
           <tspan
              id="tspan6537"
              x="125.85731"
@@ -698,7 +698,7 @@
            y="454.90839"
            x="115.57294"
            id="text4528"
-           style="font-size:12.5px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start;fill:#1a1a18;stroke:none">
+           style="font-size:12.5px;">
           <tspan
              y="454.90839"
              x="115.57294"
@@ -708,7 +708,7 @@
            y="359.73077"
            x="148.59947"
            id="text4888"
-           style="font-size:12.5px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start;fill:#1a1a18;stroke:none">
+           style="font-size:12.5px;">
           <tspan
              y="359.73077"
              x="148.59947"
@@ -722,7 +722,7 @@
            y="325.10236"
            x="621.52637"
            id="text4484"
-           style="font-size:10px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start;fill:#1a1a18;stroke:none">
+           style="font-size:10px;">
           <tspan
              y="325.10236"
              x="621.52637"
@@ -732,7 +732,7 @@
            y="345.07419"
            x="621.05615"
            id="text4488"
-           style="font-size:10px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start;fill:#1a1a18;stroke:none">
+           style="font-size:10px;">
           <tspan
              y="345.07419"
              x="621.05615"
@@ -742,7 +742,7 @@
            y="336.30835"
            x="783.63861"
            id="text4492"
-           style="font-size:10px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start;fill:#1a1a18;stroke:none">
+           style="font-size:10px;">
           <tspan
              y="336.30835"
              x="783.63861"
@@ -752,7 +752,7 @@
            y="435.52557"
            x="784.23022"
            id="text4496"
-           style="font-size:10px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start;fill:#1a1a18;stroke:none">
+           style="font-size:10px;">
           <tspan
              y="435.52557"
              x="784.23022"
@@ -762,7 +762,7 @@
            y="535.40271"
            x="784.28558"
            id="text4500"
-           style="font-size:10px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start;fill:#1a1a18;stroke:none">
+           style="font-size:10px;">
           <tspan
              y="535.40271"
              x="784.28558"
@@ -772,7 +772,7 @@
            y="266.97125"
            x="135.57823"
            id="text4520"
-           style="font-size:10px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start;fill:#1a1a18;stroke:none">
+           style="font-size:10px;">
           <tspan
              y="266.97125"
              x="135.57823"
@@ -782,7 +782,7 @@
            y="355.97571"
            x="72.146568"
            id="text4524"
-           style="font-size:10px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start;fill:#1a1a18;stroke:none">
+           style="font-size:10px;">
           <tspan
              y="355.97571"
              x="72.146568"
@@ -792,7 +792,7 @@
            y="430.41907"
            x="65.094925"
            id="text4532"
-           style="font-size:10px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start;fill:#1a1a18;stroke:none">
+           style="font-size:10px;">
           <tspan
              y="430.41907"
              x="65.094925"
@@ -802,7 +802,7 @@
            y="420.87723"
            x="88.736572"
            id="text4538"
-           style="font-size:10px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start;fill:#1a1a18;stroke:none">
+           style="font-size:10px;">
           <tspan
              y="420.87723"
              x="88.736572"
@@ -812,7 +812,7 @@
            y="339.37302"
            x="186.04356"
            id="text4892"
-           style="font-size:10px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start;fill:#1a1a18;stroke:none">
+           style="font-size:10px;">
           <tspan
              y="339.37302"
              x="186.04356"
@@ -822,7 +822,7 @@
            y="355.81671"
            x="258.64105"
            id="text4896"
-           style="font-size:10px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start;fill:#1a1a18;stroke:none">
+           style="font-size:10px;">
           <tspan
              y="355.81671"
              x="258.64105"
@@ -836,7 +836,7 @@
            y="602.65942"
            x="138.25471"
            id="text4900"
-           style="font-size:22.5px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start;fill:#1a1a18;stroke:none">
+           style="font-size:22.5px;">
           <tspan
              y="602.65942"
              x="138.25471"
@@ -846,7 +846,7 @@
            y="536.4502"
            x="398.827"
            id="text4904"
-           style="font-size:22.5px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start;fill:#1a1a18;stroke:none">
+           style="font-size:22.5px;">
           <tspan
              y="536.4502"
              x="398.827"
@@ -856,7 +856,7 @@
            y="602.65942"
            x="660.80273"
            id="text4908"
-           style="font-size:22.5px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start;fill:#1a1a18;stroke:none">
+           style="font-size:22.5px;">
           <tspan
              y="602.65942"
              x="660.80273"
@@ -866,7 +866,7 @@
            y="602.65942"
            x="923.80273"
            id="text4912"
-           style="font-size:22.5px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start;fill:#1a1a18;stroke:none">
+           style="font-size:22.5px;">
           <tspan
              y="602.65942"
              x="923.80273"
@@ -874,7 +874,7 @@
         </text>
       </g>
       <text
-         style="font-size:40px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start;fill:#1a1a18;stroke:none"
+         style="font-size:40px;"
          id="Titel"
          x="544.04486"
          y="529.88336">
@@ -907,7 +907,7 @@
          y="71.793373"
          x="114.24526"
          id="text4365"
-         style="font-size:15px;line-height:100%;font-family:sans-serif;text-align:start;text-anchor:start;fill:#1a1a18;stroke:none">
+         style="font-size:15px;">
         <tspan
            id="tspan4367"
            x="114.24526"

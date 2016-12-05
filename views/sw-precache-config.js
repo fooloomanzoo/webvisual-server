@@ -1,29 +1,30 @@
 module.exports = {
-  cacheId: 'webvisual-cache',
+  stripPrefix: '..\\public',
+  stripPrefixMulti: {
+    '..\\public': '',
+  },
   importScripts: [
     '/service-worker-add-on.js'
   ],
   staticFileGlobs: [
    '/index.html',
    '/bower_components/webcomponentsjs/webcomponents-lite.min.js',
-   '/manifest.json',
    '/locales.json',
-   '/app.yaml',
-   '/scripts/*',
-   '/socket.io/*',
-   '/icons/favicon.ico',
-   '/fonts/**/*'
+   '/manifest.json',
+   '/fonts/*',
+   '/icons/*'
   ],
-  navigateFallback: 'index.html',
-  navigateFallbackWhitelist: [/^(?!.*\.html$|\/data\/).*|\/auth\/).*/],
+  verbose: true,
+  navigateFallback: '/index.html',
+  navigateFallbackWhitelist: [/^(?!.*\.html$|\/data\/$|\/auth\/).*/],
   runtimeCaching: [
     {
-      urlPattern: /\/data\/images\/.*/,
+      urlPattern: /\/images\/.*/,
       handler: 'cacheFirst',
       options: {
         cache: {
           maxEntries: 100,
-          name: 'svg-cache'
+          name: 'image-cache'
         }
       }
     },
@@ -39,11 +40,21 @@ module.exports = {
     },
     {
       urlPattern: /\/fonts\/.*/,
-      handler: 'cacheOnly',
+      handler: 'cacheFirst',
       options: {
         cache: {
-          maxEntries: 12,
+          maxEntries: 10,
           name: 'font-cache'
+        }
+      }
+    },
+    {
+      urlPattern: /\/icons\/.*/,
+      handler: 'cacheFirst',
+      options: {
+        cache: {
+          maxEntries: 20,
+          name: 'icon-cache'
         }
       }
     }

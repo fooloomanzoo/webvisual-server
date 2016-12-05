@@ -1,57 +1,36 @@
 /**
  * @license
  * modification of polyer build example
+ *
+ *  DESCRIPTION:
+ *  This Script can automatic create the necessary web application for the WEBVISUALSERVER including an service worker
+ *  and optimize its configLoader
+ *
+ *  TODO: add babel functionality to make it more compatible between browsers
+ *
+ *  OPTIONS:
+ *    (node index build)
+ *        build the app once
+ *
+ *    (node index) watch
+ *        build the app and on every change (it waits 5000ms) and the build the app again
  */
 
 const path = require('path');
 const gulpif = require('gulp-if');
 const chokidar = require('chokidar');
 
-let config = {
-  polymerJsonPath: path.join(process.cwd(), 'polymer.json'),
-  build: {
-    keep: '../public/data/',
-    rootDirectory: '../public/',
-    bundledDirectory: 'bundled',
-    unbundledDirectory: '',
-    bundleType: 'unbundled'
-  },
-  // Path to your service worker, relative to the build root directory
-  serviceWorkerPath: 'service-worker.js',
-  // Service Worker precache options based on
-  // https://github.com/GoogleChrome/sw-precache#options-parameter
-  swPrecacheConfig: require('./sw-precache-config.js'),
-  optimizeOptions: {
-    html: {
-      removeComments: true
-    },
-    css: {
-      stripWhitespace: true
-    },
-    js: {
-      minify: true
-    }
-  }
-};
-
 // Got problems? Try logging 'em
 const logging = require('plylog');
 logging.setVerbose();
 
-// Add your own custom gulp tasks to the gulp-tasks directory
-// A few sample tasks are provided for you
-// A task should return either a WriteableStream or a Promise
-const clean = require('./lib/clean')( [
-    path.resolve(config.build.rootDirectory) + '/**'
-  , '!' + path.resolve(config.build.rootDirectory)
-  , '!' + path.resolve(config.build.keep) + '/**' ] );
-
-// const images = require('./lib/images.js');
 const projectGenerator = require('./lib/project');
 const streamOptimizer = require('./lib/streamoptimizer');
 const images = require('./lib/images.js');
 
-var project;
+let project
+  , config
+  , clean;
 
 // The source task will split all of your source files into one
 // big ReadableStream. Source files are those in src/** as well as anything
@@ -94,7 +73,42 @@ function runSerial(tasks) {
 }
 
 function build() {
-  project = new projectGenerator(config);;
+  config = {
+    polymerJsonPath: path.join(process.cwd(), 'polymer.json'),
+    build: {
+      keep: '../public/data/',
+      rootDirectory: '../public/',
+      bundledDirectory: 'bundled',
+      unbundledDirectory: '',
+      bundleType: 'unbundled'
+    },
+    // Path to your service worker, relative to the build root directory
+    serviceWorkerPath: 'service-worker.js',
+    // Service Worker precache options based on
+    // https://github.com/GoogleChrome/sw-precache#options-parameter
+    swPrecacheConfig: require('./sw-precache-config.js'),
+    optimizeOptions: {
+      html: {
+        removeComments: true
+      },
+      css: {
+        stripWhitespace: true
+      },
+      js: {
+        minify: true
+      }
+    }
+  };
+
+  // Add your own custom gulp tasks to the gulp-tasks directory
+  // A few sample tasks are provided for you
+  // A task should return either a WriteableStream or a Promise
+  clean = require('./lib/clean')( [
+      path.resolve(config.build.rootDirectory) + '/**'
+    , '!' + path.resolve(config.build.rootDirectory)
+    , '!' + path.resolve(config.build.keep) + '/**'
+  ] );
+  project = new projectGenerator(config);
   Promise.resolve()
         .then( () => {
           return clean();
@@ -121,15 +135,18 @@ function watch() {
                   persistent: true
                 });
   watcher.on('change', path => {
+    console.log(' ---- FILES CHANGED ----');
     if (activeTimeout)
       clearTimeout(activeTimeout);
     activeTimeout = setTimeout( build, 5000);
   });
 }
 
-if (module.parent) {
-  exports = build;
-}
-else {
-  build();
+switch (process.argv[2]) {
+  case 'watch':
+    build()
+    watch()
+    break;
+  default:
+    build()
 }
