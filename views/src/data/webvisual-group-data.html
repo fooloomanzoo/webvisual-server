@@ -11,6 +11,8 @@
 
       properties: {
 
+        urlPrefix: String,
+
         facilityName: String,
 
         systemName: String,
@@ -68,8 +70,9 @@
         if (!(facilityName && systemName && request)) {
           return;
         }
+        var prefix = this.urlPrefix || '/data/';
         this._getResource({
-          url: '/data/' + facilityName + '+' + systemName + '+' + request + '.json',
+          url: prefix + facilityName + '+' + systemName + '+' + request + '.json',
           onLoad: function(e) {
             if (e.target.status < 400) {
               this.set(request, JSON.parse(e.target.responseText));
@@ -108,11 +111,12 @@
 
       _groupingKeysChanged: function(groupingKeys) {
         var groupedKey = localStorage.getItem('groupedKey');
+        var prefix = this.urlPrefix || '/data/';
         if (groupedKey && groupedKey in this.groupingKeys) {
           this.set('groupedKey', groupedKey);
         } else {
           this._getResource({
-            url: '/data/' + this.facilityName + '+' + this.systemName + '+preferedGroupingKey.json',
+            url: prefix + this.facilityName + '+' + this.systemName + '+preferedGroupingKey.json',
             onLoad: function(e) {
               if (e.target.status < 400) {
                 this.set('groupedKey', JSON.parse(e.target.responseText));

@@ -5,18 +5,19 @@ from threading import Event, Thread
 
 outfile = 'test.txt'
 dateformat = '%d.%m.%Y %H:%M:%S'
-low = 0
-high = 10
-rowlenght = 8
-initialLineLength = 4000
-valueseperator = ','
-interval = 1
+low = -22
+high = 22
+prec = 1
+rowlenght = 25
+initialLineLength = 10
+valueseperator = ';'
+interval = 100
 
 
 def createRow(d, i):
     with open(outfile, 'a') as csvfile:
         writer = csv.writer(csvfile, delimiter=valueseperator)
-        r = [round(random.uniform(low, high), 5) for _ in range(rowlenght)]
+        r = [round(random.uniform(low, high), prec) for _ in range(rowlenght)]
         r.insert(0, (d + datetime.timedelta(seconds=i)).strftime(dateformat))
         print(r)
         writer.writerow(r)

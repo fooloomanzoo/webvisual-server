@@ -1,0 +1,29 @@
+{
+	"origin": "",
+	"source": {
+		"berlin.svg": {
+			"title": {
+				"Bezirk": "g#bezirke path",
+				"Ortsteil": "g#ortsteil path",
+				"Berlin": "g#ortsteil",
+				"Mitte": "path#path1364-8",
+				"Friedrichshain-Kreuzberg": "path#path1358-1",
+				"Pankow": "path#path1368-8",
+				"Charlottenburg-Wilmersdorf": "ellipse#",
+				"Spandau": "path#path1372-3",
+				"Steglitz-Zehlendorf": "path#path1374-1",
+				"Tempelhof-Schöneberg": "path#path1376-0",
+				"Neukölln": "path#path1366-4",
+				"Treptow-Köpenick": "path#path1378-6",
+				"Marzahn-Hellersdorf": "path#path1362-1",
+				"Lichtenberg": "path#path1360-4",
+				"Reinickendorf": "path#path1370-3"
+			},
+			"style": {
+				"selectable": "",
+				"selected": "",
+				"exceeding": ""
+			}
+		}
+	}
+}

@@ -1,5 +1,4 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
-<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
 
 <link rel="import" href="../bower_components/app-route/app-route.html">
 
@@ -12,95 +11,12 @@
 <link rel="import" href="webvisual-element-caption.html"/>
 
 <link rel="import" href="style/shared-styles.html">
+<link rel="import" href="style/page-layout.html">
 <link rel="import" href="style/webvisual-button.html">
 
 <dom-module id="webvisual-list">
   <template>
-    <style include="shared-styles webvisual-button">
-      .grid {
-        @apply(--layout-horizontal);
-        @apply(--layout-wrap);
-        @apply(--layout-justified);
-        margin: 0.25em 0.75em 2em 0.75em;
-        padding: 0;
-        list-style: none;
-        box-sizing: border-box;
-      }
-
-      .grid li {
-        @apply(--layout-horizontal);
-        overflow: hidden;
-        box-sizing: border-box;
-        -webkit-flex: 1 1;
-        flex: 1 1;
-        -webkit-flex-basis: 20%;
-        flex-basis: 20%;
-        max-width: 20%;
-        padding: 0.25em;
-      }
-
-      .grid li > * {
-        border: thin solid var(--grid-border-color);
-        border-right-width: 0;
-      }
-      .grid li > :first-child {
-        border-top-left-radius: 5px;
-        border-bottom-left-radius: 5px;
-      }
-      .grid li > :last-child {
-        border-top-right-radius: 5px;
-        border-bottom-right-radius: 8px;
-        border-right-width: thin;
-      }
-
-      :host(:not([plain])) .grid li > * {
-        box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14),
-                    0 1px 5px 0 rgba(0, 0, 0, 0.12),
-                    0 3px 1px -2px rgba(0, 0, 0, 0.2);
-      }
-
-      .grid a {
-        display: block;
-        text-decoration: none;
-      }
-      webvisual-element-caption {
-        flex: 1 1 50%;
-      }
-      webvisual-element-sign {
-        /*flex: 1 0 auto;*/
-      }
-
-      @media (max-width: 1599px) {
-        .grid  li {
-          -webkit-flex-basis: 25%;
-          flex-basis: 25%;
-          max-width: 25%;
-        }
-      }
-
-      @media (max-width: 1279px) {
-        .grid  li {
-          -webkit-flex-basis: 33%;
-          flex-basis: 33%;
-          max-width: 33%;
-        }
-      }
-
-      @media (max-width: 767px) {
-        .grid  li {
-          -webkit-flex-basis: 50%;
-          flex-basis: 50%;
-          max-width: 50%;
-        }
-      }
-      @media (max-width: 379px) {
-        .grid  li {
-          -webkit-flex-basis: 100%;
-          flex-basis: 100%;
-          max-width: 100%;
-        }
-      }
-    </style>
+    <style include="shared-styles page-layout webvisual-button"></style>
 
     <app-route
       route="[[route]]"

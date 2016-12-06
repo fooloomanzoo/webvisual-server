@@ -17,9 +17,10 @@
 			}
 		},
 
-    "svgPathOrigin": "",
-
-    "svgSource": {},
+    "svgSource": {
+      "origin": "",
+      "source": {}
+    },
 
 		"clientRequest": {
 			"initial": {

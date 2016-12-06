@@ -6,6 +6,8 @@
 
 <link rel="import" href="components/webvisual-icon-button.html">
 
+<link rel="import" href="webvisual-element-svg.html">
+
 <dom-module id='webvisual-groupcard'>
   <template>
     <style>
@@ -32,8 +34,8 @@
         color: var(--groupcard-header-color, var(--bright-text-color));*/
         border-color: inherit;
         height: auto;
-        perspective: 3000px;
-        perspective-origin: top center;
+        perspective: calc(15vh + 120px);
+        perspective-origin: center top;
       }
       :host(:not([opened])) #header {
         pointer-events: none;
@@ -49,7 +51,7 @@
         height: 3em;
         width: 100%;
         will-change: padding-top;
-        transition: padding-top 500ms cubic-bezier(0.6, 0, 0.3, 1);
+        transition: padding-top 500ms cubic-bezier(0.6, 0, 0.2, 1);
         background: var(--groupcard-header-background, var(--bright-primary-color));
         color: var(--groupcard-header-color, var(--bright-text-color));
       }
@@ -82,7 +84,7 @@
         width: auto;
         pointer-events: none;
         will-change: padding-top;
-        transition: padding-top 500ms cubic-bezier(0.6, 0, 0.3, 1);
+        transition: padding-top 500ms cubic-bezier(0.6, 0, 0.2, 1);
       }
       #mainContent ::content > * {
         margin: 0 0.5em 0.5em 0;
@@ -138,14 +140,13 @@
         position: relative;
         box-sizing: border-box;
         transform-origin: top center;
-        backface-visibility: hidden;
-        transform: rotateX(90deg) translateY(-50%);
+        transform: rotateX(90deg) scale(0.5);
         /*transform: translate(-50%, -50%) scale(1,0);*/
-        transition: transform 500ms cubic-bezier(0.6, 0, 0.3, 1);
+        transition: transform 500ms cubic-bezier(0.6, 0, 0.2, 1);
       }
 
       #headerContent.visible {
-        transform: rotateX(0deg) translateY(0%);
+        transform: rotateX(0deg) scale(1);
       }
 
       #headerContent > * {

@@ -251,18 +251,22 @@ class Router extends EventEmitter {
         }
 
         // copy svgContent in staticContentFolder
-        if (opt[system].svgSource && Object.keys(opt[system].svgSource).length) {
-          let images = [];
+        if (opt[system].svgSource && opt[system].svgSource.source &&  Object.keys(opt[system].svgSource.source).length) {
 
-          // path folder
-          svgDest = resolvePath(dir.img, facility, system);
+          let svgDest = resolvePath(dir.img, facility, system);
+
           mkdirp(svgDest, (err) => {
             if (err) console.error(`SVG-File Destination folder failed to create \n ${err}`);
 
+            let origin = '';
+            dest = svgDest;
+
             // image origin folder
-            dest = path.resolve(opt[system].svgPathOrigin);
-            if (!dest || !fs.existsSync(dest)) {
-              dest = resolvePath('examples', 'svg');
+            if (opt[system].svgSource.origin) {
+              origin = path.resolve(opt[system].svgSource.origin);
+            }
+            if (!origin || !fs.existsSync(origin)) {
+              origin = resolvePath('examples', 'svg');
             }
 
             // Optimize SVGs
@@ -283,20 +287,20 @@ class Router extends EventEmitter {
                   });
                 // });
               }).catch( err => {
-                console.error(`Transfer SVG-File successful \n from ${opath} \n ${err}`);
+                console.error(`Transfer SVG-File failed \n from ${opath} \n ${err}`);
               });
             }
 
             var promises = [];
 
-            for (var p in opt[system].svgSource) {
-              let opath = path.resolve(dest, p);
-              let dpath = path.resolve(svgDest, p);
+            for (var p in opt[system].svgSource.source) {
+              let opath = path.resolve(origin, p);
+              let dpath = path.resolve(dest, p);
               promises.push(copy(opath, dpath));
             }
             Promise.all(promises)
                   .then( () => {} )
-                  .catch( err => { console.error(`Transfer SVG-Files \n from ${dest} \n to ${svgDest} failed \n ${err}`); });
+                  .catch( err => { console.error(`Transfer SVG-Files failed \n ${err}`); });
           });
         }
       }

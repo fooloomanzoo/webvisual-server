@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+
+  <title>Tests</title>
+
+  <script src="../../bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
+  <link rel="import" href="../../bower_components/polymer/polymer.html">
+
+  <link rel="import" href="../../bower_components/app-layout/app-layout.html">
+  <link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
+  <link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
+  <link rel="import" href="../components/webvisual-tabs.html">
+  <link rel="import" href="../components/webvisual-tab.html">
+
+  <link rel="import" href="../style/shared-styles.html">
+  <link rel="import" href="../style/page-layout.html">
+  <link rel="import" href="../style/webvisual-selectbox.html">
+
+  <link rel="import" href="../webvisual-groupcard.html">
+  <link rel="import" href="../webvisual-element-sign.html">
+  <link rel="import" href="../webvisual-element-caption.html">
+
+  <link rel="import" href="../data/webvisual-facility-data.html"/>
+  <link rel="import" href="../data/webvisual-group-data.html"/>
+  <link rel="import" href="../data/webvisual-svg-data.html"/>
+
+  <style>
+
+    html {
+      background: #AFAFAF;
+    }
+
+    body {
+      position: relative;
+      margin: 0;
+      font-family: 'FiraSans-Regular', 'FiraSans-Medium', sans-serif;
+      font-weight: normal;
+      font-size: calc(0.75em + 0.5vmin);
+      line-height: calc(1em + 0.5vmin);
+      word-wrap: break-word;
+      font-kerning: normal;
+      text-rendering: optimizeLegibility;
+      min-height: 100vh;
+    }
+
+    body.fullscreen {
+      overflow: hidden;
+    }
+  </style>
+
+</head>
+<body>
+
+  <dom-module id="demo-page">
+    <template>
+      <style include="shared-styles page-layout webvisual-selectbox">
+        :host {
+          width: 100%;
+          height: 100%;
+        }
+        webvisual-selectbox.toolbar.grouping {
+          background: url(data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22%3E%3Cg%3E%3Cpath d=%22M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z%22 fill=%22%23FFFFFF%22%3E%3C/path%3E%3C/g%3E%3C/svg%3E);
+          background-repeat: no-repeat;
+          background-position: 6px center;
+          background-size: 18px 18px;
+          height: 64px;
+          padding: 0;
+          margin: 0 8px;
+        }
+        webvisual-selectbox.toolbar > select {
+          height: 30px;
+          font-size: 12px;
+          padding: 0 0 0 24px;
+        }
+      </style>
+
+      <webvisual-facility-data
+        url-prefix="./data/"
+        logged-in
+        facility-name="Test" system-name="[[systemName]]"
+        facility="{{facility}}"
+        items="{{elements}}"></webvisual-facility-data>
+
+      <webvisual-group-data
+        url-prefix="./data/"
+        subgroups="{{subgroups}}"
+        grouped-key="{{groupedKey}}"
+        grouping-keys="{{groupingKeys}}"
+        facility-name="Test"
+        system-name="[[systemName]]"></webvisual-group-data>
+
+      <webvisual-svg-data
+        url-prefix="./data/"
+        svg-source="{{svgSource}}"
+        facility-name="Test"
+        system-name="[[systemName]]"></webvisual-svg-data>
+
+      <app-header>
+        <app-toolbar>
+          <webvisual-tabs selected="{{systemName}}" attr-for-selected="name" fallback-selection="Berlin">
+            <template is="dom-repeat" items="[[facility.systems]]">
+              <webvisual-tab name="[[item.name]]">[[item.name]]</webvisual-tab>
+            </template>
+          </webvisual-tabs>
+
+        </app-toolbar>
+        <app-toolbar>
+          <webvisual-tabs selected="{{module}}">
+              <webvisual-tab>GROUPCARD</webvisual-tab>
+              <webvisual-tab>SVGELEMENT</webvisual-tab>
+              <webvisual-tab>CHART</webvisual-tab>
+          </webvisual-tabs>
+
+          <webvisual-selectbox class="toolbar grouping">
+            <select value="{{groupedKey::input}}">
+              <template is="dom-repeat" items="[[groupingKeys]]">
+                <option value="[[item]]">[[item]]</option>
+              </template>
+            </select>
+          </webvisual-selectbox>
+        </app-toolbar>
+      </app-header>
+
+      <iron-pages selected="{{module}}" fallback-selection="0">
+        <section id="groupcard-demo">
+
+          <ul class="grid">
+            <template is="dom-repeat" items="[[_getSubGroups(subgroups)]]" as="group">
+              <li>
+                <webvisual-groupcard
+                  title="[[group.title]]"
+                  plain="[[plain]]"
+                  select-notify
+                  exceed-notify
+                  multi
+                  svg-source="./images/[[group.svg.source]]"
+                  svg-selectable="[[_getSvgSelectable(group.svg.source, svgSource)]]">
+
+                  <ul class="grid sign">
+                    <template is="dom-repeat" items="[[group.items]]" as="id">
+                      <li>
+                    <!-- <a href$="[[_getItemHref(item)]]"> -->
+                        <webvisual-element-sign
+                          item="[[_getItem(id, elements)]]"
+                          show-date
+                          selectable></webvisual-element-sign>
+                        <webvisual-element-caption
+                          vertical
+                          keys="[[_getItemKeys(id, elements)]]"
+                          grouped-key='[[groupedKey]]' without-grouped-key></webvisual-element-caption>
+                      <!-- </a> -->
+                      </li>
+                    </template>
+                  </ul>
+                </webvisual-groupcard>
+              </li>
+            </template>
+          </ul>
+
+        </section>
+        <section id="svgelement-demo">
+
+        </section>
+        <section id="chart-demo">
+
+        </section>
+
+      </iron-pages>
+
+    </template>
+    <script>
+      Polymer({
+        is: 'demo-page',
+
+        properties: {
+        },
+
+        _getItem: function(id, elements) {
+          if (id && elements) {
+            for (var i = 0, item; item = elements[i]; ++i) {
+              if (item.id === id) {
+                return item;
+              }
+            }
+          }
+          return {};
+        },
+
+        _getItemKeys: function(id, elements) {
+          if (id && elements) {
+            for (var i = 0, item; item = elements[i]; ++i) {
+              if (item.id === id) {
+                return item.keys;
+              }
+            }
+          }
+          return {};
+        },
+        _getSubGroups: function(subgroup) {
+          // Return placeholder items when the items haven't loaded yet.
+          return subgroup || [{},{},{},{},{}];
+        },
+
+        _getSvgSelectable: function(source, svgSource) {
+          return svgSource[source] || {};
+        },
+      });
+    </script>
+  </dom-module>
+
+  <demo-page></demo-page>
+
+</body>
+</html>

@@ -26,18 +26,29 @@
 			}
 		},
 
-    "#svgPathOrigin": "",
-    "svgPathOrigin": "//ibn-vsrv/HNF-GDS$/Maps",
-
     "svgSource": {
-      "E0_gaskabinet.svg": {
-        "Cabinets": "g#Cabinets path"
+      "origin": "//ibn-vsrv/HNF-GDS$/Maps",
+      "source": {
+        "E0_gaskabinet.svg": {
+          "title": {
+            "Cabinets": "g#Cabinets path"
+          }
+        },
+        "E1_bypack.svg": {
+          "title": {
+            "Cabinets": "g#Cabinets path"
+          }
+        },
+        "E2_reinraum.svg": {
+          "title": {
+            "Cabinets": "g#Cabinets path"
+          }
+        }
       },
-      "E1_bypack.svg": {
-        "Cabinets": "g#Cabinets path"
-      },
-      "E2_reinraum.svg": {
-        "Cabinets": "g#Cabinets path"
+      "style": {
+        "selectable": "",
+        "selected": "",
+        "exceeding": ""
       }
     },
 

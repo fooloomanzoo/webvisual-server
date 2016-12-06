@@ -89,6 +89,8 @@
     pointer-events: none !important;
     cursor: default !important;
     letter-spacing: normal !important;
+    stroke: none !important;
+    mix-blend-mode: exclusion;
     @apply(--svg-text);
   }
   .webvisual-element-svg-selectable {
@@ -159,9 +161,6 @@
 </template>
 
 <script>
-  if (!SvgSource)
-    var SvgSource = {};
-
   SvgElement = Polymer({
     is: 'webvisual-element-svg',
 
@@ -233,7 +232,7 @@
        */
       maxZoom: {
         type: Number,
-        value: 3
+        value: 6
       },
       /**
        * a clicked or selected Node will be centered and zoomed, depending how many times a zoomed Node,
@@ -490,21 +489,23 @@
                       .text(function() {
                           return element.ident;
                      });
-        for (var key in this.selectable)
-          this._mainG.selectAll(this.selectable[key])
-                    .classed('webvisual-element-svg-selectable', true)  // for styling selectable
-                    .classed('style-scope', true).classed('webvisual-element-svg', true) // for style-scoping in polymer
-                    .on('click',
-                      function() {
-                        self._zoomToElement(this);
-                        self._mainG.selectAll('.clicked')
-                                   .classed('clicked', false);
-                      })
-                    .classed('clicked', true)
-                    .append('title')
-                    .text(function() {
-                        return key;
-                     });
+        if (this.selectable && this.selectable.title) {
+          for (var key in this.selectable.title)
+            this._mainG.selectAll(this.selectable[key])
+                      .classed('webvisual-element-svg-selectable', true)  // for styling selectable
+                      .classed('style-scope', true).classed('webvisual-element-svg', true) // for style-scoping in polymer
+                      .on('click',
+                        function() {
+                          self._zoomToElement(this);
+                          self._mainG.selectAll('.clicked')
+                                     .classed('clicked', false);
+                        })
+                      .classed('clicked', true)
+                      .append('title')
+                      .text(function() {
+                          return key;
+                       });
+        }
         this._inialized = true;
     },
 

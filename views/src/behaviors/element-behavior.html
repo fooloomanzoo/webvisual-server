@@ -71,7 +71,6 @@
     },
 
     detached: function() {
-      Webvisual.retractElement(this, this.item);
       this._unlinkElement();
       this.clearValues();
     },
@@ -79,14 +78,14 @@
     _linkElement: function(item, olditem) {
       this._unlinkElement(olditem);
       this.clearValues();
-      if (item && Object.keys(item).length !== 0) {
-        Webvisual.assignElement(this);
+      if (window.Webvisual && window.Webvisual.assignElement && item && Object.keys(item).length !== 0) {
+        window.Webvisual.assignElement(this);
       }
     },
 
     _unlinkElement: function(item) {
-      if (item && Object.keys(item).length !== 0) {
-        Webvisual.retractElement(this, item);
+      if (window.Webvisual && Webvisual.retractElement && item && Object.keys(item).length !== 0) {
+        window.Webvisual.retractElement(this, item);
       }
     },
 
@@ -138,6 +137,9 @@
     },
 
     requestLastValue: function(mount, uniqueid, len) {
+      if (!window.Webvisual)
+        return;
+
       return new Promise(function(resolve, reject) {
         if (!this.webworker) {
           reject();
@@ -162,7 +164,7 @@
                 }
             }
           });
-      }.bind(Webvisual))
+      }.bind(window.Webvisual))
     },
 
     renderInsertedValues: function(values) {
@@ -212,9 +214,9 @@
       if (!this.item) {
         return;
       }
-      if (!nosocket) {
+      if (!nosocket && window.Webvisual) {
         try {
-          Webvisual.assignElement(this);
+          window.Webvisual.assignElement(this);
           // this.insertValues(this.values || []);
         } catch (e) {
           console.log(this.nodeName, e);

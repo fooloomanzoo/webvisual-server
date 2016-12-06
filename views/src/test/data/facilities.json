@@ -1,0 +1,1069 @@
+[ {
+	"name": "Test",
+	"title": "Test",
+	"systems": [ {
+		"name": "Berlin",
+		"title": "Population of Berlin City Quarters",
+		"items": [ {
+			"id": "Berlin",
+			"keys": {
+				"name": "Berlin",
+				"area": "891.68km²",
+				"type": "gesamt"
+			},
+			"svg": {
+				"path": "g#ortsteil",
+				"source": "berlin.svg"
+			},
+			"color": "#2FC6FC",
+			"values": [],
+			"unit": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Berlin",
+			"facility": "Test",
+			"mount": "Test/Berlin/Berlin"
+		}, {
+			"id": "Mitte",
+			"keys": {
+				"name": "Mitte",
+				"area": "0-50km²",
+				"type": "Bezirk"
+			},
+			"svg": {
+				"path": "path#path1364-8",
+				"source": "berlin.svg"
+			},
+			"color": "#2FC6FC",
+			"values": [],
+			"unit": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Berlin",
+			"facility": "Test",
+			"mount": "Test/Berlin/Mitte"
+		}, {
+			"id": "Friedrichshain-Kreuzberg",
+			"keys": {
+				"name": "Friedrichshain-Kreuzberg",
+				"area": "0-50km²",
+				"type": "Bezirk"
+			},
+			"svg": {
+				"path": "path#path1358-1",
+				"source": "berlin.svg"
+			},
+			"color": "#2FFCA0",
+			"values": [],
+			"unit": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Berlin",
+			"facility": "Test",
+			"mount": "Test/Berlin/Friedrichshain-Kreuzberg"
+		}, {
+			"id": "Pankow",
+			"keys": {
+				"name": "Pankow",
+				"area": "100-150km²",
+				"type": "Bezirk"
+			},
+			"svg": {
+				"path": "path#path1368-8",
+				"source": "berlin.svg"
+			},
+			"color": "#7D2FFC",
+			"values": [],
+			"unit": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Berlin",
+			"facility": "Test",
+			"mount": "Test/Berlin/Pankow"
+		}, {
+			"id": "Charlottenburg-Wilmersdorf",
+			"keys": {
+				"name": "Charlottenburg-Wilmersdorf",
+				"area": "50-100km²",
+				"type": "Bezirk"
+			},
+			"svg": {
+				"path": "ellipse#",
+				"source": "berlin.svg"
+			},
+			"color": "#FC2F41",
+			"values": [],
+			"unit": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Berlin",
+			"facility": "Test",
+			"mount": "Test/Berlin/Charlottenburg-Wilmersdorf"
+		}, {
+			"id": "Spandau",
+			"keys": {
+				"name": "Spandau",
+				"area": "50-100km²",
+				"type": "Bezirk"
+			},
+			"svg": {
+				"path": "path#path1372-3",
+				"source": "berlin.svg"
+			},
+			"color": "#C7FC2F",
+			"values": [],
+			"unit": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Berlin",
+			"facility": "Test",
+			"mount": "Test/Berlin/Spandau"
+		}, {
+			"id": "Steglitz-Zehlendorf",
+			"keys": {
+				"name": "Steglitz-Zehlendorf",
+				"area": "100-150km²",
+				"type": "Bezirk"
+			},
+			"svg": {
+				"path": "path#path1374-1",
+				"source": "berlin.svg"
+			},
+			"color": "#FC602F",
+			"values": [],
+			"unit": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Berlin",
+			"facility": "Test",
+			"mount": "Test/Berlin/Steglitz-Zehlendorf"
+		}, {
+			"id": "Tempelhof-Schöneberg",
+			"keys": {
+				"name": "Tempelhof-Schöneberg",
+				"area": "50-100km²",
+				"type": "Bezirk"
+			},
+			"svg": {
+				"path": "path#path1376-0",
+				"source": "berlin.svg",
+				"type": "Bezirk"
+			},
+			"color": "#FC2F2F",
+			"values": [],
+			"unit": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Berlin",
+			"facility": "Test",
+			"mount": "Test/Berlin/Tempelhof-Schöneberg"
+		}, {
+			"id": "Neukölln",
+			"keys": {
+				"name": "Neukölln",
+				"area": "0-50km²",
+				"type": "Bezirk"
+			},
+			"svg": {
+				"path": "path#path1366-4",
+				"source": "berlin.svg",
+				"type": "Bezirk"
+			},
+			"color": "#2FFCF0",
+			"values": [],
+			"unit": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Berlin",
+			"facility": "Test",
+			"mount": "Test/Berlin/Neukölln"
+		}, {
+			"id": "Treptow-Köpenick",
+			"keys": {
+				"name": "Treptow-Köpenick",
+				"area": "150-200km²",
+				"type": "Bezirk"
+			},
+			"svg": {
+				"path": "path#path1378-6",
+				"source": "berlin.svg"
+			},
+			"color": "#83FC2F",
+			"values": [],
+			"unit": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Berlin",
+			"facility": "Test",
+			"mount": "Test/Berlin/Treptow-Köpenick"
+		}, {
+			"id": "Marzahn-Hellersdorf",
+			"keys": {
+				"name": "Marzahn-Hellersdorf",
+				"area": "50-100km²",
+				"type": "Bezirk"
+			},
+			"svg": {
+				"path": "path#path1362-1",
+				"source": "berlin.svg"
+			},
+			"color": "#2FFC5C",
+			"values": [],
+			"unit": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Berlin",
+			"facility": "Test",
+			"mount": "Test/Berlin/Marzahn-Hellersdorf"
+		}, {
+			"id": "Lichtenberg",
+			"keys": {
+				"name": "Lichtenberg",
+				"area": "50-100km²",
+				"type": "Bezirk"
+			},
+			"svg": {
+				"path": "path#path1360-4",
+				"source": "berlin.svg"
+			},
+			"color": "#FCD52F",
+			"values": [],
+			"unit": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Berlin",
+			"facility": "Test",
+			"mount": "Test/Berlin/Lichtenberg"
+		}, {
+			"id": "Reinickendorf",
+			"keys": {
+				"name": "Reinickendorf",
+				"area": "50-100km²",
+				"type": "Bezirk"
+			},
+			"svg": {
+				"path": "path#path1370-3",
+				"source": "berlin.svg"
+			},
+			"color": "#2F43FC",
+			"values": [],
+			"unit": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Berlin",
+			"facility": "Test",
+			"mount": "Test/Berlin/Reinickendorf"
+		} ]
+	}, {
+		"name": "Bor",
+		"title": "particles of the element Bor",
+		"items": [ {
+			"id": "p1",
+			"keys": {
+				"name": "p1",
+				"type": "proton"
+			},
+			"svg": {
+				"path": "ellipse#ellipse4802",
+				"source": "bor-atom-modell.svg"
+			},
+			"values": [],
+			"unit": "",
+			"color": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Bor",
+			"facility": "Test",
+			"mount": "Test/Bor/p1"
+		}, {
+			"id": "p2",
+			"keys": {
+				"name": "p2",
+				"type": "proton"
+			},
+			"svg": {
+				"path": "ellipse#ellipse4804",
+				"source": "bor-atom-modell.svg"
+			},
+			"values": [],
+			"unit": "",
+			"color": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Bor",
+			"facility": "Test",
+			"mount": "Test/Bor/p2"
+		}, {
+			"id": "p3",
+			"keys": {
+				"name": "p3",
+				"type": "proton"
+			},
+			"svg": {
+				"path": "ellipse#ellipse4806",
+				"source": "bor-atom-modell.svg"
+			},
+			"values": [],
+			"unit": "",
+			"color": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Bor",
+			"facility": "Test",
+			"mount": "Test/Bor/p3"
+		}, {
+			"id": "p4",
+			"keys": {
+				"name": "p4",
+				"type": "proton"
+			},
+			"svg": {
+				"path": "ellipse#ellipse4808",
+				"source": "bor-atom-modell.svg"
+			},
+			"values": [],
+			"unit": "",
+			"color": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Bor",
+			"facility": "Test",
+			"mount": "Test/Bor/p4"
+		}, {
+			"id": "p5",
+			"keys": {
+				"name": "p5",
+				"type": "proton"
+			},
+			"svg": {
+				"path": "ellipse#ellipse4810",
+				"source": "bor-atom-modell.svg"
+			},
+			"values": [],
+			"unit": "",
+			"color": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Bor",
+			"facility": "Test",
+			"mount": "Test/Bor/p5"
+		}, {
+			"id": "n1",
+			"keys": {
+				"name": "n1",
+				"type": "neutron"
+			},
+			"svg": {
+				"path": "circle#circle4812",
+				"source": "bor-atom-modell.svg"
+			},
+			"values": [],
+			"unit": "",
+			"color": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Bor",
+			"facility": "Test",
+			"mount": "Test/Bor/n1"
+		}, {
+			"id": "n2",
+			"keys": {
+				"name": "n2",
+				"type": "neutron"
+			},
+			"svg": {
+				"path": "circle#circle4814",
+				"source": "bor-atom-modell.svg"
+			},
+			"values": [],
+			"unit": "",
+			"color": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Bor",
+			"facility": "Test",
+			"mount": "Test/Bor/n2"
+		}, {
+			"id": "n3",
+			"keys": {
+				"name": "n3",
+				"type": "neutron"
+			},
+			"svg": {
+				"path": "circle#circle4816",
+				"source": "bor-atom-modell.svg"
+			},
+			"values": [],
+			"unit": "",
+			"color": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Bor",
+			"facility": "Test",
+			"mount": "Test/Bor/n3"
+		}, {
+			"id": "n4",
+			"keys": {
+				"name": "n4",
+				"type": "neutron"
+			},
+			"svg": {
+				"path": "circle#circle4818",
+				"source": "bor-atom-modell.svg"
+			},
+			"values": [],
+			"unit": "",
+			"color": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Bor",
+			"facility": "Test",
+			"mount": "Test/Bor/n4"
+		}, {
+			"id": "n5",
+			"keys": {
+				"name": "n5",
+				"type": "neutron"
+			},
+			"svg": {
+				"path": "circle#circle4820",
+				"source": "bor-atom-modell.svg"
+			},
+			"values": [],
+			"unit": "",
+			"color": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Bor",
+			"facility": "Test",
+			"mount": "Test/Bor/n5"
+		}, {
+			"id": "e1",
+			"keys": {
+				"name": "e1",
+				"type": "electron",
+				"orbital": "s1"
+			},
+			"svg": {
+				"path": "ellipse#ellipse4851",
+				"source": "bor-atom-modell.svg"
+			},
+			"values": [],
+			"unit": "",
+			"color": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Bor",
+			"facility": "Test",
+			"mount": "Test/Bor/e1"
+		}, {
+			"id": "e2",
+			"keys": {
+				"name": "e2",
+				"type": "electron",
+				"orbital": "s2"
+			},
+			"svg": {
+				"path": "ellipse#ellipse4853",
+				"source": "bor-atom-modell.svg"
+			},
+			"values": [],
+			"unit": "",
+			"color": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Bor",
+			"facility": "Test",
+			"mount": "Test/Bor/e2"
+		}, {
+			"id": "e3",
+			"keys": {
+				"name": "e3",
+				"type": "electron",
+				"orbital": "p1"
+			},
+			"svg": {
+				"path": "ellipse#ellipse4855",
+				"source": "bor-atom-modell.svg"
+			},
+			"values": [],
+			"unit": "",
+			"color": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Bor",
+			"facility": "Test",
+			"mount": "Test/Bor/e3"
+		}, {
+			"id": "e4",
+			"keys": {
+				"name": "e4",
+				"type": "electron",
+				"orbital": "p2"
+			},
+			"svg": {
+				"path": "ellipse#ellipse4857",
+				"source": "bor-atom-modell.svg"
+			},
+			"values": [],
+			"unit": "",
+			"color": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Bor",
+			"facility": "Test",
+			"mount": "Test/Bor/e4"
+		}, {
+			"id": "e5",
+			"keys": {
+				"name": "e5",
+				"type": "electron",
+				"orbital": "p3"
+			},
+			"svg": {
+				"path": "ellipse#ellipse4859",
+				"source": "bor-atom-modell.svg"
+			},
+			"values": [],
+			"unit": "",
+			"color": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Bor",
+			"facility": "Test",
+			"mount": "Test/Bor/e5"
+		} ]
+	}, {
+		"name": "Boxes",
+		"title": "boxes",
+		"items": [ {
+			"id": "box1",
+			"keys": {
+				"name": "box1",
+				"distance": "4",
+				"group": "left-bottom"
+			},
+			"svg": {
+				"path": "g#783 polygon",
+				"source": "boxes.svg"
+			},
+			"values": [],
+			"unit": "",
+			"color": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Boxes",
+			"facility": "Test",
+			"mount": "Test/Boxes/box1"
+		}, {
+			"id": "box2",
+			"keys": {
+				"name": "box2",
+				"distance": "3",
+				"group": "left-bottom"
+			},
+			"svg": {
+				"path": "g#744 polygon",
+				"source": "boxes.svg"
+			},
+			"values": [],
+			"unit": "",
+			"color": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Boxes",
+			"facility": "Test",
+			"mount": "Test/Boxes/box2"
+		}, {
+			"id": "box3",
+			"keys": {
+				"name": "box3",
+				"distance": "2",
+				"group": "left-bottom"
+			},
+			"svg": {
+				"path": "g#627 polygon",
+				"source": "boxes.svg"
+			},
+			"values": [],
+			"unit": "",
+			"color": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Boxes",
+			"facility": "Test",
+			"mount": "Test/Boxes/box3"
+		}, {
+			"id": "box4",
+			"keys": {
+				"name": "box4",
+				"distance": "1",
+				"group": "left-bottom"
+			},
+			"svg": {
+				"path": "g#510 polygon",
+				"source": "boxes.svg"
+			},
+			"values": [],
+			"unit": "",
+			"color": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Boxes",
+			"facility": "Test",
+			"mount": "Test/Boxes/box4"
+		}, {
+			"id": "box5",
+			"keys": {
+				"name": "box5",
+				"distance": "4",
+				"group": "left-top"
+			},
+			"svg": {
+				"path": "g#81 polygon",
+				"source": "boxes.svg"
+			},
+			"values": [],
+			"unit": "",
+			"color": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Boxes",
+			"facility": "Test",
+			"mount": "Test/Boxes/box5"
+		}, {
+			"id": "box6",
+			"keys": {
+				"name": "box6",
+				"distance": "3",
+				"group": "left-top"
+			},
+			"svg": {
+				"path": "g#120 polygon",
+				"source": "boxes.svg"
+			},
+			"values": [],
+			"unit": "",
+			"color": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Boxes",
+			"facility": "Test",
+			"mount": "Test/Boxes/box6"
+		}, {
+			"id": "box7",
+			"keys": {
+				"name": "box7",
+				"distance": "2",
+				"group": "left-top"
+			},
+			"svg": {
+				"path": "g#315 polygon",
+				"source": "boxes.svg"
+			},
+			"values": [],
+			"unit": "",
+			"color": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Boxes",
+			"facility": "Test",
+			"mount": "Test/Boxes/box7"
+		}, {
+			"id": "box8",
+			"keys": {
+				"name": "box8",
+				"distance": "1",
+				"group": "left-top"
+			},
+			"svg": {
+				"path": "g#393 polygon",
+				"source": "boxes.svg"
+			},
+			"values": [],
+			"unit": "",
+			"color": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Boxes",
+			"facility": "Test",
+			"mount": "Test/Boxes/box8"
+		}, {
+			"id": "box9",
+			"keys": {
+				"name": "box9",
+				"distance": "4",
+				"group": "top"
+			},
+			"svg": {
+				"path": "g#939 polygon",
+				"source": "boxes.svg"
+			},
+			"values": [],
+			"unit": "",
+			"color": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Boxes",
+			"facility": "Test",
+			"mount": "Test/Boxes/box9"
+		}, {
+			"id": "box10",
+			"keys": {
+				"name": "box10",
+				"distance": "3",
+				"group": "top"
+			},
+			"svg": {
+				"path": "g#900 polygon",
+				"source": "boxes.svg"
+			},
+			"values": [],
+			"unit": "",
+			"color": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Boxes",
+			"facility": "Test",
+			"mount": "Test/Boxes/box10"
+		}, {
+			"id": "box11",
+			"keys": {
+				"name": "box11",
+				"distance": "2",
+				"group": "top"
+			},
+			"svg": {
+				"path": "g#705 polygon",
+				"source": "boxes.svg"
+			},
+			"values": [],
+			"unit": "",
+			"color": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Boxes",
+			"facility": "Test",
+			"mount": "Test/Boxes/box11"
+		}, {
+			"id": "box12",
+			"keys": {
+				"name": "box12",
+				"distance": "1",
+				"group": "top"
+			},
+			"svg": {
+				"path": "g#588 polygon",
+				"source": "boxes.svg"
+			},
+			"values": [],
+			"unit": "",
+			"color": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Boxes",
+			"facility": "Test",
+			"mount": "Test/Boxes/box12"
+		}, {
+			"id": "box13",
+			"keys": {
+				"name": "box13",
+				"distance": "4",
+				"group": "right-bottom"
+			},
+			"svg": {
+				"path": "g#861 polygon",
+				"source": "boxes.svg"
+			},
+			"values": [],
+			"unit": "",
+			"color": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Boxes",
+			"facility": "Test",
+			"mount": "Test/Boxes/box13"
+		}, {
+			"id": "box14",
+			"keys": {
+				"name": "box14",
+				"distance": "3",
+				"group": "right-bottom"
+			},
+			"svg": {
+				"path": "g#822 polygon",
+				"source": "boxes.svg"
+			},
+			"values": [],
+			"unit": "",
+			"color": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Boxes",
+			"facility": "Test",
+			"mount": "Test/Boxes/box14"
+		}, {
+			"id": "box15",
+			"keys": {
+				"name": "box15",
+				"distance": "2",
+				"group": "right-bottom"
+			},
+			"svg": {
+				"path": "g#666 polygon",
+				"source": "boxes.svg"
+			},
+			"values": [],
+			"unit": "",
+			"color": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Boxes",
+			"facility": "Test",
+			"mount": "Test/Boxes/box15"
+		}, {
+			"id": "box16",
+			"keys": {
+				"name": "box16",
+				"distance": "1",
+				"group": "right-bottom"
+			},
+			"svg": {
+				"path": "g#549 polygon",
+				"source": "boxes.svg"
+			},
+			"values": [],
+			"unit": "",
+			"color": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Boxes",
+			"facility": "Test",
+			"mount": "Test/Boxes/box16"
+		}, {
+			"id": "box17",
+			"keys": {
+				"name": "box17",
+				"distance": "4",
+				"group": "right-top"
+			},
+			"svg": {
+				"path": "g#159 polygon",
+				"source": "boxes.svg"
+			},
+			"values": [],
+			"unit": "",
+			"color": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Boxes",
+			"facility": "Test",
+			"mount": "Test/Boxes/box17"
+		}, {
+			"id": "box18",
+			"keys": {
+				"name": "box18",
+				"distance": "3",
+				"group": "right-top"
+			},
+			"svg": {
+				"path": "g#198 polygon",
+				"source": "boxes.svg"
+			},
+			"values": [],
+			"unit": "",
+			"color": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Boxes",
+			"facility": "Test",
+			"mount": "Test/Boxes/box18"
+		}, {
+			"id": "box19",
+			"keys": {
+				"name": "box19",
+				"distance": "2",
+				"group": "right-top"
+			},
+			"svg": {
+				"path": "g#276 polygon",
+				"source": "boxes.svg"
+			},
+			"values": [],
+			"unit": "",
+			"color": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Boxes",
+			"facility": "Test",
+			"mount": "Test/Boxes/box19"
+		}, {
+			"id": "box20",
+			"keys": {
+				"name": "box20",
+				"distance": "1",
+				"group": "right-top"
+			},
+			"svg": {
+				"path": "g#432 polygon",
+				"source": "boxes.svg"
+			},
+			"values": [],
+			"unit": "",
+			"color": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Boxes",
+			"facility": "Test",
+			"mount": "Test/Boxes/box20"
+		}, {
+			"id": "box21",
+			"keys": {
+				"name": "box21",
+				"distance": "4",
+				"group": "bottom"
+			},
+			"svg": {
+				"path": "g#939 polygon",
+				"source": "boxes.svg"
+			},
+			"values": [],
+			"unit": "",
+			"color": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Boxes",
+			"facility": "Test",
+			"mount": "Test/Boxes/box21"
+		}, {
+			"id": "box22",
+			"keys": {
+				"name": "box22",
+				"distance": "3",
+				"group": "bottom"
+			},
+			"svg": {
+				"path": "g#900 polygon",
+				"source": "boxes.svg"
+			},
+			"values": [],
+			"unit": "",
+			"color": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Boxes",
+			"facility": "Test",
+			"mount": "Test/Boxes/box22"
+		}, {
+			"id": "box23",
+			"keys": {
+				"name": "box23",
+				"distance": "2",
+				"group": "bottom"
+			},
+			"svg": {
+				"path": "g#705 polygon",
+				"source": "boxes.svg"
+			},
+			"values": [],
+			"unit": "",
+			"color": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Boxes",
+			"facility": "Test",
+			"mount": "Test/Boxes/box23"
+		}, {
+			"id": "box24",
+			"keys": {
+				"name": "box24",
+				"distance": "1",
+				"group": "bottom"
+			},
+			"svg": {
+				"path": "g#588 polygon",
+				"source": "boxes.svg"
+			},
+			"values": [],
+			"unit": "",
+			"color": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Boxes",
+			"facility": "Test",
+			"mount": "Test/Boxes/box24"
+		}, {
+			"id": "box25",
+			"keys": {
+				"name": "box25",
+				"distance": "0",
+				"group": "center"
+			},
+			"svg": {
+				"path": "g#471 polygon",
+				"source": "boxes.svg"
+			},
+			"values": [],
+			"unit": "",
+			"color": "",
+			"exceedable": false,
+			"isExceeding": false,
+			"isIndicatorLamp": false,
+			"system": "Boxes",
+			"facility": "Test",
+			"mount": "Test/Boxes/box25"
+		} ]
+	} ]
+} ]

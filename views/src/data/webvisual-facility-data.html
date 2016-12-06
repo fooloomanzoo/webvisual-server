@@ -11,6 +11,8 @@
 
       properties: {
 
+        urlPrefix: String,
+
         facilityName: String,
 
         systemName: String,
@@ -78,7 +80,8 @@
           var facilities = localStorage.getItem('facilities');
           if (facilities)
             this.set('facilities', JSON.parse(facilities));
-          this._fetchFacilityList()
+          var prefix = this.urlPrefix || '/data/';
+          this._fetchFacilityList(prefix)
               .then(function(facilities) {
                 this.set('facilities', facilities);
                 localStorage.setItem('facilities',  JSON.stringify(facilities));
@@ -137,7 +140,7 @@
         }
       },
 
-      _fetchFacilityList: function() {
+      _fetchFacilityList: function(urlPrefix) {
         return new Promise( function(resolve, reject) {
           var xhr = new XMLHttpRequest();
           xhr.addEventListener('load', function(e) {
@@ -151,7 +154,7 @@
           xhr.addEventListener('error', function(e) {
             reject(e.target.status);
           });
-          xhr.open('GET', '/data/facilities.json');
+          xhr.open('GET', (urlPrefix || '') + 'facilities.json');
           xhr.withCredentials = true;
           xhr.send();
         })
