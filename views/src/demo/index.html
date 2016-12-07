@@ -149,11 +149,11 @@
                 <webvisual-groupcard
                   title="[[group.title]]"
                   plain="[[plain]]"
-                  select-notify
-                  exceed-notify
                   multi
+                  open-on-select
+                  open-on-exceed
                   svg-source="./images/[[group.svg.source]]"
-                  svg-selectable="[[_getSvgSelectable(group.svg.source, svgSource)]]">
+                  svg-selectable="[[_getSvgSelectable(group.svg.source, svgSource.source)]]">
 
                   <ul class="grid sign">
                     <template is="dom-repeat" items="[[group.items]]" as="id">

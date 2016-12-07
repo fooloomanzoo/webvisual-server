@@ -57,6 +57,8 @@
     },
 
     observers: [
+      '_watchSelect(openOnSelect)',
+      '_watchExceed(openOnExceed)',
       '_watchSelect(selectNotify)',
       '_watchExceed(exceedNotify)'
     ],
@@ -72,37 +74,21 @@
 
     _watchSelect: function(selectNotify) {
       if (selectNotify === true) {
-        this.addEventListener(this.selectEvent, this._select, {
-          passive: true
-        });
-        this.addEventListener('clear-selected-items', this.clearItems, {
-          passive: true
-        });
+        this.listen(this, this.selectEvent, '_select');
+        this.listen(this, 'clear-selected-items', 'clearItems');
       } else {
-        this.removeEventListener(this.selectEvent, this._select, {
-          passive: true
-        });
-        this.removeEventListener('clear-selected-items', this.clearItems, {
-          passive: true
-        });
+        this.unlisten(this, this.selectEvent, '_select');
+        this.unlisten(this, 'clear-selected-items', 'clearItems');
       }
     },
 
     _watchExceed: function(exceedNotify) {
       if (exceedNotify === true) {
-        this.addEventListener(this.exceedEvent, this._setExceeding, {
-          passive: true
-        });
-        this.addEventListener('clear-exceeding-items', this.clearExceedings, {
-          passive: true
-        });
+        this.listen(this, this.exceedEvent, '_setExceeding');
+        this.listen(this, 'clear-exceeding-items', 'clearExceedings');
       } else {
-        this.removeEventListener(this.exceedEvent, this._setExceeding, {
-          passive: true
-        });
-        this.removeEventListener('clear-exceeding-items', this.clearExceedings, {
-          passive: true
-        });
+        this.unlisten(this, this.exceedEvent, '_setExceeding');
+        this.unlisten(this, 'clear-exceeding-items', 'clearExceedings');
       }
     },
 

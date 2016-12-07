@@ -301,7 +301,7 @@
           <webvisual-button for="route-collapse" on-tap="_toggleCollapse">
             <iron-icon icon="more-vert" class="left"></iron-icon>
             <span>{{localize('view')}}</span>
-            <iron-icon icon="arrow-drop-up" class="right"></iron-icon>
+            <iron-icon icon="expand-more" class="right"></iron-icon>
           </webvisual-button>
 
           <iron-collapse id="route-collapse">
@@ -346,7 +346,7 @@
           <webvisual-button for="layout-collapse" on-tap="_toggleCollapse">
             <iron-icon icon="settings" class="left"></iron-icon>
             <span>{{localize('layout')}}</span>
-            <iron-icon icon="arrow-drop-up" class="right"></iron-icon>
+            <iron-icon icon="expand-more" class="right"></iron-icon>
           </webvisual-button>
 
           <iron-collapse id="layout-collapse">
@@ -720,10 +720,10 @@
         if (collapse && collapse.toggle) {
           collapse.toggle();
           if (iconbutton) {
-            if (iconbutton.icon === 'arrow-drop-down')
-              iconbutton.set('icon','arrow-drop-up');
+            if (iconbutton.icon === 'expand-more')
+              iconbutton.set('icon', 'expand-less');
             else
-              iconbutton.set('icon','arrow-drop-down');
+              iconbutton.set('icon', 'expand-less');
           }
         }
       }

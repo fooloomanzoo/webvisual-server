@@ -102,7 +102,7 @@
             "type": "Bezirk"
           },
           "svg": {
-            "path": "ellipse#",
+            "path": "path#path1356-7",
             "source": "berlin.svg"
           },
           "color": "#FC2F41"

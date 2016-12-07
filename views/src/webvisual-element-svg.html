@@ -46,7 +46,7 @@
     font-family: 'FiraSans-Regular';
     letter-spacing: normal;
     user-select: none !important;
-    background-color: none;
+    background-color: transparent;
   }
   :host([fullscreen]) {
     background-color: var(--svg-fullscreen-background-color);
@@ -83,6 +83,7 @@
     bottom: auto;
   }
   webvisual-icon-button {
+    border-radius: 0%;
     mix-blend-mode: exclusion;
   }
   text {
@@ -93,34 +94,24 @@
     mix-blend-mode: exclusion;
     @apply(--svg-text);
   }
-  .webvisual-element-svg-selectable {
+  .selectable {
+    pointer-events: all;
     cursor: pointer;
-    will-change: none;
     transform-origin: center center;
     -moz-transform-origin: 50% 50%;
+    @apply(--svg-selectable);
   }
   .clicked {
-    animation-name: clicked-animation;
-    animation-duration: 600ms;
-    animation-timing-function: linear;
-    animation-iteration-count: 1;
-    animation-fill-mode: forwards;
+    fill: #566FD9 !important;
     @apply(--svg-clicked);
   }
-  @keyframes clicked-animation {
-    50% {
-      stroke-opacity: 0.25;
-    }
-    100% {
-      stroke-opacity: 1;
-      stroke: #111;
-    }
-  }
   .selected {
+    fill: #56D96B !important;
     stroke: #111;
+    @apply(--svg-selected);
   }
   .exceeding {
-    stroke: #EB4949;
+    stroke: #D95656;
     stroke-width: 1.5px;
     stroke-linecap: round;
     stroke-linejoin: round;
@@ -130,7 +121,7 @@
     animation-duration: 2s;
     animation-timing-function: linear;
     animation-iteration-count: infinite;
-    @apply(--exceeding-webvisual-element-svg);
+    @apply(--svg-exceeding);
   }
   @keyframes exceeding-animation {
     0% {
@@ -139,7 +130,7 @@
     50% {
       transform: scale(0.8);
       -moz-transform: scale(1.0);
-      fill: #D91B1B;
+      fill: #D95656;
     }
     100% {
       transform: scale(1.0);
@@ -154,7 +145,7 @@
     <div id="svgContainer">
     </div>
     <div id="control" >
-      <webvisual-icon-button title="focus" icon="gamepad"></webvisual-icon-button>
+      <webvisual-icon-button title="focus" icon="filter-center-focus" on-tap="_resetZoom"></webvisual-icon-button>
       <webvisual-icon-button title="fullscreen" icon="[[_computeFullscreenIcon(fullscreen)]]" on-tap="_toggleFullscreen"></webvisual-icon-button>
     </div>
   <!-- </div> -->
@@ -271,9 +262,13 @@
      */
     _d3Zoom: Object,
 
+    item: Object,
+    items: Array,
+    exceeding: Array,
+
     observers: [
       '_debounceSourceChanged(source)',
-      '_selectedChanged(item)',
+      '_selectedChanged(items)',
       '_exceedingChanged(exceeding.splices)'
     ],
 
@@ -284,9 +279,9 @@
       'mozfullscreenchange': '_fullScreenChanged'
     },
 
-    behaviors: [
-      WebvisualBehaviors.ContainerBehavior
-    ],
+    // behaviors: [
+    //   WebvisualBehaviors.ContainerBehavior
+    // ],
 
     get _fullscreen() {
       return document.fullscreen
@@ -407,12 +402,12 @@
       this.debounce('resetZoom', this._resetZoom, 100);
     },
 
-    _selectedChanged: function(changeRecord) {
-      if (changeRecord && changeRecord.indexSplices) {
-        if (this.items.length > 0) {
+    _selectedChanged: function(items) {
+      console.log(items);
+      if (items) {
+        if (items.length > 0) {
           this.source = this.items[this.items.length-1].svg.source;
-          if (this.openOnSelect)
-            this.opened = true;
+          this.opened = true;
         }
         if (!this.source) this.opened = false;
         this._debounceSourceChanged();
@@ -442,33 +437,36 @@
     _selectableChanged: function() {
         if (!this._mainG.node || !this.source) return;
 
+        console.log(this.selectable);
+
         var self = this;
-        this._svg.on('contextmenu',
-          (function () {
-            d3.event.preventDefault();
-            this.debounce('resetZoom', this._resetZoom, 33);
-          }).bind(self));
+        // this._svg.on('contextmenu',
+        //   (function () {
+        //     d3.event.preventDefault();
+        //     this.debounce('resetZoom', this._resetZoom, 33);
+        //   }).bind(self));
 
         // previous selectable elements: remove 'webvisual-element-svg-selectable' class and click listener
-        this._mainG.selectAll('.webvisual-element-svg-selectable')
-                  .classed('webvisual-element-svg-selectable', false)
-                  .on('click', null);
-        this._mainG.selectAll('.clicked')
-                   .classed('clicked', false);
+        // this._mainG.selectAll('.selectable')
+        //           .classed('selectable', false)
+        //           .on('click', null);
+        // this._mainG.selectAll('.clicked')
+        //            .classed('clicked', false);
 
         // add 'webvisual-element-svg-selectable' class and click listener
         for (var element in this.items)
           if(element.svg && element.svg.path && element.svg.source === this.source )
             this._mainG.selectAll(element.svg.path)
-                      .classed('webvisual-element-svg-selectable', true)  // for styling selectable
+                      .classed('selectable', true)  // for styling selectable
                       .classed('style-scope', true).classed('webvisual-element-svg', true) // for style-scoping in polymer
                       .on('click',
                         function() {
+                          d3.event.stopPropagation();
                           self._zoomToElement(this);
                           self._mainG.selectAll('.clicked')
                                      .classed('clicked', false);
+                          this.classList.add('clicked');
                         }.bind(this))
-                      .classed('clicked', true)
                       .append('title')
                       .text(function() {
                           return element.ident;
@@ -476,35 +474,38 @@
         for (var element in this.exceeding)
           if(element.svg && element.svg.path && element.svg.source === this.source)
             this._mainG.selectAll(element.svg.path)
-                      .classed('webvisual-element-svg-selectable', true)  // for styling selectable
+                      .classed('selectable', true)  // for styling selectable
                       .classed('style-scope', true).classed('webvisual-element-svg', true) // for style-scoping in polymer
                       .on('click',
                         function() {
+                          d3.event.stopPropagation();
                           self._zoomToElement(this);
                           self._mainG.selectAll('.clicked')
                                      .classed('clicked', false);
+                          this.classList.add('clicked');
                         })
-                      .classed('clicked', true)
                       .append('title')
                       .text(function() {
                           return element.ident;
                      });
         if (this.selectable && this.selectable.title) {
-          for (var key in this.selectable.title)
-            this._mainG.selectAll(this.selectable[key])
-                      .classed('webvisual-element-svg-selectable', true)  // for styling selectable
+          for (var key in this.selectable.title) {
+            this._mainG.selectAll(this.selectable.title[key])
+                      .classed('selectable', true)  // for styling selectable
                       .classed('style-scope', true).classed('webvisual-element-svg', true) // for style-scoping in polymer
                       .on('click',
                         function() {
+                          d3.event.stopPropagation();
                           self._zoomToElement(this);
                           self._mainG.selectAll('.clicked')
                                      .classed('clicked', false);
+                          this.classList.add('clicked');
                         })
-                      .classed('clicked', true)
                       .append('title')
                       .text(function() {
                           return key;
                        });
+          }
         }
         this._inialized = true;
     },
@@ -541,12 +542,13 @@
     },
 
     _selectSelected: function() {
-      if (this.item)
-        this.select(this.item, this.selectedClass);
+      if (this.items)
+        this.select(this.items, this.selectedClass);
       else {
         this._resetZoom();
       }
     },
+
     _selectExceeds: function() {
       this.select(this.exceeding, this.exceedingClass);
     },
@@ -651,7 +653,11 @@
         return {x: x, y: y, k: scale};
     },
 
-    _resetZoom: function() {
+    _resetZoom: function(e) {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
       // console.log('resetZoom', this.opened);
       if (!this.opened || !this._mainG || !this._mainG.node) return;
 
@@ -683,7 +689,8 @@
       this._zoomToElement(this._mainG.node());
     },
 
-    _toggleFullscreen: function() {
+    _toggleFullscreen: function(e) {
+      e.stopPropagation()
       if (this._fullscreen) {
         this._exitFullscreen();
       }
