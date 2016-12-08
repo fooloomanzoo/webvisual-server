@@ -18,6 +18,7 @@
     "src/behaviors/*",
     "src/**/*",
     "src/*",
+    "favicon.ico",
     "bower.json"
   ],
   "extraDependencies": [

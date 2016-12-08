@@ -792,12 +792,12 @@
           "selector": "",
           "path": ""
         },
-        "isIndicatorLamp": false,
-        "values": [{
-          "x": 0,
-          "y": 0,
-          "exceeds": null
-        }]
+        "isIndicatorLamp": false
+      },
+
+      "valueModel": {
+        "x": null,
+        "y": 0
       },
 
       "groupingKeys": ["kind", "room", "property", "roomNr", "system", "alarmlevel"],

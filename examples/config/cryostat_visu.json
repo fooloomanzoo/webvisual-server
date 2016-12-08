@@ -244,13 +244,14 @@
 					"Bezeichner": "Messreihe"
 				},
 				"isBoolean": false,
-				"values": [ {
-					"x": null,
-					"y": 0
-				} ],
 				"unit": "",
 				"color": "#B61462"
 			},
+
+      "valueModel": {
+        "x": null,
+        "y": 0
+      },
 
 			"groupingKeys": [ "Bezeichner" ],
 			"preferedGroupingKey": "",

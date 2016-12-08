@@ -17,11 +17,6 @@
 
       values: Array,
 
-      exceedable: {
-        type: Boolean,
-        reflectToAttribute: true
-      },
-
       isExceeding: {
         type: Boolean,
         value: false
@@ -111,12 +106,12 @@
 
       if (this.singleValue === true) {
         var value = values.pop();
-        if (this.exceedable === true)
+        if (this.item && this.item.exceedable === true)
           this.checkExceedingState(value);
         this.renderInsertedValues(value);
         values.length = 0;
       } else {
-        if (this.exceedable === true) {
+        if (this.item && this.item.exceedable === true) {
           values.forEach(function (value) {
             this.checkExceedingState(value);
           }, this)
@@ -179,7 +174,7 @@
     },
 
     checkExceedingState: function(value) {
-      if (this.exceedable === false || value === undefined) return;
+      if (!this.item || this.item.exceedable === false || value === undefined) return;
 
       if (value.state === 0) {
         if (this.isExceeding === true) {
@@ -195,7 +190,7 @@
     },
 
     _exceedingChanged: function(isExceeding, old) {
-      if (this.exceedable === true) {
+      if (this.item && this.item.exceedable === true) {
         if (this.bubbles === true) {
           this.dispatchEvent(new CustomEvent('exceeding', {detail: { item: this.item, value: isExceeding }}), {bubbles: true });
         }

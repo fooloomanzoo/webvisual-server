@@ -10,7 +10,7 @@
 
 <script type="text/javascript" src="../bower_components/d3/d3.min.js"></script>
 
-<dom-module id="graph-element">
+<dom-module id="webvisual-element-graph">
   <style>
     :host {
       box-sizing: border-box;
@@ -33,7 +33,7 @@
   </template>
   <script>
     DiagramGraph = Polymer({
-      is: 'graph-element',
+      is: 'webvisual-element-graph',
 
       behaviors: [
         WebvisualBehaviors.ColorBehavior,
@@ -92,6 +92,17 @@
       _hidden: false,
       _isAttached: false,
 
+      get containerRoot() {
+        var root = Polymer.dom(this).getOwnerRoot();
+        if (!root)
+          return Polymer.dom(this).parentNode;
+        else if (root.nodeType == Node.DOCUMENT_FRAGMENT_NODE)
+          return root.host;
+        else {
+          return undefined;
+        }
+      },
+
       created: function() {
         this._line = d3.line()
           .x((function(d) {
@@ -109,17 +120,14 @@
         var containerRoot = this.containerRoot;
         // performance.mark('graph attached start');
 
-        if (containerRoot.nodeName !== 'Webvisual-CHART') {
-          console.warn(this.ident, 'Graph is not attached to a container');
-          this.chartElement = document.createElement('webvisual-element-chart');
-          containerRoot.appendChild(this.chartElement);
+        if (!containerRoot || containerRoot.nodeName !== 'WEBVISUAL-ELEMENT-CHART') {
+          console.error(this.item.mount, 'Registration of Graph Element failed');
+          return;
         } else {
           this.chartElement = containerRoot;
         }
 
-        if (this.chartElement._elements.indexOf(this) === -1) {
-          this.chartElement.__processNewNodes([this]);
-        }
+        this.chartElement._graphs.add(this);
 
         this.noDots = this.chartElement.noDots || this.noDots;
         this.noLine = this.chartElement.noLines || this.noLine;
@@ -130,12 +138,11 @@
         // node of line
         this._lineNode = this._chart.select('g#lines')
           .append('svg:path')
-          .attr('ident', this.ident)
-          .attr('system', this.system)
+          .attr('mount', this.item.mount)
           .attr("class", "line")
           .attr('hidden', this.noLine ? true : null)
           .attr('fill', 'none')
-          .attr('stroke', this.color)
+          .attr('stroke', this.item.color)
           .attr('stroke-width', this.lineWidth);
         this._lineNode
           .datum([])
@@ -145,11 +152,10 @@
         this._area.y0(this.chartElement._height);
         this._areaNode = this._chart.select('g#areas')
           .append('svg:path')
-          .attr('ident', this.ident)
-          .attr('system', this.system)
+          .attr('mount', this.item.mount)
           .attr("class", "area")
           .attr('hidden', this.noFill ? true : null)
-          .attr('fill', this.color)
+          .attr('fill', this.item.color)
           .attr('fill-opacity', this.fillOpacity)
           .attr('stroke', 'none');
         this._areaNode
@@ -159,8 +165,7 @@
         // group of dots
         this._dots = this._chart.select('g#dots')
           .append("svg:g")
-          .attr('ident', this.ident)
-          .attr('system', this.system)
+          .attr('ident', this.item.mount)
           .attr("class", "dots")
           .attr("hidden", this.noDots ? true : null);
 
@@ -168,7 +173,7 @@
         // performance.mark('graph attached end');
         // performance.measure('graph attached', 'graph attached start', 'graph attached end');
         // performance.mark('insert start');
-        this.addValues();
+        // this.addValues();
         // performance.mark('insert end');
         // performance.measure('values insert', 'insert start', 'insert end');
         this.chartElement.redraw();
@@ -179,17 +184,17 @@
         this._areaNode.node().parentElement.removeChild(this._areaNode.node());
         this._dots.node().parentElement.removeChild(this._dots.node());
 
-        if (this.noSocketConnection === false &&
-          window.Content !== undefined &&
-          Content[this.system] &&
-          Content[this.system][this.ident] &&
-          (pos = Content[this.system][this.ident].nodes.indexOf(this)) !== -1)
-          Content[this.system][this.ident].nodes.splice(pos, 1);
+        // if (this.noSocketConnection === false &&
+        //   window.Content !== undefined &&
+        //   Content[this.system] &&
+        //   Content[this.system][this.item.mount] &&
+        //   (pos = Content[this.system][this.item.mount].nodes.indexOf(this)) !== -1)
+        //   Content[this.system][this.item.mount].nodes.splice(pos, 1);
 
-        this.chartElement.__processRemovedNodes([this]);
+        this.chartElement._graphs.remove(this);
       },
 
-      render: function(values, splices) {
+      renderInsertedValues: function(values) {
         if (!this.chartElement)
           this.chartElement = this.containerRoot;
 
@@ -243,7 +248,7 @@
             dots.enter()
               .append('circle')
               .attr('r', this.dotRadius)
-              .attr('stroke', this.color).attr('stroke-width', strokewidth)
+              .attr('stroke', this.item.color).attr('stroke-width', strokewidth)
               .attr('fill', '#fff')
               .attr('cx', function(d, i) {
                 return this.chartElement._x(d.x)
@@ -296,21 +301,21 @@
 
       setColor: function(color) {
         // random color if color is not set
-        ColorBehavior.setColor.call(this, color);
+        WebvisualBehaviors.ColorBehavior.setColor.call(this, color);
         if (this._chart) {
-          if (this._lineNode) this._lineNode.attr('stroke', this.color);
-          if (this._areaNode) this._lineNode.attr('fill', this.color);
+          if (this._lineNode) this._lineNode.attr('stroke', this.item.color);
+          if (this._areaNode) this._lineNode.attr('fill', this.item.color);
           if (this._dots)
             this._dots.selectAll('circle.dot')
-                      .attr('stroke', this.color);
+                      .attr('stroke', this.item.color);
         }
-        this.$.legendEntry.customStyle['--radio-button-checked-color'] = this.color;
-        this.$.legendEntry.customStyle['--radio-button-unchecked-color'] = this.color;
+        this.$.legendEntry.customStyle['--radio-button-checked-color'] = this.item.color;
+        this.$.legendEntry.customStyle['--radio-button-unchecked-color'] = this.item.color;
         this.$.legendEntry.updateStyles();
       },
 
       checkedChanged: function(checked, old) {
-        CheckedAndSelectBehavior.checkedChanged.call(this, checked, old);
+        WebvisualBehaviors.CheckedAndSelectBehavior.checkedChanged.call(this, checked, old);
         this.noDots = (!checked || (this.chartElement && this.chartElement.noDots))  ? true : false;
         this.noLine = (!checked || (this.chartElement && this.chartElement.noLines)) ? true : false;
         this.noFill = (!checked || (this.chartElement && this.chartElement.noAreas)) ? true : false;

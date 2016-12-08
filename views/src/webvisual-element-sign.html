@@ -43,13 +43,16 @@
       }
       .value {
         display: inline-flex;
-        position: relative;
+        position: absolute;;
         align-items: center;
         justify-content: center;
-        flex: 1;
-        padding: 0.5em;
+        top: 0;
+        bottom: 0;
+        right: 0;
+        left: 0;
+        padding: 0.3em;
+        pointer-events: none;
         box-sizing: border-box;
-        width: 100%;
       }
       .value::before {
         position: absolute;
@@ -58,14 +61,8 @@
         bottom: 0;
         right: 0;
         left: 0;
+        pointer-events: none;
         background: linear-gradient(180deg,rgba(255,255,255,0),rgba(255,255,255,0.15),rgba(255,255,255,0));
-      }
-      .value::after {
-        content: attr(title) attr(unit);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        /*mix-blend-mode: hard-light;*/
       }
       :host([state="1"]) .value::before, :host([state="-1"]) .value::before {
         will-change: transform;
@@ -85,27 +82,35 @@
         100% { transform: rotate(360deg); }
       }
       #valueSection {
-        font-size: 1em;
+        display: inline-flex;
+        align-items: center;
         max-width: 100%;
         text-align: center;
+        pointer-events: all;
+        mix-blend-mode: hard-light;
+      }
+      #valueSection::before {
+        content: attr(title);
+        font-size: 1em;
+        padding-right: 0.15em;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
       }
       #unitSection {
-        margin-left: 0.25em;
         font-size: 0.8em;
       }
       #dateSection {
-        position: relative;
+        position: absolute;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         font-size: 0.5em;
+        bottom: 0;
         width: 100%;
         padding: 0.5em;
         box-sizing: border-box;
-        /*mix-blend-mode: hard-light;*/
+        mix-blend-mode: hard-light;
       }
       #dateSection::after {
         content: attr(title);
@@ -150,7 +155,10 @@
       <paper-ripple id="ripple"></paper-ripple>
     </template>
 
-    <section class="value" id="valueSection" hidden$="[[item.isIndicatorLamp]]" title="" unit="">
+    <section class="value" hidden$="[[item.isIndicatorLamp]]">
+      <section id="valueSection">
+        <section id="unitSection">[[item.unit]]</section>
+      </section>
     </section>
 
     <section class="value" hidden$="[[!item.isIndicatorLamp]]">
@@ -199,7 +207,6 @@
 
       insertValues: function(values) {
         if (values && values.length) {
-
           if (!this._initialized)
             this._initialized = true;
 
@@ -208,18 +215,14 @@
           if (!this.item.isIndicatorLamp)
             this.$.valueSection.setAttribute('title', this.computeValue(value.y));
 
-          this.$.dateSection.setAttribute('title', this.computeDate(value.x));
+          if (this.showDate)
+            this.$.dateSection.setAttribute('title', this.computeDate(value.x));
 
-          this.setAttribute('state', value.state);
-
-          if (this.exceedable === true)
+          if (this.item.exceedable) {
             this.checkExceedingState(value);
-          // values.length = 0;
+            this.setAttribute('state', value.state);
+          }
         }
-      },
-
-      _computeState: function(state) {
-        return state;
       },
 
       _requestExceedingDetails: function() {

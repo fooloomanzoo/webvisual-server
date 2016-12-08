@@ -202,12 +202,12 @@
 
       "unnamedItem": {
         "id": "id",
-        "unit": "Einw.",
-        "values": [{
-          "x": 0,
-          "y": 0,
-          "exceeds": null
-        }]
+        "unit": "Einw."
+      },
+
+      "valueModel": {
+        "x": null,
+        "y": 0
       },
 
       "groupingKeys": ["type", "area"],
@@ -415,12 +415,12 @@
 
       "unnamedItem": {
         "id": "id",
-        "unit": "MeV",
-        "values": [{
-          "x": 0,
-          "y": 0,
-          "exceeds": null
-        }]
+        "unit": "MeV"
+      },
+
+      "valueModel": {
+        "x": null,
+        "y": 0
       },
 
       "groupingKeys": ["type"],
@@ -749,14 +749,14 @@
 
       "unnamedItem": {
         "id": "id",
-        "unit": "cm",
-        "values": [{
-          "x": 0,
-          "y": 0,
-          "exceeds": null
-        }]
+        "unit": "cm"
       },
 
+      "valueModel": {
+        "x": null,
+        "y": 0
+      },
+      
       "groupingKeys": ["group", "distance"],
       "preferedGroupingKey": "group",
 

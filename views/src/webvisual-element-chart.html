@@ -1,11 +1,10 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
-
-<link rel="import" href="behaviors/container-behavior.html"/>
+<link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
 
 <link rel="import" href="components/webvisual-radio-button.html"/>
-<link rel="import" href="components/webvisual-dropdown.html"/>
+<link rel="import" href="components/webvisual-icon-button.html"/>
 
-<link rel="import" href="style/webvisual-button.html"/>
+<link rel="import" href="style/webvisual-selectbox.html"/>
 
 <link rel="import" href="webvisual-element-graph.html"/>
 
@@ -13,7 +12,7 @@
 
 <dom-module id="webvisual-element-chart">
   <template>
-    <style include="webvisual-button">
+    <style include="webvisual-selectbox">
       :host {
         display: inline-flex;
 				padding: 4px;
@@ -221,12 +220,12 @@
 
 		  <webvisual-icon-button id="legendbutton" icon="timeline"></webvisual-icon-button>
 		  <webvisual-dropdown id="legend" for="legendbutton" target-toggle-event="tap" hiding-event="" position="bottom" align="center">
-		    <content id="collector" select="webvisual-element-graph"></content>
+		    <content id="collector" select="webvisual-element-graph"></content>-->
 		    <template is="dom-repeat" items="[[items]]">
-		      <webvisual-element-graph ident="[[item.ident]]" system="[[item.system]]" keys="[[item.keys]]" grouped-key="[[item.groupedKey]]" color="[[item.color]]" interpolation="[[interpolation]]">
+		      <webvisual-element-graph item="[[item]]" interpolation="[[interpolation]]">
 		      </webvisual-element-graph>
 		    </template>
-		  </webvisual-dropdown>
+		  <!-- </webvisual-dropdown>
 
 		  <webvisual-icon-button id="optionsbutton" icon="juelich:app-inverted"></webvisual-icon-button>
 		  <webvisual-dropdown for="optionsbutton" target-toggle-event="tap" position="right" align="outer-start" offset="10">
@@ -286,78 +285,57 @@
       is: 'webvisual-element-chart',
 
       behaviors: [
-        // Polymer.IronResizableBehavior,
-        WebvisualBehaviors.ContainerBehavior
+        Polymer.IronResizableBehavior
+        // ,WebvisualBehaviors.ContainerBehavior
       ],
 
       properties: {
-        notify: {
-          type: Boolean,
-          value: false
-        },
-        notifyParent: {
-          type: Boolean,
-          value: false
-        },
-        noSelectNotify: {
-          type: Boolean,
-          value: false
-        },
-        noExceedNotify: {
-          type: Boolean,
-          value: false
-        },
-
-        multiSelect: {
-          type: Boolean,
-          value: true
-        },
-        toggles: {
-          type: Boolean,
-          value: true
-        },
-
-        reproduce: {
-          type: Boolean,
-          value: true
-        },
-        reproductionContainer: {
-          type: String,
-          value: 'legend',
-          readOnly: true
-        },
 
         gridMult: {
           type: Number,
           value: 2
         },
+
         xScale: {
           type: String,
           value: 'time',
           observer: 'changeScale'
         },
+
         yScale: {
           type: String,
           value: 'linear',
           observer: 'changeScale'
         },
+
         interpolation: {
           type: String,
           value: 'Lineare Verbindung',
           observer: 'changeInterpolation'
         },
+
         noDots: {
           type: Boolean,
           value: false
         },
+
         noLines: {
           type: Boolean,
           value: false
         },
+
         noAreas: {
           type: Boolean,
           value: false
+        },
+
+        items: {
+          type: Array,
+          value: function() {
+            return [];
+          }
         }
+
       },
 
       _width: 0,
@@ -405,13 +383,6 @@
         return this;
       },
 
-      get _parent() {
-        if (this.parentNode.nodeType === Node.DOCUMENT_FRAGMENT_NODE) {
-          return this.parentNode.host;
-        }
-        return this.parentNode;
-      },
-
       listeners: {
         'iron-resize': '_sizeChanged'
       },
@@ -421,6 +392,7 @@
       ],
 
       created: function() {
+        this._graphs = new Set();
         this.formatMillisecond = d3.timeFormat(':%S,%L');
         this.formatLongSecond = d3.timeFormat(':%M:%S,%L');
         this.formatSecond = d3.timeFormat(':%M:%S');
@@ -435,10 +407,6 @@
 
       ready: function() {
         this._buildLayout();
-      },
-
-      _onNeonAnimationFinish: function() {
-        this._sizeChanged();
       },
 
       _sizeChanged: function(e) {
@@ -457,7 +425,7 @@
 
         this._chart = d3.select(this.$.chart);
 
-        this._graphs = d3.select(this.$.graphs)
+        this._graphsNodes = d3.select(this.$.graphs)
           .attr('clip-path', 'url(#clip)');
 
         this._brushBehavior = d3.brush()
@@ -661,8 +629,8 @@
 
       _redraw: function() {
         if (this._chart === undefined || this._chart.select === undefined) return;
-        if (this._elements.length > 0) {
-          this._elements.forEach(function(g) {
+        if (this._graphs.length > 0) {
+          this._graphs.forEach(function(g) {
             // performance.mark('start');
             if (g.redraw)
               g.redraw();
@@ -710,21 +678,20 @@
       },
 
       _setDomains: function() {
-        if (this._elements.length === 0 || this._isZoomed === true) return;
+        console.log(this._graphs);
+        if (!this._graphs.length || this._isZoomed === true) return;
 
         var domainX = [null, null],
           domainY = [null, null],
           v, yScale = this.yScale,
-          range, rangedValues, containing = {};
+          range, rangedValues, containing = new Set();
 
-        this._elements.forEach(function(g) {
-          if (g.ident && g.system) {
-            if (containing[g.system] === undefined)
-              containing[g.system] = [];
-            if (containing[g.system].indexOf(g.ident) === -1)
-              containing[g.system].push(g.ident)
+        this._graphs.forEach(function(g) {
+          if (g.mount) {
+            containing.add(g.mount);
           }
         });
+        console.log(containing);
         // TODO: NEW CACHE Structur
         for (var system in containing) {
           if (containing[system].length > 0) {
@@ -816,8 +783,8 @@
         }
       },
       changeInterpolation: function(interpolation, oldValue) {
-        if (this._elements === undefined) return;
-        this._elements.forEach(
+        if (!this._graphs.length) return;
+        this._graphs.forEach(
           function(g) {
             g.interpolation = interpolation;
           });
@@ -845,24 +812,24 @@
       },
       changeDots: function(e) {
         this.noDots = !e.target.checked;
-        if (this._elements === undefined) return;
-        this._elements.forEach(
+        if (!this._graphs.length) return;
+        this._graphs.forEach(
           function(g) {
             g.set('noDots', !e.target.checked)
           });
       },
       changeLines: function(e) {
         this.noLines = !e.target.checked;
-        if (this._elements === undefined) return;
-        this._elements.forEach(
+        if (!this._graphs.length) return;
+        this._graphs.forEach(
           function(g) {
             g.set('noLine', !e.target.checked)
           });
       },
       changeAreas: function(e) {
         this.noAreas = !e.target.checked;
-        if (this._elements === undefined) return;
-        this._elements.forEach(
+        if (!this._graphs.length) return;
+        this._graphs.forEach(
           function(g) {
             g.set('noFill', !e.target.checked)
           });

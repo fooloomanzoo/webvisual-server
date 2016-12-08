@@ -155,9 +155,9 @@
 
         <app-toolbar>
           <webvisual-tabs selected="{{module}}">
-              <webvisual-tab>groupcard</webvisual-tab>
-              <webvisual-tab>svg-element</webvisual-tab>
-              <webvisual-tab>chart</webvisual-tab>
+            <webvisual-tab>groupcard</webvisual-tab>
+            <webvisual-tab>svg-element</webvisual-tab>
+            <webvisual-tab>chart</webvisual-tab>
           </webvisual-tabs>
         </app-toolbar>
       </app-header>
@@ -271,7 +271,7 @@
           requestAnimationFrame(update.bind(this));
           function update() {
             this.nodes.forEach(function(node) {
-              var value = (Math.random() * 10).toFixed(2);
+              var value = (Math.random() * 10).toFixed(12);
               node.insertValues([{x: new Date(), y: value}]);
             })
             setTimeout( function() {
