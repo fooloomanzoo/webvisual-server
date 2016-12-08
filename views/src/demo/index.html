@@ -258,6 +258,29 @@
           return svgSrcPaths[src] || {};
         },
       });
+
+      function WebvisualClient() {
+        this.nodes = new Set();
+        this.updateNodes();
+      }
+      WebvisualClient.prototype = {
+        assignElement: function(node) {
+          this.nodes.add(node);
+        },
+        updateNodes: function() {
+          requestAnimationFrame(update.bind(this));
+          function update() {
+            this.nodes.forEach(function(node) {
+              var value = (Math.random() * 10).toFixed(2);
+              node.insertValues([{x: new Date(), y: value}]);
+            })
+            setTimeout( function() {
+              requestAnimationFrame(update.bind(this));
+            }.bind(this), 1000)
+          }
+        }
+      };
+      Webvisual = new WebvisualClient();
     </script>
   </dom-module>
 

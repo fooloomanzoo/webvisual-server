@@ -459,13 +459,11 @@
     },
 
     _selectableChanged: function() {
-      console.log(this);
       if (!this._mainG.node || !this.src) return;
 
       if (this.selectable && this.selectable.items) {
         var self = this;
         for (var key in this.selectable.items) {
-          console.log(key, this._mainG.node, this.selectable.items[key]);
           this._mainG.selectAll(this.selectable.items[key])
                     .classed('selectable', true)  // for styling selectable
                     .classed('style-scope', true).classed('webvisual-element-svg', true) // for style-scoping in polymer

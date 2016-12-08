@@ -49,8 +49,8 @@ WebvisualClient.prototype = {
     }
   },
 
-  assignElement: function(element) {
-    var mount = element.item.mount;
+  assignElement: function(node) {
+    var mount = node.item.mount;
 
     if (!mount)
       return;
@@ -60,29 +60,29 @@ WebvisualClient.prototype = {
     }
 
     this.nodes.get(mount)
-        .add(element);
+        .add(node);
 
-    if (!element._initialized && element.uniqueid)
-      element.requestLastValue(mount, element.uniqueid)
+    if (!node._initialized && node.uniqueid)
+      node.requestLastValue(mount, node.uniqueid)
              .then( function(values) {
-               element.insertValues(values);
+               node.insertValues(values);
              })
              .catch( function() {} );
   },
 
-  retractElement: function(element, item) {
-    if (!element || !item || !item.mount)
+  retractElement: function(node, item) {
+    if (!node || !item || !item.mount)
       return;
 
-    var mount = item.mount; // item(.mount) is used, because properties might be already deleted from element
+    var mount = item.mount; // item(.mount) is used, because properties might be already deleted from node
 
-    element._initialized = false;
+    node._initialized = false;
 
     if (!this.nodes.has(mount))
       return;
 
     this.nodes.get(mount)
-      .delete(element);
+      .delete(node);
   },
 
   updateNodes: function(message) {
@@ -102,15 +102,15 @@ WebvisualClient.prototype = {
         if (nodeList) {
           if (v.values) {
             var values = v.values;
-            nodeList.forEach(function(element) {
-              element.insertValues(values);
+            nodeList.forEach(function(node) {
+              node.insertValues(values);
             });
           }
 
           if (v.splices) {
             var splices = v.splices;
-            nodeList.forEach(function(element) {
-              element.spliceValues(splices);
+            nodeList.forEach(function(node) {
+              node.spliceValues(splices);
             });
           }
         }
