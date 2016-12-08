@@ -56,11 +56,11 @@
             <webvisual-groupcard
               title="[[group.title]]"
               plain="[[plain]]"
-              select-notify
-              exceed-notify
+              open-on-select
+              open-on-exceed
               multi
-              svg-source="/images/[[routeData.facilityName]]/[[routeData.systemName]]/[[group.svg.source]]"
-              svg-selectable="[[_getSvgSelectable(group.svg.source, svgSource)]]">
+              svg-src-path="/images/[[routeData.facilityName]]/[[routeData.systemName]]/[[group.svg.path]]"
+              svg-selectable="[[_getSvgSelectable(group.svg.path, svgSource.paths)]]">
 
               <ul class="grid sign">
                 <template is="dom-repeat" items="[[group.items]]" as="id">
@@ -133,8 +133,6 @@
 
         routeData: Object,
 
-        svgSource: Object,
-
         failure: Boolean,
 
         visible: {
@@ -190,8 +188,8 @@
         return {};
       },
 
-      _getSvgSelectable: function(source, svgSource) {
-        return svgSource[source] || {};
+      _getSvgSelectable: function(src, svgSrcPaths) {
+        return svgSrcPaths[src] || {};
       },
 
       _getItemHref: function(item) {

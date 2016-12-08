@@ -64,6 +64,14 @@
             background: rgba(255, 255, 255, 0.15);
             border-bottom: 2px solid var(--highlight-color);
           }
+          --svg-selected: {
+            fill: #56D96B !important;
+            stroke: #cc360e !important;
+            z-index: 1;
+          };
+          --svg-clicked: {
+            fill: #566FD9 !important;
+          };
         }
         app-toolbar {
           background: var(--bright-primary-color);
@@ -85,6 +93,20 @@
           height: 30px;
           font-size: 12px;
           padding: 0 8px 0 28px;
+        }
+        #svgelement-demo {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .resizable {
+          resize: both;
+          overflow: auto;
+          background: #f1f1f1;
+          border: thin solid #252525;
+          height: 300px;
+          width: 400px;
+          padding: 0.25em;
         }
       </style>
 
@@ -152,8 +174,8 @@
                   multi
                   open-on-select
                   open-on-exceed
-                  svg-source="./images/[[group.svg.source]]"
-                  svg-selectable="[[_getSvgSelectable(group.svg.source, svgSource.source)]]">
+                  svg-src-path="./images/[[group.svg.path]]"
+                  svg-selectable="[[_getSvgSelectable(group.svg.path, svgSource.paths)]]">
 
                   <ul class="grid sign">
                     <template is="dom-repeat" items="[[group.items]]" as="id">
@@ -177,9 +199,21 @@
           </ul>
 
         </section>
-        <section id="svgelement-demo">
 
+        <section id="svgelement-demo">
+            <webvisual-svg-data
+              url-prefix="./data/"
+              svg-source="{{svgSource2}}"
+              facility-name="Test"
+              system-name="Berlin"></webvisual-svg-data>
+
+            <section class="resizable">
+              <webvisual-element-svg opened src="./images/berlin.svg"
+              selectable="[[_getSvgSelectable('berlin.svg', svgSource2.paths)]]">
+              </webvisual-element-svg>
+            </section>
         </section>
+
         <section id="chart-demo">
 
         </section>
@@ -220,8 +254,8 @@
           return subgroup || [{},{},{},{},{}];
         },
 
-        _getSvgSelectable: function(source, svgSource) {
-          return svgSource[source] || {};
+        _getSvgSelectable: function(src, svgSrcPaths) {
+          return svgSrcPaths[src] || {};
         },
       });
     </script>

@@ -28,27 +28,22 @@
 
     "svgSource": {
       "origin": "//ibn-vsrv/HNF-GDS$/Maps",
-      "source": {
+      "paths": {
         "E0_gaskabinet.svg": {
-          "title": {
+          "items": {
             "Cabinets": "g#Cabinets path"
           }
         },
         "E1_bypack.svg": {
-          "title": {
+          "items": {
             "Cabinets": "g#Cabinets path"
           }
         },
         "E2_reinraum.svg": {
-          "title": {
+          "items": {
             "Cabinets": "g#Cabinets path"
           }
         }
-      },
-      "style": {
-        "selectable": "",
-        "selected": "",
-        "exceeding": ""
       }
     },
 
@@ -65,8 +60,8 @@
             "alarmlevel": ""
           },
           "svg": {
-            "path": "",
-            "source": ""
+            "selector": "",
+            "path": ""
           },
           "isIndicatorLamp": false,
           "threshold": {
@@ -85,8 +80,8 @@
             "alarmlevel": "Alarm 1"
           },
           "svg": {
-            "path": "path#path4514,path#path4512",
-            "source": "E0_gaskabinet.svg"
+            "selector": "path#path4514,path#path4512",
+            "path": "E0_gaskabinet.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -104,8 +99,8 @@
             "alarmlevel": "Alarm 2"
           },
           "svg": {
-            "path": "path#path4514,path#path4512",
-            "source": "E0_gaskabinet.svg"
+            "selector": "path#path4514,path#path4512",
+            "path": "E0_gaskabinet.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -122,8 +117,8 @@
             "alarmlevel": "Alarm 1"
           },
           "svg": {
-            "path": "path#path5110-0,path#path5112-1,path#path5114-4",
-            "source": "E1_bypack.svg"
+            "selector": "path#path5110-0,path#path5112-1,path#path5114-4",
+            "path": "E1_bypack.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -140,8 +135,8 @@
             "alarmlevel": "Alarm 2"
           },
           "svg": {
-            "path": "path#path5110-0,path#path5112-1,path#path5114-4",
-            "source": "E1_bypack.svg"
+            "selector": "path#path5110-0,path#path5112-1,path#path5114-4",
+            "path": "E1_bypack.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -158,8 +153,8 @@
             "alarmlevel": "Alarm 1"
           },
           "svg": {
-            "path": "g#H2 path",
-            "source": "E2_reinraum.svg"
+            "selector": "g#H2 path",
+            "path": "E2_reinraum.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -176,8 +171,8 @@
             "alarmlevel": "Alarm 2"
           },
           "svg": {
-            "path": "g#H2 path",
-            "source": "E2_reinraum.svg"
+            "selector": "g#H2 path",
+            "path": "E2_reinraum.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -192,8 +187,8 @@
             "alarmlevel": "Störung"
           },
           "svg": {
-            "path": "g#H2 path",
-            "source": "E2_reinraum.svg"
+            "selector": "g#H2 path",
+            "path": "E2_reinraum.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -208,8 +203,8 @@
             "alarmlevel": ""
           },
           "svg": {
-            "path": "",
-            "source": ""
+            "selector": "",
+            "path": ""
           },
           "isIndicatorLamp": true
         },
@@ -222,8 +217,8 @@
             "alarmlevel": "Störung"
           },
           "svg": {
-            "path": "",
-            "source": ""
+            "selector": "",
+            "path": ""
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -238,8 +233,8 @@
             "alarmlevel": "Wartung"
           },
           "svg": {
-            "path": "",
-            "source": ""
+            "selector": "",
+            "path": ""
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -257,8 +252,8 @@
             "alarmlevel": "Alarm 2"
           },
           "svg": {
-            "path": "g#HBR path, g#CL2 path",
-            "source": "E0_gaskabinet.svg"
+            "selector": "g#HBR path, g#CL2 path",
+            "path": "E0_gaskabinet.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -276,8 +271,8 @@
             "alarmlevel": "Alarm 2"
           },
           "svg": {
-            "path": "g#NH3 path, g#SIH4 path",
-            "source": "E0_gaskabinet.svg"
+            "selector": "g#NH3 path, g#SIH4 path",
+            "path": "E0_gaskabinet.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -294,8 +289,8 @@
             "alarmlevel": "Alarm 2"
           },
           "svg": {
-            "path": "g#CL2 path,g#HBR path, g#HCL path,g#NH3 path, g#SIH4 path",
-            "source": "E1_bypack.svg"
+            "selector": "g#CL2 path,g#HBR path, g#HCL path,g#NH3 path, g#SIH4 path",
+            "path": "E1_bypack.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -312,8 +307,8 @@
             "alarmlevel": "Alarm 2"
           },
           "svg": {
-            "path": "g#CL2 path,g#HBR path, g#HCL path,g#NH3 path, g#SIH4 path",
-            "source": "E2_reinraum.svg"
+            "selector": "g#CL2 path,g#HBR path, g#HCL path,g#NH3 path, g#SIH4 path",
+            "path": "E2_reinraum.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -330,8 +325,8 @@
             "alarmlevel": "Alarm 1"
           },
           "svg": {
-            "path": "g#HBR path",
-            "source": "E2_reinraum.svg"
+            "selector": "g#HBR path",
+            "path": "E2_reinraum.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -346,8 +341,8 @@
             "alarmlevel": ""
           },
           "svg": {
-            "path": "",
-            "source": ""
+            "selector": "",
+            "path": ""
           },
           "isIndicatorLamp": true
         },
@@ -358,8 +353,8 @@
           "system": "intern",
           "alarmlevel": "",
           "svg": {
-            "path": "",
-            "source": ""
+            "selector": "",
+            "path": ""
           },
           "isIndicatorLamp": true
         }, {
@@ -372,8 +367,8 @@
             "alarmlevel": "Alarm 1"
           },
           "svg": {
-            "path": "g#CL2 path",
-            "source": "E1_bypack.svg"
+            "selector": "g#CL2 path",
+            "path": "E1_bypack.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -391,8 +386,8 @@
             "alarmlevel": "Alarm 1"
           },
           "svg": {
-            "path": "path#path4476,path#path4478",
-            "source": "E0_gaskabinet.svg"
+            "selector": "path#path4476,path#path4478",
+            "path": "E0_gaskabinet.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -410,8 +405,8 @@
             "alarmlevel": "Alarm 1"
           },
           "svg": {
-            "path": "path#path4472,path#path4470",
-            "source": "E0_gaskabinet.svg"
+            "selector": "path#path4472,path#path4470",
+            "path": "E0_gaskabinet.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -426,8 +421,8 @@
             "alarmlevel": ""
           },
           "svg": {
-            "path": "",
-            "source": ""
+            "selector": "",
+            "path": ""
           },
           "isIndicatorLamp": true
         }, {
@@ -438,8 +433,8 @@
             "alarmlevel": ""
           },
           "svg": {
-            "path": "",
-            "source": ""
+            "selector": "",
+            "path": ""
           },
           "isIndicatorLamp": true
         }, {
@@ -452,8 +447,8 @@
             "alarmlevel": "Alarm 1"
           },
           "svg": {
-            "path": "g#NH3 path",
-            "source": "E2_reinraum.svg"
+            "selector": "g#NH3 path",
+            "path": "E2_reinraum.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -470,8 +465,8 @@
             "alarmlevel": "Alarm 1"
           },
           "svg": {
-            "path": "",
-            "source": "E1_bypack.svg"
+            "selector": "",
+            "path": "E1_bypack.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -491,8 +486,8 @@
             "alarmlevel": "Alarm 1"
           },
           "svg": {
-            "path": "path#path4508,path#path4510",
-            "source": "E0_gaskabinet.svg"
+            "selector": "path#path4508,path#path4510",
+            "path": "E0_gaskabinet.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -509,8 +504,8 @@
             "alarmlevel": "Alarm 1"
           },
           "svg": {
-            "path": "g#BCL3 path",
-            "source": "E2_reinraum.svg"
+            "selector": "g#BCL3 path",
+            "path": "E2_reinraum.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -527,8 +522,8 @@
             "alarmlevel": "Alarm 1"
           },
           "svg": {
-            "path": "g#BCL3 path",
-            "source": "E2_reinraum.svg"
+            "selector": "g#BCL3 path",
+            "path": "E2_reinraum.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -545,8 +540,8 @@
             "alarmlevel": "Alarm 1"
           },
           "svg": {
-            "path": "g#HBR path",
-            "source": "E1_bypack.svg"
+            "selector": "g#HBR path",
+            "path": "E1_bypack.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -563,8 +558,8 @@
             "alarmlevel": "Alarm 1"
           },
           "svg": {
-            "path": "g#SIH4 path",
-            "source": "E2_reinraum.svg"
+            "selector": "g#SIH4 path",
+            "path": "E2_reinraum.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -581,8 +576,8 @@
             "alarmlevel": "Alarm 1"
           },
           "svg": {
-            "path": "g#SIH4 path",
-            "source": "E1_bypack.svg"
+            "selector": "g#SIH4 path",
+            "path": "E1_bypack.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -600,8 +595,8 @@
             "alarmlevel": "Alarm 1"
           },
           "svg": {
-            "path": "path#path4504,path#path4506",
-            "source": "E0_gaskabinet.svg"
+            "selector": "path#path4504,path#path4506",
+            "path": "E0_gaskabinet.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -618,8 +613,8 @@
             "alarmlevel": "Alarm 1"
           },
           "svg": {
-            "path": "g#CL2 path",
-            "source": "E2_reinraum.svg"
+            "selector": "g#CL2 path",
+            "path": "E2_reinraum.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -638,8 +633,8 @@
             "alarmlevel": "Alarm 1"
           },
           "svg": {
-            "path": "g#CL2 path",
-            "source": "E2_reinraum.svg"
+            "selector": "g#CL2 path",
+            "path": "E2_reinraum.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -656,8 +651,8 @@
             "alarmlevel": "Alarm 1"
           },
           "svg": {
-            "path": "g#HBR path",
-            "source": "E1_bypack.svg"
+            "selector": "g#HBR path",
+            "path": "E1_bypack.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -675,8 +670,8 @@
             "alarmlevel": "Alarm 1"
           },
           "svg": {
-            "path": "path#path4474,path#path4470",
-            "source": "E0_gaskabinet.svg"
+            "selector": "path#path4474,path#path4470",
+            "path": "E0_gaskabinet.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -694,8 +689,8 @@
             "alarmlevel": "Alarm 1"
           },
           "svg": {
-            "path": "g#O2 path",
-            "source": "E2_reinraum.svg"
+            "selector": "g#O2 path",
+            "path": "E2_reinraum.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -713,8 +708,8 @@
             "alarmlevel": "Alarm 2"
           },
           "svg": {
-            "path": "g#O2 path",
-            "source": "E2_reinraum.svg"
+            "selector": "g#O2 path",
+            "path": "E2_reinraum.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -732,8 +727,8 @@
             "alarmlevel": "Alarm 1"
           },
           "svg": {
-            "path": "g#O2 path",
-            "source": "E2_reinraum.svg"
+            "selector": "g#O2 path",
+            "path": "E2_reinraum.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -751,8 +746,8 @@
             "alarmlevel": "Alarm 2"
           },
           "svg": {
-            "path": "g#O2 path",
-            "source": "E2_reinraum.svg"
+            "selector": "g#O2 path",
+            "path": "E2_reinraum.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -767,8 +762,8 @@
             "alarmlevel": "Störung"
           },
           "svg": {
-            "path": "",
-            "source": ""
+            "selector": "",
+            "path": ""
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -794,8 +789,8 @@
           "to": null
         },
         "svg": {
-          "path": "",
-          "source": ""
+          "selector": "",
+          "path": ""
         },
         "isIndicatorLamp": false,
         "values": [{

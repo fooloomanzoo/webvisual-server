@@ -251,7 +251,7 @@ class Router extends EventEmitter {
         }
 
         // copy svgContent in staticContentFolder
-        if (opt[system].svgSource && opt[system].svgSource.source &&  Object.keys(opt[system].svgSource.source).length) {
+        if (opt[system].svgSource && opt[system].svgSource.paths &&  Object.keys(opt[system].svgSource.paths).length) {
 
           let svgDest = resolvePath(dir.img, facility, system);
 
@@ -293,7 +293,7 @@ class Router extends EventEmitter {
 
             var promises = [];
 
-            for (var p in opt[system].svgSource.source) {
+            for (var p in opt[system].svgSource.paths) {
               let opath = path.resolve(origin, p);
               let dpath = path.resolve(dest, p);
               promises.push(copy(opath, dpath));

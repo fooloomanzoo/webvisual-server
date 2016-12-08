@@ -18,16 +18,9 @@
 
     "svgSource": {
       "origin": "",
-      "source": {
+      "paths": {
         "berlin.svg": {
-          "title": {
-            "Bezirk": "g#bezirke path",
-            "Ortsteil": "g#ortsteil path"
-          },
-          "style": {
-            "selectable": "",
-            "selected": "",
-            "exceeding": ""
+          "items": {
           }
         }
       }
@@ -54,8 +47,8 @@
             "type": "gesamt"
           },
           "svg": {
-            "path": "g#ortsteil",
-            "source": "berlin.svg"
+            "selector": "g#ortsteil path",
+            "path": "berlin.svg"
           },
           "color": "#2FC6FC"
         }, {
@@ -66,8 +59,8 @@
             "type": "Bezirk"
           },
           "svg": {
-            "path": "path#path1364-8",
-            "source": "berlin.svg"
+            "selector": "path#path1364-8",
+            "path": "berlin.svg"
           },
           "color": "#2FC6FC"
         }, {
@@ -78,8 +71,8 @@
             "type": "Bezirk"
           },
           "svg": {
-            "path": "path#path1358-1",
-            "source": "berlin.svg"
+            "selector": "path#path1358-1",
+            "path": "berlin.svg"
           },
           "color": "#2FFCA0"
         }, {
@@ -90,8 +83,8 @@
             "type": "Bezirk"
           },
           "svg": {
-            "path": "path#path1368-8",
-            "source": "berlin.svg"
+            "selector": "path#path1368-8",
+            "path": "berlin.svg"
           },
           "color": "#7D2FFC"
         }, {
@@ -102,8 +95,8 @@
             "type": "Bezirk"
           },
           "svg": {
-            "path": "path#path1356-7",
-            "source": "berlin.svg"
+            "selector": "path#path1356-7",
+            "path": "berlin.svg"
           },
           "color": "#FC2F41"
         }, {
@@ -114,8 +107,8 @@
             "type": "Bezirk"
           },
           "svg": {
-            "path": "path#path1372-3",
-            "source": "berlin.svg"
+            "selector": "path#path1372-3",
+            "path": "berlin.svg"
           },
           "color": "#C7FC2F"
         }, {
@@ -126,8 +119,8 @@
             "type": "Bezirk"
           },
           "svg": {
-            "path": "path#path1374-1",
-            "source": "berlin.svg"
+            "selector": "path#path1374-1",
+            "path": "berlin.svg"
           },
           "color": "#FC602F"
         }, {
@@ -138,8 +131,8 @@
             "type": "Bezirk"
           },
           "svg": {
-            "path": "path#path1376-0",
-            "source": "berlin.svg",
+            "selector": "path#path1376-0",
+            "path": "berlin.svg",
             "type": "Bezirk"
           },
           "color": "#FC2F2F"
@@ -151,8 +144,8 @@
             "type": "Bezirk"
           },
           "svg": {
-            "path": "path#path1366-4",
-            "source": "berlin.svg",
+            "selector": "path#path1366-4",
+            "path": "berlin.svg",
             "type": "Bezirk"
           },
           "color": "#2FFCF0"
@@ -164,8 +157,8 @@
             "type": "Bezirk"
           },
           "svg": {
-            "path": "path#path1378-6",
-            "source": "berlin.svg"
+            "selector": "path#path1378-6",
+            "path": "berlin.svg"
           },
           "color": "#83FC2F"
         }, {
@@ -176,8 +169,8 @@
             "type": "Bezirk"
           },
           "svg": {
-            "path": "path#path1362-1",
-            "source": "berlin.svg"
+            "selector": "path#path1362-1",
+            "path": "berlin.svg"
           },
           "color": "#2FFC5C"
         }, {
@@ -188,8 +181,8 @@
             "type": "Bezirk"
           },
           "svg": {
-            "path": "path#path1360-4",
-            "source": "berlin.svg"
+            "selector": "path#path1360-4",
+            "path": "berlin.svg"
           },
           "color": "#FCD52F"
         }, {
@@ -200,8 +193,8 @@
             "type": "Bezirk"
           },
           "svg": {
-            "path": "path#path1370-3",
-            "source": "berlin.svg"
+            "selector": "path#path1370-3",
+            "path": "berlin.svg"
           },
           "color": "#2F43FC"
         }
@@ -242,14 +235,9 @@
 
     "svgSource": {
       "origin": "",
-      "source": {
+      "paths": {
         "bor-atom-modell.svg": {
-          "title": {},
-          "style": {
-            "selectable": "",
-            "selected": "",
-            "exceeding": ""
-          }
+          "items": {}
         }
       }
     },
@@ -274,8 +262,8 @@
             "type": "proton"
           },
           "svg": {
-            "path": "ellipse#ellipse4802",
-            "source": "bor-atom-modell.svg"
+            "selector": "ellipse#ellipse4802",
+            "path": "bor-atom-modell.svg"
           }
         }, {
           "id": "p2",
@@ -284,8 +272,8 @@
             "type": "proton"
           },
           "svg": {
-            "path": "ellipse#ellipse4804",
-            "source": "bor-atom-modell.svg"
+            "selector": "ellipse#ellipse4804",
+            "path": "bor-atom-modell.svg"
           }
         }, {
           "id": "p3",
@@ -294,8 +282,8 @@
             "type": "proton"
           },
           "svg": {
-            "path": "ellipse#ellipse4806",
-            "source": "bor-atom-modell.svg"
+            "selector": "ellipse#ellipse4806",
+            "path": "bor-atom-modell.svg"
           }
         }, {
           "id": "p4",
@@ -304,8 +292,8 @@
             "type": "proton"
           },
           "svg": {
-            "path": "ellipse#ellipse4808",
-            "source": "bor-atom-modell.svg"
+            "selector": "ellipse#ellipse4808",
+            "path": "bor-atom-modell.svg"
           }
         }, {
           "id": "p5",
@@ -314,8 +302,8 @@
             "type": "proton"
           },
           "svg": {
-            "path": "ellipse#ellipse4810",
-            "source": "bor-atom-modell.svg"
+            "selector": "ellipse#ellipse4810",
+            "path": "bor-atom-modell.svg"
           }
         }, {
           "id": "n1",
@@ -324,8 +312,8 @@
             "type": "neutron"
           },
           "svg": {
-            "path": "circle#circle4812",
-            "source": "bor-atom-modell.svg"
+            "selector": "circle#circle4812",
+            "path": "bor-atom-modell.svg"
           }
         }, {
           "id": "n2",
@@ -334,8 +322,8 @@
             "type": "neutron"
           },
           "svg": {
-            "path": "circle#circle4814",
-            "source": "bor-atom-modell.svg"
+            "selector": "circle#circle4814",
+            "path": "bor-atom-modell.svg"
           }
         }, {
           "id": "n3",
@@ -344,8 +332,8 @@
             "type": "neutron"
           },
           "svg": {
-            "path": "circle#circle4816",
-            "source": "bor-atom-modell.svg"
+            "selector": "circle#circle4816",
+            "path": "bor-atom-modell.svg"
           }
         }, {
           "id": "n4",
@@ -354,8 +342,8 @@
             "type": "neutron"
           },
           "svg": {
-            "path": "circle#circle4818",
-            "source": "bor-atom-modell.svg"
+            "selector": "circle#circle4818",
+            "path": "bor-atom-modell.svg"
           }
         }, {
           "id": "n5",
@@ -364,8 +352,8 @@
             "type": "neutron"
           },
           "svg": {
-            "path": "circle#circle4820",
-            "source": "bor-atom-modell.svg"
+            "selector": "circle#circle4820",
+            "path": "bor-atom-modell.svg"
           }
         }, {
           "id": "e1",
@@ -375,8 +363,8 @@
             "orbital": "s1"
           },
           "svg": {
-            "path": "ellipse#ellipse4851",
-            "source": "bor-atom-modell.svg"
+            "selector": "ellipse#ellipse4851",
+            "path": "bor-atom-modell.svg"
           }
         }, {
           "id": "e2",
@@ -386,8 +374,8 @@
             "orbital": "s2"
           },
           "svg": {
-            "path": "ellipse#ellipse4853",
-            "source": "bor-atom-modell.svg"
+            "selector": "ellipse#ellipse4853",
+            "path": "bor-atom-modell.svg"
           }
         }, {
           "id": "e3",
@@ -397,8 +385,8 @@
             "orbital": "p1"
           },
           "svg": {
-            "path": "ellipse#ellipse4855",
-            "source": "bor-atom-modell.svg"
+            "selector": "ellipse#ellipse4855",
+            "path": "bor-atom-modell.svg"
           }
         }, {
           "id": "e4",
@@ -408,8 +396,8 @@
             "orbital": "p2"
           },
           "svg": {
-            "path": "ellipse#ellipse4857",
-            "source": "bor-atom-modell.svg"
+            "selector": "ellipse#ellipse4857",
+            "path": "bor-atom-modell.svg"
           }
         }, {
           "id": "e5",
@@ -419,8 +407,8 @@
             "orbital": "p3"
           },
           "svg": {
-            "path": "ellipse#ellipse4859",
-            "source": "bor-atom-modell.svg"
+            "selector": "ellipse#ellipse4859",
+            "path": "bor-atom-modell.svg"
           }
         }
       ],
@@ -460,14 +448,9 @@
 
     "svgSource": {
       "origin": "",
-      "source": {
+      "paths": {
         "boxes.svg": {
-          "title": {},
-          "style": {
-            "selectable": "",
-            "selected": "",
-            "exceeding": ""
-          }
+          "items": {}
         }
       }
     },
@@ -494,8 +477,8 @@
             "group": "left-bottom"
           },
           "svg": {
-            "path": "g#783 polygon",
-            "source": "boxes.svg"
+            "selector": "g#g783 polygon",
+            "path": "boxes.svg"
           }
         }, {
           "id": "box2",
@@ -505,8 +488,8 @@
             "group": "left-bottom"
           },
           "svg": {
-            "path": "g#744 polygon",
-            "source": "boxes.svg"
+            "selector": "g#g744 polygon",
+            "path": "boxes.svg"
           }
         }, {
           "id": "box3",
@@ -516,8 +499,8 @@
             "group": "left-bottom"
           },
           "svg": {
-            "path": "g#627 polygon",
-            "source": "boxes.svg"
+            "selector": "g#g627 polygon",
+            "path": "boxes.svg"
           }
         }, {
           "id": "box4",
@@ -527,8 +510,8 @@
             "group": "left-bottom"
           },
           "svg": {
-            "path": "g#510 polygon",
-            "source": "boxes.svg"
+            "selector": "g#g510 polygon",
+            "path": "boxes.svg"
           }
         }, {
           "id": "box5",
@@ -538,8 +521,8 @@
             "group": "left-top"
           },
           "svg": {
-            "path": "g#81 polygon",
-            "source": "boxes.svg"
+            "selector": "g#g81 polygon",
+            "path": "boxes.svg"
           }
         }, {
           "id": "box6",
@@ -549,8 +532,8 @@
             "group": "left-top"
           },
           "svg": {
-            "path": "g#120 polygon",
-            "source": "boxes.svg"
+            "selector": "g#g120 polygon",
+            "path": "boxes.svg"
           }
         }, {
           "id": "box7",
@@ -560,8 +543,8 @@
             "group": "left-top"
           },
           "svg": {
-            "path": "g#315 polygon",
-            "source": "boxes.svg"
+            "selector": "g#g315 polygon",
+            "path": "boxes.svg"
           }
         }, {
           "id": "box8",
@@ -571,8 +554,8 @@
             "group": "left-top"
           },
           "svg": {
-            "path": "g#393 polygon",
-            "source": "boxes.svg"
+            "selector": "g#g393 polygon",
+            "path": "boxes.svg"
           }
         }, {
           "id": "box9",
@@ -582,8 +565,8 @@
             "group": "top"
           },
           "svg": {
-            "path": "g#939 polygon",
-            "source": "boxes.svg"
+            "selector": "g#g939 polygon",
+            "path": "boxes.svg"
           }
         }, {
           "id": "box10",
@@ -593,8 +576,8 @@
             "group": "top"
           },
           "svg": {
-            "path": "g#900 polygon",
-            "source": "boxes.svg"
+            "selector": "g#g900 polygon",
+            "path": "boxes.svg"
           }
         }, {
           "id": "box11",
@@ -604,8 +587,8 @@
             "group": "top"
           },
           "svg": {
-            "path": "g#705 polygon",
-            "source": "boxes.svg"
+            "selector": "g#g705 polygon",
+            "path": "boxes.svg"
           }
         }, {
           "id": "box12",
@@ -615,8 +598,8 @@
             "group": "top"
           },
           "svg": {
-            "path": "g#588 polygon",
-            "source": "boxes.svg"
+            "selector": "g#g588 polygon",
+            "path": "boxes.svg"
           }
         }, {
           "id": "box13",
@@ -626,8 +609,8 @@
             "group": "right-bottom"
           },
           "svg": {
-            "path": "g#861 polygon",
-            "source": "boxes.svg"
+            "selector": "g#g861 polygon",
+            "path": "boxes.svg"
           }
         }, {
           "id": "box14",
@@ -637,8 +620,8 @@
             "group": "right-bottom"
           },
           "svg": {
-            "path": "g#822 polygon",
-            "source": "boxes.svg"
+            "selector": "g#g822 polygon",
+            "path": "boxes.svg"
           }
         }, {
           "id": "box15",
@@ -648,8 +631,8 @@
             "group": "right-bottom"
           },
           "svg": {
-            "path": "g#666 polygon",
-            "source": "boxes.svg"
+            "selector": "g#g666 polygon",
+            "path": "boxes.svg"
           }
         }, {
           "id": "box16",
@@ -659,8 +642,8 @@
             "group": "right-bottom"
           },
           "svg": {
-            "path": "g#549 polygon",
-            "source": "boxes.svg"
+            "selector": "g#g549 polygon",
+            "path": "boxes.svg"
           }
         }, {
           "id": "box17",
@@ -670,8 +653,8 @@
             "group": "right-top"
           },
           "svg": {
-            "path": "g#159 polygon",
-            "source": "boxes.svg"
+            "selector": "g#g159 polygon",
+            "path": "boxes.svg"
           }
         }, {
           "id": "box18",
@@ -681,8 +664,8 @@
             "group": "right-top"
           },
           "svg": {
-            "path": "g#198 polygon",
-            "source": "boxes.svg"
+            "selector": "g#g198 polygon",
+            "path": "boxes.svg"
           }
         }, {
           "id": "box19",
@@ -692,8 +675,8 @@
             "group": "right-top"
           },
           "svg": {
-            "path": "g#276 polygon",
-            "source": "boxes.svg"
+            "selector": "g#g276 polygon",
+            "path": "boxes.svg"
           }
         }, {
           "id": "box20",
@@ -703,8 +686,8 @@
             "group": "right-top"
           },
           "svg": {
-            "path": "g#432 polygon",
-            "source": "boxes.svg"
+            "selector": "g#g432 polygon",
+            "path": "boxes.svg"
           }
         }, {
           "id": "box21",
@@ -714,8 +697,8 @@
             "group": "bottom"
           },
           "svg": {
-            "path": "g#939 polygon",
-            "source": "boxes.svg"
+            "selector": "g#g939 polygon",
+            "path": "boxes.svg"
           }
         }, {
           "id": "box22",
@@ -725,8 +708,8 @@
             "group": "bottom"
           },
           "svg": {
-            "path": "g#900 polygon",
-            "source": "boxes.svg"
+            "selector": "g#g900 polygon",
+            "path": "boxes.svg"
           }
         }, {
           "id": "box23",
@@ -736,8 +719,8 @@
             "group": "bottom"
           },
           "svg": {
-            "path": "g#705 polygon",
-            "source": "boxes.svg"
+            "selector": "g#g705 polygon",
+            "path": "boxes.svg"
           }
         }, {
           "id": "box24",
@@ -747,8 +730,8 @@
             "group": "bottom"
           },
           "svg": {
-            "path": "g#588 polygon",
-            "source": "boxes.svg"
+            "selector": "g#g588 polygon",
+            "path": "boxes.svg"
           }
         }, {
           "id": "box25",
@@ -758,8 +741,8 @@
             "group": "center"
           },
           "svg": {
-            "path": "g#471 polygon",
-            "source": "boxes.svg"
+            "selector": "g#g471 polygon",
+            "path": "boxes.svg"
           }
         }
       ],
