@@ -435,7 +435,7 @@
     "connections": {
       "file": {
         "mode": "append",
-        "path": "examples/datafile/boxes.txt",
+        "path": "examples/datafile/test.txt",
         "format": {
           "dateFormat": "DD.MM.YYYY hh:mm:ss",
           "decimalSeparator": ".",
@@ -454,7 +454,6 @@
         }
       }
     },
-
 
     "clientRequest": {
       "initial": {
@@ -756,7 +755,7 @@
         "x": null,
         "y": 0
       },
-      
+
       "groupingKeys": ["group", "distance"],
       "preferedGroupingKey": "group",
 

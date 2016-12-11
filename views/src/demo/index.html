@@ -11,7 +11,9 @@
 
   <link rel="import" href="../../bower_components/app-layout/app-layout.html">
   <link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
-  <link rel="import" href="../../bower_components/iron-pages/iron-pages.html">
+
+  <link rel="import" href="../behaviors/container-behavior.html">
+
   <link rel="import" href="../components/webvisual-tabs.html">
   <link rel="import" href="../components/webvisual-tab.html">
 
@@ -138,7 +140,7 @@
         </app-toolbar>
 
         <app-toolbar>
-          <webvisual-tabs selected="{{systemName}}" attr-for-selected="name" fallback-selection="Berlin">
+          <webvisual-tabs selected="{{systemName}}" attr-for-selected="name">
             <template is="dom-repeat" items="[[facility.systems]]">
               <webvisual-tab name="[[item.name]]">[[item.name]]</webvisual-tab>
             </template>
@@ -215,7 +217,11 @@
         </section>
 
         <section id="chart-demo">
-
+            <section class="resizable">
+              <webvisual-element-chart class="view"
+                items="[[items]]"
+                exceeding="[[exceeding]]"></webvisual-element-chart>
+            </section>
         </section>
 
       </iron-pages>
@@ -225,7 +231,17 @@
       Polymer({
         is: 'demo-page',
 
+        behaviors: [
+          WebvisualBehaviors.ContainerBehavior
+        ],
+
         properties: {
+
+          systemName: {
+            type: String,
+            value: 'Berlin'
+          }
+
         },
 
         _getItem: function(id, elements) {
@@ -276,7 +292,7 @@
             })
             setTimeout( function() {
               requestAnimationFrame(update.bind(this));
-            }.bind(this), 1000)
+            }.bind(this), 5000)
           }
         }
       };
@@ -284,7 +300,7 @@
     </script>
   </dom-module>
 
-  <demo-page></demo-page>
+  <demo-page open-on-select multi></demo-page>
 
 </body>
 </html>

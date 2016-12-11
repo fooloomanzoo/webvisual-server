@@ -165,7 +165,7 @@
       }
     </style>
 
-    <section id="container" state$="[[lastValue.state]]" on-click="select">
+    <section id="container" state$="[[state]]" on-click="select">
       <section id="boxContainer">
         <section id="box">
           <section id="arrow" hidden$="[[!checked]]"></section>
@@ -211,10 +211,9 @@
 
         dropdownValue: Boolean,
 
-        singleValue: {
-          type: Boolean,
-          value: true,
-          readOnly: true
+        viewLength: {
+          type: Number,
+          value: 1
         }
       },
 
@@ -235,7 +234,7 @@
           }
         }
 
-        this.lastValue = value;
+        this.state = value.state;
       },
 
       _setDropdown: function(hasDropdown, old) {
@@ -262,7 +261,6 @@
 
         this._dropdown.close();
       }
-
 
     });
   </script>

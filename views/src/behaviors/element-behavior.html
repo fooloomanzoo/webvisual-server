@@ -29,9 +29,9 @@
 
       bubbles: Boolean,
 
-      noSocketConnection: Boolean,
+      storeInside: Boolean,
 
-      singleValue: Boolean,
+      viewLength: Number,
 
       title: {
         type: String,
@@ -43,8 +43,7 @@
 
     observers: [
       '_exceedingChanged(isExceeding)',
-      '_hasExceededChanged(hasExceeded)',
-      '_setSocketConnection(noSocketConnection)'
+      '_hasExceededChanged(hasExceeded)'
     ],
 
     hostAttributes: {
@@ -96,33 +95,45 @@
       return (this.item && this.item.isIndicatorLamp) ? '' : y;
     },
 
-    insertValues: function(values) {
+    insertValues: function(values, len) {
       if (values === undefined) {
         return;
       }
 
+      var len = len || this.viewLength;
+
       if (!this._initialized)
         this._initialized = true;
 
-      if (this.singleValue === true) {
-        var value = values.pop();
-        if (this.item && this.item.exceedable === true)
-          this.checkExceedingState(value);
-        this.renderInsertedValues(value);
-        values.length = 0;
+      if (values.length <= len) {
+        var tmp = values.slice(values.length - len, values.length);
+        if (this.item && this.item.exceedable === true) {
+          tmp.forEach(function (value) {
+            this.checkExceedingState(value);
+          }, this)
+        }
+        if (this.storeInside) {
+          this.values = this.values.concat(tmp);
+        }
+        this.renderInsertedValues(tmp);
+        tmp.length = 0;
       } else {
         if (this.item && this.item.exceedable === true) {
           values.forEach(function (value) {
             this.checkExceedingState(value);
           }, this)
         }
+        if (this.storeInside) {
+          this.values = this.values.concat(values);
+        }
         this.renderInsertedValues(values);
       }
+      values.length = 0;
     },
 
     spliceValues: function(splices) {
       if (splices) {
-        if (this.noSocketConnection === true) {
+        if (this.storeInside === true) {
           this.splice('values', 0, splices.length);
         }
         if (this.renderSplicedValues) {
@@ -131,36 +142,107 @@
       }
     },
 
-    requestLastValue: function(mount, uniqueid, len) {
-      if (!window.Webvisual)
-        return;
+    requestLastValue: function(len) {
+      var mount = this.mount;
+      var uniqueid = this.uniqueid;
+      len = len || this.viewLength || 1;
+      if (window.Webvisual) {
+        return new Promise(function(resolve, reject) {
+          if (!this.webworker) {
+            reject();
+          }
 
-      return new Promise(function(resolve, reject) {
-        if (!this.webworker) {
-          reject();
-        }
+          this.webworker.addEventListener('message', function onMessage(e) {
+            if (e.data
+             && e.data.messageId
+             && e.data.messageId === lastMessageId) {
+               this.webworker.removeEventListener('message', onMessage);
+               resolve(e.data.values);
+             }
+          }.bind(this));
 
-        this.webworker.addEventListener('message', function onMessage(e) {
-          if (e.data
-           && e.data.messageId
-           && e.data.messageId === lastMessageId) {
-             this.webworker.removeEventListener('message', onMessage);
-             resolve(e.data.values);
-           }
-        }.bind(this));
-
-        this.webworker.postMessage(
-          {
-            request: {
+          this.webworker.postMessage(
+            {
+              request: {
+                messageId: uniqueid,
                 requestLast: {
-                  messageId: uniqueid,
                   mounts: [mount],
                   length: len || 1
                 }
-            }
-          });
-      }.bind(window.Webvisual))
+              }
+            });
+        }.bind(window.Webvisual))
+      } else {
+        return new Promise( function(resolve, reject) {
+          if (this.values)
+           resolve(this.values.slice(this.values.length - len, this.values.length))
+          else {
+            reject();
+          }
+        }.bind(this));
+      }
     },
+
+    requestRange: function(key) {
+      var mount = this.mount;
+      var uniqueid = this.uniqueid;
+      if (window.Webvisual && window.Webvisual.webworker) {
+        return new Promise(function(resolve, reject) {
+
+          this.webworker.addEventListener('message', function onMessage(e) {
+            if (e.data
+             && e.data.messageId
+             && e.data.messageId === lastMessageId) {
+               this.webworker.removeEventListener('message', onMessage);
+               resolve(e.data.values);
+             }
+          }.bind(this));
+
+          this.webworker.postMessage(
+            {
+              request: {
+                messageId: uniqueid,
+                rangedValues: {
+                  mounts: [mount],
+                  key: key
+                }
+              }
+            });
+        }.bind(window.Webvisual))
+      } else {
+        return new Promise( function(resolve, reject) {
+          if (this.values)
+            resolve([this.min(key), this.max(key)])
+          else {
+            reject('no values set');
+          }
+        }.bind(this));
+      }
+    },
+
+	  min: function(key) { // inspired by d3.array
+			var i = -1,
+		      a,
+		      b;
+			var n = this.values.length;
+
+			while (++i < n) if ((b = this.values[i][key]) !== null && b >= b) { a = b; break; }
+			while (++i < n) if ((b = this.values[i][key]) !== null && a > b) a = b;
+
+	    return a;
+	  },
+
+    max: function(key) { // inspired by d3.array
+			var i = -1,
+		      a,
+		      b;
+			var n = this.values.length;
+
+			while (++i < n) if ((b = this.values[i][key]) !== null && b >= b) { a = b; break; }
+			while (++i < n) if ((b = this.values[i][key]) !== null && a < b) { a = b; }
+
+	    return a;
+	  },
 
     renderInsertedValues: function(values) {
     },
@@ -202,23 +284,6 @@
     resetState: function() {
       this.isExceeding = false;
       this.hasExceeded = false;
-    },
-
-    _setSocketConnection: function(nosocket) {
-      // sets a global Object 'Webvisual', for updating the values of the elements
-      if (!this.item) {
-        return;
-      }
-      if (!nosocket && window.Webvisual) {
-        try {
-          window.Webvisual.assignElement(this);
-          // this.insertValues(this.values || []);
-        } catch (e) {
-          console.log(this.nodeName, e);
-        }
-      } else {
-        this._unlinkElement(this.item);
-      }
     },
 
     _computeTitle: function(id) {

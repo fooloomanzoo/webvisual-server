@@ -3,7 +3,7 @@ import random
 import datetime
 from threading import Event, Thread
 
-outfile = 'test.txt'
+outfile = '../examples/datafile/test.txt'
 dateformat = '%d.%m.%Y %H:%M:%S'
 low = -22
 high = 22
@@ -11,7 +11,7 @@ prec = 1
 rowlenght = 25
 initialLineLength = 10
 valueseperator = ';'
-interval = 100
+interval = 2
 
 
 def createRow(d, i):

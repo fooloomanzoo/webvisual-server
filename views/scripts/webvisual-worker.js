@@ -31,6 +31,7 @@ self.onmessage = function(e) {
 }
 
 self.createSocketConnection = function(opt) {
+
   if (!socket && opt.locationHost && opt.socketName) {
 
     options.locationHost = opt.locationHost;
@@ -54,23 +55,23 @@ self.createSocketConnection = function(opt) {
     });
 
     socket.on('initial', function(message) {
-      self.updateData(message);
+      self._updateData(message);
     });
     socket.on('update', function(message) {
-      self.updateData(message);
+      self._updateData(message);
     });
 
     if (opt.socketRoom) {
       options.socketRoom = opt.socketRoom;
-      self.setupConnection(options)
+      self._setup(options)
     }
     else if (options.socketRoom) {
-      self.setupConnection(options)
+      self._setup(options)
     }
   }
 }
 
-self.setupConnection = function(opt) {
+self._setup = function(opt) {
   if (opt.socketRoom) {
     var facility = opt.socketRoom.split('/')[0],
       system = opt.socketRoom.split('/')[1];
@@ -89,29 +90,29 @@ self.setupConnection = function(opt) {
   }
 }
 
-self.updateData = function(message) {
+self._updateData = function(message) {
   if (Array.isArray(message)) // if message is an Array
     for (var i = 0; i < message.length; i++) {
-    this.updateCache(message[i]);
-    this.updateClient(message[i]);
+    this._updateCache(message[i]);
+    this._updateClient(message[i]);
 
-    // this.updateDatabase(message[i]);
+    // this._updateDatabase(message[i]);
   }
   else if (message.values) { // if message is a single Object
-    this.updateCache(message);
-    this.updateClient(message);
-    // this.updateDatabase(message);
+    this._updateCache(message);
+    this._updateClient(message);
+    // this._updateDatabase(message);
   }
 }
 
-self.updateCache = function(message, noHeap) {
+self._updateCache = function(message, noHeap) {
   if (!cache) {
     cache = new ClientCache();
   }
   cache.append(message.values, noHeap);
 }
 
-self.updateClient = function(message) {
+self._updateClient = function(message) {
   var ret = {};
 
   for (var mount in message.values) {
@@ -141,4 +142,4 @@ self.request = function(opt) {
   }
 }
 
-self.updateDatabase = function() {}
+self._updateDatabase = function() {}

@@ -82,6 +82,11 @@
         checked: {
           type: Boolean,
           value: true
+        },
+        storeInside: {
+          type: Boolean,
+          value: true,
+          readOnly: true
         }
       },
       _dots: Object,
@@ -184,17 +189,18 @@
         this._areaNode.node().parentElement.removeChild(this._areaNode.node());
         this._dots.node().parentElement.removeChild(this._dots.node());
 
-        // if (this.noSocketConnection === false &&
+        // if (this.storeInside === false &&
         //   window.Content !== undefined &&
         //   Content[this.system] &&
         //   Content[this.system][this.item.mount] &&
         //   (pos = Content[this.system][this.item.mount].nodes.indexOf(this)) !== -1)
         //   Content[this.system][this.item.mount].nodes.splice(pos, 1);
 
-        this.chartElement._graphs.remove(this);
+        this.chartElement._graphs.delete(this);
       },
 
       renderInsertedValues: function(values) {
+        WebvisualBehaviors.ElementBehavior.renderInsertedValues.call(this, values);
         if (!this.chartElement)
           this.chartElement = this.containerRoot;
 
@@ -216,7 +222,6 @@
           this._lineNode
             .datum(data)
             .attr('d', this._line);
-
         }
 
         if (this.noFill === false) {
@@ -249,7 +254,7 @@
               .append('circle')
               .attr('r', this.dotRadius)
               .attr('stroke', this.item.color).attr('stroke-width', strokewidth)
-              .attr('fill', '#fff')
+              .attr('fill', this.item.color)
               .attr('cx', function(d, i) {
                 return this.chartElement._x(d.x)
               }.bind(this))

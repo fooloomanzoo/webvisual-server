@@ -107,6 +107,7 @@
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         text-rendering: optimizeLegibility;
+        mix-blend-mode: exclusion;
         pointer-events: none;
       }
       g#chart g.axis {
@@ -117,7 +118,7 @@
       }
       g#chart rect.plot {
         fill: white;
-        fill-opacity: 0.7;
+        fill-opacity: 0.9;
         stroke: currentColor;
         stroke-opacity: 0.25;
         shape-rendering: crispEdges;
@@ -135,6 +136,7 @@
       g.grid g.tick line {
         stroke: currentColor;
         stroke-opacity: 0.1;
+        mix-blend-mode: exclusion;
       }
       g.grid path {
         stroke-width: 0;
@@ -142,15 +144,16 @@
       g.axis path, g.axis line {
         fill: none;
         stroke: currentColor;
-        stroke-opacity: 0.25;
-        stroke-width: 1.5px;
-      }
-      g#chart g.axis path, g#chart g.axis line {
         stroke-opacity: 0.5;
+        stroke-width: 1.5px;
+        mix-blend-mode: exclusion;
       }
+      /*g#chart g.axis path, g#chart g.axis line {
+        stroke-opacity: 0.5;
+      }*/
       g#graphs path.area, g#graphs path.line {
         pointer-events: none;
-        mix-blend-mode: color;
+        mix-blend-mode: exclusion;
       }
       g#graphs circle {
         cursor: pointer;
@@ -178,7 +181,7 @@
         stroke-opacity: 0.2;
         stroke-width: 1px;
         stroke-dasharray: 2;
-        mix-blend-mode: color-burn;
+        mix-blend-mode: exclusion;
       }
       [hidden] {
         display: none !important;
@@ -222,7 +225,10 @@
 		  <webvisual-dropdown id="legend" for="legendbutton" target-toggle-event="tap" hiding-event="" position="bottom" align="center">
 		    <content id="collector" select="webvisual-element-graph"></content>-->
 		    <template is="dom-repeat" items="[[items]]">
-		      <webvisual-element-graph item="[[item]]" interpolation="[[interpolation]]">
+		      <webvisual-element-graph
+            item="[[item]]"
+            interpolation="[[interpolation]]"
+            store-inside>
 		      </webvisual-element-graph>
 		    </template>
 		  <!-- </webvisual-dropdown>
@@ -403,6 +409,14 @@
         this.formatWeek = d3.timeFormat('%d.%m');
         this.formatMonth = d3.timeFormat('%d. %b');
         this.formatYear = d3.timeFormat('%Y');
+
+        var sel, uniqueid;
+        while (true) {
+          uniqueid = String(Math.random().toString(16).slice(2));
+          sel = document.querySelector("[uniqueid='" + uniqueid + "']");
+          if (!sel) break;
+        }
+        this.setAttribute('uniqueid', uniqueid);
       },
 
       ready: function() {
@@ -429,7 +443,7 @@
           .attr('clip-path', 'url(#clip)');
 
         this._brushBehavior = d3.brush()
-          .on('end', this._brushed.bind(this._self));
+          .on('end', this.brushed.bind(this._self));
         this._brush = d3.select(this.$.brush)
           .attr('clip-path', 'url(#clip)');
 
@@ -450,7 +464,7 @@
               [x - offset, y - offset],
               [x + offset, y + offset]
             ];
-            this._brushed();
+            this.brushed();
           }.bind(this))
           .on('touchmove', this._resetZoom.bind(this));
 
@@ -615,21 +629,16 @@
 
       redraw: function() {
         if (this._chart === undefined || this._chart.select === undefined) return;
-        this._debouncedSetDomains();
-        this._debouncedRedraw();
-      },
-
-      _debouncedSetDomains: function() {
-        this.debounce('domains', this._setDomains, 33);
-      },
-
-      _debouncedRedraw: function() {
-        this.debounce('redraw', this._redraw, 33);
+        this.setDomains()
+            .then( this._redraw.bind(this) )
+            .catch( function(err) {
+              console.warn(err);
+            });
       },
 
       _redraw: function() {
         if (this._chart === undefined || this._chart.select === undefined) return;
-        if (this._graphs.length > 0) {
+        if (this._graphs.size > 0) {
           this._graphs.forEach(function(g) {
             // performance.mark('start');
             if (g.redraw)
@@ -659,7 +668,7 @@
         // this._hideInfo();
       },
 
-      _brushed: function() {
+      brushed: function() {
         var s = d3.event.selection;
         if (s) {
           this._isBrushed = true;
@@ -672,59 +681,123 @@
           this._isBrushed = false;
         } else {
           this._isZoomed = false;
-          this._setDomains();
+          this.setDomains()
+              .then( this._redraw.bind(this) )
+              .catch( function(err) {
+                console.warn(err);
+              });
+          return;
         }
         this._redraw();
       },
 
-      _setDomains: function() {
-        console.log(this._graphs);
-        if (!this._graphs.length || this._isZoomed === true) return;
+      setDomains: function() {
+        return new Promise( function(resolve, reject) {
+          if (!this._graphs.size)
+            reject('No Graphs are attached');
+          if (this._isZoomed === true) {
+            resolve();
+          }
 
-        var domainX = [null, null],
-          domainY = [null, null],
-          v, yScale = this.yScale,
-          range, rangedValues, containing = new Set();
+          var domainX = [],
+              domainY = [],
+              yScale = this.yScale;
 
-        this._graphs.forEach(function(g) {
+          this.requestRange('x')
+              .then( function(rangeX) {
+                domainX = rangeX;
+                this.requestRange('y')
+                    .then( function(rangeY) {
+                      domainY = rangeY;
+
+                      if (yScale === '√' || yScale === 'ln' || yScale === 'log₁₀') {
+                        if (domainY[0] <= 0) {
+                          domainY[0] = 1e-15;
+                        }
+                        if (domainY[1] <= 0) {
+                          domainY[1] = 1e-15;
+                        }
+                      }
+                      // rounding y-domains to the according decimal exponent
+                      if (domainY[0] === domainY[1] && domainY[0] && domainY[1]) {
+                        v = (domainY[0]).toExponential().split('e');
+                        domainY[0] = (Math.floor(v[0])) * Math.pow(10, parseInt(v[1], 10));
+                        v = (domainY[1]).toExponential().split('e');
+                        domainY[1] = (Math.ceil(v[0])) * Math.pow(10, parseInt(v[1], 10));
+                      }
+                      this._x.domain(domainX);
+                      this._y.domain(domainY).nice(this.yTicks);
+                      resolve();
+
+                    }.bind(this))
+                    .catch( function(err) {
+                      reject(err);
+                    });
+              }.bind(this))
+              .catch( function(err) {
+                reject(err);
+              });
+        }.bind(this));
+      },
+
+      requestRange: function(key) {
+        var mounts = new Set();
+        this._graphs.forEach( function(g) {
           if (g.mount) {
-            containing.add(g.mount);
+            mounts.add(g.mount);
           }
         });
-        console.log(containing);
-        // TODO: NEW CACHE Structur
-        for (var system in containing) {
-          if (containing[system].length > 0) {
-            range = window.Cache[system].range(containing[system]);
-            domainX[0] = (domainX[0] === null || range[0] < domainX[0]) ? range[0] : domainX[0];
-            domainX[1] = (domainX[1] === null || range[1] > domainX[1]) ? range[1] : domainX[1];
 
-            rangedValues = window.Cache[system].rangedValues(containing[system], 'y');
-            domainY[0] = (domainY[0] === null || rangedValues[0] < domainY[0]) ? rangedValues[0] : domainY[0];
-            domainY[1] = (domainY[1] === null || rangedValues[1] > domainY[1]) ? rangedValues[1] : domainY[1];
-          }
+        var uniqueid = this.uniqueid;
+        if (window.Webvisual && window.Webvisual.webworker) {
+          return new Promise(function(resolve, reject) {
+            this.webworker.addEventListener('message', function onMessage(e) {
+              if (e.data
+               && e.data.messageId
+               && e.data.messageId === lastMessageId) {
+                 this.webworker.removeEventListener('message', onMessage);
+                 resolve(e.data.values);
+               }
+            }.bind(this));
+
+            this.webworker.postMessage(
+              {
+                request: {
+                  messageId: uniqueid,
+                  rangedValues: {
+                    mounts: mounts,
+                    key: key
+                  }
+                }
+              });
+          }.bind(window.Webvisual))
+        } else {
+          return new Promise( function(resolve, reject) {
+            var p = [];
+            var res = [];
+            this._graphs.forEach( function(g) {
+              p.push( g.requestRange(key)
+                       .then( function(range) { res.push(range) })
+                       .catch( function(err) {
+                         reject(err);
+                       }) );
+            });
+            Promise.all(p)
+                   .then( function() {
+                     var min = res[0][0], max = res[0][1];
+                     for (var i = 1; i < res.length; i++) {
+                       min = min > res[i][0] ? res[i][0] : min;
+                       max = max < res[i][1] ? res[i][1] : max;
+                     }
+                     resolve([min, max]);
+                   })
+                   .catch( function(err) {
+                     reject(err);
+                   });
+          }.bind(this));
         }
-
-        if (this.yScale === '√' || this.yScale === 'ln' || this.yScale === 'log₁₀') {
-          if (domainY[0] <= 0) {
-            domainY[0] = 1e-15;
-          }
-          if (domainY[1] <= 0) {
-            domainY[1] = 1e-15;
-          }
-        }
-
-        // rounding y-domains to the according decimal exponent
-        if (domainY[0] === domainY[1] && domainY[0] && domainY[1]) {
-          v = (domainY[0]).toExponential().split('e');
-          domainY[0] = (Math.floor(v[0])) * Math.pow(10, parseInt(v[1], 10));
-          v = (domainY[1]).toExponential().split('e');
-          domainY[1] = (Math.ceil(v[0])) * Math.pow(10, parseInt(v[1], 10));
-        }
-        this._x.domain(domainX);
-        this._y.domain(domainY).nice(this.yTicks);
-
       },
+
       _showInfo: function(d) {
         this.cancelDebouncer('hideinfo');
         var x = this.timeFormatRange.call(this, d.x, this._x.domain(), this._width);
@@ -783,7 +856,7 @@
         }
       },
       changeInterpolation: function(interpolation, oldValue) {
-        if (!this._graphs.length) return;
+        if (!this._graphs.size) return;
         this._graphs.forEach(
           function(g) {
             g.interpolation = interpolation;
@@ -792,7 +865,16 @@
       changeScale: function(newValue, oldValue) {
         if (oldValue === undefined) return;
         if (this._isZoomed === false) {
-          this._setDomains();
+          this.setDomains()
+              .then( function() {
+                this._buildLayout();
+                this._sizeLayout();
+                this._redraw();
+              }.bind(this) )
+              .catch( function(err) {
+                console.warn(err);
+              });
+          return;
         }
         var domainX = this._x.domain();
         var domainY = this._y.domain();
@@ -812,7 +894,7 @@
       },
       changeDots: function(e) {
         this.noDots = !e.target.checked;
-        if (!this._graphs.length) return;
+        if (!this._graphs.size) return;
         this._graphs.forEach(
           function(g) {
             g.set('noDots', !e.target.checked)
@@ -820,7 +902,7 @@
       },
       changeLines: function(e) {
         this.noLines = !e.target.checked;
-        if (!this._graphs.length) return;
+        if (!this._graphs.size) return;
         this._graphs.forEach(
           function(g) {
             g.set('noLine', !e.target.checked)
@@ -828,7 +910,7 @@
       },
       changeAreas: function(e) {
         this.noAreas = !e.target.checked;
-        if (!this._graphs.length) return;
+        if (!this._graphs.size) return;
         this._graphs.forEach(
           function(g) {
             g.set('noFill', !e.target.checked)

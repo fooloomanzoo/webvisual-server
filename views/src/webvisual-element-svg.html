@@ -1,5 +1,6 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
-<link rel="import" href="behaviors/container-behavior.html"/>
+
+<link rel="import" href="behaviors/fullscreen-behavior.html"/>
 
 <link rel="import" href="components/webvisual-icon-button.html"/>
 
@@ -52,16 +53,10 @@
     pointer-events: all;
   }
   :host([fullscreen]) {
-    background-color: var(--svg-fullscreen-background-color);
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    border-radius: 0px;
+    background-color: var(--fullscreen-background-color);
   }
   :host(:-webkit-full-screen) {
-    background-color: var(--svg-fullscreen-background-color);
+    background-color: var(--fullscreen-background-color);
   }
   svg {
     border-radius: inherit;
@@ -152,7 +147,7 @@
     </div>
     <div id="control" >
       <webvisual-icon-button title="focus" icon="filter-center-focus" on-tap="_resetZoom"></webvisual-icon-button>
-      <webvisual-icon-button title="fullscreen" icon="[[_computeFullscreenIcon(fullscreen)]]" on-tap="_toggleFullscreen"></webvisual-icon-button>
+      <webvisual-icon-button title="fullscreen" icon="[[computeFullscreenIcon(fullscreen)]]" on-tap="toggleFullscreen"></webvisual-icon-button>
     </div>
   <!-- </div> -->
 </template>
@@ -160,6 +155,10 @@
 <script>
   SvgElement = Polymer({
     is: 'webvisual-element-svg',
+
+    behaviors: [
+      WebvisualBehaviors.FullscreenBehavior
+    ],
 
     properties: {
       /**
@@ -204,14 +203,6 @@
         type: Boolean,
         reflectToAttribute: true,
         observer: '_openedChanged'
-      },
-      /**
-       * Marks the element, that it is in fullscreen
-       */
-      fullscreen: {
-        type: Boolean,
-        value: false,
-        reflectToAttribute: true
       },
       /**
        * Minimal Zoom Level
@@ -276,48 +267,7 @@
     ],
 
     listeners: {
-      'contextmenu': '_resetZoom',
-      'mozfullscreenchange': '_fullScreenChanged',
-      'webkitfullscreenchange': '_fullScreenChanged',
-      'mozfullscreenchange': '_fullScreenChanged'
-    },
-
-    // behaviors: [
-    //   WebvisualBehaviors.ContainerBehavior
-    // ],
-
-    get _fullscreen() {
-      return document.fullscreen
-          || document.webkitIsFullScreen
-          || document.mozFullScreen
-          || document.msFullscreenElement;
-    },
-
-    attached: function() {
-      // fullscreen
-      if (this.requestFullscreen) {
-        this.exitFullscreen = document.exitFullscreen;
-        this.addEventListener('fullscreenchange', this._fullScreenChanged.bind(this), false);
-      } else if (this.webkitRequestFullScreen) {
-        this.requestFullscreen = this.webkitRequestFullScreen;
-        this.exitFullscreen = document.webkitCancelFullScreen;
-        this.addEventListener('webkitfullscreenchange', this._fullScreenChanged.bind(this), false);
-      } else if (this.mozRequestFullScreen) {
-        this.requestFullscreen = this.mozRequestFullScreen;
-        this.exitFullscreen = document.mozCancelFullScreen;
-        this.addEventListener('mozfullscreenchange', this._fullScreenChanged.bind(this), false);
-      } else if (this.msRequestFullscreen) {
-        this.requestFullscreen = this.msRequestFullscreen;
-        this.exitFullscreen = document.msExitFullscreen;
-        this.addEventListener('msfullscreenchange', this._fullScreenChanged.bind(this), false);
-      }
-    },
-
-    detached: function() {
-      this.removeEventListener('fullscreenchange', this._fullScreenChanged.bind(this), false);
-      this.removeEventListener('webkitfullscreenchange', this._fullScreenChanged.bind(this), false);
-      this.removeEventListener('mozfullscreenchange', this._fullScreenChanged.bind(this), false);
-      this.removeEventListener('msfullscreenchange', this._fullScreenChanged.bind(this), false);
+      'contextmenu': '_resetZoom'
     },
 
     _openedChanged: function() {
@@ -647,20 +597,8 @@
       this._zoomToElement(this._mainG.node());
     },
 
-    _toggleFullscreen: function(e) {
-      e.stopPropagation()
-      if (this._fullscreen) {
-        this._exitFullscreen();
-      }
-      this.requestFullscreen();
-    },
-
-    _exitFullscreen: function() {
-      this.exitFullscreen.call(document);
-    },
-
-    _fullScreenChanged: function() {
-      if (this._fullscreen) {
+    fullScreenChanged: function() {
+      if (this.isFullscreen) {
         this.old = { zoomPartition: this.zoomPartition,
                      maxZoom: this.maxZoom,
                      minZoom: this.minZoom }
@@ -681,7 +619,7 @@
       this.debounce('resetZoom', this._resetZoom, 500);
     },
 
-    _computeFullscreenIcon: function(fullscreen) {
+    computeFullscreenIcon: function(fullscreen) {
       return fullscreen ? 'fullscreen-exit' : 'fullscreen';
     }
   });

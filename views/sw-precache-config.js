@@ -40,7 +40,7 @@ module.exports = {
     },
     {
       urlPattern: /\/fonts\/.*/,
-      handler: 'cacheFirst',
+      handler: 'cacheOnly',
       options: {
         cache: {
           maxEntries: 10,
@@ -50,7 +50,7 @@ module.exports = {
     },
     {
       urlPattern: /\/icons\/.*/,
-      handler: 'cacheFirst',
+      handler: 'cacheOnly',
       options: {
         cache: {
           maxEntries: 20,

@@ -39,7 +39,6 @@
         display: inline-flex;
         align-items: center;
         justify-content: space-between;
-        cursor: pointer;
         position: absolute;
         top: 0; bottom: 0; left: 0; right: 0;
         padding-top: 0;
@@ -52,7 +51,7 @@
         transition: padding-top 500ms cubic-bezier(0.6, 0, 0.2, 1);
         color: var(--groupcard-header-color, var(--bright-text-color));
       }
-      #title > .text {
+      #title > .title-text {
         margin-left: 1em;
         font-size: 1.1em;
         line-height: normal;
@@ -60,6 +59,7 @@
         text-overflow: ellipsis;
         white-space: nowrap;
         mix-blend-mode: exclusion;
+        cursor: pointer;
         /*text-shadow: 0px 0px 0.1px #000000;*/
       }
       #mainContent {
@@ -164,14 +164,21 @@
       <section id='header'>
         <iron-pages id="headerContent" selected="[[view]]" selectable=".view" selected-attribute="opened" on-transitionend="_transitionEnd">
           <template is="dom-if" if="[[svgSrcPath]]">
-            <webvisual-element-svg class="view" src="[[svgSrcPath]]" selectable="[[svgSelectable]]" items="[[items]]" exceeding="[[exceeding]]"></webvisual-element-svg>
+            <webvisual-element-svg class="view"
+              src="[[svgSrcPath]]"
+              selectable="[[svgSelectable]]"
+              items="[[items]]"
+              exceeding="[[exceeding]]"></webvisual-element-svg>
           </template>
-          <webvisual-element-chart class="view" item="[[item]]" items="[[items]]" exceeding="[[exceeding]]"></webvisual-element-chart>
-          <webvisual-element-table class="view" item="[[item]]"></webvisual-element-table>
+          <webvisual-element-chart class="view"
+            items="[[items]]"
+            exceeding="[[exceeding]]"></webvisual-element-chart>
+          <webvisual-element-table class="view"
+            item="[[item]]"></webvisual-element-table>
         </iron-pages>
       </section>
 
-      <span class="text" on-tap="toggle">[[title]]</span>
+      <span class="title-text" on-tap="toggle">[[title]]</span>
 
       <template is="dom-if" if="[[opened]]">
         <iron-selector class="select" selected="{{view}}" selectable=".button">
