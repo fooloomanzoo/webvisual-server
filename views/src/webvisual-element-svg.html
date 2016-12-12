@@ -147,7 +147,7 @@
     </div>
     <div id="control" >
       <webvisual-icon-button title="focus" icon="filter-center-focus" on-tap="_resetZoom"></webvisual-icon-button>
-      <webvisual-icon-button title="fullscreen" icon="[[computeFullscreenIcon(fullscreen)]]" on-tap="toggleFullscreen"></webvisual-icon-button>
+      <webvisual-icon-button title="fullscreen" icon="[[fullscreenIcon]]" on-tap="toggleFullscreen"></webvisual-icon-button>
     </div>
   <!-- </div> -->
 </template>
@@ -228,7 +228,7 @@
       },
 
       /**
-       * selectable css-selectors (key as id, value as selector)
+       * selectable css-selectors (key as id, value as selector), so that an eventlistener can be attached
        */
       selectable: Object,
 
@@ -598,6 +598,7 @@
     },
 
     fullScreenChanged: function() {
+      WebvisualBehaviors.FullscreenBehavior.fullScreenChanged.call(this);
       if (this.isFullscreen) {
         this.old = { zoomPartition: this.zoomPartition,
                      maxZoom: this.maxZoom,
@@ -605,22 +606,12 @@
         this.zoomPartition *= 3;
         this.maxZoom *= 1.25;
         this.minZoom = 1;
-        this.fullscreen = true;
-        document.body.classList.add('fullscreen');
-      } else {
-        if (this.old) {
+      } else if (this.old) {
           this.zoomPartition = this.old.zoomPartition;
           this.maxZoom = this.old.maxZoom;
           this.minZoom = this.old.minZoom;
-        }
-        this.fullscreen = false;
-        document.body.classList.remove('fullscreen');
       }
       this.debounce('resetZoom', this._resetZoom, 500);
-    },
-
-    computeFullscreenIcon: function(fullscreen) {
-      return fullscreen ? 'fullscreen-exit' : 'fullscreen';
     }
   });
 </script>

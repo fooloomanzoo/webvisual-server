@@ -16,7 +16,28 @@
 
 <dom-module id="webvisual-list">
   <template>
-    <style include="shared-styles page-layout webvisual-button"></style>
+    <style include="shared-styles page-layout webvisual-button">
+      .grid li {
+        flex-direction: row;
+      }
+      :host(:not([plain])) .grid li > * {
+        border-radius: 0px;
+        border: thin solid var(--grid-border-color);
+        border-left: none;
+      }
+      .grid li > :first-child {
+        border-top-left-radius: 6px;
+        border-bottom-left-radius: 6px;
+        border-left: thin solid var(--grid-border-color);
+      }
+      .grid li > :last-child {
+        border-top-right-radius: 6px;
+        border-bottom-right-radius: 6px;
+      }
+      webvisual-element-caption {
+        flex: 1 0 1px;
+      }
+    </style>
 
     <app-route
       route="[[route]]"

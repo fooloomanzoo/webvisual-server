@@ -2,31 +2,20 @@ const dir = {
   dist: '/public',
   data: '/public/data',
   img: '/public/images',
-}
+};
+
+const devDir = {
+  dist: '/views',
+  data: '/views/data',
+  img: '/views/images',
+};
 
 const requiredStaticSettings = [
   'groups',
   'groupingKeys',
   'preferedGroupingKey',
   'svgSource'
-]
-
-// const svgMinifyOptions = {
-//   cleanupNumericValues: {
-//     floatPrecision: 4,
-//     leadingZero: true,
-//     defaultPx: true,
-//     convertToPx: true
-//   },
-//   removeUnknownsAndDefaults: false,
-//   cleanupIDs: false,
-//   removeEmptyContainers: true,
-//   removeUselessDefs: true,
-//   removeDesc: true,
-//   removeMetadata: true,
-//   removeComments: true,
-//   removeEmptyAttrs: true
-// }
+];
 
 const EventEmitter = require('events').EventEmitter
     , express = require('express')
@@ -44,11 +33,7 @@ const EventEmitter = require('events').EventEmitter
     , serveStatic = require('serve-static')
 
 // Session Store
-    , RedisStore = require('connect-redis')(session)
-
-// Image Minimizing TODO: find alternativ (svg structure too much changed)
-    // , SVGO = require('svgo')
-    // , svgo = new SVGO(svgMinifyOptions);
+    , RedisStore = require('connect-redis')(session);
 
 function resolvePath() {
   let p = process.cwd();
@@ -61,14 +46,23 @@ function resolvePath() {
   return p;
 }
 
-const staticMiddleware = serveStatic( resolvePath( dir.dist ) )
-    , staticDataMiddleware = serveStatic( resolvePath( dir.data ), { index: false })
-    , staticImageMiddleware = serveStatic( resolvePath( dir.img ), { index: false });
-
 class Router extends EventEmitter {
 
-  constructor(server) {
+  constructor(server, mode) {
     super();
+
+    switch (mode) {
+      case 'development':
+        this.dir = devDir;
+        break;
+      default:
+        this.dir = dir;
+    }
+
+    this.staticMiddleware = serveStatic( resolvePath( this.dir.dist ) );
+    this.staticDataMiddleware = serveStatic( resolvePath( this.dir.data ), { index: false });
+    this.staticImageMiddleware = serveStatic( resolvePath( this.dir.img ), { index: false });
+
     this.app = server;
 
     this.passport = require('passport');
@@ -167,17 +161,17 @@ class Router extends EventEmitter {
 
     // Secured Data
     this.app.use('/data', authNeeded ? ensureLoggedIn.is : ensureLoggedIn.not );
-    this.app.use('/data', staticDataMiddleware );
+    this.app.use('/data', this.staticDataMiddleware );
 
     this.app.use('/images', authNeeded ? ensureLoggedIn.is : ensureLoggedIn.not );
-    this.app.use('/images', staticImageMiddleware );
+    this.app.use('/images', this.staticImageMiddleware );
 
     // Public Data
-    this.app.use(staticMiddleware);
+    this.app.use(this.staticMiddleware);
 
     // Fallback
     this.app.get('*', (req, res) => {
-      res.sendFile( resolvePath( dir.dist, 'index.html') );
+      res.sendFile( resolvePath( this.dir.dist, 'index.html') );
     });
 
   }
@@ -186,11 +180,11 @@ class Router extends EventEmitter {
     this.settings.userConfigFiles = userConfigFiles;
 
     // init facilities.json
-    mkdirp(dir.data, (err) => {
-      if (err) console.error(`Failed to create ${dir.data}\n ${err}`);
+    mkdirp(this.dir.data, (err) => {
+      if (err) console.error(`Failed to create ${this.dir.data}\n ${err}`);
       return;
     });
-    fs.writeFileSync( resolvePath ( dir.data, 'facilities.json' ), JSON.stringify([]));
+    fs.writeFileSync( resolvePath ( this.dir.data, 'facilities.json' ), JSON.stringify([]));
   }
 
   setConfiguration(opt, facility) {
@@ -237,7 +231,7 @@ class Router extends EventEmitter {
         } );
 
         let comb = facility + '+' + system;
-        dest = resolvePath( dir.data );
+        dest = resolvePath( this.dir.data );
 
         // create required static settings
         for (let key in opt[system]) {
@@ -246,14 +240,14 @@ class Router extends EventEmitter {
           pth = path.resolve(dest, comb + '+' + key + '.json')
           fs.writeFile(pth, JSON.stringify(opt[system][key] || {}), (err) => {
             if (err)
-              this.emit('error', `Writing Files for static content configuration data (${dir.data}) failed\n ${err}`);
+              this.emit('error', `Writing Files for static content configuration data (${this.dir.data}) failed\n ${err}`);
           });
         }
 
         // copy svgContent in staticContentFolder
         if (opt[system].svgSource && opt[system].svgSource.paths &&  Object.keys(opt[system].svgSource.paths).length) {
 
-          let svgDest = resolvePath(dir.img, facility, system);
+          let svgDest = resolvePath(this.dir.img, facility, system);
 
           mkdirp(svgDest, (err) => {
             if (err) console.error(`SVG-File Destination folder failed to create \n ${err}`);
@@ -278,7 +272,7 @@ class Router extends EventEmitter {
                 });
               }).then( data => {
                 // svgo.optimize(data, result => {
-                  fs.writeFile(dpath, data.replace(/\s+/g, ' '), 'utf8', (err) => { // trim all whitespaces for data reduction
+                  fs.writeFile(dpath, data, 'utf8', (err) => { // .replace(/\s+/g, ' ') trim all whitespaces for data reduction
                     if (err) {
                       console.error(`Transfer SVG-File failed \n from ${opath} \n ${err}`);
                       return;
@@ -313,11 +307,11 @@ class Router extends EventEmitter {
     }
 
     // create required main overview
-    mkdirp(dir.data, (err) => {
-      if (err) console.error(`Failed to create ${dir.data}\n ${err}`);
+    mkdirp(this.dir.data, (err) => {
+      if (err) console.error(`Failed to create ${this.dir.data}\n ${err}`);
       return;
     });
-    dest = resolvePath(dir.data, 'facilities.json');
+    dest = resolvePath(this.dir.data, 'facilities.json');
 
     fs.writeFileSync( dest, JSON.stringify(facilities) );
   }

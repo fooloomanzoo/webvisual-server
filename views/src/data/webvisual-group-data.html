@@ -76,17 +76,17 @@
           onLoad: function(e) {
             if (e.target.status < 400) {
               this.set(request, JSON.parse(e.target.responseText));
-              localStorage.setItem(request, e.target.responseText);
+              // localStorage.setItem(request, e.target.responseText);
             } else {
-              var items = localStorage.getItem(request);
-              if (items)
-                this.set(request, JSON.parse(items));
+              // var items = localStorage.getItem(request);
+              // if (items)
+              //   this.set(request, JSON.parse(items));
             }
           },
           onError: function(e) {
-            var items = localStorage.getItem(request);
-            if (items)
-              this.set(request, JSON.parse(items));
+            // var items = localStorage.getItem(request);
+            // if (items)
+            //   this.set(request, JSON.parse(items));
           }
         }, attempts);
       },
@@ -110,8 +110,8 @@
       },
 
       _groupingKeysChanged: function(groupingKeys) {
-        var groupedKey = localStorage.getItem('groupedKey');
         var prefix = this.urlPrefix || '/data/';
+        var groupedKey = localStorage.getItem('groupedKey');
         if (groupedKey && groupedKey in this.groupingKeys) {
           this.set('groupedKey', groupedKey);
         } else {

@@ -36,7 +36,9 @@ class WebvisualServer {
 
     this.config = settings;
 
-    this.router = new Router(app);
+    var mode = process.argv[2] || config.mode || '';
+
+    this.router = new Router(app, mode);
     this.router.on('error', (err) => {
       process.send( { error: err } );
     });

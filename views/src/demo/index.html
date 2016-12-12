@@ -29,6 +29,8 @@
   <link rel="import" href="../data/webvisual-group-data.html"/>
   <link rel="import" href="../data/webvisual-svg-data.html"/>
 
+  <link rel="import" href="group-view.html"/>
+
   <style>
 
     html {
@@ -36,7 +38,10 @@
     }
 
     body {
+      display: flex;
       position: relative;
+      justify-content: center;
+      align-items: center;
       margin: 0;
       font-family: 'FiraSans-Regular', 'FiraSans-Medium', sans-serif;
       font-weight: normal;
@@ -46,10 +51,6 @@
       font-kerning: normal;
       text-rendering: optimizeLegibility;
       min-height: 100vh;
-    }
-
-    body.fullscreen {
-      overflow: hidden;
     }
   </style>
 
@@ -129,7 +130,7 @@
 
       <webvisual-svg-data
         url-prefix="./data/"
-        svg-source="{{svgSource}}"
+        svg-data="{{svgData}}"
         facility-name="Test"
         system-name="[[systemName]]"></webvisual-svg-data>
 
@@ -158,6 +159,7 @@
         <app-toolbar>
           <webvisual-tabs selected="{{module}}">
             <webvisual-tab>groupcard</webvisual-tab>
+            <webvisual-tab>groupview</webvisual-tab>
             <webvisual-tab>svg-element</webvisual-tab>
             <webvisual-tab>chart</webvisual-tab>
           </webvisual-tabs>
@@ -177,7 +179,7 @@
                   open-on-select
                   open-on-exceed
                   svg-src-path="./images/[[group.svg.path]]"
-                  svg-selectable="[[_getSvgSelectable(group.svg.path, svgSource.paths)]]">
+                  svg-selectable="[[_getSvgSelectable(group.svg.path, svgData.paths)]]">
 
                   <ul class="grid sign">
                     <template is="dom-repeat" items="[[group.items]]" as="id">
@@ -202,26 +204,33 @@
 
         </section>
 
-        <section id="svgelement-demo">
-            <webvisual-svg-data
-              url-prefix="./data/"
-              svg-source="{{svgSource2}}"
-              facility-name="Test"
-              system-name="Berlin"></webvisual-svg-data>
+        <group-view
+          url-prefix="./data/"
+          subgroups="[[subgroups]]"
+          svgData="[[svgData]]"
+          grouped-key="{{groupedKey}}"
+          grouping-keys="{{groupingKeys}}"></group-view>
 
-            <section class="resizable">
-              <webvisual-element-svg opened src="./images/berlin.svg"
-              selectable="[[_getSvgSelectable('berlin.svg', svgSource2.paths)]]">
-              </webvisual-element-svg>
-            </section>
+        <section id="svgelement-demo">
+          <webvisual-svg-data
+            url-prefix="./data/"
+            svg-data="{{svgData2}}"
+            facility-name="Test"
+            system-name="Berlin"></webvisual-svg-data>
+
+          <section class="resizable">
+            <webvisual-element-svg opened src="./images/berlin.svg"
+            selectable="[[_getSvgSelectable('berlin.svg', svgData2.paths)]]">
+            </webvisual-element-svg>
+          </section>
         </section>
 
         <section id="chart-demo">
-            <section class="resizable">
-              <webvisual-element-chart class="view"
-                items="[[items]]"
-                exceeding="[[exceeding]]"></webvisual-element-chart>
-            </section>
+          <section class="resizable">
+            <webvisual-element-chart class="view"
+              items="[[items]]"
+              exceeding="[[exceeding]]"></webvisual-element-chart>
+          </section>
         </section>
 
       </iron-pages>

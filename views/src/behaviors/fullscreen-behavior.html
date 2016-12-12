@@ -2,7 +2,7 @@
   window.WebvisualBehaviors = window.WebvisualBehaviors || {};
 
     /**
-     * Behavior that adds fullscrren behavior
+     * Behavior that adds fullscreen behavior
      *
      * @polymerBehavior
      */
@@ -15,6 +15,11 @@
         type: Boolean,
         value: false,
         reflectToAttribute: true
+      },
+
+      fullscreenIcon: {
+        type: String,
+        computed: 'computeFullscreenIcon(fullscreen)'
       }
 
     },
@@ -29,20 +34,20 @@
     attached: function() {
       // fullscreen
       if (this.requestFullscreen) {
-        this.exitFullscreen = document.exitFullscreen;
-        this.addEventListener('fullscreenchange', this.fullScreenChanged.bind(this), false);
+        this.exitFullscreen = document.exitFullscreen.bind(document);
+        this.addEventListener('fullscreenchange', this.fullScreenChanged.bind(this));
       } else if (this.webkitRequestFullScreen) {
-        this.requestFullscreen = this.webkitRequestFullScreen;
-        this.exitFullscreen = document.webkitCancelFullScreen.bind(this);
-        this.addEventListener('webkitfullscreenchange', this.fullScreenChanged.bind(this), false);
+        this.requestFullscreen = this.$.svgContainer.webkitRequestFullScreen.bind(this);
+        this.exitFullscreen = document.webkitCancelFullScreen.bind(document);
+        this.addEventListener('webkitfullscreenchange', this.fullScreenChanged.bind(this));
       } else if (this.mozRequestFullScreen) {
-        this.requestFullscreen = this.mozRequestFullScreen;
-        this.exitFullscreen = document.mozCancelFullScreen.bind(this);
-        this.addEventListener('mozfullscreenchange', this.fullScreenChanged.bind(this), false);
+        this.requestFullscreen = this.mozRequestFullScreen.bind(this);
+        this.exitFullscreen = document.mozCancelFullScreen.bind(document);
+        this.addEventListener('mozfullscreenchange', this.fullScreenChanged.bind(this));
       } else if (this.msRequestFullscreen) {
-        this.requestFullscreen = this.msRequestFullscreen;
-        this.exitFullscreen = document.msExitFullscreen.bind(this);
-        this.addEventListener('msfullscreenchange', this.fullScreenChanged.bind(this), false);
+        this.requestFullscreen = this.msRequestFullscreen.bind(this);
+        this.exitFullscreen = document.msExitFullscreen.bind(document);
+        this.addEventListener('msfullscreenchange', this.fullScreenChanged.bind(this));
       }
     },
 
@@ -62,6 +67,7 @@
     },
 
     fullScreenChanged: function() {
+      console.log('isFullscreen', this.isFullscreen);
       requestAnimationFrame( function() {
         if (this.isFullscreen) {
           this.fullscreen = true;

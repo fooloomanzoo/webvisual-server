@@ -12,6 +12,13 @@ logs
 *.log
 npm-debug.log*
 
+# Datafiles
+*.txt
+
+# Tests
+views/data
+views/images
+
 # Runtime data
 pids
 *.pid

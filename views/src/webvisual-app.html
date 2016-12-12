@@ -33,10 +33,8 @@
 
     <style include="shared-styles webvisual-selectbox webvisual-button webvisual-app-style">
       :host {
-        display: flex;
-        justify-content: center;
-        box-sizing: border-box;
-        min-height: 100vh;
+        width: 100%;
+        height: 100%;
         transition: background 250ms cubic-bezier(0.6, 0, 0.2, 1);
       }
       app-header {
@@ -47,14 +45,6 @@
         z-index: 11;
         @apply(--app-header);
       }
-      /*app-header {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        z-index: 11;
-        @apply(--app-header);
-      }*/
       app-header::before {
         position: absolute;
         content: '';
@@ -127,6 +117,7 @@
       }
       #pageselector {
         padding-top: 64px;
+        position: relative;;
         transition: padding-top 250ms cubic-bezier(0.6, 0, 0.2, 1);
       }
       :host([show-tabs]) #pageselector {
@@ -178,7 +169,7 @@
       logged-in="{{loggedIn}}"
       offline="[[offline]]"></webvisual-facility-data>
 
-    <app-header role="home" id="header" hidden$="[[!_shouldShowHeader]]" reveals threshold="1">
+    <app-header role="home" id="header" hidden$="[[!_shouldShowHeader]]" threshold="1">
 
       <app-toolbar>
         <webvisual-icon-button icon="menu" class="menu-icon" on-tap="_toggleDrawer"></webvisual-icon-button>
@@ -216,17 +207,17 @@
       <div id="tabs" sticky$="[[_shouldShowTabs]]" hidden$="[[!_shouldShowTabs]]">
         <template is="dom-if" if="[[_shouldRenderTabs]]">
           <webvisual-tabs
-              selected="{{page}}"
-              attr-for-selected="name">
-              <webvisual-tab name="list">
-                <a href="/list[[subroute.path]]">{{localize('list', 'name')}}</a>
-              </webvisual-tab>
-              <webvisual-tab name="groups">
-                <a href="/groups[[subroute.path]]">{{localize('groups', 'name')}}</a>
-              </webvisual-tab>
-              <webvisual-tab name="detail">
-                <a href="/detail[[subroute.path]]">{{localize('detail', 'name')}}</a>
-              </webvisual-tab>
+            selected="{{page}}"
+            attr-for-selected="name">
+            <webvisual-tab name="list">
+              <a href="/list[[subroute.path]]">{{localize('list', 'name')}}</a>
+            </webvisual-tab>
+            <webvisual-tab name="groups">
+              <a href="/groups[[subroute.path]]">{{localize('groups', 'name')}}</a>
+            </webvisual-tab>
+            <webvisual-tab name="detail">
+              <a href="/detail[[subroute.path]]">{{localize('detail', 'name')}}</a>
+            </webvisual-tab>
           </webvisual-tabs>
         </template>
       </div>
@@ -430,6 +421,7 @@
 
         dark: {
           type: Boolean,
+          value: false,
           notify: true,
           reflectToAttribute: true,
           observer: '_darkChanged'
@@ -437,6 +429,7 @@
 
         plain: {
           type: Boolean,
+          value: false,
           notify: true,
           reflectToAttribute: true,
           observer: '_plainChanged'
@@ -573,6 +566,7 @@
       _notifyNetworkStatus: function() {
         var oldOffline = this.offline;
         this.offline =  !navigator.onLine;
+        console.log('offline', this.offline);
         // Show the snackbar if the user is offline when starting a new session
         // or if the network status changed.
         if (this.offline || (!this.offline && oldOffline === true)) {

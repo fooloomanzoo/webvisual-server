@@ -1,52 +1,20 @@
-<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/polymer/polymer.html">
 
-<link rel="import" href="../bower_components/app-route/app-route.html">
+<link rel="import" href="../data/webvisual-facility-data.html"/>
+<link rel="import" href="../data/webvisual-group-data.html"/>
+<link rel="import" href="../data/webvisual-svg-data.html"/>
 
-<link rel="import" href="data/webvisual-element-socket-data.html"/>
-<link rel="import" href="data/webvisual-facility-data.html"/>
-<link rel="import" href="data/webvisual-group-data.html"/>
-<link rel="import" href="data/webvisual-svg-data.html"/>
+<link rel="import" href="../webvisual-element-sign.html"/>
+<link rel="import" href="../webvisual-element-caption.html"/>
+<link rel="import" href="../webvisual-groupcard.html"/>
+<link rel="import" href="../webvisual-element-svg.html"/>
 
-<link rel="import" href="webvisual-element-sign.html"/>
-<link rel="import" href="webvisual-element-caption.html"/>
-<link rel="import" href="webvisual-groupcard.html"/>
-<link rel="import" href="webvisual-element-svg.html"/>
+<link rel="import" href="../style/shared-styles.html">
+<link rel="import" href="../style/page-layout.html">
 
-<link rel="import" href="style/shared-styles.html">
-<link rel="import" href="style/page-layout.html">
-
-<dom-module id="webvisual-groups">
+<dom-module id="group-view">
   <template>
     <style include="shared-styles page-layout"></style>
-
-    <app-route
-      route="[[route]]"
-      pattern="/:facilityName/:systemName"
-      data="{{routeData}}"></app-route>
-
-    <webvisual-facility-data
-      id="facilityData"
-      facilities="[[facilities]]"
-      facility-name="[[routeData.facilityName]]"
-      system-name="[[routeData.systemName]]"
-      items="{{elements}}"></webvisual-facility-data>
-
-    <webvisual-element-socket-data
-      socket-name="data"
-      socket-room="[[routeData.facilityName]]/[[routeData.systemName]]"
-      lazy-connect="[[shouldConnectSocket]]"></webvisual-element-socket-data>
-
-    <webvisual-group-data
-      subgroups="{{subgroups}}"
-      grouped-key="{{groupedKey}}"
-      grouping-keys="{{groupingKeys}}"
-      facility-name="[[routeData.facilityName]]"
-      system-name="[[routeData.systemName]]"></webvisual-group-data>
-
-    <webvisual-svg-data
-      svg-data="{{svgData}}"
-      facility-name="[[routeData.facilityName]]"
-      system-name="[[routeData.systemName]]"></webvisual-svg-data>
 
     <!-- <template is="dom-if" if="[[visible]]" restamp> -->
 
@@ -59,7 +27,7 @@
               open-on-select
               open-on-exceed
               multi
-              svg-src-path="/images/[[routeData.facilityName]]/[[routeData.systemName]]/[[group.svg.path]]"
+              svg-src-path="./images/[[group.svg.path]]"
               svg-selectable="[[_getSvgSelectable(group.svg.path, svgData.paths)]]">
 
               <ul class="grid sign">
@@ -89,7 +57,7 @@
 
   <script>
     Polymer({
-      is: 'webvisual-groups',
+      is: 'group-view',
 
       // behaviors: [
       //   Polymer.NeonSharedElementAnimatableBehavior,
