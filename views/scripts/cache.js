@@ -245,25 +245,25 @@
 	    return compareFn(ret, key);
 	  },
 
-	  min: function(mounts, key) {
-	    return this.operation('min', this._min, key, mounts);
+	  min: function(opts) {
+	    return this.operation('min', this._min, opts.key, opts.mounts);
 	  },
-	  max: function(mounts, key) {
-	    return this.operation('max', this._max, key, mounts);
+	  max: function(opts) {
+	    return this.operation('max', this._max, opts.key, opts.mounts);
 	  },
-	  first: function(mounts, key) {
-	    return this.operation('first', this._min, key, mounts);
+	  first: function(opts) {
+	    return this.operation('first', this._min, opts.key, opts.mounts);
 	  },
-	  last: function(mounts, key) {
-	    return this.operation('last', this._max, key, mounts);
+	  last: function(opts) {
+	    return this.operation('last', this._max, opts.key, opts.mounts);
 	  },
 
-	  range: function(mounts) {
+	  range: function(opts) {
 	    return [this.first(mounts, 'x'), this.last(mounts, 'x')];
 	  },
 
-	  rangedValues: function(mounts, key) {
-	    return [this.min(mounts, key), this.max(mounts, key)];
+	  rangedValues: function(opts) {
+	    return [this.min(opts), this.max(opts)];
 	  },
 
 		append: function(data, noHeap) {

@@ -13,9 +13,7 @@
 
         urlPrefix: String,
 
-        facilityName: String,
-
-        systemName: String,
+        mount: String,
 
         groupedKey: {
           type: String,
@@ -43,14 +41,17 @@
       },
 
       observers: [
-        '_fetchGroups(facilityName, systemName)'
+        '_fetchGroups(mount)'
       ],
 
-      _fetchGroups: function(facilityName, systemName) {
-        if (facilityName && systemName) {
+      _fetchGroups: function(mount) {
+        var names = mount.split('/')
+                         .filter(function (str) { return str !== ''; });
+        if (names.length === 2) {
+          this._mount = names[0] + '+' + names[1];
           this.async( function() {
-            this._request(facilityName, systemName, 'groups');
-            this._request(facilityName, systemName, 'groupingKeys');
+            this._request(this._mount, 'groups');
+            this._request(this._mount, 'groupingKeys');
           }.bind(this));
         }
       },
@@ -66,13 +67,13 @@
         return [];
       },
 
-      _request: function(facilityName, systemName, request, attempts) {
-        if (!(facilityName && systemName && request)) {
+      _request: function(_mount, request, attempts) {
+        if (!(_mount && request)) {
           return;
         }
         var prefix = this.urlPrefix || '/data/';
         this._getResource({
-          url: prefix + facilityName + '+' + systemName + '+' + request + '.json',
+          url: prefix + _mount + '+' + request + '.json',
           onLoad: function(e) {
             if (e.target.status < 400) {
               this.set(request, JSON.parse(e.target.responseText));
@@ -116,7 +117,7 @@
           this.set('groupedKey', groupedKey);
         } else {
           this._getResource({
-            url: prefix + this.facilityName + '+' + this.systemName + '+preferedGroupingKey.json',
+            url: prefix + this._mount + '+preferedGroupingKey.json',
             onLoad: function(e) {
               if (e.target.status < 400) {
                 this.set('groupedKey', JSON.parse(e.target.responseText));

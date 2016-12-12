@@ -61,13 +61,6 @@ WebvisualClient.prototype = {
 
     this.nodes.get(mount)
         .add(node);
-
-    if (!node._initialized && node.uniqueid)
-      node.requestLastValue(mount, node.uniqueid)
-             .then( function(values) {
-               node.insertValues(values);
-             })
-             .catch( function() {} );
   },
 
   retractElement: function(node, item) {

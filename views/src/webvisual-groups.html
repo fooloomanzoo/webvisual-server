@@ -17,36 +17,74 @@
 
 <dom-module id="webvisual-groups">
   <template>
-    <style include="shared-styles page-layout"></style>
+    <style include="shared-styles page-layout">
+      :host(:not([plain])) .grid.sign li > * {
+        border-radius: 12px;
+      }
+      :host([plain]) .grid.sign li > * {
+        border-radius: 6px;
+      }
+      .grid.sign li > * {
+        box-shadow: none;
+      }
 
-    <app-route
-      route="[[route]]"
-      pattern="/:facilityName/:systemName"
-      data="{{routeData}}"></app-route>
+      .grid.sign li > :first-child {
+        border-bottom-left-radius: 0px;
+        border-bottom-right-radius: 0px;
+        border-bottom-width: 0px;
+      }
 
-    <webvisual-facility-data
-      id="facilityData"
-      facilities="[[facilities]]"
-      facility-name="[[routeData.facilityName]]"
-      system-name="[[routeData.systemName]]"
-      items="{{elements}}"></webvisual-facility-data>
+      .grid.sign li > :last-child {
+        border-top-left-radius: 0px;
+        border-top-right-radius: 0px;
+      }
+      @media (max-width: 1979px) {
+        .grid.sign li {
+          -webkit-flex-basis: 25%;
+          flex-basis: 25%;
+          max-width: 25%;
+        }
+      }
+      @media (max-width: 1279px) {
+        .grid.sign li {
+          -webkit-flex-basis: 33%;
+          flex-basis: 33%;
+          max-width: 33%;
+        }
+      }
+      @media (min-width: 768px) and (max-width: 899px) {
+        .grid.sign li {
+          -webkit-flex-basis: 50%;
+          flex-basis: 50%;
+          max-width: 50%;
+        }
+      }
+      @media (max-width: 519px) {
+        .grid.sign li {
+          -webkit-flex-basis: 50%;
+          flex-basis: 50%;
+          max-width: 50%;
+        }
+      }
+      @media (max-width: 379px) {
+        .grid.sign li {
+          -webkit-flex-basis: 33%;
+          flex-basis: 33%;
+          max-width: 33%;
+        }
+      }
 
-    <webvisual-element-socket-data
-      socket-name="data"
-      socket-room="[[routeData.facilityName]]/[[routeData.systemName]]"
-      lazy-connect="[[shouldConnectSocket]]"></webvisual-element-socket-data>
+    </style>
 
     <webvisual-group-data
       subgroups="{{subgroups}}"
       grouped-key="{{groupedKey}}"
       grouping-keys="{{groupingKeys}}"
-      facility-name="[[routeData.facilityName]]"
-      system-name="[[routeData.systemName]]"></webvisual-group-data>
+      mount="[[mount]]"></webvisual-group-data>
 
     <webvisual-svg-data
       svg-data="{{svgData}}"
-      facility-name="[[routeData.facilityName]]"
-      system-name="[[routeData.systemName]]"></webvisual-svg-data>
+      mount="[[mount]]"></webvisual-svg-data>
 
     <!-- <template is="dom-if" if="[[visible]]" restamp> -->
 
@@ -55,11 +93,12 @@
           <li>
             <webvisual-groupcard
               title="[[group.title]]"
-              plain="[[plain]]"
+              plain$="[[plain]]"
               open-on-select
               open-on-exceed
               multi
-              svg-src-path="/images/[[routeData.facilityName]]/[[routeData.systemName]]/[[group.svg.path]]"
+              svg-url-prefix="/images[[mount]]/"
+              svg-src-path="[[group.svg.path]]"
               svg-selectable="[[_getSvgSelectable(group.svg.path, svgData.paths)]]">
 
               <ul class="grid sign">
@@ -98,19 +137,7 @@
 
       properties: {
 
-        dark: {
-          type: Boolean,
-          reflectToAttribute: true
-        },
-
-        plain: {
-          type: Boolean,
-          reflectToAttribute: true
-        },
-
-        facility: Object,
-
-        system: Object,
+        mount: String,
 
         elements: {
           type: Array,
@@ -129,30 +156,16 @@
           notify: true
         },
 
-        route: Object,
-
-        routeData: Object,
-
         visible: {
           type: Boolean,
           value: false,
           reflectToAttribute: true
-        },
-
-        offline: Boolean,
-
-        loadComplete: Boolean,
-
-        loggedIn: Boolean,
-
-        shouldConnectSocket: {
-          type: Boolean,
-          computed: '_computeShouldConnectSocket(offline, visible, loggedIn, loadComplete)'
         }
+
       },
 
       observers: [
-        '_routeChanged(routeData, visible)'
+        '_routeChanged(mount, visible)'
       ],
 
       print: function(arg,arg2,arg3) {
@@ -190,35 +203,15 @@
         return svgSrcPaths[src] || {};
       },
 
-      _getItemHref: function(item) {
-        // By returning null when 'itemId' is undefined, the href attribute won't be set and
-        // the link will be disabled.
-        return item.name ? ['/detail', this.facility.name, this.system.name, item.name].join('/') : null;
-      },
-
-      _routeChanged: function(routeData, visible) {
+      _routeChanged: function(mount, visible) {
         if (visible) {
           this.debounce('change-section', function() {
             // Notify the facility and the page's title
             this.fire('change-section', {
-              title: routeData.facilityName + '/' + routeData.systemName
+              title: mount
             });
           });
         }
-      },
-
-      _tryReconnect: function() {
-        this.$.facilityData.refresh();
-      },
-
-      _offlineChanged: function(offline) {
-        if (!offline) {
-          this._tryReconnect();
-        }
-      },
-
-      _computeShouldConnectSocket: function(offline, visible, loggedIn, loadComplete) {
-        return !offline && visible && loadComplete && loggedIn;
       }
     });
   </script>

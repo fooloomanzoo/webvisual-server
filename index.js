@@ -36,7 +36,11 @@ class WebvisualServer {
 
     this.config = settings;
 
-    var mode = process.argv[2] || config.mode || '';
+    var mode = process.argv[2] || config.mode || 'development';
+
+    if (mode) {
+      process.send( { log: `started in ${mode} mode`} );
+    }
 
     this.router = new Router(app, mode);
     this.router.on('error', (err) => {
@@ -53,6 +57,9 @@ class WebvisualServer {
     });
     this.dataHandler.on('error', (err) => {
       process.send( { error: err } );
+    });
+    this.dataHandler.on('log', (msg) => {
+      process.send( { log: msg } );
     });
 
     if (this.config) {

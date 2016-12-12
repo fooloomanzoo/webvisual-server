@@ -13,24 +13,29 @@
 
         urlPrefix: String,
 
-        facilityName: String,
+        mount: String,
 
-        systemName: String,
-
-        svgSource: {
+        svgData: {
           type: Object,
           notify: true
         }
       },
 
       observers: [
-        '_fetchSvgSource(facilityName, systemName)'
+        '_fetchSvgSource(mount)'
       ],
 
-      _fetchSvgSource: function(facilityName, systemName) {
+      _fetchSvgSource: function(mount) {
+        var facilityName, systemName;
+        var names = mount.split('/')
+                         .filter(function (str) { return str !== ''; });
+        if (names.length === 2) {
+          facilityName = names[0];
+          systemName = names[1];
+        }
         if (facilityName && systemName) {
           this.async( function() {
-            this._getResource.call(this, facilityName, systemName)
+            this._getResource(facilityName, systemName);
           }.bind(this));
         }
       },

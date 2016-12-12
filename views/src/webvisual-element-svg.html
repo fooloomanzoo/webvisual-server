@@ -162,6 +162,11 @@
 
     properties: {
       /**
+       * url prefix to source url of svg document
+       */
+      urlPrefix: String,
+
+      /**
        * source url of svg document
        */
       src: String,
@@ -193,9 +198,9 @@
         observer: '_initialChanged'
       },
       /**
-       * If true, initially it is not zoomed to 'initial' if there are selected Nodes
+       * If true, initially it is not zoomed to selected Nodes
        */
-      initiallyZoomToSelected: Boolean,
+      initiallyZoomToAll: Boolean,
       /**
        * If true, webvisual-element-svg is shown
        */
@@ -224,13 +229,13 @@
        */
       zoomPartition: {
         type: Number,
-        value: 4
+        value: 3
       },
 
       /**
        * selectable css-selectors (key as id, value as selector), so that an eventlistener can be attached
        */
-      selectable: Object,
+      selectableItems: Object,
 
       item: Object,
       items: Array,
@@ -260,7 +265,8 @@
     _d3Zoom: Object,
 
     observers: [
-      '_srcChanged(src)',
+      '_srcChanged(src, urlPrefix)',
+      '_selectableItemsChanged(selectableItems)',
       '_selectedItemChanged(item)',
       '_selectedItemsChanged(items.splices)',
       '_exceedingChanged(exceeding.splices)'
@@ -275,7 +281,7 @@
       this._srcChanged();
       if (!this._inialized)
         this._initialize();
-      this.debounce('resetZoom', this._resetZoom, 500);
+      this.debounce('resetZoom', this._resetZoom, 1000);
     },
 
     open: function(e) {
@@ -287,15 +293,16 @@
       this.opened = false;
     },
 
-    _srcChanged: function() {
-      if (this.src && this._recentSrc !== this.src) {
-        this._recentSrc = this.src;
+    _srcChanged: function(src, urlPrefix) {
+      if (src && this._recentSrc !== src) {
+        this._recentSrc = src;
         this._svg = d3.select(this.$.svgContainer).select('svg#main');
         if (this._svg && !this._svg.empty()) {
           this.$.svgContainer.removeChild(this._svg.node());
         }
         // import svg (came by data-socket-repeater)
-        this._fetchResource(this.src)
+        urlPrefix = urlPrefix || '/images/';
+        this._fetchResource(urlPrefix + src)
             .then( this._registerXML.bind(this) )
             .catch( function(req) {
               console.log('Failed to read source\n', req);
@@ -303,7 +310,7 @@
       }
     },
 
-    _fetchResource: function(src) {
+    _fetchResource: function(url) {
       return new Promise(function(resolve, reject) {
         var req = new XMLHttpRequest();
         req.onreadystatechange = function() {
@@ -315,7 +322,7 @@
             }
           }
         }.bind(req);
-        req.open("GET", src);
+        req.open("GET", url);
         req.withCredentials = true;
         req.send();
       })
@@ -359,7 +366,7 @@
     },
 
     _initialize: function() {
-      this.async( this._selectableChanged.bind(this), 100);
+      this.async( this._selectableItemsChanged.bind(this), 100);
       this.debounce('select', this._selectSelected, 100);
       this.debounce('select-exceeds', this._selectExceeds, 100);
     },
@@ -408,13 +415,13 @@
       this.debounce('resetZoom', this._resetZoom, 250);
     },
 
-    _selectableChanged: function() {
+    _selectableItemsChanged: function() {
       if (!this._mainG.node || !this.src) return;
 
-      if (this.selectable && this.selectable.items) {
+      if (this.selectableItems && this.selectableItems.items) {
         var self = this;
-        for (var key in this.selectable.items) {
-          this._mainG.selectAll(this.selectable.items[key])
+        for (var key in this.selectableItems.items) {
+          this._mainG.selectAll(this.selectableItems.items[key])
                     .classed('selectable', true)  // for styling selectable
                     .classed('style-scope', true).classed('webvisual-element-svg', true) // for style-scoping in polymer
                     .on('click',
@@ -575,7 +582,7 @@
       if (!this.opened || !this._mainG || !this._mainG.node) return;
 
       // zoom to selectedItems
-      if(this.initiallyZoomToSelected === true) {
+      if(!this.initiallyZoomToAll) {
         if (this.items.length) {
           this.debounce('select', this._selectSelected, 50);
           return;
@@ -603,9 +610,9 @@
         this.old = { zoomPartition: this.zoomPartition,
                      maxZoom: this.maxZoom,
                      minZoom: this.minZoom }
-        this.zoomPartition *= 3;
+        this.zoomPartition *= 6;
         this.maxZoom *= 1.25;
-        this.minZoom = 1;
+        this.minZoom = 0.98;
       } else if (this.old) {
           this.zoomPartition = this.old.zoomPartition;
           this.maxZoom = this.old.maxZoom;

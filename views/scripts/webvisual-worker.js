@@ -71,8 +71,8 @@ self.createSocketConnection = function(opt) {
   }
 }
 
-self._setup = function(opt) {
-  if (opt.socketRoom) {
+self.setupConnection = function(opt) {
+  if (socket && opt.socketRoom) {
     var facility = opt.socketRoom.split('/')[0],
       system = opt.socketRoom.split('/')[1];
     if (!facility || !system) {
@@ -118,7 +118,8 @@ self._updateClient = function(message) {
   for (var mount in message.values) {
     ret[mount] = {};
     ret[mount].splices = this.cache.get(mount).splices;
-    ret[mount].values = this.cache.get(mount).heap;
+    ret[mount].heap = this.cache.get(mount).heap;
+    ret[mount].values = message.values[mount];
   }
 
   self.postMessage(ret)
@@ -132,7 +133,7 @@ self.request = function(opt) {
     if (func === 'messageId')
       continue;
     if (cache[func]) {
-      messageId = opt[func].messageId;
+      messageId = opt.messageId;
       values = cache[func](opt[func]);
       self.postMessage({
         messageId: messageId,

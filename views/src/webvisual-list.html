@@ -39,25 +39,8 @@
       }
     </style>
 
-    <app-route
-      route="[[route]]"
-      pattern="/:facilityName/:systemName"
-      data="{{routeData}}"></app-route>
-
-    <webvisual-facility-data
-      id="facilityData"
-      facilities="[[facilities]]"
-      facility-name="[[routeData.facilityName]]"
-      system-name="[[routeData.systemName]]"
-      items="{{elements}}"></webvisual-facility-data>
-
-    <webvisual-element-socket-data
-      socket-name="data"
-      socket-room="[[routeData.facilityName]]/[[routeData.systemName]]"
-      lazy-connect="[[shouldConnectSocket]]"></webvisual-element-socket-data>
-
     <!-- <template is="dom-if" if="[[visible]]" restamp> -->
-      <ul class="grid" hidden$="[[failure]]">
+      <ul class="grid">
         <template is="dom-repeat" items="[[_getListItems(elements)]]">
           <li>
             <!-- <a href$="[[_getItemHref(item)]]"> -->
@@ -72,10 +55,10 @@
         </template>
       </ul>
 
-      <webvisual-snackbar opened>
+      <!-- <webvisual-snackbar opened>
         <webvisual-element-sign item="[[item]]"></webvisual-element-sign>
         <webvisual-element-caption keys="[[item.keys]]" vertical></webvisual-element-caption>
-      </webvisual-snackbar>
+      </webvisual-snackbar> -->
 
     <!-- </template> -->
   </template>
@@ -89,52 +72,19 @@
       ],
 
       properties: {
-        dark: {
-          type: Boolean,
-          reflectToAttribute: true
-        },
 
-        plain: {
-          type: Boolean,
-          reflectToAttribute: true
-        },
+        mount: String,
 
-        facility: Object,
-
-        system: Object,
-
-        elements: Array,
-
-        route: Object,
-
-        routeData: Object,
-
-        failure: Boolean,
-
-        visible: {
-          type: Boolean,
-          value: false,
-          reflectToAttribute: true
-        },
-
-        offline: Boolean,
-
-        loadComplete: Boolean,
-
-        loggedIn: Boolean,
-
-        shouldConnectSocket: {
-          type: Boolean,
-          computed: '_computeShouldConnectSocket(offline, visible, loggedIn, loadComplete)'
+        elements: {
+          type: Array,
+          notify: true
         }
 
       },
 
       observers: [
-        '_routeChanged(routeData, visible)'
+        '_routeChanged(mount, visible)'
       ],
-
-
 
       print: function(arg,arg2,arg3) {
         console.log(arg,arg2,arg3);
@@ -145,12 +95,12 @@
         return items || [{},{},{},{},{},{},{},{},{},{}];
       },
 
-      _routeChanged: function(routeData, visible) {
+      _routeChanged: function(mount, visible) {
         if (visible) {
           this.debounce('change-section', function() {
             // Notify the facility and the page's title
             this.fire('change-section', {
-              title: routeData.facilityName + '/' + routeData.systemName
+              title: mount
             });
           });
         }
@@ -158,10 +108,6 @@
 
       _tryReconnect: function() {
         this.$.facilityData.refresh();
-      },
-
-      _computeShouldConnectSocket: function(offline, visible, loggedIn, loadComplete) {
-        return !offline && visible && loadComplete && loggedIn;
       }
     });
   </script>

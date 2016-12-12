@@ -13,6 +13,8 @@
 
         urlPrefix: String,
 
+        mount: String,
+
         facilityName: String,
 
         systemName: String,
@@ -56,6 +58,7 @@
       observers: [
         '_computeLoggedIn(offline)',
         '_computeFacilityList(loggedIn)',
+        '_computeNames(mount)',
         '_computeFacility(facilities, facilityName)',
         '_computeSystem(facility, systemName)',
         '_computeItems(system)'
@@ -92,6 +95,19 @@
         }.bind(this));
       },
 
+      _computeNames: function(mount) {
+        if (mount) {
+          var names = mount.split('/')
+                           .filter(function (str) { return str !== ''; });
+          if (names.length === 2) {
+            this.async( function() {
+              this.set('facilityName', names[0]);
+              this.set('systemName', names[1]);
+            }.bind(this), 1)
+          }
+        }
+      },
+
       _computeFacility: function(facilities, facilityName) {
         if (facilities && facilityName) {
           this.async( function() {
@@ -125,7 +141,7 @@
                   // if (system)
                   //   this.set('system', JSON.parse(system));
                 }.bind(this))
-          }.bind(this));
+          }.bind(this) );
         }
       },
 
@@ -133,6 +149,7 @@
         // console.log('items', system);
         if (system && system.items) {
           this.set('items', system.items);
+          // console.log(system.items);
         } else {
           // var items = localStorage.getItem('items');
           // if (items)

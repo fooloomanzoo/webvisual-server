@@ -14,22 +14,15 @@
   <template>
     <style include="webvisual-selectbox">
       :host {
-        display: inline-flex;
-				padding: 4px;
+        display: block;
         width: 100%;
         height: 100%;
-        flex: 1;
         position: relative;
-        align-self: stretch;
-        box-sizing: border-box;
         font-family: inherit;
         color: currentColor;
         letter-spacing: normal !important;
-        border-radius: inherit;
         -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
         -webkit-touch-callout: none; -webkit-tap-highlight-color:rgba(0,0,0,0);
-        /*overflow: hidden;*/
-        visibility: visible;
         -webkit-touch-callout: none !important;
           -webkit-user-select: none !important;
            -khtml-user-select: none !important;
@@ -38,14 +31,16 @@
                   user-select: none !important;
       }
       #svgContainer {
-        display: inline-flex;
-        flex: 1;
-        position: relative;
+        border-radius: inherit;
+        display: block;
+        width: 100%;
+        height: 100%;
       }
       #svgchart {
-        width: 100%;
-        height: auto;
         position: relative;
+        width: 100%;
+        height: 100%;
+        display: block;
       }
       webvisual-button, webvisual-radio-button {
         padding: 0.5em;
@@ -102,13 +97,8 @@
         fill: currentColor;
         pointer-events: none;
         letter-spacing: normal !important;
-        /*@apply(--font-common-base);*/
-        font-family: sans-serif;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-        text-rendering: optimizeLegibility;
+        font-family: inherit !important;
         mix-blend-mode: exclusion;
-        pointer-events: none;
       }
       g#chart g.axis {
         font-size: inherit;
@@ -297,6 +287,11 @@
 
       properties: {
 
+        opened: {
+          type: Boolean,
+          reflectToAttribute: true
+        },
+
         gridMult: {
           type: Number,
           value: 2
@@ -340,7 +335,9 @@
           value: function() {
             return [];
           }
-        }
+        },
+
+        uniqueid: String
 
       },
 
@@ -348,10 +345,10 @@
       _height: 0,
 
       _margin: {
-        top: 8,
-        right: 16,
-        bottom: 36,
-        left: 44
+        top: 10,
+        right: 15,
+        bottom: 20,
+        left: 40
       },
 
       _chart: Object,
@@ -385,6 +382,8 @@
       formatMonth: Function,
       formatYear: Function,
 
+      _messageCount: 0,
+
       get _self() {
         return this;
       },
@@ -409,7 +408,9 @@
         this.formatWeek = d3.timeFormat('%d.%m');
         this.formatMonth = d3.timeFormat('%d. %b');
         this.formatYear = d3.timeFormat('%Y');
+      },
 
+      ready: function() {
         var sel, uniqueid;
         while (true) {
           uniqueid = String(Math.random().toString(16).slice(2));
@@ -417,14 +418,14 @@
           if (!sel) break;
         }
         this.setAttribute('uniqueid', uniqueid);
-      },
-
-      ready: function() {
         this._buildLayout();
       },
 
       _sizeChanged: function(e) {
-        this.debounce('resize', this._sizeLayout, 25);
+        // only resize if opened attribute is set
+        if (this.opened) {
+          this.debounce('resize', this._sizeLayout, 25);
+        }
       },
 
       _buildLayout: function() {
@@ -481,6 +482,7 @@
       _sizeLayout: function() {
         // performance.mark('size start');
         var bRect = this.$.svgchart.getBoundingClientRect();
+
         if (bRect.height === 0 || bRect.width === 0) return;
 
         this._height = Math.max(bRect.height, 150);
@@ -703,10 +705,23 @@
               domainY = [],
               yScale = this.yScale;
 
-          this.requestRange('x')
+          var mounts = new Set();
+          this._graphs.forEach( function(g) {
+            if (g.item && g.item.mount) {
+              mounts.add(g.item.mount);
+            }
+          });
+
+          mounts = Array.from(mounts);
+
+          if (!mounts.length) {
+            return;
+          }
+
+          this.requestRange(mounts, 'x')
               .then( function(rangeX) {
                 domainX = rangeX;
-                this.requestRange('y')
+                this.requestRange(mounts, 'y')
                     .then( function(rangeY) {
                       domainY = rangeY;
 
@@ -740,36 +755,32 @@
         }.bind(this));
       },
 
-      requestRange: function(key) {
-        var mounts = new Set();
-        this._graphs.forEach( function(g) {
-          if (g.mount) {
-            mounts.add(g.mount);
-          }
-        });
+      requestRange: function(key, mounts) {
 
-        var uniqueid = this.uniqueid;
+        this._messageCount++;
+        var messageId = 'requestRange' + this.uniqueid + this._messageCount;
+        var req = {
+          request: {
+            messageId: messageId,
+            rangedValues: {
+              mounts: Array.from(mounts),
+              key: key
+            }
+          }
+        };
+
         if (window.Webvisual && window.Webvisual.webworker) {
           return new Promise(function(resolve, reject) {
             this.webworker.addEventListener('message', function onMessage(e) {
               if (e.data
                && e.data.messageId
-               && e.data.messageId === lastMessageId) {
+               && e.data.messageId === messageId) {
                  this.webworker.removeEventListener('message', onMessage);
-                 resolve(e.data.values);
+                  resolve(e.data.values);
                }
             }.bind(this));
 
-            this.webworker.postMessage(
-              {
-                request: {
-                  messageId: uniqueid,
-                  rangedValues: {
-                    mounts: mounts,
-                    key: key
-                  }
-                }
-              });
+            this.webworker.postMessage( req );
           }.bind(window.Webvisual))
         } else {
           return new Promise( function(resolve, reject) {

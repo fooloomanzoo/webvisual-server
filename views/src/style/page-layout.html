@@ -15,7 +15,7 @@
 
       .grid li {
         @apply(--layout-vertical);
-        /*overflow: hidden;*/
+        overflow: hidden;
         box-sizing: border-box;
         -webkit-flex: 1 1;
         flex: 1 1;
@@ -25,39 +25,18 @@
         padding: 0.25em;
       }
 
-      .grid li > * {
-        border: thin solid var(--grid-border-color);
-      }
-
       :host(:not([plain])) .grid li > * {
         border-radius: 6px;
         box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.14),
                     0 1px 10px 0 rgba(0, 0, 0, 0.12),
                     0 2px 4px -1px rgba(0, 0, 0, 0.4);
+        border: thin solid var(--grid-border-color);
       }
 
       :host([plain]) .grid li > * {
         border-radius: 4px;
-      }
-      :host(:not([plain])) .grid.sign li > * {
-        border-radius: 12px;
-      }
-      :host([plain]) .grid.sign li > * {
-        border-radius: 6px;
-      }
-      .grid.sign li > * {
         box-shadow: none;
-      }
-
-      .grid.sign li > :first-child {
-        border-bottom-left-radius: 0px;
-        border-bottom-right-radius: 0px;
-        border-bottom-width: 0px;
-      }
-
-      .grid.sign li > :last-child {
-        border-top-left-radius: 0px;
-        border-top-right-radius: 0px;
+        border: none;
       }
 
       .grid a {
@@ -71,20 +50,8 @@
         /*flex: 1 0 auto;*/
       }
 
-      @media (max-width: 2299px) {
-        .grid.sign li {
-          -webkit-flex-basis: 20%;
-          flex-basis: 20%;
-          max-width: 20%;
-        }
-      }
       @media (max-width: 1979px) {
         .grid li {
-          -webkit-flex-basis: 25%;
-          flex-basis: 25%;
-          max-width: 25%;
-        }
-        .grid.sign li {
           -webkit-flex-basis: 25%;
           flex-basis: 25%;
           max-width: 25%;
@@ -97,29 +64,8 @@
           max-width: 33%;
         }
       }
-      @media (max-width: 1279px) {
-        .grid.sign li {
-          -webkit-flex-basis: 33%;
-          flex-basis: 33%;
-          max-width: 33%;
-        }
-      }
-      @media (min-width: 768px) and (max-width: 899px) {
-        .grid.sign li {
-          -webkit-flex-basis: 50%;
-          flex-basis: 50%;
-          max-width: 50%;
-        }
-      }
       @media (max-width: 767px) {
         .grid li {
-          -webkit-flex-basis: 50%;
-          flex-basis: 50%;
-          max-width: 50%;
-        }
-      }
-      @media (max-width: 519px) {
-        .grid.sign li {
           -webkit-flex-basis: 50%;
           flex-basis: 50%;
           max-width: 50%;
@@ -130,11 +76,6 @@
           -webkit-flex-basis: 100%;
           flex-basis: 100%;
           max-width: 100%;
-        }
-        .grid.sign li {
-          -webkit-flex-basis: 33%;
-          flex-basis: 33%;
-          max-width: 33%;
         }
       }
 
