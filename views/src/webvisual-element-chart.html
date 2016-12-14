@@ -1,10 +1,9 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
 
-<link rel="import" href="components/webvisual-radio-button.html"/>
-<link rel="import" href="components/webvisual-icon-button.html"/>
+<link rel="import" href="behaviors/fullscreen-behavior.html"/>
 
-<link rel="import" href="style/webvisual-selectbox.html"/>
+<link rel="import" href="components/webvisual-icon-button.html"/>
 
 <link rel="import" href="webvisual-element-graph.html"/>
 
@@ -12,7 +11,7 @@
 
 <dom-module id="webvisual-element-chart">
   <template>
-    <style include="webvisual-selectbox">
+    <style>
       :host {
         display: block;
         width: 100%;
@@ -30,6 +29,14 @@
               -ms-user-select: none !important;
                   user-select: none !important;
       }
+      :host[fullscreen],
+      :host([fullscreen]) {
+        background-color: var(--fullscreen-background-color);
+        padding: 3em !important;
+      }
+      :host(:-webkit-full-screen) {
+        background-color: var(--fullscreen-background-color);
+      }
       #svgContainer {
         border-radius: inherit;
         display: block;
@@ -37,68 +44,19 @@
         height: 100%;
       }
       #svgchart {
+        overflow: visible;
         position: relative;
         width: 100%;
         height: 100%;
         display: block;
-      }
-      webvisual-button, webvisual-radio-button {
-        padding: 0.5em;
-        float: left;
-        clear: both;
-        width: 100%;
-        border-radius: 0px;
-      }
-      webvisual-button {
-        font-size: 0.7em;
-      }
-      webvisual-radio-button {
-        margin-top: 0.2em;
-        margin-bottom: 0.2em;
-        --radio-button-checked-color: var(--bright-primary-color);
-        --radio-button-unchecked-color: #bbb;
-      }
-      webvisual-dropdown {
-        --dropdown-background: rgba(255, 255, 255, 0.75);
-      }
-      webvisual-dropdown#legend {
-        --dropdown-background: rgba(255, 255, 255, 0.5);
-      }
-      webvisual-element-graph {
-        padding: 0.25em;
-      }
-      webvisual-icon-button {
-        position: absolute;
-        opacity: 0.4;
-        --iron-icon-width: 20px;
-        --iron-icon-height: 20px;
-        transition: opacity 150ms ease;
-      }
-      webvisual-icon-button:hover {
-        opacity: 1;
-        border-radius: 3px;
-      }
-      #xbutton {
-        left: auto; right: 16px; top: auto; bottom: 0;
-      }
-      #ybutton {
-        left: 0; right: auto; top: 8px; bottom: auto;
-      }
-      #zoombutton {
-        left: auto; right: 16px; top: 8px; bottom: auto;
-      }
-      #optionsbutton {
-        left: 0; right: auto; top: auto; bottom: 0;
-      }
-      #legendbutton {
-        left: auto; right: 52px; top: 8px; bottom: auto;
+        mix-blend-mode: exclusion;
+        font-family: inherit;
       }
       text {
         fill: currentColor;
         pointer-events: none;
         letter-spacing: normal !important;
         font-family: inherit !important;
-        mix-blend-mode: exclusion;
       }
       g#chart g.axis {
         font-size: inherit;
@@ -107,12 +65,16 @@
         font-size: 0.55em;
       }
       g#chart rect.plot {
-        fill: white;
-        fill-opacity: 0.9;
+        fill: var(--chart-plot-background, #eee);
         stroke: currentColor;
+        fill-opacity: 0.25;
         stroke-opacity: 0.25;
         shape-rendering: crispEdges;
         stroke-width: 1px;
+      }
+      :host[fullscreen] g#chart rect.plot,
+      :host([fullscreen]) g#chart rect.plot {
+        fill: var(--chart-plot-background, #ccc);
       }
       g#brush rect.overlay {
         cursor: default;
@@ -137,6 +99,9 @@
         stroke-opacity: 0.5;
         stroke-width: 1.5px;
         mix-blend-mode: exclusion;
+      }
+      g.axis {
+        font-family: inherit;
       }
       /*g#chart g.axis path, g#chart g.axis line {
         stroke-opacity: 0.5;
@@ -173,11 +138,27 @@
         stroke-dasharray: 2;
         mix-blend-mode: exclusion;
       }
-      [hidden] {
-        display: none !important;
-      }
       g.axis, g.grid, g#focus, rect.plot {
         pointer-events: none;
+      }
+      webvisual-icon-button {
+        border-radius: 0%;
+        mix-blend-mode: exclusion;
+        opacity: 0.5;
+        will-change: opacity;
+        transition: opacity 150ms ease;
+      }
+      webvisual-icon-button:hover {
+        opacity: 1;
+      }
+      #control {
+        display: inline-block;
+        position: absolute;
+        bottom: 0;
+        right: 4px;
+      }
+      [hidden] {
+        display: none !important;
       }
     </style>
 
@@ -208,22 +189,14 @@
           </g>
         </g>
       </svg>
+  	</div>
 
-      <!-- <webvisual-icon-button id="zoombutton" icon="search" on-tap="_startZoomSession"></webvisual-icon-button>
-
-		  <webvisual-icon-button id="legendbutton" icon="timeline"></webvisual-icon-button>
-		  <webvisual-dropdown id="legend" for="legendbutton" target-toggle-event="tap" hiding-event="" position="bottom" align="center">
-		    <content id="collector" select="webvisual-element-graph"></content>-->
-		    <template is="dom-repeat" items="[[items]]">
-		      <webvisual-element-graph
-            item="[[item]]"
-            interpolation="[[interpolation]]"
-            store-inside>
-		      </webvisual-element-graph>
-		    </template>
-		  <!-- </webvisual-dropdown>
-
-		  <webvisual-icon-button id="optionsbutton" icon="juelich:app-inverted"></webvisual-icon-button>
+      <!-- <webvisual-icon-button id="zoombutton" icon="search" on-tap="_startZoomSession"></webvisual-icon-button> -->
+    <section id="control">
+		  <webvisual-icon-button title="legend" icon="timeline" on-tap="openLegend"></webvisual-icon-button>
+      <webvisual-icon-button title="fullscreen" icon="[[fullscreenIcon]]" on-tap="toggleFullscreen"></webvisual-icon-button>
+    </section>
+		  <!--<webvisual-icon-button id="optionsbutton" icon="juelich:app-inverted"></webvisual-icon-button>
 		  <webvisual-dropdown for="optionsbutton" target-toggle-event="tap" position="right" align="outer-start" offset="10">
 		    <webvisual-radio-button checked="[[!noDots]]" on-change="changeDots">mit Punkten</webvisual-radio-button>
 		    <webvisual-radio-button checked="[[!noLines]]" on-change="changeLines">mit Linien</webvisual-radio-button>
@@ -255,7 +228,13 @@
 		    </iron-selector>
 		  </webvisual-dropdown> -->
 
-  	</div>
+    <template is="dom-repeat" items="[[items]]">
+      <webvisual-element-graph
+        item="[[item]]"
+        interpolation="[[interpolation]]"
+        store-inside>
+      </webvisual-element-graph>
+    </template>
 
   </template>
 
@@ -281,8 +260,8 @@
       is: 'webvisual-element-chart',
 
       behaviors: [
-        Polymer.IronResizableBehavior
-        // ,WebvisualBehaviors.ContainerBehavior
+        Polymer.IronResizableBehavior,
+        WebvisualBehaviors.FullscreenBehavior
       ],
 
       properties: {
@@ -345,9 +324,9 @@
       _height: 0,
 
       _margin: {
-        top: 10,
+        top: 0,
         right: 15,
-        bottom: 20,
+        bottom: 10,
         left: 40
       },
 
@@ -485,8 +464,8 @@
 
         if (bRect.height === 0 || bRect.width === 0) return;
 
-        this._height = Math.max(bRect.height, 150);
-        this._width = Math.max(bRect.width, 250);
+        this._height = bRect.height;
+        this._width = bRect.width;
 
         // this._svg.attr('height', this._height)
         //          .attr('width', this._width);
@@ -615,6 +594,7 @@
           d3.timeYear(date) < date ? this.formatMonth :
           this.formatYear)(date);
       },
+
       timeFormatRange: function(date, r, pixels) {
         var rangeRatio = (r[1] - r[0]).valueOf() / pixels;
         return (rangeRatio < 100 ? this.formatMillisecond :
@@ -819,9 +799,11 @@
         this._focus.transition(33).attr('hidden', null);
         this._updateInfo();
       },
+
       _hideInfo: function() {
         this.debounce('hideinfo', this._debounceHideInfo, 750);
       },
+
       _debounceHideInfo: function() {
         this._xAxis = this._createAxis(this._x, 'bottom', this.xScale);
         this._yAxis = this._createAxis(this._y, 'left', this.yScale);
@@ -833,6 +815,7 @@
           .classed('style-scope', true)
           .classed('webvisual-element-chart', true);
       },
+
       _updateInfo: function() {
         if (this._info.attr('hidden') === 'true' || this._info.x === undefined || this._info.y === undefined) return;
         var bbox = this._info.node().getBBox();
@@ -859,6 +842,17 @@
           .classed('style-scope', true)
           .classed('webvisual-element-chart', true);
       },
+
+      openLegend: function() {
+        var graphs = [];
+        this._graphs.forEach(
+          function(g) {
+            graphs.push({type: 'webvisual-element-checkbox', checked: g.checked, item: g.item})
+          });
+        console.log(graphs);
+        this.fire('open-settings', { trigger: this, title: 'chart', settings: [ {title: 'graphs', entries: graphs} ]} );
+      },
+
       toggleMenu: function() {
         if (this.$.menu.hasAttribute('hidden')) {
           this.$.menu.removeAttribute('hidden');
@@ -866,6 +860,7 @@
           this.$.menu.setAttribute('hidden', '');
         }
       },
+
       changeInterpolation: function(interpolation, oldValue) {
         if (!this._graphs.size) return;
         this._graphs.forEach(
@@ -873,6 +868,7 @@
             g.interpolation = interpolation;
           });
       },
+
       changeScale: function(newValue, oldValue) {
         if (oldValue === undefined) return;
         if (this._isZoomed === false) {
@@ -903,6 +899,7 @@
         this._y.domain(domainY).nice(this.yTicks);
         this._redraw();
       },
+
       changeDots: function(e) {
         this.noDots = !e.target.checked;
         if (!this._graphs.size) return;
@@ -911,6 +908,7 @@
             g.set('noDots', !e.target.checked)
           });
       },
+
       changeLines: function(e) {
         this.noLines = !e.target.checked;
         if (!this._graphs.size) return;
@@ -919,6 +917,7 @@
             g.set('noLine', !e.target.checked)
           });
       },
+
       changeAreas: function(e) {
         this.noAreas = !e.target.checked;
         if (!this._graphs.size) return;
@@ -927,6 +926,7 @@
             g.set('noFill', !e.target.checked)
           });
       },
+
       _startZoomSession: function() {
         if (this._zoomOverlay.classed('active')) {
           this._zoomOverlay.classed('active', null);
@@ -934,6 +934,7 @@
           this._zoomOverlay.classed('active', true);
         }
       },
+
       _resetZoom: function() {
         if (d3.event)
           d3.event.preventDefault();

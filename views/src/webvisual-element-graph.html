@@ -11,26 +11,7 @@
 <script type="text/javascript" src="../bower_components/d3/d3.min.js"></script>
 
 <dom-module id="webvisual-element-graph">
-  <style>
-    :host {
-      box-sizing: border-box;
-      position: relative;
-    }
-    #legendEntry {
-      --radio-button-system-color: currentColor;
-      padding: 0.25em;
-    }
-    #legendCaption {
-      --caption-background: transparent;
-      --caption-dark-background: transparent;
-      --caption-padding: 0;
-    }
-  </style>
-  <template>
-    <webvisual-radio-button id="legendEntry" checked="{{checked}}">
-      <webvisual-element-caption id="legendCaption" horizontal only-grouped-key grouped-key="[[groupedKey]]" keys="[[keys]]"></webvisual-element-caption>
-    </webvisual-radio-button>
-  </template>
+
   <script>
     DiagramGraph = Polymer({
       is: 'webvisual-element-graph',
@@ -314,9 +295,6 @@
             this._dots.selectAll('circle.dot')
                       .attr('stroke', this.item.color);
         }
-        this.$.legendEntry.customStyle['--radio-button-checked-color'] = this.item.color;
-        this.$.legendEntry.customStyle['--radio-button-unchecked-color'] = this.item.color;
-        this.$.legendEntry.updateStyles();
       },
 
       checkedChanged: function(checked, old) {

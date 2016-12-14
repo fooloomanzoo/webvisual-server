@@ -31,6 +31,17 @@
           || document.msFullscreenElement;
     },
 
+    get parent() {
+      var root = Polymer.dom(this).getOwnerRoot();
+      if (!root)
+        return Polymer.dom(this).parentNode;
+      else if (root.nodeType == Node.DOCUMENT_FRAGMENT_NODE)
+        return root.host;
+      else {
+        return undefined;
+      }
+    },
+
     attached: function() {
       // fullscreen
       if (this.requestFullscreen) {
@@ -43,7 +54,7 @@
       } else if (this.mozRequestFullScreen) {
         this.requestFullscreen = this.mozRequestFullScreen.bind(this);
         this.exitFullscreen = document.mozCancelFullScreen.bind(document);
-        this.addEventListener('mozfullscreenchange', this.fullScreenChanged.bind(this));
+        document.addEventListener('mozfullscreenchange', this.fullScreenChanged.bind(this));
       } else if (this.msRequestFullscreen) {
         this.requestFullscreen = this.msRequestFullscreen.bind(this);
         this.exitFullscreen = document.msExitFullscreen.bind(document);
@@ -67,7 +78,10 @@
     },
 
     fullScreenChanged: function() {
-      console.log('isFullscreen', this.isFullscreen);
+      this.debounce('fullscreen-changed', this._fullScreenChanged, 15);
+    },
+
+    _fullScreenChanged: function() {
       requestAnimationFrame( function() {
         if (this.isFullscreen) {
           this.fullscreen = true;
@@ -78,6 +92,7 @@
           this.style.bottom = '0';
           this.style['border-radius'] = '0px';
           document.body.style.overflow = 'hidden';
+          this.parent.classList.add('fullscreen');
         } else {
           this.fullscreen = false;
           this.style.position = '';
@@ -87,6 +102,7 @@
           this.style.bottom = '';
           this.style['border-radius'] = '';
           document.body.style.overflow = '';
+          this.parent.classList.remove('fullscreen');
         }
       }.bind(this));
     },

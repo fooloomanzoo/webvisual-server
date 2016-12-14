@@ -97,9 +97,9 @@
 
       _routeChanged: function(mount, visible) {
         if (visible) {
-          this.debounce('change-section', function() {
+          this.debounce('change-page', function() {
             // Notify the facility and the page's title
-            this.fire('change-section', {
+            this.fire('change-page', {
               title: mount
             });
           });

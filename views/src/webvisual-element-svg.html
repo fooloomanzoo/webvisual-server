@@ -35,121 +35,120 @@
 
 <dom-module id="webvisual-element-svg">
 <template>
-<style>
-  :host {
-    border-radius: inherit;
-    -webkit-overflow-scrolling: touch;
-    -webkit-tap-highlight-color:rgba(0,0,0,0);
-    display: block;
-    position: relative;
-    width: 100%;
-    height: 100%;
-    font-family: 'FiraSans-Regular';
-    letter-spacing: normal;
-    user-select: none !important;
-    background-color: transparent;
-  }
-  :host([opened]) {
-    pointer-events: all;
-  }
-  :host([fullscreen]) {
-    background-color: var(--fullscreen-background-color);
-  }
-  :host(:-webkit-full-screen) {
-    background-color: var(--fullscreen-background-color);
-  }
-  svg {
-    border-radius: inherit;
-    user-select: none !important;
-  }
-  #svgContainer {
-    border-radius: inherit;
-    display: block;
-    width: 100%;
-    height: 100%;
-  }
-  #svgContainer svg {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    display: block;
-  }
-  #control {
-    position: absolute;
-    top: 0.25em;
-    right: 0.25em;
-    bottom: auto;
-  }
-  webvisual-icon-button {
-    border-radius: 0%;
-    mix-blend-mode: exclusion;
-    opacity: 0.75;
-    will-change: opacity;
-    transition: opacity 150ms cubic-bezier(0.6, 0, 0.2, 1);
-  }
-  webvisual-icon-button:hover {
-    opacity: 1;
-  }
-  text {
-    pointer-events: none !important;
-    cursor: default !important;
-    letter-spacing: normal !important;
-    stroke: none !important;
-    mix-blend-mode: exclusion;
-    @apply(--svg-text);
-  }
-  .selectable {
-    pointer-events: all;
-    cursor: pointer;
-    transform-origin: center center;
-    -moz-transform-origin: 50% 50%;
-    @apply(--svg-selectable);
-  }
-  .clicked {
-    @apply(--svg-clicked);
-  }
-  .selected {
-    @apply(--svg-selected);
-  }
-  .exceeding {
-    stroke: #D95656;
-    stroke-width: 1.5px;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    transform-origin: center center;
-    will-change: transform;
-    animation-name: exceeding-animation;
-    animation-duration: 2s;
-    animation-timing-function: linear;
-    animation-iteration-count: infinite;
-    @apply(--svg-exceeding);
-  }
-  @keyframes exceeding-animation {
-    0% {
-      transform: scale(1.0);
+  <style>
+    :host {
+      border-radius: inherit;
+      -webkit-overflow-scrolling: touch;
+      -webkit-tap-highlight-color:rgba(0,0,0,0);
+      display: block;
+      position: relative;
+      width: 100%;
+      height: 100%;
+      font-family: 'FiraSans-Regular';
+      letter-spacing: normal;
+      user-select: none !important;
+      background-color: transparent;
+      isolation: isolate;
     }
-    50% {
-      transform: scale(0.8);
-      -moz-transform: scale(1.0);
-      fill: #D95656;
+    :host([opened]) {
+      pointer-events: all;
     }
-    100% {
-      transform: scale(1.0);
+    :host([fullscreen]) {
+      background-color: var(--fullscreen-background-color);
     }
-  }
-  [hidden] {
-    display: none !important;
-  }
+    :host(:-webkit-full-screen) {
+      background-color: var(--fullscreen-background-color);
+    }
+    svg {
+      border-radius: inherit;
+      user-select: none !important;
+      isolation: isolate;
+    }
+    #svgContainer {
+      border-radius: inherit;
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    #svgContainer svg {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    #control {
+      position: absolute;
+      bottom: 0;
+      right: 4px;
+    }
+    webvisual-icon-button {
+      border-radius: 0%;
+      mix-blend-mode: exclusion;
+      opacity: 0.75;
+      will-change: opacity;
+      transition: opacity 150ms cubic-bezier(0.6, 0, 0.2, 1);
+    }
+    webvisual-icon-button:hover {
+      opacity: 1;
+    }
+    text {
+      pointer-events: none !important;
+      cursor: default !important;
+      letter-spacing: normal !important;
+      stroke: none !important;
+      mix-blend-mode: exclusion;
+      @apply(--svg-text);
+    }
+    .selectable {
+      pointer-events: all;
+      cursor: pointer;
+      transform-origin: center center;
+      -moz-transform-origin: 50% 50%;
+      @apply(--svg-selectable);
+    }
+    .clicked {
+      @apply(--svg-clicked);
+    }
+    .selected {
+      @apply(--svg-selected);
+    }
+    .exceeding {
+      stroke: #D95656;
+      stroke-width: 1.5px;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transform-origin: center center;
+      will-change: transform;
+      animation-name: exceeding-animation;
+      animation-duration: 2s;
+      animation-timing-function: linear;
+      animation-iteration-count: infinite;
+      @apply(--svg-exceeding);
+    }
+    @keyframes exceeding-animation {
+      0% {
+        transform: scale(1.0);
+      }
+      50% {
+        transform: scale(0.8);
+        -moz-transform: scale(1.0);
+        fill: #D95656;
+      }
+      100% {
+        transform: scale(1.0);
+      }
+    }
+    [hidden] {
+      display: none !important;
+    }
 
-</style>
-  <!-- <div id="host"> -->
-    <div id="svgContainer">
-    </div>
-    <div id="control" >
-      <webvisual-icon-button title="focus" icon="filter-center-focus" on-tap="_resetZoom"></webvisual-icon-button>
-      <webvisual-icon-button title="fullscreen" icon="[[fullscreenIcon]]" on-tap="toggleFullscreen"></webvisual-icon-button>
-    </div>
-  <!-- </div> -->
+  </style>
+  <div id="svgContainer"></div>
+  <div id="control" >
+    <webvisual-icon-button title="focus" icon="filter-center-focus" on-tap="_resetZoom"></webvisual-icon-button>
+    <webvisual-icon-button title="fullscreen" icon="[[fullscreenIcon]]" on-tap="toggleFullscreen"></webvisual-icon-button>
+  </div>
+
 </template>
 
 <script>
@@ -604,19 +603,22 @@
       this._zoomToElement(this._mainG.node());
     },
 
-    fullScreenChanged: function() {
-      WebvisualBehaviors.FullscreenBehavior.fullScreenChanged.call(this);
+    _fullScreenChanged: function() {
+      WebvisualBehaviors.FullscreenBehavior._fullScreenChanged.call(this);
+      console.log(this.isFullscreen, this._old);
       if (this.isFullscreen) {
-        this.old = { zoomPartition: this.zoomPartition,
-                     maxZoom: this.maxZoom,
-                     minZoom: this.minZoom }
+        if (!this._old) {
+          this._old = { zoomPartition: this.zoomPartition,
+                        maxZoom: this.maxZoom,
+                        minZoom: this.minZoom }
+        }
         this.zoomPartition *= 6;
         this.maxZoom *= 1.25;
         this.minZoom = 0.98;
-      } else if (this.old) {
-          this.zoomPartition = this.old.zoomPartition;
-          this.maxZoom = this.old.maxZoom;
-          this.minZoom = this.old.minZoom;
+      } else if (this._old) {
+        this.zoomPartition = this._old.zoomPartition;
+        this.maxZoom = this._old.maxZoom;
+        this.minZoom = this._old.minZoom;
       }
       this.debounce('resetZoom', this._resetZoom, 500);
     }

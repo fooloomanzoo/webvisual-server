@@ -1,11 +1,12 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
-<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
+
 <dom-module id="page-layout">
   <template>
     <style>
       .grid {
-        @apply(--layout-horizontal);
-        @apply(--layout-wrap);
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
         margin: 0.25em 0.75em 2em 0.75em;
         padding: 0;
         list-style: none;
@@ -14,8 +15,8 @@
       }
 
       .grid li {
-        @apply(--layout-vertical);
-        overflow: hidden;
+        display: flex;
+        flex-direction: column;
         box-sizing: border-box;
         -webkit-flex: 1 1;
         flex: 1 1;

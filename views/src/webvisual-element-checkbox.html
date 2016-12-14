@@ -16,23 +16,19 @@
         position: relative;
         line-height: 0;
         --calculated-box-size: var(--box-size, 20px);
+        --calculated-box-ink-size: var(--box-ink-size, -1px);
         padding: 0.25em 0.5em;
         transition: background-color 200ms ease;
+        box-sizing: border-box;
         cursor: pointer;
-      }
-
-      #container {
-        display: inline-flex;
-        white-space: nowrap;
-        position: relative;
-        line-height: 0;
-        -webkit-tap-highlight-color: transparent;
       }
 
       #boxContainer {
         display: inline-block;
 				align-self: center;
         position: relative;
+        line-height: 0;
+        -webkit-tap-highlight-color: transparent;
         width: var(--calculated-box-size);
         height: var(--calculated-box-size);
         min-width: var(--calculated-box-size);
@@ -43,14 +39,14 @@
 
       #ripple {
         position: absolute;
-        /* Center the ripple in the box by negative offsetting it by
-         * (rippleWidth - rippleWidth) / 2 */
-        top: calc(0px - (2.66 * var(--calculated-box-size) - var(--calculated-box-size)) / 2);
-        left: calc(0px - (2.66 * var(--calculated-box-size) - var(--calculated-box-size)) / 2);
-        width: calc(2.66 * var(--calculated-box-size));
-        height: calc(2.66 * var(--calculated-box-size));
-        color: var(--box-unchecked-ripple-color, --bright-text-color);
-        opacity: 0.25;
+        /* Center the ripple in the checkbox by negative offsetting it by
+         * (inkWidth - rippleWidth) / 2 */
+        top: calc(0px - (var(--calculated-box-ink-size) - var(--calculated-box-size)) / 2);
+        left: calc(0px - (var(--calculated-box-ink-size) - var(--calculated-box-size)) / 2);
+        width: var(--calculated-box-ink-size);
+        height: var(--calculated-box-ink-size);
+        color: var(--box-unchecked-ink-color, var(--primary-text-color));
+        opacity: 0.6;
         pointer-events: none;
       }
 
@@ -60,7 +56,8 @@
         box-sizing: border-box;
         position: relative;
         height: 100%;
-        border: var(--checkbox-border, var(--grid-border));
+        border: solid 2px;
+        border-color: var(--checkbox-border, var(--primary-text-color));
         border-radius: 2px;
         background: rgba(255, 255, 255, 0.9);
         pointer-events: none;
@@ -78,28 +75,30 @@
         border-right-width: calc(2/15 * var(--calculated-box-size));
         border-bottom-width: calc(2/15 * var(--calculated-box-size));
         border-color: var(--box-arrow-color, white);
-        -webkit-transform-origin: 97% 86%;
-        transform-origin: 97% 86%;
+        -webkit-transform-origin: 97% 87%;
+        transform-origin: 97% 87%;
         box-sizing: content-box; /* protect against page-level box-sizing */
       }
 
-      #container[state="0"] #box {
+      #boxContainer #box,
+      #boxContainer[state="0"] #box {
         background-color: var(--element-color);
       }
-      #container[state="1"] #box {
+      #boxContainer[state="1"] #box {
         background-color: var(--element-state-exceeds-color);
       }
-      #container[state="-1"] #box {
+      #boxContainer[state="-1"] #box {
         background-color: var(--element-state-deceeds-color);
       }
 
-      #container[state="0"], #ripple {
-        color: var(--primary-text-color);
+      #boxContainer #ripple,
+      #boxContainer[state="0"] #ripple {
+        color: var(--element-color);
       }
-      #container[state="1"], #ripple {
+      #boxContainer[state="1"] #ripple {
         color: var(--element-state-exceeds-color);
       }
-      #container[state="-1"], #ripple {
+      #boxContainer[state="-1"] #ripple {
         color: var(--element-state-deceeds-color);
       }
 
@@ -117,8 +116,8 @@
 
       /* box checked animations */
       :host([checked]) #arrow {
-        -webkit-animation: arrow-expand 150ms ease-out forwards;
-        animation: arrow-expand 150ms ease-out forwards;
+        -webkit-animation: arrow-expand 250ms ease-out forwards;
+        animation: arrow-expand 250ms ease-out forwards;
       }
 
       @-webkit-keyframes arrow-expand {
@@ -165,16 +164,16 @@
       }
     </style>
 
-    <section id="container" state$="[[state]]" on-click="select">
-      <section id="boxContainer">
-        <section id="box">
-          <section id="arrow" hidden$="[[!checked]]"></section>
-        </section>
-        <template is="dom-if" if="[[selectable]]">
-          <paper-ripple id="ripple"></paper-ripple>
-        </template>
+    <section id="boxContainer" state$="[[state]]">
+      <template is="dom-if" if="[[selectable]]">
+        <paper-ripple id="ripple" center class="circle"></paper-ripple>
+      </template>
+      <section id="box">
+        <section id="arrow" hidden$="[[!checked]]"></section>
       </section>
     </section>
+
+    <slot></slot>
 
     <template is="dom-if" if="[[dropdownValue]]">
       <webvisual-dropdown id="dropdown"
@@ -184,6 +183,7 @@
         offset="8"
         autoclose="4000">
           <webvisual-element-sign id="value"
+            state="{{state}}"
             item="[[item]]"
             show-date="[[showDate]]">
           </webvisual-element-sign>
@@ -198,23 +198,28 @@
 
       behaviors: [
         WebvisualBehaviors.ColorBehavior,
-        WebvisualBehaviors.CheckedAndSelectBehavior,
-        WebvisualBehaviors.ElementBehavior
+        WebvisualBehaviors.CheckedAndSelectBehavior
       ],
 
       properties: {
 
-        showDate: {
+        item: Object,
+
+        checked: {
           type: Boolean,
-          value: false
+          reflectToAttribute: true,
+          notify: true,
+          observer: 'checkedChanged'
         },
 
-        dropdownValue: Boolean,
+        showDate: Boolean,
 
-        viewLength: {
-          type: Number,
-          value: 1
-        }
+        dropdownValue: Boolean
+
+      },
+
+      listeners: {
+        'tap': 'select'
       },
 
       observers: [
@@ -222,19 +227,21 @@
       ],
 
       attached: function() {
-        this.insertValues();
-      },
+        var inkSize = this.getComputedStyleValue('--calculated-box-ink-size').trim();
+        // If unset, compute and set the default `--box-ink-size`.
+        if (inkSize === '-1px') {
+          var checkboxSize = parseFloat(this.getComputedStyleValue('--calculated-box-size').trim());
+          var defaultInkSize = Math.floor((8 / 3) * checkboxSize);
 
-      renderInsertedValues: function(value) {
-        if (value === undefined) {
-          if (this.values && this.values.length) {
-            value = this.values[this.values.length - 1];
-          } else {
-            return;
+          // The checkbox and ripple need to have the same parity so that their
+          // centers align.
+          if (defaultInkSize % 2 !== checkboxSize % 2) {
+            defaultInkSize++;
           }
-        }
 
-        this.state = value.state;
+          this.customStyle['--box-ink-size'] = defaultInkSize + 'px';
+          this.updateStyles();
+        }
       },
 
       _setDropdown: function(hasDropdown, old) {

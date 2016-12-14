@@ -1,0 +1,107 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<dom-module id="webvisual-custom-element">
+  <template strip-whitespace>
+    <content></content>
+  </template>
+  <script>
+    Polymer({
+      is: 'webvisual-custom-element',
+
+      properties: {
+        is: String
+      },
+
+      observers: [
+        '_wrap(is)'
+      ],
+
+      _wrap: function(is) {
+        if (!is || !this.parentNode)
+          return;
+
+        wrapper = document.createElement(is);
+
+        if (!wrapper)
+          return;
+
+        this._wrapper = wrapper;
+
+        this._observerWrapper = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type === 'attributes') {
+              this.set(mutation.attributeName, this._wrapper[mutation.attributeName]);
+            }
+          }, this);
+        }.bind(this));
+
+        this._observerSelf = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type === 'attributes') {
+              if (this._wrapper.set) {
+                this._wrapper.set(mutation.attributeName, this[mutation.attributeName]);
+              } else {
+                this._wrapper.setAttribute(mutation.attributeName, this[mutation.attributeName]);
+              }
+            }
+          }, this);
+        }.bind(this));
+
+        this._observerWrapper.observe(this._wrapper,  { attributes: true });
+        this._observerSelf.observe(this,  { attributes: true });
+
+        this.parentNode.insertBefore(this._wrapper, this);
+        this._wrapper.appendChild(this);
+      },
+
+      attached: function() {
+        if (this._wrapper) {
+          for (var i = 0; i < this.attributes.length; ++i) {
+            if (this.attributes[i].name !== 'is' && this.attributes[i].name !== 'class' && this.attributes[i].name !== 'style') {
+              if (this._wrapper.set) {
+                if (this._wrapper.properties &&
+                    this._wrapper.properties[this.attributes[i].name] &&
+                    this._wrapper.properties[this.attributes[i].name].type.name === 'Boolean') {
+                  this._wrapper.set(this.attributes[i].name, this.attributes[i].value === false ? false : true);
+                } else {
+                  var canContinue = false;
+                  if (this._wrapper.behaviors) {
+                    for (var j = 0; j < this._wrapper.behaviors.length; j++) {
+                      if (this._wrapper.behaviors[j].properties &&
+                          this._wrapper.behaviors[j].properties[this.attributes[i].name] &&
+                          this._wrapper.behaviors[j].properties[this.attributes[i].name].type.name === 'Boolean') {
+                        this._wrapper.set(this.attributes[i].name, this.attributes[i].value === false ? false : true);
+                        canContinue = true;
+                      }
+                    }
+                  }
+                  if (canContinue)
+                    continue;
+                  this._wrapper.set(this.attributes[i].name, this.attributes[i].value);
+                }
+              } else {
+                this._wrapper.setAttribute(this.attributes[i].name, this.attributes[i].value);
+              }
+            }
+          }
+        }
+      },
+
+      detached: function() {
+        if (this._observerWrapper) {
+          this._observerWrapper.disconnect();
+        }
+
+        if (this._observerSelf) {
+          this._observerSelf.disconnect();
+        }
+
+        if (this._wrapper) {
+          if (this._wrapper.parentNode) {
+            this._wrapper.parentNode.removeChild(this._wrapper);
+          }
+        }
+      }
+    });
+  </script>
+</dom-module>

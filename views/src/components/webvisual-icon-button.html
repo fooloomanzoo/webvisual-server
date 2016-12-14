@@ -15,6 +15,7 @@
         --calculated-icon-padding: var(--icon-padding, 0.5em);
         color: var(--icon-color);
         mix-blend-mode: hard-light;
+        pointer-events: all;
 
         outline: none;
         -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
@@ -67,7 +68,7 @@
         border-radius: inherit;
       }
     </style>
-    <paper-ripple id="ripple"></paper-ripple>
+    <paper-ripple id="ripple" center></paper-ripple>
     <iron-icon id="icon" icon="[[icon]]" alt$="[[alt]]"></iron-icon>
   </template>
 

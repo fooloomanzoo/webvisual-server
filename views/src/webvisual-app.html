@@ -43,7 +43,7 @@
         top: 0;
         left: 0;
         right: 0;
-        z-index: 11;
+        z-index: auto;
         @apply(--app-header);
       }
       app-header::before {
@@ -75,7 +75,7 @@
       }
 
       app-drawer {
-        z-index: 12;
+        z-index: auto;
       }
       app-drawer > app-drawer-content {
         display: block;
@@ -118,7 +118,9 @@
       }
       #pageselector {
         padding-top: 64px;
-        position: relative;;
+
+        pointer-events: none;
+        position: relative;
         transition: padding-top 250ms cubic-bezier(0.6, 0, 0.2, 1);
       }
       :host([show-tabs]) #pageselector {
@@ -397,8 +399,7 @@
       is: 'webvisual-app',
 
       behaviors: [
-        WebvisualBehaviors.LocalizeBehavior,
-        WebvisualBehaviors.ContainerBehavior
+        WebvisualBehaviors.LocalizeBehavior
       ],
 
       properties: {
@@ -492,10 +493,10 @@
       ],
 
       listeners: {
-        'change-section': '_onChangeSection',
+        'change-page': '_onChangePage',
         'announce': '_onAnnounce',
-        'dom-change': '_domChange',
-        'element-select': 'print'
+        'open-settings': '_onOpenSettings',
+        'dom-change': '_domChange'
       },
 
       print: function(arg, arg2) {
@@ -596,7 +597,7 @@
 
       // Elements in the app can notify section changes.
       // Response by a11y announcing the section and syncronizing the facility.
-      _onChangeSection: function(event) {
+      _onChangePage: function(event) {
         var detail = event.detail;
         // Announce the page's title
         if (detail.title) {
@@ -618,6 +619,26 @@
         this._a11yLabel = '';
         this.debounce('_a11yAnnouncer', function() {
           this._a11yLabel = message;
+        }, 100);
+      },
+
+      // elements can open a settings-dialog
+      _onOpenSettings: function(e) {
+        this._openSettings(e.detail);
+      },
+
+      // settings-dialog for given set of settings
+      _openSettings: function(detail) {
+        console.log(detail);
+        this.debounce('open-settings', function() {
+          if (!this._settingsDialog) {
+            this._settingsDialog = document.createElement('webvisual-settings-dialog');
+            Polymer.dom(this.root).appendChild(this._settingsDialog);
+          }
+          this._settingsDialog.set('trigger', detail.trigger);
+          this._settingsDialog.set('title', detail.title);
+          this._settingsDialog.set('settings', detail.settings);
+          this._settingsDialog.open();
         }, 100);
       },
 

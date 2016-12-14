@@ -1,0 +1,84 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<link rel="import" href="../../bower_components/paper-dialog-behavior/paper-dialog-behavior.html">
+<link rel="import" href="../../bower_components/paper-ripple/paper-ripple.html">
+
+<link rel="import" href="../style/webvisual-dialog-styles.html">
+<link rel="import" href="../style/webvisual-button.html">
+
+<link rel="import" href="./webvisual-custom-element.html">
+<link rel="import" href="../webvisual-element-caption.html">
+<link rel="import" href="../webvisual-element-checkbox.html">
+
+<dom-module id="webvisual-settings-dialog">
+  <template>
+    <style include="webvisual-dialog-styles webvisual-button">
+      :host {
+        --caption-background: transparent;
+      }
+    </style>
+
+    <div class="dialog-title">[[title]]</div>
+
+    <template is="dom-repeat" items="{{settings}}" as="setting">
+      <section class="set">
+        <div class="title">[[setting.title]]</div>
+        <template is="dom-repeat" items="{{setting.entries}}" as="entry">
+          <webvisual-custom-element is="[[entry.type]]" checked$="{{entry.checked}}" selectable color$="[[entry.item.color]]" class="entry">
+            <template is="dom-if" if="[[entry.item.keys]]">
+              <webvisual-element-caption keys="[[entry.item.keys]]"></webvisual-element-caption>
+            </template>
+          </webvisual-custom-element>
+        </template>
+      </section>
+    </template>
+
+    <section class="buttons">
+      <webvisual-button on-tap="submit">
+        <paper-ripple></paper-ripple>
+        <iron-icon icon="check"></iron-icon>
+        <span>Bestätigen</span>
+      </webvisual-button>
+    </section>
+  </template>
+
+</dom-module>
+
+<script>
+(function() {
+  Polymer({
+    is: 'webvisual-settings-dialog',
+
+    behaviors: [
+      Polymer.PaperDialogBehavior
+    ],
+
+    properties: {
+
+      opened: {
+        type: Boolean,
+        reflectToAttribute: true
+      },
+
+      title: {
+        type: String,
+        reflectToAttribute: true
+      },
+
+      settings: {
+        type: Array,
+        value: function() {
+          return [];
+        }
+      },
+
+      trigger: Object
+
+    },
+
+    submit: function() {
+
+    }
+  });
+})();
+</script>

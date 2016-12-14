@@ -11,7 +11,11 @@
 
     properties: {
 
-      selectable: Boolean,
+      selectable: {
+        type: Boolean,
+        value: false,
+        reflectToAttribute: true
+      },
 
       checked: {
         type: Boolean,

@@ -23,6 +23,7 @@
       }
 
       #radioContainer {
+        mix-blend-mode: exclusion;
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -133,6 +134,10 @@
     Polymer({
       is: 'webvisual-radio-button',
 
+      behaviors: [
+        WebvisualBehaviors.ColorBehavior
+      ],
+
       hostAttributes: {
         role: 'radio',
         tabindex: 0
@@ -141,7 +146,7 @@
       properties: {
         checked: {
           type: Boolean,
-          notify: true,
+          // notify: true,
           reflectToAttribute: true
         },
         title: {
