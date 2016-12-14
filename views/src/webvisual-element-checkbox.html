@@ -2,14 +2,14 @@
 
 <link rel="import" href="behaviors/color-behavior.html"/>
 <link rel="import" href="behaviors/checked-and-select-behavior.html"/>
-<link rel="import" href="behaviors/element-behavior.html"/>
 
 <link rel="import" href="components/webvisual-dropdown.html"/>
 
 <link rel="import" href="webvisual-element-sign.html"/>
+<link rel="import" href="./style/webvisual-element-styles.html"/>
 
 <dom-module id="webvisual-element-checkbox">
-  <template strip-whitespace>
+  <template strip-whitespace include="webvisual-element-styles">
     <style>
       :host {
         display: inline-flex;

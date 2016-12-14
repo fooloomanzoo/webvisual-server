@@ -16,10 +16,8 @@
     setColor: function(color) {
       // random color if color is not set
       if (!color) {
-        if (this.item && this.item.exceedable === true) {
-          this.customStyle['--element-state-inrange-color'] = "#51CC41";
-          this.set('item.color', this.customStyle['--element-state-undefined-color']);
-        } else {
+        console.log(this.customStyle);
+        if (!this.customStyle['--element-color']) {
           color = '#';
           var perm = ['2C', 'F5'];
           perm.push((4 * Math.floor(Math.random() * 64)).toString(16));
@@ -28,15 +26,14 @@
             color += ((perm[pos].length === 1) ? '0' : '') + perm[pos];
             perm.splice(pos, 1);
           }
-          this.set('item.color', color);
+        } else {
+          color = this.customStyle['--element-color'];
         }
-      } else {
-        this.customStyle['--element-color'] = color;
-        if (this.item && this.item.exceedable === false) {
-          this.customStyle['--element-state-undefined-color'] = color;
-          this.customStyle['--element-state-exceeds-color'] = color;
-          this.customStyle['--element-state-deceeds-color'] = color;
+        if (this.item && this.item.exceedable === true) {
+          this.updateStyles({'--element-state-inrange-color': '#51CC41'});
         }
+        // this.updateStyles({'--element-color': color});
+        this.set('item.color', color);
         this.updateStyles();
       }
     }

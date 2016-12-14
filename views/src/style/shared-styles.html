@@ -1,4 +1,26 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<custom-style>
+  <style is="custom-style">
+    html {
+      --primary-color: #005B82;
+      --dark-primary-color: #345475; /* Primary Colors */
+      --bright-primary-color: #669DB4;
+      --saturated-primary-color: #3170B0;
+      --unsaturated-primary-color: #243241;
+
+      --element-color: #12B8C3;
+      --element-text-color: #252525;
+      --element-state-inrange-color: #51cc41;
+      --element-state-deceeds-color: #920bad;
+      --element-state-exceeds-color: #D91B1B;
+      --element-state-inrange-text-color: var(--primary-text-color);
+      --element-state-deceeds-text-color: var(--bright-text-color);
+      --element-state-exceeds-text-color: var(--bright-text-color);
+    }
+  </style>
+</custom-style>
+
 <dom-module id="shared-styles">
   <template>
     <style>
@@ -6,18 +28,13 @@
         display: none !important;
       }
     /* Application theme */
+
       :host {
         color: var(--primary-text-color);
         -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 
 
         /* Costum Colors*/
-        --primary-color: #005B82;
-        --dark-primary-color: #345475; /* Primary Colors */
-        --bright-primary-color: #669DB4;
-        --saturated-primary-color: #3170B0;
-        --unsaturated-primary-color: #243241;
-
         --primary-text-color: #252525;
         --bright-text-color: #f1f1f1;
         --disabled-text-color: #bbb;
@@ -38,16 +55,7 @@
           fill: var(--bright-text-color) !important;
           font-family: inherit !important;
         };
-        --fullscreen-background-color: #151515;
-
-        --element-color: #12B8C3;
-        --element-text-color: #252525;
-        --element-state-inrange-color: #51cc41;
-        --element-state-deceeds-color: #920bad;
-        --element-state-exceeds-color: #D91B1B;
-        --element-state-inrange-text-color: var(--primary-text-color);
-        --element-state-deceeds-text-color: var(--bright-text-color);
-        --element-state-exceeds-text-color: var(--bright-text-color);
+        --fullscreen-background-color: var(--unsaturated-primary-color);
       }
 
       :host([dark]) {

@@ -16,6 +16,7 @@
         display: block;
         width: 100%;
         height: 100%;
+        overflow: hidden;
         position: relative;
         font-family: inherit;
         color: currentColor;
@@ -58,70 +59,85 @@
         letter-spacing: normal !important;
         font-family: inherit !important;
       }
-      g#chart g.axis {
+      g#chart .axis {
         font-size: inherit;
       }
       g#chart text {
         font-size: 0.55em;
       }
-      g#chart rect.plot {
-        fill: var(--chart-plot-background, #eee);
+      rect#plot {
+        fill: var(--chart-plot-background, #fff);
         stroke: currentColor;
         fill-opacity: 0.25;
         stroke-opacity: 0.25;
         shape-rendering: crispEdges;
         stroke-width: 1px;
       }
-      :host[fullscreen] g#chart rect.plot,
-      :host([fullscreen]) g#chart rect.plot {
+      :host[fullscreen] #plot,
+      :host([fullscreen]) #plot {
         fill: var(--chart-plot-background, #ccc);
       }
-      g#brush rect.overlay {
+      #brush .overlay {
         cursor: default;
       }
-      g#brush rect.selection {
-        stroke: #345475;
-        fill: #111;
-        stroke-opacity: 0.5;
-        fill-opacity: 0.05;
+      #brush .selection {
+        stroke: white;
+        fill: white;
+        stroke-opacity: 0.25;
+        fill-opacity: 0.1;
       }
-      g.grid g.tick line {
+      .grid .tick line {
         stroke: currentColor;
         stroke-opacity: 0.1;
         mix-blend-mode: exclusion;
       }
-      g.grid path {
+      .grid path {
         stroke-width: 0;
       }
-      g.axis path, g.axis line {
+      .axis path, .axis line {
         fill: none;
         stroke: currentColor;
         stroke-opacity: 0.5;
         stroke-width: 1.5px;
         mix-blend-mode: exclusion;
       }
-      g.axis {
+      .axis {
         font-family: inherit;
       }
       /*g#chart g.axis path, g#chart g.axis line {
         stroke-opacity: 0.5;
       }*/
-      g#graphs path.area, g#graphs path.line {
+      #graphs {
+        isolation: isolate;
+      }
+      #graphs .area, #graphs .line {
         pointer-events: none;
         mix-blend-mode: exclusion;
       }
-      g#graphs circle {
+      #graphs .area {
+        fill-opacity: 0.3;
+        @apply(--chart-area);
+      }
+      #graphs .line {
+        stroke-width: 1.5px;
+        @apply(--chart-line);
+      }
+      #graphs .dot {
         cursor: pointer;
         pointer-events: all;
         transform-origin: center;
+        stroke: #252525;
+        stroke-width: 0.5px;
+        stroke-opacity: 1;
+        @apply(--chart-dot);
       }
-      g#zoom rect.overlay {
+      #zoom .overlay {
         fill: none;
         fill-opacity: 0.1;
         pointer-events: none;
         stroke-width: 0;
       }
-      g#zoom rect.overlay.active {
+      #zoom .overlay.active {
         pointer-events: all;
         fill: #8B5F45;
         cursor: zoom-in;
@@ -129,7 +145,7 @@
         stroke-opacity: 0.3;
         stroke-width: 1px;
       }
-      g#focus line.focus.line {
+      #focus .focus.line {
         fill: none;
         pointer-events: none;
         stroke: white;
@@ -138,7 +154,7 @@
         stroke-dasharray: 2;
         mix-blend-mode: exclusion;
       }
-      g.axis, g.grid, g#focus, rect.plot {
+      .axis, .grid, #plot {
         pointer-events: none;
       }
       webvisual-icon-button {
@@ -163,28 +179,28 @@
     </style>
 
     <div id="svgContainer">
-      <svg id="svgchart" version="1.1" xmlns="http://www.w3.org/2000/svg">
+      <svg id="svgchart" version="1.1" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet">
         <g id="chart">
           <clipPath id="clip">
             <rect x="0" y="0"></rect>
           </clipPath>
-          <rect class="plot"></rect>
-          <g class="x axis"></g>
-          <g class="y axis"></g>
-          <g class="x grid"></g>
-          <g class="y grid"></g>
-          <g id="brush"></g>
-          <g id="focus" hidden>
-            <line class="focus line x" x1="0"></line>
-            <line class="focus line y"></line>
+          <rect id="plot" clip-path="url(#clip)"></rect>
+          <g id="xAxis" class="axis"></g>
+          <g id="yAxis" class="axis"></g>
+          <g id="xGrid" class="grid" clip-path="url(#clip)"></g>
+          <g id="yGrid" class="grid" clip-path="url(#clip)"></g>
+          <g id="brush" clip-path="url(#clip)"></g>
+          <g id="focus" clip-path="url(#clip)" hidden>
+            <line id="focusX" class="focus line x" x1="0"></line>
+            <line id="focusY" class="focus line y"></line>
           </g>
-          <g id="graphs">
+          <g id="graphs" clip-path="url(#clip)">
             <g id="areas"></g>
             <g id="lines"></g>
             <g id="dots"></g>
           </g>
           <text id="info" x="0" y="0" hidden></text>
-          <g id="zoom">
+          <g id="zoom" clip-path="url(#clip)">
             <rect class="overlay" x="0.5" y="0.5"></rect>
           </g>
         </g>
@@ -322,7 +338,6 @@
 
       _width: 0,
       _height: 0,
-
       _margin: {
         top: 0,
         right: 15,
@@ -330,36 +345,47 @@
         left: 40
       },
 
+      _xGrid: Object,
+      _yGrid: Object,
+      _brush: Object,
       _chart: Object,
       _svg: Object,
+      _info: Object,
+      _focusX: Object,
+      _focusY: Object,
+      _zoomOverlay: Object,
+      _lines: Object,
+      _areas: Object,
+      _dots: Object,
 
       _x: Function,
       _y: Function,
 
       _xAxis: Object,
       _yAxis: Object,
+
       _xGrid: Object,
       _yGrid: Object,
 
-      _brush: Object,
-      _brushBehavior: Object,
       _isBrushed: false,
       _isZoomed: false,
 
-      _info: Object,
-      _focus: Object,
-      _focusX: Object,
-      _focusY: Object,
-      _zoomOverlay: Object,
+      format: {
+        Millisecond: Function,
+        Second: Function,
+        LongSecond: Function,
+        Minute: Function,
+        LongMinute: Function,
+        Hour: Function,
+        Day: Function,
+        Week: Function,
+        Month: Function,
+        Year: Function
+      },
 
-      formatMillisecond: Function,
-      formatSecond: Function,
-      formatMinute: Function,
-      formatHour: Function,
-      formatDay: Function,
-      formatWeek: Function,
-      formatMonth: Function,
-      formatYear: Function,
+      _graphs: new Set(),
+
+      _brushBehavior: Function,
 
       _messageCount: 0,
 
@@ -368,7 +394,8 @@
       },
 
       listeners: {
-        'iron-resize': '_sizeChanged'
+        'iron-resize': '_sizeChanged',
+        'contextmenu': '_resetZoom'
       },
 
       observers: [
@@ -376,17 +403,16 @@
       ],
 
       created: function() {
-        this._graphs = new Set();
-        this.formatMillisecond = d3.timeFormat(':%S,%L');
-        this.formatLongSecond = d3.timeFormat(':%M:%S,%L');
-        this.formatSecond = d3.timeFormat(':%M:%S');
-        this.formatLongMinute = d3.timeFormat('%H:%M:%S');
-        this.formatMinute = d3.timeFormat('%H:%M');
-        this.formatHour = d3.timeFormat('%X');
-        this.formatDay = d3.timeFormat('%d.%m');
-        this.formatWeek = d3.timeFormat('%d.%m');
-        this.formatMonth = d3.timeFormat('%d. %b');
-        this.formatYear = d3.timeFormat('%Y');
+        this.format.Millisecond = d3.timeFormat(':%S,%L');
+        this.format.LongSecond = d3.timeFormat(':%M:%S,%L');
+        this.format.Second = d3.timeFormat(':%M:%S');
+        this.format.LongMinute = d3.timeFormat('%H:%M:%S');
+        this.format.Minute = d3.timeFormat('%H:%M');
+        this.format.Hour = d3.timeFormat('%X');
+        this.format.Day = d3.timeFormat('%d.%m');
+        this.format.Week = d3.timeFormat('%d.%m');
+        this.format.Month = d3.timeFormat('%d. %b');
+        this.format.Year = d3.timeFormat('%Y');
       },
 
       ready: function() {
@@ -411,7 +437,7 @@
         // performance.mark('build start');
         // this.assignParentResizable(this.rootElement);
 
-        this._svg = d3.select(this.$.svgchart).attr('preserveAspectRatio', 'xMinYMin meet')
+        this._svg = d3.select(this.$.svgchart)
           .attr('height', null)
           .attr('width', null);
         this._x = this._createScale(this.xScale);
@@ -419,24 +445,20 @@
 
         this._chart = d3.select(this.$.chart);
 
-        this._graphsNodes = d3.select(this.$.graphs)
-          .attr('clip-path', 'url(#clip)');
+        this._lines = d3.select(this.$.lines);
+        this._areas = d3.select(this.$.areas);
+        this._dots = d3.select(this.$.dots);
 
         this._brushBehavior = d3.brush()
           .on('end', this.brushed.bind(this._self));
-        this._brush = d3.select(this.$.brush)
-          .attr('clip-path', 'url(#clip)');
+        this._brush = d3.select(this.$.brush);
 
         this._info = d3.select(this.$.info);
-        this._focus = d3.select(this.$.focus)
-          .attr('clip-path', 'url(#clip)');
-        this._focusX = this._focus.select('line.focus.line.x')
-          .attr('clip-path', 'url(#clip)');
-        this._focusY = this._focus.select('line.focus.line.y')
-          .attr('clip-path', 'url(#clip)');
+        this._focus = d3.select(this.$.focus);
+        this._focusX = this._focus.select('#focusX');
+        this._focusY = this._focus.select('#focusY');
         this._zoomOverlay = d3.select(this.$.zoom).select('rect.overlay')
-          .attr('clip-path', 'url(#clip)')
-          .on('click', function(d, i) {
+          .on('click', (d) => {
             var offset = Math.floor(Math.min(this._height, this._width) / 5);
             var x = d3.event.offsetX - this._margin.left;
             var y = d3.event.offsetY - this._margin.top;
@@ -445,14 +467,12 @@
               [x + offset, y + offset]
             ];
             this.brushed();
-          }.bind(this))
+          })
           .on('touchmove', this._resetZoom.bind(this));
 
         this._svg.selectAll('g,line,text,path,rect')
           .classed('style-scope', true)
           .classed('webvisual-element-chart', true);
-
-        this._svg.on('contextmenu', this._resetZoom.bind(this));
         // performance.mark('build end');
         // performance.measure('build', 'build start', 'build end');
         this._sizeChanged();
@@ -486,7 +506,7 @@
           .attr('width', this._width)
           .attr('height', this._height);
 
-        this._chart.select('rect.plot')
+        this._chart.select('rect#plot')
           .attr('width', this._width)
           .attr('height', this._height);
 
@@ -504,16 +524,16 @@
           .tickSize(-this._width, 0, 0)
           .tickFormat('');
 
-        this._chart.select('g.x.axis')
+        this._chart.select('#xAxis')
           .call(this._xAxis)
           .attr('transform', 'translate(0,' + this._height + ')');
-        this._chart.select('g.y.axis')
+        this._chart.select('#yAxis')
           .call(this._yAxis)
           .attr('transform', 'translate(0,' + 0 + ')');
-        this._chart.select('g.x.grid')
+        this._chart.select('#xGrid')
           .attr('transform', 'translate(0,' + this._height + ')')
           .call(this._xGrid);
-        this._chart.select('g.y.grid')
+        this._chart.select('#yGrid')
           .call(this._yGrid)
           .attr('transform', 'translate(0,' + 0 + ')');;
 
@@ -578,7 +598,7 @@
           axis.ticks(ticks * tickmult)
           .tickFormat(this.timeFormat.bind(this));
         else if (scale.base && scale.base() === Math.E)
-          axis.tickFormat(function(d) {
+          axis.tickFormat( (d) => {
             return (d < 1 || d > 1000 ? (Math.log(d)).toExponential(3) : (Math.log(d)).toFixed(2));
           })
 
@@ -586,42 +606,42 @@
       },
 
       timeFormat: function(date) {
-        return (d3.timeSecond(date) < date ? this.formatMillisecond :
-          d3.timeMinute(date) < date ? this.formatSecond :
-          d3.timeHour(date) < date ? this.formatMinute :
-          d3.timeDay(date) < date ? this.formatHour :
-          d3.timeMonth(date) < date ? (d3.timeWeek(date) < date ? this.formatDay : this.formatWeek) :
-          d3.timeYear(date) < date ? this.formatMonth :
-          this.formatYear)(date);
+        return (d3.timeSecond(date) < date ? this.format.Millisecond :
+          d3.timeMinute(date) < date ? this.format.Second :
+          d3.timeHour(date) < date ? this.format.Minute :
+          d3.timeDay(date) < date ? this.format.Hour :
+          d3.timeMonth(date) < date ? (d3.timeWeek(date) < date ? this.format.Day : this.format.Week) :
+          d3.timeYear(date) < date ? this.format.Month :
+          this.format.Year)(date);
       },
 
       timeFormatRange: function(date, r, pixels) {
         var rangeRatio = (r[1] - r[0]).valueOf() / pixels;
-        return (rangeRatio < 100 ? this.formatMillisecond :
-          rangeRatio < 500 ? this.formatLongSecond :
-          rangeRatio < 5000 ? this.formatSecond :
-          rangeRatio < 20000 ? this.formatLongMinute :
-          rangeRatio < 60000 ? this.formatMinute :
-          rangeRatio < 3600000 ? this.formatHour :
-          rangeRatio < 86400000 ? this.formatDay :
-          rangeRatio < 604800000 ? this.formatWeek :
-          rangeRatio < 2419200000 ? this.formatMonth :
-          this.formatYear)(date);
+        return (rangeRatio < 100 ? this.format.Millisecond :
+          rangeRatio < 500 ? this.format.LongSecond :
+          rangeRatio < 5000 ? this.format.Second :
+          rangeRatio < 20000 ? this.format.LongMinute :
+          rangeRatio < 60000 ? this.format.Minute :
+          rangeRatio < 3600000 ? this.format.Hour :
+          rangeRatio < 86400000 ? this.format.Day :
+          rangeRatio < 604800000 ? this.format.Week :
+          rangeRatio < 2419200000 ? this.format.Month :
+          this.format.Year)(date);
       },
 
       redraw: function() {
         if (this._chart === undefined || this._chart.select === undefined) return;
-        this.setDomains()
-            .then( this._redraw.bind(this) )
-            .catch( function(err) {
-              console.warn(err);
-            });
+        Promise.resolve( this.setDomains.call(this) )
+              .then( this._redraw.bind(this) )
+              .catch( (err) => {
+                console.warn(err);
+              });
       },
 
       _redraw: function() {
         if (this._chart === undefined || this._chart.select === undefined) return;
         if (this._graphs.size > 0) {
-          this._graphs.forEach(function(g) {
+          this._graphs.forEach( (g) => {
             // performance.mark('start');
             if (g.redraw)
               g.redraw();
@@ -638,10 +658,10 @@
           // performance.clearMeasures();
         }
 
-        this._chart.select('g.x.axis').transition(50).call(this._xAxis);
-        this._chart.select('g.y.axis').transition(50).call(this._yAxis);
-        this._chart.select('g.x.grid').transition(50).call(this._xGrid);
-        this._chart.select('g.y.grid').transition(50).call(this._yGrid);
+        this._chart.select('#xAxis').transition(50).call(this._xAxis);
+        this._chart.select('#yAxis').transition(50).call(this._yAxis);
+        this._chart.select('#xGrid').transition(50).call(this._xGrid);
+        this._chart.select('#yGrid').transition(50).call(this._yGrid);
 
         this._svg.selectAll('g,line,text,path,rect')
           .classed('style-scope', true)
@@ -663,49 +683,46 @@
           this._isBrushed = false;
         } else {
           this._isZoomed = false;
-          this.setDomains()
-              .then( this._redraw.bind(this) )
-              .catch( function(err) {
-                console.warn(err);
-              });
+          Promise.resolve(this.setDomains.call(this))
+                 .then( this._redraw.bind(this) )
+                 .catch( (err) => {
+                    console.warn(err);
+                 });
           return;
         }
         this._redraw();
       },
 
       setDomains: function() {
-        return new Promise( function(resolve, reject) {
+        var domainX
+          , domainY;
+
+        return new Promise( (resolve, reject) => {
           if (!this._graphs.size)
             reject('No Graphs are attached');
           if (this._isZoomed === true) {
             resolve();
           }
 
-          var domainX = [],
-              domainY = [],
-              yScale = this.yScale;
-
-          var mounts = new Set();
-          this._graphs.forEach( function(g) {
-            if (g.item && g.item.mount) {
-              mounts.add(g.item.mount);
-            }
-          });
-
-          mounts = Array.from(mounts);
-
-          if (!mounts.length) {
-            return;
-          }
-
-          this.requestRange(mounts, 'x')
-              .then( function(rangeX) {
+          this.requestRange('x')
+              .then( (rangeX) => {
                 domainX = rangeX;
-                this.requestRange(mounts, 'y')
-                    .then( function(rangeY) {
+                this.requestRange('y')
+                    .then( (rangeY) => {
+
                       domainY = rangeY;
 
-                      if (yScale === '√' || yScale === 'ln' || yScale === 'log₁₀') {
+                      // rounding y-domains to the according decimal exponent
+                      if (domainY[0] !== undefined && domainY[1] !== undefined && domainY[0] === domainY[1]) {
+                        v = (domainY[0]).toExponential().split('e');
+                        v.map( (vl) => { return parseInt(vl); });
+                        domainY[0] = Math.floor(v[0] - 0.1) * Math.pow(10, v[1]);
+                        v = (domainY[1]).toExponential().split('e');
+                        v.map( (vl) => { return parseInt(vl); });
+                        domainY[1] = Math.ceil(v[0] + 0.1) * Math.pow(10, v[1]);
+                      }
+
+                      if (this.yScale === '√' || this.yScale === 'ln' || this.yScale === 'log₁₀') {
                         if (domainY[0] <= 0) {
                           domainY[0] = 1e-15;
                         }
@@ -713,80 +730,49 @@
                           domainY[1] = 1e-15;
                         }
                       }
-                      // rounding y-domains to the according decimal exponent
-                      if (domainY[0] === domainY[1] && domainY[0] && domainY[1]) {
-                        v = (domainY[0]).toExponential().split('e');
-                        domainY[0] = (Math.floor(v[0])) * Math.pow(10, parseInt(v[1], 10));
-                        v = (domainY[1]).toExponential().split('e');
-                        domainY[1] = (Math.ceil(v[0])) * Math.pow(10, parseInt(v[1], 10));
-                      }
+
                       this._x.domain(domainX);
                       this._y.domain(domainY).nice(this.yTicks);
                       resolve();
 
-                    }.bind(this))
-                    .catch( function(err) {
+                    })
+                    .catch( (err) => {
                       reject(err);
                     });
-              }.bind(this))
-              .catch( function(err) {
+              })
+              .catch( (err) => {
                 reject(err);
               });
-        }.bind(this));
+        });
       },
 
-      requestRange: function(key, mounts) {
-
-        this._messageCount++;
-        var messageId = 'requestRange' + this.uniqueid + this._messageCount;
-        var req = {
-          request: {
-            messageId: messageId,
-            rangedValues: {
-              mounts: Array.from(mounts),
-              key: key
-            }
-          }
-        };
-
-        if (window.Webvisual && window.Webvisual.webworker) {
-          return new Promise(function(resolve, reject) {
-            this.webworker.addEventListener('message', function onMessage(e) {
-              if (e.data
-               && e.data.messageId
-               && e.data.messageId === messageId) {
-                 this.webworker.removeEventListener('message', onMessage);
-                  resolve(e.data.values);
-               }
-            }.bind(this));
-
-            this.webworker.postMessage( req );
-          }.bind(window.Webvisual))
-        } else {
-          return new Promise( function(resolve, reject) {
-            var p = [];
-            var res = [];
-            this._graphs.forEach( function(g) {
-              p.push( g.requestRange(key)
-                       .then( function(range) { res.push(range) })
-                       .catch( function(err) {
-                         reject(err);
-                       }) );
-            });
-            Promise.all(p)
-                   .then( function() {
-                     var min = res[0][0], max = res[0][1];
-                     for (var i = 1; i < res.length; i++) {
-                       min = min > res[i][0] ? res[i][0] : min;
-                       max = max < res[i][1] ? res[i][1] : max;
-                     }
-                     resolve([min, max]);
-                   })
-                   .catch( function(err) {
-                     reject(err);
-                   });
-          }.bind(this));
-        }
+      requestRange: function(key) {
+        return new Promise( (resolve, reject) => {
+          var p = [];
+          var res = [];
+          this._graphs.forEach( (g) => {
+            p.push( g.requestRange(key)
+                     .then( (range) => { res.push(range) })
+                     .catch( (err) => {
+                       reject(err);
+                     }) );
+          });
+          Promise.all(p)
+                 .then( () => {
+                   var min, max;
+                   for (var i = 0; i < res.length; i++) {
+                     min = (min === undefined || min > res[i][0]) ? res[i][0] : min;
+                     max = (max === undefined || max < res[i][1]) ? res[i][1] : max;
+                   }
+                   if (min === undefined || max === undefined) {
+                     reject();
+                   }
+                   resolve([min, max]);
+                 })
+                 .catch( (err) => {
+                   reject(err);
+                 });
+        } );
       },
 
       _showInfo: function(d) {
@@ -807,8 +793,8 @@
       _debounceHideInfo: function() {
         this._xAxis = this._createAxis(this._x, 'bottom', this.xScale);
         this._yAxis = this._createAxis(this._y, 'left', this.yScale);
-        this._chart.select('g.x.axis').transition(50).call(this._xAxis);
-        this._chart.select('g.y.axis').transition(50).call(this._yAxis);
+        this._chart.select('#xAxis').transition(50).call(this._xAxis);
+        this._chart.select('#yAxis').transition(50).call(this._yAxis);
         this._info.transition(33).attr('hidden', '');
         this._focus.transition(33).attr('hidden', '');
         this._svg.selectAll('g,line,text,path,rect')
@@ -817,7 +803,7 @@
       },
 
       _updateInfo: function() {
-        if (this._info.attr('hidden') === 'true' || this._info.x === undefined || this._info.y === undefined) return;
+        if (this._info.attr('hidden') === '' || this._info.x === undefined || this._info.y === undefined) return;
         var bbox = this._info.node().getBBox();
         // console.log(bbox, this._width, this._height);
         var x = this._x(this._info.x),
@@ -836,8 +822,8 @@
 
         this._xAxis.tickValues([this._info.x]);
         this._yAxis.tickValues([this._info.y]);
-        this._chart.select('g.x.axis').transition(50).call(this._xAxis);
-        this._chart.select('g.y.axis').transition(50).call(this._yAxis);
+        this._chart.select('#xAxis').transition(50).call(this._xAxis);
+        this._chart.select('#yAxis').transition(50).call(this._yAxis);
         this._svg.selectAll('g,line,text,path,rect')
           .classed('style-scope', true)
           .classed('webvisual-element-chart', true);
@@ -846,10 +832,10 @@
       openLegend: function() {
         var graphs = [];
         this._graphs.forEach(
-          function(g) {
+          (g) => {
             graphs.push({type: 'webvisual-element-checkbox', checked: g.checked, item: g.item})
           });
-        console.log(graphs);
+        // console.log(graphs);
         this.fire('open-settings', { trigger: this, title: 'chart', settings: [ {title: 'graphs', entries: graphs} ]} );
       },
 
@@ -864,7 +850,7 @@
       changeInterpolation: function(interpolation, oldValue) {
         if (!this._graphs.size) return;
         this._graphs.forEach(
-          function(g) {
+          (g) => {
             g.interpolation = interpolation;
           });
       },
@@ -872,15 +858,15 @@
       changeScale: function(newValue, oldValue) {
         if (oldValue === undefined) return;
         if (this._isZoomed === false) {
-          this.setDomains()
-              .then( function() {
-                this._buildLayout();
-                this._sizeLayout();
-                this._redraw();
-              }.bind(this) )
-              .catch( function(err) {
-                console.warn(err);
-              });
+          Promise.resolve(this.setDomains.call(this))
+                 .then( () => {
+                   this._buildLayout();
+                   this._sizeLayout();
+                   this._redraw();
+                 })
+                 .catch( (err) => {
+                   console.warn(err);
+                 });
           return;
         }
         var domainX = this._x.domain();
@@ -904,7 +890,7 @@
         this.noDots = !e.target.checked;
         if (!this._graphs.size) return;
         this._graphs.forEach(
-          function(g) {
+          (g) => {
             g.set('noDots', !e.target.checked)
           });
       },
@@ -913,7 +899,7 @@
         this.noLines = !e.target.checked;
         if (!this._graphs.size) return;
         this._graphs.forEach(
-          function(g) {
+          (g) => {
             g.set('noLine', !e.target.checked)
           });
       },
@@ -922,7 +908,7 @@
         this.noAreas = !e.target.checked;
         if (!this._graphs.size) return;
         this._graphs.forEach(
-          function(g) {
+          (g) => {
             g.set('noFill', !e.target.checked)
           });
       },
@@ -935,9 +921,12 @@
         }
       },
 
-      _resetZoom: function() {
+      _resetZoom: function(e) {
         if (d3.event)
           d3.event.preventDefault();
+        else if (e && e.preventDefault) {
+          e.preventDefault();
+        }
         this._isZoomed = false;
         this.redraw();
       }

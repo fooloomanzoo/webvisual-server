@@ -4,6 +4,8 @@
 
 <link rel="import" href="components/webvisual-icon-button.html"/>
 
+<link rel="import" href="style/webvisual-element-styles.html"/>
+
 <script type="text/javascript" src="../bower_components/d3/d3.min.js"></script>
 
 <!--
@@ -35,7 +37,7 @@
 
 <dom-module id="webvisual-element-svg">
 <template>
-  <style>
+  <style include="webvisual-element-styles">
     :host {
       border-radius: inherit;
       -webkit-overflow-scrolling: touch;

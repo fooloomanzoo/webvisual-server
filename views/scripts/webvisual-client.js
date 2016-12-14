@@ -112,7 +112,7 @@ WebvisualClient.prototype = {
         v = undefined;
         delete message[mount];
         taskFinishTime = window.performance.now();
-      } while (taskFinishTime - taskStartTime < 12);
+      } while (taskFinishTime - taskStartTime < 10);
 
       if (Object.keys(message).length > 0)
         requestAnimationFrame(processMessage);

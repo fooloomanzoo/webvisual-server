@@ -5,13 +5,14 @@
 <link rel="import" href="behaviors/checked-and-select-behavior.html"/>
 <link rel="import" href="behaviors/element-behavior.html"/>
 
-<link rel="import" href="webvisual-element-caption.html"/>
-<link rel="import" href="components/webvisual-radio-button.html"/>
+<link rel="import" href="style/webvisual-element-styles.html"/>
 
 <script type="text/javascript" src="../bower_components/d3/d3.min.js"></script>
 
 <dom-module id="webvisual-element-graph">
-
+  <template>
+    <style include="webvisual-element-styles"></style>
+  </template>
   <script>
     DiagramGraph = Polymer({
       is: 'webvisual-element-graph',
@@ -23,58 +24,58 @@
       ],
 
       properties: {
+
         interpolation: {
           type: String,
           value: 'Lineare Verbindung',
           observer: '_interpolationChanged'
         },
+
         noDots: {
           type: Boolean,
           observer: '_noDotsChanged'
         },
+
         noLine: {
           type: Boolean,
           observer: '_noLineChanged'
         },
+
         noFill: {
           type: Boolean,
           observer: '_noFillChanged'
         },
+
         dotRadius: {
           type: Number,
-          value: 2,
+          value: 2.5,
           observer: '_dotRadiusChanged'
         },
-        lineWidth: {
-          type: Number,
-          value: 1.5,
-          observer: '_lineNodeWidthChanged'
-        },
-        fillOpacity: {
-          type: Number,
-          value: 0.3,
-          observer: '_fillOpacityChanged'
-        },
-        checkEveryValue: {
-          type: Boolean,
-          value: true,
-          readOnly: true
-        },
+
         checked: {
           type: Boolean,
           value: true
         },
+
+        viewLength: {
+          type: Number,
+          value: 500
+        },
+
         storeInside: {
           type: Boolean,
           value: true,
           readOnly: true
         }
       },
-      _dots: Object,
-      _lineNode: Object,
-      _line: Object,
-      _areaNode: Object,
-      _area: Object,
+
+      chartElement: Object,
+      dots: Object,
+      lineNode: Object,
+      line: Object,
+      areaNode: Object,
+      area: Object,
+
       _hidden: false,
       _isAttached: false,
 
@@ -90,16 +91,16 @@
       },
 
       created: function() {
-        this._line = d3.line()
-          .x((function(d) {
+        this.line = d3.line()
+          .x( (d) => {
             return this.chartElement._x(d.x);
-          }).bind(this))
-          .y((function(d) {
+          })
+          .y( (d) => {
             return this.chartElement._y(d.y);
-          }).bind(this));
-        this._area = d3.area()
-          .x(this._line.x())
-          .y1(this._line.y());
+          });
+        this.area = d3.area()
+          .x(this.line.x())
+          .y1(this.line.y());
       },
 
       attached: function() {
@@ -119,65 +120,93 @@
         this.noLine = this.chartElement.noLines || this.noLine;
         this.noFill = this.chartElement.noAreas || this.noFill;
 
-        this._chart = this.chartElement._chart;
-
         // node of line
-        this._lineNode = this._chart.select('g#lines')
+        this.lineNode = this.chartElement._lines
           .append('svg:path')
           .attr('mount', this.item.mount)
           .attr("class", "line")
           .attr('hidden', this.noLine ? true : null)
           .attr('fill', 'none')
-          .attr('stroke', this.item.color)
-          .attr('stroke-width', this.lineWidth);
-        this._lineNode
+          .attr('stroke', this.item.color);
+        this.lineNode
           .datum([])
-          .attr("d", this._line);
+          .attr("d", this.line);
 
         // fill area
-        this._area.y0(this.chartElement._height);
-        this._areaNode = this._chart.select('g#areas')
+        this.area.y0(this.chartElement.height);
+        this.areaNode = this.chartElement._areas
           .append('svg:path')
           .attr('mount', this.item.mount)
           .attr("class", "area")
           .attr('hidden', this.noFill ? true : null)
           .attr('fill', this.item.color)
-          .attr('fill-opacity', this.fillOpacity)
           .attr('stroke', 'none');
-        this._areaNode
+        this.areaNode
           .datum([])
-          .attr("d", this._area);
+          .attr("d", this.area);
 
         // group of dots
-        this._dots = this._chart.select('g#dots')
+        this.dots = this.chartElement._dots
           .append("svg:g")
-          .attr('ident', this.item.mount)
+          .attr('mount', this.item.mount)
           .attr("class", "dots")
           .attr("hidden", this.noDots ? true : null);
 
         this._isAttached = true;
-        // performance.mark('graph attached end');
-        // performance.measure('graph attached', 'graph attached start', 'graph attached end');
-        // performance.mark('insert start');
-        // this.addValues();
-        // performance.mark('insert end');
-        // performance.measure('values insert', 'insert start', 'insert end');
+
         this.chartElement.redraw();
       },
 
       detached: function() {
-        this._lineNode.node().parentElement.removeChild(this._lineNode.node());
-        this._areaNode.node().parentElement.removeChild(this._areaNode.node());
-        this._dots.node().parentElement.removeChild(this._dots.node());
-
-        // if (this.storeInside === false &&
-        //   window.Content !== undefined &&
-        //   Content[this.system] &&
-        //   Content[this.system][this.item.mount] &&
-        //   (pos = Content[this.system][this.item.mount].nodes.indexOf(this)) !== -1)
-        //   Content[this.system][this.item.mount].nodes.splice(pos, 1);
+        this.lineNode.node().parentElement.removeChild(this.lineNode.node());
+        this.areaNode.node().parentElement.removeChild(this.areaNode.node());
+        this.dots.node().parentElement.removeChild(this.dots.node());
 
         this.chartElement._graphs.delete(this);
+      },
+
+      insertValues: function(values, len) {
+        if (values === undefined) {
+          return;
+        }
+
+        // console.log(this.nodeName, this.item.mount, values, len);
+
+        var len = len || this.viewLength;
+
+        if (!this._initialized)
+          this._initialized = true;
+        if (!len) {
+          // if (this.item && this.item.exceedable === true) {
+          //   values.forEach(function (value) {
+          //     this.checkExceedingState(value);
+          //   }, this)
+          // }
+          values.map( (v) => {
+            return { x: new Date(v.x), y: +v.y, state: +v.state };
+          });
+          if (this.storeInside) {
+            this.values = this.values.concat(values);
+          }
+          // console.log(this.values);
+          this.renderInsertedValues(values);
+        } else {
+          var tmp = values.slice(values.length - len, values.length);
+          // if (this.item && this.item.exceedable === true) {
+          //   tmp.forEach(function (value) {
+          //     this.checkExceedingState(value);
+          //   }, this)
+          // }
+          tmp.map( (v) => {
+            return { x: new Date(v.x), y: +v.y, state: +v.state };
+          });
+          if (this.storeInside) {
+            this.values = this.values.concat(tmp);
+          }
+          this.renderInsertedValues(tmp);
+          tmp.length = 0;
+        }
+        values.length = 0;
       },
 
       renderInsertedValues: function(values) {
@@ -194,55 +223,67 @@
       },
 
       redraw: function() {
-        if (this._hidden === true) return;
+        if (!this.values || !this.values.length || this._hidden === true) return;
         // performance.mark('graph redraw start');
         var self = this;
         var data = this.values.filter(this._defined.bind(this)) || [];
 
         if (this.noLine === false) {
-          this._lineNode
+          this.lineNode
             .datum(data)
-            .attr('d', this._line);
+            .attr('d', this.line);
         }
 
-        if (this.noFill === false) {
-          this._area
-            .y0(this.chartElement._height);
-          this._areaNode
+        if (this.noFill === false && this.chartElement.height) {
+          this.area
+            .y0(this.chartElement.height);
+          this.areaNode
             .datum(data)
-            .attr('d', this._area);
+            .attr('d', this.area);
         }
 
         if (this.noDots === false) {
-          var everyOverlappingDot = (data.length / Math.max(this.chartElement._height, this.chartElement._width) * (this.dotRadius * 4));
+          var everyOverlappingDot = (data.length / Math.max(this.chartElement._height, this.chartElement._width) * (this.dotRadius * 3));
 
           if (everyOverlappingDot > 1)
-            data = data.filter(function(d, i) {
-              return (i % everyOverlappingDot < 1);
+            data = data.filter( (d, i) => {
+              return (i % everyOverlappingDot <= 1);
             })
-            var strokewidth = this.lineWidth*2/3;
-            var dots = this._dots.selectAll('circle')
+            var dots = this.dots.selectAll('circle')
               .data(data);
             // update current dots
-            dots.attr('cx', function(d, i) {
+            dots.attr('cx', (d) => {
                 return this.chartElement._x(d.x)
-              }.bind(this))
-              .attr('cy', function(d, i) {
+              })
+              .attr('cy', (d) => {
                 return this.chartElement._y(d.y)
-              }.bind(this));
+              });
             // enter new dots
             dots.enter()
               .append('circle')
+              .classed('dot style-scope webvisual-element-graph', true)
               .attr('r', this.dotRadius)
-              .attr('stroke', this.item.color).attr('stroke-width', strokewidth)
-              .attr('fill', this.item.color)
-              .attr('cx', function(d, i) {
+              .attr('fill', (d) => {
+                switch (d.state) {
+                  case 1:
+                    return this.customStyle['element-state-exceeds-color'];
+                    break;
+                  case -1:
+                    return this.customStyle['element-state-deceeds-color'];
+                    break;
+                  default:
+                    return this.item.exceedable ? this.customStyle['element-state-inrange-color'] || this.item.color : this.item.color;
+                }
+              })
+              .attr('cx', (d) => {
                 return this.chartElement._x(d.x)
-              }.bind(this))
-              .attr('cy', function(d, i) {
+              })
+              .attr('cy', (d) => {
                 return this.chartElement._y(d.y)
-              }.bind(this))
-              .classed('style-scope', true).classed('chart-element', true)
+              })
+              .attr('title', (d) => {
+                return this.computeDate(d.x) + ' | ' + this.computeValue(d.y);
+              })
               .on('mouseenter', function(d) {
                 this.setAttribute('r', self.dotRadius * 1.5);
                 self.chartElement._showInfo(d);
@@ -251,7 +292,7 @@
                 this.setAttribute('r', self.dotRadius);
                 self.chartElement._hideInfo();
               })
-              .on('click', function(d, i) {
+              .on('click', (d) => {
                 var offset = this.dotRadius * 5;
                 var x = this.chartElement._x(d.x);
                 var y = this.chartElement._y(d.y);
@@ -259,8 +300,8 @@
                   [x - offset, y - offset],
                   [x + offset, y + offset]
                 ];
-                this.chartElement._brushed();
-              }.bind(this));
+                this.chartElement.brushed();
+              });
             //  remove old dots
             dots.exit()
                 .remove();
@@ -277,6 +318,8 @@
 
         if (d.y === null || isNaN(d.y))
           return undefined; // NaN and null are displayable
+        else if (d.state !== 0)
+          return true; // element is exceeding
         else if (yScale !== "linear" && d.y <= 0)
           return undefined; // log- and sqrt-scales require larger than 0-Values
         else if ((d.x >= domainX[0] && d.x <= domainX[1]) || (i > 0 && i + 1 < data.length && (data[i + 1].x > domainX[0] && data[i - 1].x < domainX[1])))
@@ -288,12 +331,12 @@
       setColor: function(color) {
         // random color if color is not set
         WebvisualBehaviors.ColorBehavior.setColor.call(this, color);
-        if (this._chart) {
-          if (this._lineNode) this._lineNode.attr('stroke', this.item.color);
-          if (this._areaNode) this._lineNode.attr('fill', this.item.color);
-          if (this._dots)
-            this._dots.selectAll('circle.dot')
-                      .attr('stroke', this.item.color);
+        if (this.chart) {
+          if (this.lineNode && this.lineNode.attr) this.lineNode.attr('stroke', color);
+          if (this.areaNode && this.areaNode.attr) this.lineNode.attr('fill', color);
+          if (this.dots && this.dots.selectAll)
+            this.dots.selectAll('circle.dot')
+                     .attr('stroke', color);
         }
       },
 
@@ -306,44 +349,29 @@
       },
 
       _noDotsChanged: function() {
-        if (this._chart && this._dots) {
-          this._dots.attr('hidden', this.noDots ? true : null);
+        if (this.dots && this.dots.attr) {
+          this.dots.attr('hidden', this.noDots ? true : null);
           this.debounce('redraw', this.redraw, 16);
         }
       },
 
       _noLineChanged: function() {
-        if (this._chart && this._lineNode) {
-          this._lineNode.attr('hidden', this.noLine ? true : null);
+        if (this.lineNode && this.lineNode.attr) {
+          this.lineNode.attr('hidden', this.noLine ? true : null);
           this.debounce('redraw', this.redraw, 16);
         }
       },
 
       _noFillChanged: function() {
-        if (this._chart && this._areaNode) {
-          this._areaNode.attr('hidden', this.noFill ? true : null);
+        if (this.areaNode && this.areaNode.attr) {
+          this.areaNode.attr('hidden', this.noFill ? true : null);
           this.debounce('redraw', this.redraw, 16);
         }
       },
 
-      _fillOpacityChanged: function() {
-        if (this._chart && this._areaNode) {
-          this._areaNode.attr('fill-opacity', this.fillOpacity);
-        }
-      },
-
       _dotRadiusChanged: function(dotRadius) {
-        if (this._chart && this._dots) {
-          this._dots.selectAll('circle.dot').attr('r', dotRadius);
-        }
-      },
-
-      _lineNodeWidthChanged: function(lineWidth) {
-        if (this._chart) {
-          if (this._lineNode) this._lineNode.attr('stroke-width', this.lineWidth);
-          if (this._dots)
-            this._dots.selectAll('circle.dot')
-            .attr('stroke-width', this.lineWidth);
+        if (this.dots && this.dots.selectAll) {
+          this.dots.selectAll('circle.dot').attr('r', dotRadius);
         }
       },
 
@@ -378,9 +406,9 @@
             curve = d3.curveLinear;
             break;
         }
-        this._line.curve(curve);
-        this._area.curve(curve);
-        if (this._chart && this._areaNode)
+        this.line.curve(curve);
+        this.area.curve(curve);
+        if (this.chart && this.areaNode)
           this.redraw();
       }
     });
