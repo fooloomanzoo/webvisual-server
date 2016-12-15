@@ -43,7 +43,7 @@
         top: 0;
         left: 0;
         right: 0;
-        z-index: auto;
+        z-index: 1;
         @apply(--app-header);
       }
       app-header::before {
@@ -63,6 +63,9 @@
       app-header[threshold-triggered] {
         color: var(--bright-text-color);
       }
+      app-header > * {
+        z-index: auto;
+      }
       :host {
         background: var(--primary-background);
       }
@@ -75,7 +78,7 @@
       }
 
       app-drawer {
-        z-index: auto;
+        z-index: 2;
       }
       app-drawer > app-drawer-content {
         display: block;
@@ -98,7 +101,7 @@
       app-drawer-content webvisual-button,
       app-drawer-content webvisual-toggle-button {
         width: 100%;
-        padding: 0.75em 1em;
+        padding: 1.25em 1em;
         box-sizing: border-box;
       }
       app-drawer-content iron-collapse > .collapse-content {
@@ -118,8 +121,6 @@
       }
       #pageselector {
         padding-top: 64px;
-
-        pointer-events: none;
         position: relative;
         transition: padding-top 250ms cubic-bezier(0.6, 0, 0.2, 1);
       }
@@ -214,23 +215,21 @@
         </template>
       </app-toolbar>
 
-      <div id="tabs" sticky$="[[_shouldShowTabs]]" hidden$="[[!_shouldShowTabs]]">
         <template is="dom-if" if="[[_shouldRenderTabs]]">
-          <webvisual-tabs
+          <webvisual-tabs id="tabs" sticky$="[[_shouldShowTabs]]" hidden$="[[!_shouldShowTabs]]"
             selected="{{page}}"
             attr-for-selected="name">
-            <webvisual-tab name="list">
+            <webvisual-button name="list">
               <a href="/list[[subroute.path]]">{{localize('list', 'name')}}</a>
-            </webvisual-tab>
-            <webvisual-tab name="groups">
+            </webvisual-button>
+            <webvisual-button name="groups">
               <a href="/groups[[subroute.path]]">{{localize('groups', 'name')}}</a>
-            </webvisual-tab>
-            <webvisual-tab name="detail">
+            </webvisual-button>
+            <webvisual-button name="detail">
               <a href="/detail[[subroute.path]]">{{localize('detail', 'name')}}</a>
-            </webvisual-tab>
+            </webvisual-button>
           </webvisual-tabs>
         </template>
-      </div>
 
     </app-header>
 
@@ -489,7 +488,8 @@
 
       observers: [
         '_routePageChanged(routeData.page)',
-        '_groupedKeyChanged(_shouldRenderGroupingKeys)'
+        '_groupedKeyChanged(_shouldRenderGroupingKeys)',
+        '_resetElements(subroute.path)'
       ],
 
       listeners: {
@@ -543,6 +543,40 @@
         }
       },
 
+      _resetElements: function(mount) {
+        if (!mount) {
+          return;
+        }
+        if (!this._oldmount || this._oldmount === mount) {
+          this._oldmount = mount;
+          return;
+        }
+
+        var elements = [];
+
+        function findAllElements(nodes) {
+          for (let i = 0, el; el = nodes[i]; ++i) {
+            if (el.hasAttribute('element')) {
+              elements.push(el);
+            }
+            // If the element has shadow DOM, dig deeper.
+            if (el.shadowRoot) {
+              findAllElements(el.shadowRoot.querySelectorAll('*'));
+            }
+          }
+        }
+
+        findAllElements(document.querySelectorAll('*'));
+
+        console.log(elements);
+        if (elements.length) {
+          Array.prototype.forEach.call(elements,
+            (el) => {
+              el.clearValues();
+            });
+        }
+      },
+
       _pageLoaded: function(shouldResetLayout) {
         this._ensureLazyLoaded();
         if (shouldResetLayout) {
@@ -591,6 +625,7 @@
       _toggleDrawer: function() {
         this.drawerOpened = !this.drawerOpened;
       },
+
       _toggleAlarmDrawer: function() {
         this.alarmDrawerOpened = !this.alarmDrawerOpened;
       },

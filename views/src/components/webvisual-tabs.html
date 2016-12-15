@@ -12,22 +12,41 @@
         box-sizing: border-box;
         position: relative;
         overflow: hidden;
+        white-space: nowrap;
+        overflow: hidden;
+        -webkit-overflow-scrolling: touch;
+        user-select: none;
       }
 
       #container {
         -webkit-overflow-scrolling: touch;
         position: relative;
         height: 100%;
+        display: flex;
         white-space: nowrap;
-        overflow-x: auto;
+        overflow: hidden;
         text-align: center;
       }
 
-      webvisual-tabs-overlay {
-        @apply(--webvisual-tab-overlay);
+      #overlay {
+        @apply(--tab-overlay);
+      }
+      :host ::content {
+        user-select: none;
+      }
+      :host ::content .overlay-static-above::before {
+        pointer-events: none;
+        content: "";
+        display: block;
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        @apply(--tab-overlay);
       }
     </style>
-    <nav id="container">
+    <nav id="container" on-track="_scroll">
       <webvisual-tabs-overlay id="overlay"></webvisual-tabs-overlay>
       <content></content>
     </nav>
@@ -49,6 +68,15 @@
 
         this.$.overlay.target = selectedItem;
       },
+
+      _scroll: function(e, detail) {
+        // if (!this.scrollable) {
+        //   return;
+        // }
+
+        var ddx = (detail && -detail.ddx) || 0;
+        this.$.container.scrollLeft += ddx;
+      }
     });
   </script>
 </dom-module>

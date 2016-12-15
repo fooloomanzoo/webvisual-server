@@ -42,7 +42,7 @@
       _targetChanged: function(newTarget, oldTarget) {
         if (!this._transitionsInFlight.length) {
           if (this._lastTarget) {
-            this._lastTarget.classList.remove('webvisual-tabs-overlay-static-above');
+            this._lastTarget.classList.remove('overlay-static-above');
           }
           this.style.display = 'block';
           this._move(oldTarget, newTarget);
@@ -67,7 +67,7 @@
           this._lastTarget = this.target;
         } else {
           if (this._lastTarget) {
-            this._lastTarget.classList.add('webvisual-tabs-overlay-static-above');
+            this._lastTarget.classList.add('overlay-static-above');
           }
           this.style.display = 'none';
         }

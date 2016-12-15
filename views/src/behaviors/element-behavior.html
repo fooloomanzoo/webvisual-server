@@ -13,7 +13,12 @@
 
       item: Object,
 
-      values: Array,
+      values: {
+        type: Array,
+        value: function() {
+          return [];
+        }
+      },
 
       isExceeding: {
         type: Boolean,
@@ -32,12 +37,6 @@
       viewLength: {
         type: Number,
         value: 1
-      },
-
-      title: {
-        type: String,
-        reflectToAttribute: true,
-        computed: '_computeTitle(item.id)'
       },
 
       uniqueid: {
@@ -85,7 +84,7 @@
     },
 
     _linkElement: function(mount, uniqueid, noLink) {
-      console.log(mount , uniqueid , !noLink);
+      // console.log(mount , uniqueid , !noLink);
       if (!(mount && uniqueid && !noLink)) {
         return;
       }
@@ -93,7 +92,9 @@
         this._unlinkElement(this._olditem);
       }
       this._olditem = this.item;
-      this.clearValues();
+      if (this._initialized) {
+        this.clearValues();
+      }
       if (window.Webvisual && window.Webvisual.assignElement && this.item && this.item.mount) {
         window.Webvisual.assignElement(this);
       }
@@ -121,16 +122,14 @@
       return x ? (this.showFullDate ? new Date(x).toLocaleString() : new Date(x).toLocaleTimeString()) : '';
     },
 
-    computeValue: function(y) {
-      return (this.item && this.item.isIndicatorLamp) ? '' : y;
+    computeValue: function(y, state) {
+      return (this.item && this.item.isIndicatorLamp) ? ( state ? '✗' : '✓' ) : y;
     },
 
     insertValues: function(values, len) {
       if (values === undefined) {
         return;
       }
-
-      // console.log(this.nodeName, this.item.mount, values, len);
 
       var len = len || this.viewLength;
 
@@ -167,11 +166,30 @@
     spliceValues: function(splices) {
       if (splices) {
         if (this.storeInside === true) {
-          this.splice('values', 0, splices.length);
+          this.values = this.values.filter( (v) => {
+            return splices.indexOf(v) === -1;
+          })
+          this.notifyPath('values');
+          // this.splice('values', 0, splices.length);
         }
         if (this.renderSplicedValues) {
           this.renderSplicedValues(splices);
         }
+      }
+    },
+
+    resetValues: function(values) {
+      this.values = values;
+      this.notifyPath('values');
+      this.renderInsertedValues(this.values);
+    },
+
+    clearValues: function() {
+      if (this._initialized) {
+        this.resetState();
+        this.values = [];
+        this.notifyPath('values');
+        this.renderClearing();
       }
     },
 
@@ -289,12 +307,10 @@
     renderInsertedValues: function(values) {
     },
 
-    clearValues: function() {
-      this.resetState();
-      this.values = [];
-      this.lastValue = {};
-      // if (this.values)
-      //   this.renderSplicedValues(this.values);
+    renderSplicedValues: function(values) {
+    },
+
+    renderClearing: function(values) {
     },
 
     checkExceedingState: function(value) {
@@ -326,10 +342,6 @@
     resetState: function() {
       this.isExceeding = false;
       this.hasExceeded = false;
-    },
-
-    _computeTitle: function(id) {
-      return id;
     }
   };
 </script>

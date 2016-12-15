@@ -24,6 +24,12 @@
         flex-basis: 20%;
         max-width: 20%;
         padding: 0.25em;
+        pointer-events: auto;
+      }
+
+      .grid li:hover {
+        overflow: auto;
+        resize: both;
       }
 
       :host(:not([plain])) .grid li > * {

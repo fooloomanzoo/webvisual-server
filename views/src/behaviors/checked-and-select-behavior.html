@@ -11,6 +11,16 @@
 
     properties: {
 
+      /**
+       * If true, the button is a toggle and is currently in the active state.
+       */
+      active: {
+        type: Boolean,
+        value: false,
+        notify: true,
+        reflectToAttribute: true
+      },
+
       selectable: {
         type: Boolean,
         value: false,
@@ -52,9 +62,11 @@
           } else {
             this.checked = true;
           }
+          this.active = !this.active;
         } else {
           this.checked = true;
         }
+        this.fire('change');
       }
     }
   };

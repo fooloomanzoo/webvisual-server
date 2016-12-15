@@ -1,6 +1,6 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 
-<dom-module id="webvisual-element-caption">
+<dom-module id="webvisual-element-caption" unresolved>
   <template>
     <style>
       :host {
@@ -19,15 +19,18 @@
         padding: var(--caption-padding, 0.4em 0.5em);
         margin: 0;
         align-self: stretch;
+        pointer-events: all;
       }
       .captions {
         position: relative;
+        user-select: all;
         padding: 0;
         margin: 0;
         font-size: 0.6em;
-        white-space: nowrap;
+        white-space: wrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        word-wrap: normal;
       }
       .captions:after {
         content: attr(title);
@@ -35,7 +38,6 @@
       .captions:first-of-type {
         font-family: "FiraSans-Medium", sans-serif;
         font-size: 0.9em;
-        word-wrap: normal;
         word-break: normal;
       }
       .captions:nth-of-type(2) {
@@ -48,7 +50,7 @@
         flex-direction: column;
         align-items: flex-start;
         justify-content: center;
-        flex-wrap: nowrap;
+        flex-wrap: wrap;
       }
       :host(:not([vertical])) .captions {
         margin-left: 0.35em;
@@ -58,6 +60,19 @@
       }
       [hidden] {
         display: none !important;
+      }
+      :host([unresolved]) {
+        min-width: 6em;
+        min-height: initial;
+      }
+      :host([unresolved][vertical]) {
+        min-width: initial;
+        min-height: 4em;
+      }
+      :host(.wrap) .captions {
+        word-break: break-all;
+        white-space: normal;
+        text-overflow: clip;
       }
     </style>
 
@@ -109,6 +124,18 @@
         }
       },
 
+      listeners: {
+        'tap': '_handleTap'
+      },
+
+      _handleTap: function(e) {
+        this.classList.toggle('wrap');
+      },
+
+      created: function() {
+        this.setAttribute('unresolved', '');
+      },
+
       getKey: function(key) {
         return this.keys[key];
       },
@@ -122,6 +149,9 @@
           reducedCaptionKeys = captionKeys.filter( function(key) { return (groupedKey !== key) } );
         else if (this.onlyGroupedKey === true)
           reducedCaptionKeys = captionKeys.filter( function(key) { return (groupedKey === key) } );
+        if (this.hasAttribute('unresolved')) {
+          this.removeAttribute('unresolved');
+        }
         return (reducedCaptionKeys.length === 0) ? captionKeys : reducedCaptionKeys;
       },
 

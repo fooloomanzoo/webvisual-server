@@ -109,9 +109,11 @@
       @apply(--svg-selectable);
     }
     .clicked {
+      fill: #3852D7 !important;
       @apply(--svg-clicked);
     }
     .selected {
+      fill: #B15EF4 !important;
       @apply(--svg-selected);
     }
     .exceeding {
@@ -607,7 +609,6 @@
 
     _fullScreenChanged: function() {
       WebvisualBehaviors.FullscreenBehavior._fullScreenChanged.call(this);
-      console.log(this.isFullscreen, this._old);
       if (this.isFullscreen) {
         if (!this._old) {
           this._old = { zoomPartition: this.zoomPartition,

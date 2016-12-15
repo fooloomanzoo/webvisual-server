@@ -39,21 +39,29 @@
 
       noAutoRemovalExceedings: Boolean,
 
-      item: Object,
+      item: {
+        type: Object,
+        value: function() {
+          return {};
+        },
+        notify: true
+      },
 
       items: {
         type: Array,
         value: function() {
           return [];
-        }
+        },
+        notify: true
       },
 
       exceeding: {
         type: Array,
         value: function() {
           return [];
-        }
-      }
+        },
+        notify: true
+      },
     },
 
     observers: [

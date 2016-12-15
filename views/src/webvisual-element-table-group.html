@@ -1,0 +1,89 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<link rel="import" href="../bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+
+<link rel="import" href="style/webvisual-button.html">
+<link rel="import" href="components/webvisual-tabs.html">
+<link rel="import" href="webvisual-element-table.html">
+
+<dom-module id="webvisual-element-table-group">
+	<template strip-whitespace>
+    <style include="webvisual-button">
+      :host {
+        display: block;
+        position: relative;
+        box-sizing: border-box;
+        line-height: 0;
+      }
+      #tables {
+        position: relative;
+        box-sizing: border-box;
+        height: calc(100% - 24px);
+      }
+      webvisual-button {
+        font-size: 0.75em;
+        opacity: 0.75;
+        height: 24px;
+        border-radius: 0;
+        mix-blend-mode: exclusion;
+        will-change: opacity;
+        transition: opacity 150ms cubic-bezier(0.6, 0, 0.2, 1);
+      }
+      webvisual-button:hover {
+        opacity: 1;
+      }
+      webvisual-button.iron-selected {
+        background: rgba(255,255,255, 0.25);
+      }
+      [hidden] {
+        display: none;
+      }
+    </style>
+
+    <webvisual-tabs id="select" hidden$="[[_shouldHideTabs(items.length)]]" selected="{{currentTable}}" fallback-selection="0">
+      <template is="dom-repeat" items="[[items]]">
+        <webvisual-button title="[[item.id]]"><span>[[item.id]]</span></webvisual-button>
+      </template>
+    </webvisual-tabs>
+    <iron-pages id="tables" selected="[[currentTable]]">
+      <template is="dom-repeat" items="[[items]]">
+        <webvisual-element-table title$="[[item.id]]" item="[[item]]" keys-for-caption></webvisual-element-table>
+      </template>
+    </iron-pages>
+
+  </template>
+
+	<script>
+		WebvisualElementTable = Polymer({
+
+			is: 'webvisual-element-table-group',
+
+			properties: {
+        items: {
+          type: Array,
+          value: function() {
+            return [];
+          },
+          notify: true
+        },
+
+				onlyFirstRow: Boolean,
+
+				showFullDate: Boolean,
+
+        currentTable: {
+          type: Number,
+          notify: true
+        }
+			},
+
+			_shouldHideTabs: function(length) {
+        console.log(length - 1);
+        if (length > 0) this.set('currentTable', length - 1);
+			  return length < 2;
+			}
+		});
+	</script>
+
+</dom-module>
