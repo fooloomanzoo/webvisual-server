@@ -15,7 +15,7 @@
         white-space: nowrap;
         overflow: hidden;
         -webkit-overflow-scrolling: touch;
-        user-select: none;
+        -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
       }
 
       #container {
@@ -26,13 +26,14 @@
         white-space: nowrap;
         overflow: hidden;
         text-align: center;
+        -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
       }
 
       #overlay {
         @apply(--tab-overlay);
       }
       :host ::content {
-        user-select: none;
+        -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
       }
       :host ::content .overlay-static-above::before {
         pointer-events: none;
