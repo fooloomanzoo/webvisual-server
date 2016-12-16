@@ -10,7 +10,7 @@
 <script type="text/javascript" src="../bower_components/d3/d3.min.js"></script>
 
 <dom-module id="webvisual-element-chart">
-  <template>
+  <template strip-whitespace>
     <style>
       :host {
         display: block;
@@ -178,8 +178,8 @@
             <rect x="0" y="0"></rect>
           </clipPath>
           <rect id="plot" clip-path="url(#clip)"></rect>
-          <g id="xAxis" class="axis"></g>
-          <g id="yAxis" class="axis"></g>
+          <g id="xAxis=" class="axis="></g>
+          <g id="yAxis=" class="axis="></g>
           <g id="xGrid" class="grid" clip-path="url(#clip)"></g>
           <g id="yGrid" class="grid" clip-path="url(#clip)"></g>
           <g id="brush" clip-path="url(#clip)"></g>
@@ -238,6 +238,14 @@
 		  </webvisual-dropdown> -->
 
     <template is="dom-repeat" items="[[items]]">
+      <webvisual-element-graph
+        item="[[item]]"
+        interpolation="[[interpolation]]"
+        store-inside>
+      </webvisual-element-graph>
+    </template>
+
+    <template is="dom-if" if="[[item]]">
       <webvisual-element-graph
         item="[[item]]"
         interpolation="[[interpolation]]"
@@ -316,6 +324,13 @@
         noAreas: {
           type: Boolean,
           value: false
+        },
+
+        item: {
+          type: Object,
+          value: function() {
+            return {};
+          }
         },
 
         items: {

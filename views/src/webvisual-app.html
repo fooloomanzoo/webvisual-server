@@ -120,6 +120,9 @@
         font-size: 0.8em;
       }
       #pageselector {
+        display: flex;
+        box-sizing: border-box;
+        min-height: 100vh;
         padding-top: 64px;
         position: relative;
         transition: padding-top 250ms cubic-bezier(0.6, 0, 0.2, 1);
@@ -259,8 +262,9 @@
         grouped-key="{{groupedKey}}"
         grouping-keys="{{groupingKeys}}"></webvisual-groups>
       <!-- detail view of one item -->
-      <webvisual-detail name="detail" dark="[[dark]]" plain="[[plain]]"
-        route="[[subroute]]"
+      <webvisual-detail name="detail" dark$="[[dark]]" plain$="[[plain]]"
+        mount="[[subroute.path]]"
+        elements="[[elements]]"
         offline="[[offline]]"></webvisual-detail>
     </iron-pages>
 

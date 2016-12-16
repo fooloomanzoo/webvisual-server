@@ -2,9 +2,9 @@
 
 <link rel="import" href="behaviors/color-behavior.html"/>
 <link rel="import" href="behaviors/checked-and-select-behavior.html"/>
+<link rel="import" href="behaviors/element-behavior.html"/>
 
 <link rel="import" href="components/webvisual-dropdown.html"/>
-
 <link rel="import" href="webvisual-element-sign.html"/>
 <link rel="import" href="./style/webvisual-element-styles.html"/>
 
@@ -80,9 +80,11 @@
         box-sizing: content-box; /* protect against page-level box-sizing */
       }
 
-      #boxContainer #box,
-      #boxContainer[state="0"] #box {
+      #boxContainer #box {
         background-color: var(--element-color);
+      }
+      #boxContainer[state="0"] #box {
+        background-color: var(--element-state-inrange-color);
       }
       #boxContainer[state="1"] #box {
         background-color: var(--element-state-exceeds-color);
@@ -91,9 +93,11 @@
         background-color: var(--element-state-deceeds-color);
       }
 
-      #boxContainer #ripple,
-      #boxContainer[state="0"] #ripple {
+      #boxContainer #ripple {
         color: var(--element-color);
+      }
+      #boxContainer[state="0"] #ripple {
+        color: var(--element-state-inrange-color);
       }
       #boxContainer[state="1"] #ripple {
         color: var(--element-state-exceeds-color);
@@ -106,8 +110,12 @@
         opacity: 1;
       }
 
+      :host {
+        background-color: var(--checkbox-background, transparent);
+      }
+
       :host([checked]) {
-        background-color: var(--box-checked-background, rgba(255, 255, 255, 0.9));
+        background-color: var(--checkbox-checked-background, rgba(255, 255, 255, 0.9));
       }
 
       :host(:focus) {
@@ -198,12 +206,16 @@
 
       behaviors: [
         WebvisualBehaviors.ColorBehavior,
-        WebvisualBehaviors.CheckedAndSelectBehavior
+        WebvisualBehaviors.CheckedAndSelectBehavior,
+        WebvisualBehaviors.ElementBehavior
       ],
 
       properties: {
 
-        item: Object,
+        viewLength: {
+          type: Number,
+          value: 1
+        },
 
         checked: {
           type: Boolean,
@@ -225,6 +237,20 @@
       observers: [
         '_setDropdown(dropdownValue)'
       ],
+
+      insertValues: function(values) {
+        if (values && values.length) {
+          if (!this._initialized)
+            this._initialized = true;
+
+          var value = values[values.length-1];
+
+          if (this.item.exceedable) {
+            this.checkExceedingState(value);
+            this.setAttribute('state', value.state);
+          }
+        }
+      },
 
       attached: function() {
         var inkSize = this.getComputedStyleValue('--calculated-box-ink-size').trim();

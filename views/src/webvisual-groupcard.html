@@ -306,7 +306,7 @@
           if (opened) {
             this.$.headerContent.style.cssText = 'will-change: transform; transform: rotateX(0deg) scale(1);';
             if (this.$.headerContent.selectedItem) {
-              this.$.headerContent.selectedItem.style.cssText = 'display: block;';
+              this.$.headerContent.selectedItem.style.display = '';
             }
           } else {
             this.$.headerContent.style.cssText = 'will-change: transform; transform: rotateX(90deg) scale(0.5);';
@@ -318,7 +318,7 @@
         requestAnimationFrame( function() {
           if (!this.opened) {
             if (this.$.headerContent.selectedItem) {
-              this.$.headerContent.selectedItem.style.cssText = 'display: none;';
+              this.$.headerContent.selectedItem.style.display = 'none';
             }
           } else {
             this.$.headerContent.style['will-change'] = '';

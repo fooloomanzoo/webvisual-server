@@ -33,7 +33,6 @@
         color: var(--primary-text-color);
         -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 
-
         /* Costum Colors*/
         --primary-text-color: #252525;
         --bright-text-color: #f1f1f1;
@@ -59,7 +58,7 @@
       }
 
       :host([dark]) {
-        --primary-text-color: #c5c5c5;
+        --primary-text-color: #000;
         --bright-text-color: #e1e1e1;
         --highlight-color: #6cb5ff;
 
@@ -83,6 +82,8 @@
 
       :host(:not([plain])) {
         --caption-background: #fff;
+        --checkbox-checked-background: #fff;
+        --table-background: #fff;
         --caption-color: var(--primary-text-color);
         --groupcard-background: #d0d0d0;
         --groupcard-header-background: var(--bright-primary-color);
@@ -91,6 +92,8 @@
       }
       :host(:not([plain])[dark]) {
         --caption-background: #999;
+        --checkbox-checked-background: #999;
+        --table-background: #999;
         --caption-color: #000;
         --groupcard-background: #505050;
         --groupcard-header-background: var(--dark-primary-color);
@@ -102,6 +105,7 @@
         --groupcard-header-background: transparent;
         --groupcard-header-color: var(--bright-text-color);
         --grid-border-color: transparent;
+        --checkbox-checked-background: var(--bright-primary-color);
         --toggle-button-unchecked-bar-color: var(--bright-primary-color);
         --toggle-button-unchecked-button-color: #f1f1f1;
         --toggle-button-unchecked-ink-color: var(--bright-primary-color);

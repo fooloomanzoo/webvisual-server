@@ -172,7 +172,7 @@
 
         // console.log(this.nodeName, this.item.mount, values, len);
 
-        var len = len || this.viewLength;
+        var len = len || (this.viewLength > 0 ? this.viewLength : values.length);
 
         if (!this._initialized)
           this._initialized = true;
@@ -206,7 +206,6 @@
           this.renderInsertedValues(tmp);
           tmp.length = 0;
         }
-        values.length = 0;
       },
 
       renderInsertedValues: function(values) {

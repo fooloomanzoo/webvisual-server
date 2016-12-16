@@ -2,13 +2,15 @@
 <link rel="import" href="../bower_components/iron-list/iron-list.html">
 
 <link rel="import" href="behaviors/element-behavior.html">
+<link rel="import" href="style/webvisual-element-styles.html"/>
 
 <dom-module id="webvisual-element-table">
 	<template strip-whitespace>
-    <style>
+    <style include="webvisual-element-styles">
       :host {
         /*height needs to be set by outer element*/
-        color: var(--primary-text-color);
+        color: var(--table-color, currentColor);
+        background: var(--table-background, transparent);
         display: inline-flex;
         width: 100%;
         height: 100%;
@@ -16,11 +18,11 @@
         position: relative;
         border-color: inherit;
         border-radius: inherit;
-  			min-width: 10em;
+  			min-width: 150px;
+  			min-height: 75px;
         text-align: left;
         line-height: 1.5;
         cursor: default;
-        background: white;
         pointer-events: all;
       }
       :host([dark]) {
@@ -28,12 +30,13 @@
       }
   		span {
   			position: relative;
-  			padding: 0em 0.75em;
+  			padding: 0 0.5em;
   		}
   		.tr {
   			display: flex;
   			justify-content: space-around;
     		font-size: 0.7em;
+        height:
         -webkit-user-select: all; -moz-user-select: all; -ms-user-select: all; user-select: all;
   		}
   		.tr:not([state]), .tr[state="0"] {
@@ -71,8 +74,8 @@
         font-family: "FiraSans-Medium", sans-serif;
         display: block;
         position: relative;
-        font-size: 0.5em;
-        padding: 0.3em 0.6em;
+        font-size: 0.6em;
+        padding: 0.25em 0.5em;
         text-align: center;
         -webkit-user-select: all; -moz-user-select: all; -ms-user-select: all; user-select: all;
       }
@@ -86,7 +89,7 @@
   		}
     </style>
 
-    <section id="head" hidden$="[[hideHeader]]">
+    <section id="head" hidden$="[[hideHeader]]" on-tap="_toggleGridView">
       <span>Datum</span>
       <span hidden$="[[onlyFirstRow]]">Wert <span hidden$="[[!item.unit]]" style="font-style:italic;">([[unit]])</span></span>
     </section>
@@ -141,7 +144,6 @@
 
 			insertValues: function(values) {
 				if (!values || !values.length) return;
-				console.log(values);
 				if (!this._initialized) {
 					this.set('values', values.reverse());
 					this._initialized = true;
@@ -166,11 +168,11 @@
 				// }, this._list)
 			},
 
-			// spliceValues: function(splices) {
-			// 	splices.forEach(function(value) {
-			// 		this.pop('items')
-			// 	}, this._list)
-			// },
+			spliceValues: function(splices) {
+				splices.forEach(function(value) {
+					this.pop('items')
+				}, this.$.list)
+			},
 
       clearValues: function() {
         this.$.list.set('items', []);
@@ -186,6 +188,15 @@
         } else if (this.caption) {
           this.$.caption.textContent = this.caption;
         }
+        // if (item && item.color) {
+        //   this.$.caption.style.background = item.color;
+        // } else {
+        //   this.$.caption.style.background = '';
+        // }
+      },
+
+      _toggleGridView: function() {
+        this.$.list.grid = !!!this.$.list.grid;
       }
 		});
 	</script>

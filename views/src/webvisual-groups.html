@@ -89,7 +89,7 @@
       svg-data="{{svgData}}"
       mount="[[mount]]"></webvisual-svg-data>
 
-    <!-- <template is="dom-if" if="[[visible]]" restamp> -->
+    <template is="dom-if" if="[[visible]]">
 
       <ul class="grid">
         <template is="dom-repeat" items="[[_getSubGroups(subgroups)]]" as="group">
@@ -107,7 +107,6 @@
               <ul class="grid sign">
                 <template is="dom-repeat" items="[[group.items]]" as="id">
                   <li>
-                <!-- <a href$="[[_getItemHref(item)]]"> -->
                     <webvisual-element-sign
                       item="[[_getItem(id, elements)]]"
                       show-date
@@ -116,7 +115,6 @@
                       vertical
                       keys="[[_getItemKeys(id, elements)]]"
                       grouped-key='[[groupedKey]]' without-grouped-key></webvisual-element-caption>
-                  <!-- </a> -->
                   </li>
                 </template>
               </ul>
@@ -125,7 +123,7 @@
         </template>
       </ul>
 
-    <!-- </template> -->
+    </template>
 
   </template>
 
@@ -163,7 +161,9 @@
           type: Boolean,
           value: false,
           reflectToAttribute: true
-        }
+        },
+
+        svgData: Object
 
       },
 

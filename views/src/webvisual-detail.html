@@ -1,38 +1,122 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 
-<link rel="import" href="style/shared-styles.html"/>
+<link rel="import" href="behaviors/container-behavior.html"/>
+
+<link rel="import" href="components/webvisual-tabs.html"/>
+
+<link rel="import" href="webvisual-element-checkbox.html"/>
+<link rel="import" href="webvisual-element-caption.html"/>
+<link rel="import" href="webvisual-element-table.html"/>
+<link rel="import" href="webvisual-element-svg.html"/>
+<link rel="import" href="webvisual-element-chart.html"/>
+
+<link rel="import" href="style/shared-styles.html">
+<link rel="import" href="style/page-layout.html">
+<link rel="import" href="style/webvisual-button.html">
 
 <dom-module id="webvisual-detail">
   <template>
-    <style>
+    <style include="shared-styles page-layout webvisual-button">
       :host {
-        height: 100%;
-        width: 100%;
-        top: 0;
-        left: 0;
-        position: absolute;
-        overflow-y: auto;
-        overflow-x: hidden;
-        box-sizing: border-box;
-        background: linear-gradient(rgba(255, 255, 255, 0),rgba(255,255,255,0.15));
-        color: currentColor;
         display: flex;
         flex-direction: row;
-        flex-wrap: wrap;
-        align-items: flex-start;
-        align-content: flex-start;
-        justify-content: space-around;
-        -webkit-overflow-scrolling: touch;
-        flex: 1 0 0.000000001px;
-        padding: 0.5em;
-        opacity: 1;
+        width: 100%;
       }
-      :host ::content > * {
-        margin: 0.4em;
+      :host > * {
+        position: relative;
+        box-sizing: border-box;
       }
+      #select {
+        --tab-vertical-overlay: {
+          background: rgba(255, 255, 255, 0.15);
+          border-left: 3px solid var(--bright-primary-color, white);
+          border-bottom: none;
+        }
+      }
+      .responsive {
+        display: flex;
+        flex-direction: column;
+        flex: 1 0 auto;
+      }
+      .responsive > * {
+        box-sizing: border-box;
+        flex: 1 0 50%;
+      }
+      .fixed {
+        display: flex;
+        flex-direction: column;
+        width: 200px;
+      }
+      .fixed > * {
+        position: relative;
+        box-sizing: border-box;
+        flex: 1 0 1px;
+      }
+      webvisual-element-svg.detail {
+        flex-shrink: 0;
+      }
+      webvisual-element-chart.detail {
+        padding-bottom: 3em;
+      }
+      webvisual-element-checkbox.detail {
+        flex-shrink: 0;
+      }
+      webvisual-element-caption.detail {
+        flex: auto;
+        --caption-background: transparent;
+        --caption-color: var(--bright-text-color);
+      }
+
+      webvisual-element-checkbox.detail[checked] > .detail {
+        mix-blend-mode: difference;
+      }
+
     </style>
 
-    <content></content>
+    <webvisual-svg-data
+      svg-data="{{svgData}}"
+      mount="[[mount]]"></webvisual-svg-data>
+
+    <template is="dom-if" if="[[visible]]">
+
+      <section class="responsive">
+
+        <template is="dom-if" if="[[selectedElement.svg.path]]">
+          <webvisual-element-svg opened
+            url-prefix="/images[[mount]]/"
+            src="[[selectedElement.svg.path]]"
+            selectable-items="[[_getSvgSelectable(selectedElement.svg.path, svgData.paths)]]"
+            item="[[selectedElement]]"
+            exceeding="[[exceeding]]"></webvisual-element-svg>
+        </template>
+
+        <webvisual-element-chart class="detail" opened
+          item="[[selectedElement]]"></webvisual-element-chart>
+
+      </section>
+
+      <section class="fixed">
+        <webvisual-tabs id="select" vertical selected="{{selectedElementMount}}" attr-for-selected="item-mount" selected-attribute="checked">
+          <template is="dom-repeat" items="[[_getListItems(elements)]]">
+            <webvisual-element-checkbox class="detail"
+              item="[[item]]"
+              item-mount="[[item.mount]]"
+              selectable>
+              <webvisual-element-caption class="detail"
+                keys="[[item.keys]]"></webvisual-element-caption>
+            </webvisual-element-checkbox>
+          </template>
+        </webvisual-tabs>
+
+        <webvisual-element-table class="detail" item="[[selectedElement]]"></webvisual-element-table>
+      </section>
+
+      <!-- <webvisual-snackbar opened>
+        <webvisual-element-sign item="[[item]]"></webvisual-element-sign>
+        <webvisual-element-caption keys="[[item.keys]]" vertical></webvisual-element-caption>
+      </webvisual-snackbar> -->
+
+    </template>
 
   </template>
 
@@ -41,65 +125,63 @@
       is: 'webvisual-detail',
 
       properties: {
-        animatable: {
-          type: Boolean,
-          value: false,
-          reflectToAttribute: true
+
+        mount: String,
+
+        elements: {
+          type: Array,
+          notify: true
         },
-        animationTiming: {
+
+        selectedElementMount: String,
+
+        selectedElement: {
           type: Object,
-          value: function() {
-            return {
-              duration: 500
-            };
-          }
+          notify: true,
+          computed: '_getCurrentElement(elements, selectedElementMount)'
         },
-        sharedElements: {
-          type: Object,
-          value: function() {
-            return { }
+
+        svgData: Object,
+
+        visible: Boolean
+
+      },
+
+      observers: [
+        '_routeChanged(mount, visible)'
+      ],
+
+      _getListItems: function(items) {
+        // Return placeholder items when the items haven't loaded yet.
+        return items || [{},{},{},{},{},{},{},{},{},{}];
+      },
+
+      _getCurrentElement: function(elements, selectedElementMount) {
+        if (!elements || !elements.length || !selectedElementMount) {
+          return null;
+        }
+        for (var i = 0; i < elements.length; i++) {
+          if (elements[i].mount && elements[i].mount === selectedElementMount) {
+            return elements[i];
           }
-        },
-        animationConfig: {
-          value: function() {
-            return {
-              'entry': [ ],
-              'exit': [ ]
-            }
-          }
+        }
+        return null;
+      },
+
+      _routeChanged: function(mount, visible) {
+        if (visible) {
+          this.debounce('change-page', function() {
+            // Notify the facility and the page's title
+            this.fire('change-page', {
+              title: mount
+            });
+          });
         }
       },
 
-      created: function() {
-        Polymer.dom(this)
-               .observeNodes(function(info) {
-                 info.addedNodes
-                       .filter(function(node) {
-                          return (node.nodeType === Node.ELEMENT_NODE)
-                        })
-                       .forEach(this.addToAnimation.bind(this))
-               }.bind(this));
+      _getSvgSelectable: function(src, svgSrcPaths) {
+        return svgSrcPaths[src] || {};
       },
-
-      addToAnimation: function(node) {
-        var pos = Array.prototype.indexOf.call(node.parentNode.children, node);
-
-        this.sharedElements['hero-animation-' + pos] = node;
-        this.animationConfig.entry.push(
-          {
-            name: 'hero-animation',
-            id: 'hero-animation-' + pos,
-            toPage: this,
-            timing: this.animationTiming
-          });
-        this.animationConfig.exit.push(
-          {
-            name: 'hero-animation',
-            id: 'hero-animation-' + pos,
-            fromPage: this,
-            timing: this.animationTiming
-          });
-      }
     });
   </script>
 

@@ -453,7 +453,7 @@
     },
 
     _zoomToElement: function(elem) {
-      if (elem === undefined) return;
+      if (elem === undefined || !this._svg.node()) return;
       // calc centered zoom coordinates
       var transform = this._calcCenterZoom(elem);
       var t = d3.zoomIdentity.translate(transform.x, transform.y).scale(transform.k);
@@ -468,7 +468,7 @@
     },
 
     _selectSelected: function() {
-      var sel = this.items;
+      var sel = this.items || [];
       if (this.item && sel.indexOf(this.item) === -1)
         sel.push(this.item);
       if (sel && sel.length)
@@ -586,7 +586,7 @@
 
       // zoom to selectedItems
       if(!this.initiallyZoomToAll) {
-        if (this.items.length) {
+        if (this.item || (this.items && this.items.length)) {
           this.debounce('select', this._selectSelected, 50);
           return;
         }

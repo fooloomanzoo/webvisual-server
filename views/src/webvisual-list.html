@@ -1,22 +1,16 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 
-<link rel="import" href="../bower_components/app-route/app-route.html">
-
 <link rel="import" href="behaviors/container-behavior.html"/>
-
-<link rel="import" href="data/webvisual-element-socket-data.html"/>
-<link rel="import" href="data/webvisual-facility-data.html"/>
 
 <link rel="import" href="webvisual-element-sign.html"/>
 <link rel="import" href="webvisual-element-caption.html"/>
 
 <link rel="import" href="style/shared-styles.html">
 <link rel="import" href="style/page-layout.html">
-<link rel="import" href="style/webvisual-button.html">
 
 <dom-module id="webvisual-list">
   <template>
-    <style include="shared-styles page-layout webvisual-button">
+    <style include="shared-styles page-layout">
       .grid li {
         flex-direction: row;
       }
@@ -42,7 +36,7 @@
       }
     </style>
 
-    <!-- <template is="dom-if" if="[[visible]]" restamp> -->
+    <template is="dom-if" if="[[visible]]">
       <ul class="grid">
         <template is="dom-repeat" items="[[_getListItems(elements)]]">
           <li>
@@ -63,7 +57,7 @@
         <webvisual-element-caption keys="[[item.keys]]" vertical></webvisual-element-caption>
       </webvisual-snackbar> -->
 
-    <!-- </template> -->
+    </template>
   </template>
 
   <script>
@@ -81,17 +75,15 @@
         elements: {
           type: Array,
           notify: true
-        }
+        },
+
+        visible: Boolean
 
       },
 
       observers: [
         '_routeChanged(mount, visible)'
       ],
-
-      print: function(arg,arg2,arg3) {
-        console.log(arg,arg2,arg3);
-      },
 
       _getListItems: function(items) {
         // Return placeholder items when the items haven't loaded yet.
@@ -107,10 +99,6 @@
             });
           });
         }
-      },
-
-      _tryReconnect: function() {
-        this.$.facilityData.refresh();
       }
     });
   </script>

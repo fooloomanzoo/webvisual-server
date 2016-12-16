@@ -16,6 +16,18 @@
         overflow: hidden;
         -webkit-overflow-scrolling: touch;
         -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
+
+        --tab-overlay: {
+          background: rgba(255, 255, 255, 0.15);
+          border-left: none;
+          border-bottom: 2px solid var(--highlight-color, var(--primary-color));
+        }
+
+        --tab-vertical-overlay: {
+          background: rgba(255, 255, 255, 0.15);
+          border-left: 2px solid var(--highlight-color, var(--primary-color));
+          border-bottom: none;
+        }
       }
 
       #container {
@@ -23,18 +35,21 @@
         position: relative;
         height: 100%;
         display: flex;
+        flex-direction: row;
         white-space: nowrap;
         overflow: hidden;
         text-align: center;
         -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
       }
 
+      :host ::content > * {
+        -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
+      }
+
       #overlay {
         @apply(--tab-overlay);
       }
-      :host ::content {
-        -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
-      }
+
       :host ::content .overlay-static-above::before {
         pointer-events: none;
         content: "";
@@ -46,6 +61,19 @@
         left: 0;
         @apply(--tab-overlay);
       }
+
+      :host([vertical]) #container {
+        flex-direction: column;
+      }
+
+      :host([vertical]) #overlay {
+        @apply(--tab-vertical-overlay);
+      }
+
+      :host([vertical]) ::content .overlay-static-above::before {
+        @apply(--tab-vertical-overlay);
+      }
+
     </style>
     <nav id="container" on-track="_scroll">
       <webvisual-tabs-overlay id="overlay"></webvisual-tabs-overlay>
@@ -55,6 +83,15 @@
   <script>
     Polymer({
       is: 'webvisual-tabs',
+
+      properties: {
+
+        vertical: {
+          type: Boolean,
+          reflectToAttribute: true
+        }
+
+      },
 
       behaviors: [
         Polymer.IronSelectableBehavior
@@ -71,12 +108,14 @@
       },
 
       _scroll: function(e, detail) {
-        // if (!this.scrollable) {
-        //   return;
-        // }
-
-        var ddx = (detail && -detail.ddx) || 0;
-        this.$.container.scrollLeft += ddx;
+        var scrollChange;
+        if (this.vertical) {
+          scrollChange = (detail && -detail.ddy) || 0;
+          this.$.container.scrollTop += scrollChange;
+        } else {
+          scrollChange = (detail && -detail.ddx) || 0;
+          this.$.container.scrollLeft += scrollChange;
+        }
       }
     });
   </script>
