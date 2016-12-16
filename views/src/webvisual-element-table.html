@@ -123,6 +123,11 @@
 
 				showFullDate: Boolean,
 
+				viewLength: {
+          type: Number,
+          value: -1
+        },
+
         storeInside: {
           type: Boolean,
           value: true
@@ -135,9 +140,17 @@
       ],
 
 			insertValues: function(values) {
-				if (!this.$.list.items || !values || !values.length) return;
-
-        WebvisualBehaviors.ElementBehavior.insertValues.call(this, values);
+				if (!values || !values.length) return;
+				console.log(values);
+				if (!this._initialized) {
+					this.set('values', values.reverse());
+					this._initialized = true;
+				} else {
+					for (var i = 0; i < values.length; i++) {
+						this.unshift('values', values[i]);
+					}
+				}
+        // WebvisualBehaviors.ElementBehavior.insertValues.call(this, values);
 
 				// console.log(this.values.length - values.length, values.length);
 				// this.notifySplices('values', [{

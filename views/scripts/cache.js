@@ -159,29 +159,26 @@
 
 		requestLast: function(opt) {
       var mounts = opt.mounts
-        , len = opt.length || 1;
+        , len = opt.length
+				, ret = {};
 
 			if (mounts === undefined || !Array.isArray(mounts)) {
-        var ret = {};
 				this._cache.forEach( function(value, key) {
 					ret[v] = value.requestLast(len);
 				})
-        return ret;
 			} else if (mounts.length === 1) {
         if (this._cache.has(mounts[0]))
-          return this._cache.get(mounts[0])
-                            .requestLast(len);
-        else return [];
+          ret[mounts[0]] = this._cache.get(mounts[0])
+                           					  .requestLast(len);
 			} else {
-        var ret = {};
 				for (var i in mounts) {
 					if (this._cache.has(mounts[i])) {
 						ret[mounts[i]] = this._cache.get(mounts[i])
                                         .requestLast(len);
 					}
 				}
-        return ret;
 			}
+			return ret;
 		},
 
 		has: function(mount) {

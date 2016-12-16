@@ -100,8 +100,10 @@
       }
 
       this.requestLastValue()
-          .then( (values) => {
-            this.insertValues(values);
+          .then( (ret) => {
+            for (var mount in ret) {
+              this.insertValues(ret[mount]);
+            }
           })
           .catch( (err) => {
             console.log(err);
