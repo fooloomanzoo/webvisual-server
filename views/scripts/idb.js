@@ -27,7 +27,7 @@
     p.request = request;
     return p;
   }
-  
+
   function promisifyCursorRequestCall(obj, method, args) {
     var p = promisifyRequestCall(obj, method, args);
     return p.then(function(value) {
@@ -41,6 +41,9 @@
       Object.defineProperty(ProxyClass.prototype, prop, {
         get: function() {
           return this[targetProp][prop];
+        },
+        set: function(val) {
+          this[targetProp][prop] = val;
         }
       });
     });
@@ -156,6 +159,7 @@
     'clear',
     'get',
     'getAll',
+    'getKey',
     'getAllKeys',
     'count'
   ]);

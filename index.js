@@ -36,7 +36,7 @@ class WebvisualServer {
 
     this.config = settings;
 
-    var mode = process.argv[2] || config.mode || 'development';
+    var mode = process.argv[2] || config.mode;
 
     if (mode) {
       process.send( { log: `started in ${mode} mode`} );

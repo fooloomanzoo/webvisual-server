@@ -139,34 +139,40 @@
 
 			insertValues: function(values) {
 				if (!values || !values.length) return;
-				if (!this._initialized) {
-					this.set('values', values.reverse());
-					this._initialized = true;
-				} else {
-					for (var i = 0; i < values.length; i++) {
-						this.unshift('values', values[i]);
-					}
-				}
-        // WebvisualBehaviors.ElementBehavior.insertValues.call(this, values);
 
-				// console.log(this.values.length - values.length, values.length);
-				// this.notifySplices('values', [{
-				// 	index: this.values.length + 1 - values.length,
-				// 	addedCount: values.length,
-				// 	object: this.values,
-				// 	removed: [],
-				// 	type: 'splice'
-				// }]);
-
-				// values.forEach(function(value) {
-				// 	this.unshift('items', value)
-				// }, this._list)
+        this.async( () => {
+  				if (!this._initialized) {
+  					this.set('values', values.reverse());
+  					this._initialized = true;
+  				} else {
+  					for (var i = 0; i < values.length; i++) {
+  						this.unshift('values', values[i]);
+  					}
+  				}
+        });
 			},
 
 			spliceValues: function(splices) {
-				splices.forEach(function(value) {
-					this.pop('items')
-				}, this.$.list)
+        // var list = this.$.list.items;
+
+        requestAnimationFrame( () => {
+          var changeRecord = [];
+
+          function find(item) {
+            return this.x === item.x;
+          }
+
+          for (var i = 0; i < splices.length; i++) {
+            var pos = this.values.findIndex( find, splices[i]);
+            if (pos !== -1) {
+              this.values.splice(pos, 1);
+              changeRecord.push( { index: pos, removed: [this.values[pos]], addedCount: 0, object: this.values, type: 'splice'} );
+            }
+          }
+
+          this.notifySplices('values', changeRecord);
+        })
+
 			},
 
       clearValues: function() {

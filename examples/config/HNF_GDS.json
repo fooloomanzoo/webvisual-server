@@ -5,8 +5,8 @@
     "connections": {
       "file": {
         "mode": "all",
-        "path": "examples/datafile/HNF_Datafile.txt",
-        "#path": "//ibn-vsrv/HNF-GDS$/Datafile/HNF_Datafile.txt",
+        "#path": "examples/datafile/HNF_Datafile.txt",
+        "path": "//ibn-vsrv/HNF-GDS$/Datafile/HNF_Datafile.txt",
         "format": {
           "dateFormat": "DD.MM.YYYY;hh:mm:ss",
           "decimalSeparator": ".",
@@ -19,7 +19,7 @@
 		"clientRequest": {
 			"initial": {
 				"mobile": 300,
-				"stationary": 5400
+				"stationary": 1000
 			},
 			"update": {
 				"interval": 1000

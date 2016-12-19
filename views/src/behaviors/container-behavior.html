@@ -51,6 +51,11 @@
         type: Boolean
       },
 
+      autoClose: {
+        type: Number,
+        value: 5000
+      },
+
       item: Object,
 
       items: {
@@ -163,9 +168,12 @@
 
       this.isExceeding = (this.exceeding.length > 0) ? true : false;
 
+      if (this._activeCloseTimeout) {
+        clearTimeout( this._activeCloseTimeout );
+        this._activeCloseTimeout = null;
+      }
       this.opened = this.forceOpened ||
-        Boolean((this.openOnSelect && (this.item || (this.items && this.items.length))) ||
-        (this.openOnExceed && (this.exceeding && this.exceeding.length)));
+        Boolean(this.openOnExceed && (this.exceeding && this.exceeding.length));
     },
 
     unsetExceeding: function(item) {
@@ -176,9 +184,18 @@
 
       this.isExceeding = (this.exceeding.length > 0) ? true : false;
 
-      this.opened = this.forceOpened ||
-        Boolean((this.openOnSelect && (this.item || (this.items && this.items.length))) ||
-        (this.openOnExceed && (this.exceeding && this.exceeding.length)));
+      var opened = this.forceOpened ||
+        Boolean(this.openOnExceed && (this.exceeding && this.exceeding.length));
+
+      if (!opened) {
+        if (this._activeCloseTimeout) {
+          clearTimeout( this._activeCloseTimeout );
+          this._activeCloseTimeout = null;
+        }
+        this._activeCloseTimeout = setInterval(() => {
+          this.opened = false;
+        }, this.autoClose || 0)
+      }
     },
 
     clearExceedings: function() {

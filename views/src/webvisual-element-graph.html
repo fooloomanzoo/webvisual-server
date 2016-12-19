@@ -107,8 +107,9 @@
           .y0( (d) => {
             if (this.chartElement.yScale === "ln" || this.chartElement.yScale === 'log₁₀') {
               return this.chartElement._y(Number.EPSILON);
+            } else {
+              return this.chartElement._y(0)
             }
-            return this.chartElement._y(0);
           })
           .y1(this.line.y.call(this.area));
       },
@@ -239,6 +240,27 @@
         }
       },
 
+      spliceValues: function(splices) {
+        // var list = this.$.list.items;
+
+        requestAnimationFrame( () => {
+          var changeRecord = [];
+
+          function find(item) {
+            return this.x === item.x;
+          }
+
+          for (var i = 0; i < splices.length; i++) {
+            var pos = this.values.findIndex( find, splices[i]);
+            if (pos !== -1) {
+              this.values.splice(pos, 1);
+              // changeRecord.push( { index: pos, removed: [this.values[pos]], addedCount: 0, object: this.values, type: 'splice'} );
+            }
+          }
+        })
+        // this.notifySplices('values', changeRecord);
+      },
+
       renderInsertedValues: function(values) {
         WebvisualBehaviors.ElementBehavior.renderInsertedValues.call(this, values);
         if (!this.chartElement)
@@ -253,89 +275,91 @@
       },
 
       redraw: function() {
-        if (!this.values || !this.values.length || this._hidden === true) return;
-        // performance.mark('graph redraw start');
-        var self = this;
-        var data = this.values.filter(this._defined.bind(this)) || [];
+        this.async( () => {
+          if (!this.values || !this.values.length || this._hidden === true) return;
+          // performance.mark('graph redraw start');
+          var self = this;
+          var data = this.values.filter(this._defined.bind(this)) || [];
 
-        if (this.noLine === false) {
-          this.lineNode
-            .datum(data)
-            .attr('d', this.line);
-        }
+          if (this.noLine === false) {
+            this.lineNode
+              .datum(data)
+              .attr('d', this.line);
+          }
 
-        if (this.noFill === false && this.chartElement._height) {
-          // this.area
-          //   .y0(this.chartElement._y(0));
-          this.areaNode
-            .datum(data)
-            .attr('d', this.area);
-        }
+          if (this.noFill === false && this.chartElement._height) {
+            // this.area
+            //   .y0(this.chartElement._y(0));
+            this.areaNode
+              .datum(data)
+              .attr('d', this.area);
+          }
 
-        if (this.noDots === false) {
-          var everyOverlappingDot = (data.length / Math.max(this.chartElement._height, this.chartElement._width) * (this.dotRadius * 3));
+          if (this.noDots === false) {
+            var everyOverlappingDot = (data.length / Math.max(this.chartElement._height, this.chartElement._width) * (this.dotRadius * 3));
 
-          if (everyOverlappingDot > 1)
-            data = data.filter( (d, i) => {
-              return (i % everyOverlappingDot <= 1);
-            })
-            var dots = this.dots.selectAll('circle')
-              .data(data);
-            // update current dots
-            dots.attr('cx', (d) => {
-                return this.chartElement._x(d.x)
+            if (everyOverlappingDot > 1)
+              data = data.filter( (d, i) => {
+                return (i % everyOverlappingDot <= 1);
               })
-              .attr('cy', (d) => {
-                return this.chartElement._y(d.y)
-              });
-            // enter new dots
-            dots.enter()
-              .append('circle')
-              .classed('dot style-scope webvisual-element-graph', true)
-              .attr('r', this.dotRadius)
-              .attr('fill', (d) => {
-                switch (d.state) {
-                  case 1:
-                    return this.customStyle['element-state-exceeds-color'];
-                    break;
-                  case -1:
-                    return this.customStyle['element-state-deceeds-color'];
-                    break;
-                  default:
-                    return this.item.exceedable ? this.customStyle['element-state-inrange-color'] || this.item.color : this.item.color;
-                }
-              })
-              .attr('cx', (d) => {
-                return this.chartElement._x(d.x)
-              })
-              .attr('cy', (d) => {
-                return this.chartElement._y(d.y)
-              })
-              .attr('title', (d) => {
-                return this.computeDate(d.x) + ' | ' + this.computeValue(d.y);
-              })
-              .on('mouseenter', function(d) {
-                this.setAttribute('r', self.dotRadius * 1.5);
-                self.chartElement._showInfo(d);
-              })
-              .on('mouseleave', function(d, i) {
-                this.setAttribute('r', self.dotRadius);
-                self.chartElement._hideInfo();
-              })
-              .on('click', (d) => {
-                var offset = this.dotRadius * 5;
-                var x = this.chartElement._x(d.x);
-                var y = this.chartElement._y(d.y);
-                d3.event.selection = [
-                  [x - offset, y - offset],
-                  [x + offset, y + offset]
-                ];
-                this.chartElement.brushed();
-              });
-            //  remove old dots
-            dots.exit()
-                .remove();
-        }
+              var dots = this.dots.selectAll('circle')
+                .data(data);
+              // update current dots
+              dots.attr('cx', (d) => {
+                  return this.chartElement._x(d.x)
+                })
+                .attr('cy', (d) => {
+                  return this.chartElement._y(d.y)
+                });
+              // enter new dots
+              dots.enter()
+                .append('circle')
+                .classed('dot style-scope webvisual-element-graph', true)
+                .attr('r', this.dotRadius)
+                .attr('fill', (d) => {
+                  switch (d.state) {
+                    case 1:
+                      return this.customStyle['element-state-exceeds-color'];
+                      break;
+                    case -1:
+                      return this.customStyle['element-state-deceeds-color'];
+                      break;
+                    default:
+                      return this.item.exceedable ? this.customStyle['element-state-inrange-color'] || this.item.color : this.item.color;
+                  }
+                })
+                .attr('cx', (d) => {
+                  return this.chartElement._x(d.x)
+                })
+                .attr('cy', (d) => {
+                  return this.chartElement._y(d.y)
+                })
+                .attr('title', (d) => {
+                  return this.computeDate(d.x) + ' | ' + this.computeValue(d.y);
+                })
+                .on('mouseenter', function(d) {
+                  this.setAttribute('r', self.dotRadius * 1.5);
+                  self.chartElement._showInfo(d);
+                })
+                .on('mouseleave', function(d, i) {
+                  this.setAttribute('r', self.dotRadius);
+                  self.chartElement._hideInfo();
+                })
+                .on('click', (d) => {
+                  var offset = this.dotRadius * 5;
+                  var x = this.chartElement._x(d.x);
+                  var y = this.chartElement._y(d.y);
+                  d3.event.selection = [
+                    [x - offset, y - offset],
+                    [x + offset, y + offset]
+                  ];
+                  this.chartElement.brushed();
+                });
+              //  remove old dots
+              dots.exit()
+                  .remove();
+          }
+        });
 
         // performance.mark('graph redraw end');
         // performance.measure('graph redraw', 'graph redraw start', 'graph redraw end');
@@ -438,7 +462,8 @@
         }
         this.line.curve(curve);
         this.area.curve(curve);
-        if (this.chart && this.areaNode)
+
+        if (this.chartElement && this.areaNode)
           this.redraw();
       }
     });

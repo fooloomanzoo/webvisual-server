@@ -8,7 +8,7 @@
 
 <link rel="import" href="webvisual-element-svg.html">
 <link rel="import" href="webvisual-element-chart.html">
-<link rel="import" href="webvisual-element-table-group.html">
+<link rel="import" href="webvisual-table-group.html">
 
 <dom-module id='webvisual-groupcard'>
   <template strip-whitespace>
@@ -180,7 +180,7 @@
       [hidden] {
         display: none !important;
       }
-      webvisual-element-table-group[opened],
+      webvisual-table-group[opened],
       webvisual-element-chart[opened] {
         padding: 3em 0 2.5em 0;
         box-sizing: border-box;
@@ -195,6 +195,7 @@
             <webvisual-element-svg class="view"
               url-prefix="[[svgUrlPrefix]]"
               src="[[svgSrcPath]]"
+              multi
               selectable-items="[[svgSelectable]]"
               items="[[items]]"
               exceeding="[[exceeding]]"></webvisual-element-svg>
@@ -203,8 +204,8 @@
             <webvisual-element-chart class="view"
               multi
               items="[[items]]"></webvisual-element-chart>
-            <webvisual-element-table-group class="view"
-              items="[[items]]"></webvisual-element-table-group>
+            <webvisual-table-group class="view"
+              items="[[items]]"></webvisual-table-group>
           </template>
         </iron-pages>
 

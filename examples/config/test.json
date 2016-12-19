@@ -29,7 +29,7 @@
     "clientRequest": {
       "initial": {
         "mobile": 300,
-        "stationary": 5400
+        "stationary": 1000
       },
       "update": {
         "interval": 1000
@@ -202,7 +202,7 @@
 
       "unnamedItem": {
         "id": "id",
-        "unit": "Einw."
+        "unit": "Ew."
       },
 
       "valueModel": {
@@ -245,7 +245,7 @@
     "clientRequest": {
       "initial": {
         "mobile": 300,
-        "stationary": 5400
+        "stationary": 1000
       },
       "update": {
         "interval": 1000
@@ -458,7 +458,7 @@
     "clientRequest": {
       "initial": {
         "mobile": 300,
-        "stationary": 5400
+        "stationary": 1000
       },
       "update": {
         "interval": 1000
@@ -478,6 +478,10 @@
           "svg": {
             "selector": "g#g783 polygon",
             "path": "boxes.svg"
+          },
+          "threshold": {
+            "from": -18,
+            "to": 18
           }
         }, {
           "id": "box2",
@@ -489,6 +493,10 @@
           "svg": {
             "selector": "g#g744 polygon",
             "path": "boxes.svg"
+          },
+          "threshold": {
+            "from": -18,
+            "to": 18
           }
         }, {
           "id": "box3",
@@ -500,6 +508,10 @@
           "svg": {
             "selector": "g#g627 polygon",
             "path": "boxes.svg"
+          },
+          "threshold": {
+            "from": -18,
+            "to": 18
           }
         }, {
           "id": "box4",
@@ -511,6 +523,10 @@
           "svg": {
             "selector": "g#g510 polygon",
             "path": "boxes.svg"
+          },
+          "threshold": {
+            "from": -18,
+            "to": 18
           }
         }, {
           "id": "box5",
@@ -544,6 +560,10 @@
           "svg": {
             "selector": "g#g315 polygon",
             "path": "boxes.svg"
+          },
+          "threshold": {
+            "from": -18,
+            "to": 18
           }
         }, {
           "id": "box8",
@@ -566,6 +586,10 @@
           "svg": {
             "selector": "g#g939 polygon",
             "path": "boxes.svg"
+          },
+          "threshold": {
+            "from": -18,
+            "to": 18
           }
         }, {
           "id": "box10",
@@ -599,6 +623,10 @@
           "svg": {
             "selector": "g#g588 polygon",
             "path": "boxes.svg"
+          },
+          "threshold": {
+            "from": -18,
+            "to": 18
           }
         }, {
           "id": "box13",
@@ -621,6 +649,10 @@
           "svg": {
             "selector": "g#g822 polygon",
             "path": "boxes.svg"
+          },
+          "threshold": {
+            "from": -18,
+            "to": 18
           }
         }, {
           "id": "box15",
@@ -665,6 +697,10 @@
           "svg": {
             "selector": "g#g198 polygon",
             "path": "boxes.svg"
+          },
+          "threshold": {
+            "from": -18,
+            "to": 18
           }
         }, {
           "id": "box19",
@@ -742,6 +778,10 @@
           "svg": {
             "selector": "g#g471 polygon",
             "path": "boxes.svg"
+          },
+          "threshold": {
+            "from": -18,
+            "to": 18
           }
         }
       ],

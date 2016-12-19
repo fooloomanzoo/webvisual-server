@@ -247,7 +247,9 @@
 
           if (this.item.exceedable) {
             this.checkExceedingState(value);
-            this.setAttribute('state', value.state);
+            if (!this.hasAttribute('state') || this.state != value.state) {
+              this.setAttribute('state', value.state);
+            }
           }
         }
       },

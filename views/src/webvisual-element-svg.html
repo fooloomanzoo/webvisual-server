@@ -251,6 +251,12 @@
         }
       },
 
+      /**
+       * multi selectable
+       */
+
+      multi: Boolean,
+
       item: {
         type: Object,
         value: function() {
@@ -296,7 +302,7 @@
     observers: [
       '_srcChanged(src, urlPrefix)',
       '_selectableItemsChanged(selectableItems)',
-      '_selectedItemChanged(item)',
+      '_selectedItemsChanged(item)',
       '_selectedItemsChanged(items.length)',
       '_exceedingChanged(exceeding.length)'
     ],
@@ -400,23 +406,14 @@
       this.debounce('select-exceeds', this._selectExceeds, 100);
     },
 
-    _selectedItemChanged: function() {
-      if (this.item && this.item.svg && this.item.svg.selector && this.item.svg.path) {
-        if (!this.src) {
-          this.src = this.item.svg.path;
-        }
-        this.opened = this.src && (this.opened || this.forceOpened || this.openOnSelect);
-        this.debounce('select', this._selectSelected, 50);
-      } else if (this._mainG && this._mainG.selectAll) {
-        this._mainG.selectAll('.' + this.selectedClass)
-                   .classed(this.selectedClass, false);
-      }
-    },
-
     _selectedItemsChanged: function() {
-      if (this.items && this.items.length) {
-        if (!this.src && this.items[this.items.length-1].svg && this.items[this.items.length-1].svg.path) {
-          this.src = this.items[this.items.length-1].svg.path;
+      if ((this.item && Object.keys(this.item).length) || (this.items && this.items.length)) {
+        if (!this.src) {
+          if (this.item && this.item.svg && this.item.svg.path) {
+            this.src = this.item.svg.path;
+          } else if (this.items[this.items.length-1].svg && this.items[this.items.length-1].svg.path) {
+            this.src = this.items[this.items.length-1].svg.path;
+          }
         }
         this.opened = this.src && (this.opened || this.forceOpened || this.openOnSelect);
         this.debounce('select', this._selectSelected, 50);
@@ -491,17 +488,17 @@
     },
 
     _selectSelected: function() {
-      var sel = this.items || [];
+      var sel = this.multi ? (this.items || []) : [];
       if (this.item && Object.keys(this.item).length && sel.indexOf(this.item) === -1)
         sel.push(this.item);
       if (sel && sel.length) {
         for (var i = 0; i < sel.length; i++) {
-          if (sel[i].color && sel[i].svg && sel[i].svg.selector) {
-            var style;
-            if (this.shadowRoot) {
+          if (sel[i] && sel[i].color && sel[i].svg && sel[i].svg.selector) {
+            var style; // use elements color as fill-color by creating a CSS rule
+            if (this.shadowRoot) { // shadowDOM
               style = this.shadowRoot.querySelector('style');
             } else {
-              var scopeName;
+              var scopeName; // shadyDOM
               this.classList.forEach( (cl) => {
                 if (cl.startsWith('webvisual-element-svg')) {
                   scopeName = cl;
@@ -527,9 +524,9 @@
     select: function(selected, selectedClass) {
       if (!this._mainG.node || !this.src) return;
       // previous selected elements: remove class for selected elements
+      this._mainG = this._svg.select('g');
       this._mainG.selectAll('.' + selectedClass)
                  .classed(selectedClass, false);
-
       var elems;
       var sel = [];
       if (Array.isArray(selected)) {

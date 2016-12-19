@@ -5,7 +5,7 @@ importScripts('/scripts/database-worker.js');
 var socket
   , options = {}
   , cache = new ClientCache()
-  , db = new IndexedDBHandler();
+  , db = new Map();
 
 self.onconnect = function(e) {
   for (var key in e.data) {
@@ -120,11 +120,29 @@ self._updateClient = function(message) {
   for (var mount in message.values) {
     ret[mount] = {};
     ret[mount].splices = this.cache.get(mount).splices;
-    ret[mount].heap = this.cache.get(mount).heap;
-    ret[mount].values = message.values[mount];
+    ret[mount].values = this.cache.get(mount).heap;
+    // ret[mount].values = message.values[mount];
   }
 
   self.postMessage(ret)
+}
+
+self._updateDatabase = function(message) {
+
+  for (var mount in message.values) {
+    if (!db.has(mount)) {
+      db.set(mount, new IndexedDBHandler(mount, 'x'));
+    }
+    var idb = db.get(mount);
+
+    idb.place('x', message.values[mount])
+       .then( ret => {
+        //  console.log(ret);
+       } )
+       .catch( err => {
+        //  console.log(err); 
+       });
+  }
 }
 
 self.request = function(opt) {
@@ -149,11 +167,4 @@ self.request = function(opt) {
       response: {}
     });
   }
-}
-
-self._updateDatabase = function() {
-
-  // for (var mount in message.values) {
-  //   ret[mount].values = message.values[mount];
-  // }
 }

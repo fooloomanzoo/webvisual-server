@@ -7,7 +7,7 @@
 <link rel="import" href="components/webvisual-tabs.html">
 <link rel="import" href="webvisual-element-table.html">
 
-<dom-module id="webvisual-element-table-group">
+<dom-module id="webvisual-table-group">
 	<template strip-whitespace>
     <style include="webvisual-button">
       :host {
@@ -19,7 +19,7 @@
         min-height: 100px;
       }
 			#select {
-				flex: 1 1 24px;
+				flex: 1 1 2em;
 			}
       #tables {
         position: relative;
@@ -28,6 +28,7 @@
       }
       webvisual-button {
         font-size: 0.75em;
+        min-width: 3em;
         opacity: 0.75;
         border-radius: 0;
         mix-blend-mode: exclusion;
@@ -61,7 +62,7 @@
 	<script>
 		WebvisualElementTable = Polymer({
 
-			is: 'webvisual-element-table-group',
+			is: 'webvisual-table-group',
 
 			properties: {
         items: {

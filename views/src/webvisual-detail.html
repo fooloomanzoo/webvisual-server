@@ -73,7 +73,7 @@
         top: 0; left: 0;
         padding-top: 0.5em;
         padding-bottom: 2.5em;
-        isolation: isolate;
+        /*isolation: isolate;*/
       }
       #svg {
         bottom: 0; left: 0;
@@ -219,7 +219,6 @@
       },
 
       _setExceeding: function(e) {
-        console.log(e);
         if (e && e.detail && e.detail.item) {
           if (e.detail.value === true)
             this.setExceeding(e.detail.item);
@@ -251,6 +250,7 @@
       },
 
       _getCurrentElement: function(elements, selectedElementMount) {
+        console.log(selectedElementMount);
         if (!elements || !elements.length || !selectedElementMount) {
           return null;
         }
@@ -270,12 +270,6 @@
               title: mount
             });
           });
-          // this.debounce('chart-resize', () => {
-          //   var chart;
-          //   if (chart = this.$$('#chart')) {
-          //     chart.notifyResize();
-          //   }
-          // }, 500);
         }
       },
 

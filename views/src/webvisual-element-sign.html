@@ -156,7 +156,7 @@
         outline: none;
         pointer-events: none;
         position: absolute;
-        mix-blend-mode: soft-light;
+        mix-blend-mode: difference;
         right: 0;
         bottom: 0;
         height: 1.25em;
@@ -235,15 +235,21 @@
 
           var value = values[values.length-1];
 
-          if (!this.item.isIndicatorLamp)
-            this.$.valueSection.setAttribute('title', this.computeValue(value.y));
+          if (!this.item.isIndicatorLamp) {
+            var vy = this.computeValue(value.y);
+            if (!this.$.valueSection.hasAttribute('title') || this.$.valueSection.title != vy) {
+              this.$.valueSection.setAttribute('title', vy);
+            }
+          }
 
           if (this.showDate)
             this.$.dateSection.setAttribute('title', this.computeDate(value.x));
 
           if (this.item.exceedable) {
             this.checkExceedingState(value);
-            this.setAttribute('state', value.state);
+            if (!this.hasAttribute('state') || this.state != value.state) {
+              this.setAttribute('state', value.state);
+            }
           }
         }
       },
@@ -263,7 +269,7 @@
         e.stopPropagation();
         this.fire('request-exceeding-details', {
             item: this.item
-          }));
+          });
       }
     });
   </script>
