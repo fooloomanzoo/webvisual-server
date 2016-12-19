@@ -1,7 +1,9 @@
 module.exports = {
   stripPrefix: '..\\public',
+  stripPrefix: '../public',
   stripPrefixMulti: {
     '..\\public': '',
+    '../public': ''
   },
   importScripts: [
     '/service-worker-add-on.js'

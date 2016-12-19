@@ -56,7 +56,7 @@ class projectGenerator {
   merge(source, dependencies) {
     // return function output() {
       const mergedFiles = mergeStream(source(), dependencies())
-        .pipe(this.project.analyzer);
+        // .pipe(this.project.analyzer);
       const bundleType = this.config.build.bundleType;
       let outputs = [];
 

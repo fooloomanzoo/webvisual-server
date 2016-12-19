@@ -42,7 +42,7 @@ let project
 function source() {
   return project.splitSource()
     // Add your own build tasks here!
-    // .pipe(gulpif(/\.js$/, new streamOptimizer.JSOptimizeStream(config.optimizeOptions.js)))
+    .pipe(gulpif(/\.js$/, new streamOptimizer.JSOptimizeStream(config.optimizeOptions.js)))
     .pipe(gulpif(/\.css$/, new streamOptimizer.CSSOptimizeStream(config.optimizeOptions.css)))
     .pipe(gulpif(/\.html$/, new streamOptimizer.HTMLOptimizeStream(config.optimizeOptions.html)))
     .pipe(gulpif('**/*.{png,gif,jpg,svg}', images.minify()))
@@ -55,7 +55,7 @@ function source() {
 // case you need it :)
 function dependencies() {
   return project.splitDependencies()
-    // .pipe(gulpif(/\.js$/, new streamOptimizer.JSOptimizeStream(config.optimizeOptions.js)))
+    .pipe(gulpif(/\.js$/, new streamOptimizer.JSOptimizeStream(config.optimizeOptions.js)))
     .pipe(gulpif(/\.css$/, new streamOptimizer.CSSOptimizeStream(config.optimizeOptions.css)))
     .pipe(gulpif(/\.html$/, new streamOptimizer.HTMLOptimizeStream(config.optimizeOptions.html)))
     .pipe(project.rejoin());
@@ -77,9 +77,9 @@ function build() {
     polymerJsonPath: path.join(process.cwd(), 'polymer.json'),
     build: {
       keep: '../public/data/',
-      rootDirectory: '../public/',
+      rootDirectory: '',
       bundledDirectory: 'bundled',
-      unbundledDirectory: '',
+      unbundledDirectory: '../public',
       bundleType: 'unbundled'
     },
     // Path to your service worker, relative to the build root directory
@@ -104,8 +104,8 @@ function build() {
   // A few sample tasks are provided for you
   // A task should return either a WriteableStream or a Promise
   clean = require('./lib/clean')( [
-      path.resolve(config.build.rootDirectory) + '/**'
-    , '!' + path.resolve(config.build.rootDirectory)
+      path.resolve(config.build.unbundledDirectory) + '/**'
+    , '!' + path.resolve(config.build.unbundledDirectory)
     , '!' + path.resolve(config.build.keep) + '/**'
   ] );
   project = new projectGenerator(config);

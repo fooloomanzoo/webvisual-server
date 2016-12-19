@@ -17,12 +17,14 @@
     "gulp-if": "^2.0.2",
     "gulp-imagemin": "^3.1.1",
     "html-minifier": "^3.0.1",
-    "merge-stream": "*",
+    "merge-stream": "^1.0.1",
     "plylog": "^0.4.0",
     "polymer-build": "*",
     "sw-precache": "^4.2.3",
-    "uglify-js": "^2.7.0",
-    "vinyl-fs": "*"
+    "uglify-js": "git+https://github.com/mishoo/UglifyJS2.git#harmony",
+    "vinyl-fs": "^2.4.4"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "polymer-build": "^0.6.0-alpha.1"
+  }
 }
