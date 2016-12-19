@@ -80,15 +80,18 @@ class WebvisualServer {
       sslSettings.port = settings.server.port || 443;
 
       try {
-        if (settings.server.ssl &&
-          settings.server.ssl.cert &&
-          settings.server.ssl.key &&
-          settings.server.ssl.passphrase) {
+        if (this.config.server.ssl &&
+          this.config.server.ssl.cert &&
+          this.config.server.ssl.key &&
+          this.config.server.ssl.passphrase) {
 
           var cert = path.resolve(this.config.server.ssl.cert)
             , key = path.resolve(this.config.server.ssl.key)
             , passphrase = path.resolve(this.config.server.ssl.passphrase);
 
+            console.log(this.config.server);
+
+          // TODO: Promised based
           fs.access( cert, fs.constants.R_OK, (err) => {
             if (err)
               process.send( { error: `File for certification (ssl) not found \n ${err}`} );
