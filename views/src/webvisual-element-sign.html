@@ -261,10 +261,9 @@
       _requestExceedingDetails: function(e) {
         e.preventDefault();
         e.stopPropagation();
-        this.dispatchEvent(new CustomEvent('request-exceeding-details', {
-          detail: {
+        this.fire('request-exceeding-details', {
             item: this.item
-          }}), {bubbles: true});
+          }));
       }
     });
   </script>
