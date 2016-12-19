@@ -15,24 +15,11 @@
 
     setColor: function(color) {
       // random color if color is not set
-      if (!color) {
-        if (!this.customStyle['--element-color']) {
-          color = '#';
-          var perm = ['2C', 'F5'];
-          perm.push((4 * Math.floor(Math.random() * 64)).toString(16));
-          for (var i = 3; i > 0; i--) {
-            var pos = Math.floor(Math.random() * i);
-            color += ((perm[pos].length === 1) ? '0' : '') + perm[pos];
-            perm.splice(pos, 1);
-          }
-        } else {
-          color = this.customStyle['--element-color'];
-        }
+      if (color) {
+        this.updateStyles({'--element-color': color});
         if (this.item && this.item.exceedable === true) {
           this.updateStyles({'--element-state-inrange-color': '#51CC41'});
         }
-        // this.updateStyles({'--element-color': color});
-        this.set('item.color', color);
         this.updateStyles();
       }
     }

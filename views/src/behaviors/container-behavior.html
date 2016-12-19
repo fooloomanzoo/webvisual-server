@@ -11,41 +11,47 @@
 
     properties: {
 
-      opened: Boolean,
-
-      openOnSelect: Boolean,
-
-      openOnExceed: Boolean,
-
-      forceOpened: Boolean,
-
-      isExceeding: Boolean,
-
-      selectNotify: Boolean,
-
-      exceedNotify: Boolean,
-
-      selectEvent: {
-        type: String,
-        value: 'item-select'
+      opened: {
+        type: Boolean
       },
 
-      exceedEvent: {
-        type: String,
-        value: 'exceeding'
+      openOnSelect: {
+        type: Boolean,
+        value: false
       },
 
-      multi: Boolean,
-
-      noAutoRemovalExceedings: Boolean,
-
-      item: {
-        type: Object,
-        value: function() {
-          return {};
-        },
-        notify: true
+      openOnExceed: {
+        type: Boolean,
+        value: false
       },
+
+      forceOpened: {
+        type: Boolean
+      },
+
+      isExceeding: {
+        type: Boolean
+      },
+
+      selectNotify: {
+        type: Boolean,
+        value: false
+      },
+
+      exceedNotify: {
+        type: Boolean,
+        value: false
+      },
+
+      multi: {
+        type: Boolean
+      },
+
+      noAutoRemovalExceedings: {
+        type: Boolean
+      },
+
+      item: Object,
 
       items: {
         type: Array,
@@ -65,10 +71,8 @@
     },
 
     observers: [
-      '_watchSelect(openOnSelect)',
-      '_watchExceed(openOnExceed)',
-      '_watchSelect(selectNotify)',
-      '_watchExceed(exceedNotify)'
+      '_watchSelect(selectNotify, openOnSelect)',
+      '_watchExceed(exceedNotify, openOnExceed)'
     ],
 
     hostAttributes: {
@@ -80,28 +84,28 @@
       this._watchExceed();
     },
 
-    _watchSelect: function(selectNotify) {
-      if (selectNotify === true) {
-        this.listen(this, this.selectEvent, '_select');
+    _watchSelect: function(selectNotify, openOnSelect) {
+      if (selectNotify || openOnSelect) {
+        this.listen(this, 'item-select', '_select');
         this.listen(this, 'clear-selected-items', 'clearItems');
       } else {
-        this.unlisten(this, this.selectEvent, '_select');
+        this.unlisten(this, 'item-select', '_select');
         this.unlisten(this, 'clear-selected-items', 'clearItems');
       }
     },
 
-    _watchExceed: function(exceedNotify) {
-      if (exceedNotify === true) {
-        this.listen(this, this.exceedEvent, '_setExceeding');
+    _watchExceed: function(exceedNotify, openOnExceed) {
+      if (exceedNotify || openOnExceed) {
+        this.listen(this, 'exceeding', '_setExceeding');
         this.listen(this, 'clear-exceeding-items', 'clearExceedings');
       } else {
-        this.unlisten(this, this.exceedEvent, '_setExceeding');
+        this.unlisten(this, 'exceeding', '_setExceeding');
         this.unlisten(this, 'clear-exceeding-items', 'clearExceedings');
       }
     },
 
     _select: function(e) {
-      if (e && e.detail && e.detail.item) {
+      if (e && e.detail && e.detail.item && Object.keys(e.detail.item).length) {
         if (e.detail.value === true)
           this.select(e.detail.item);
         else
@@ -117,7 +121,9 @@
         }
       }
 
-      this.opened = this.forceOpened || this.openOnSelect;
+      this.opened = this.forceOpened ||
+        Boolean((this.openOnSelect && (this.item || (this.items && this.items.length))) ||
+        (this.openOnExceed && (this.exceeding && this.exceeding.length)));
     },
 
     deselect: function(item) {
@@ -131,7 +137,9 @@
         this.set('item', null);
       }
 
-      this.opened = this.forceOpened || (this.openOnSelect && this.item) ? true : false;
+      this.opened = this.forceOpened ||
+        Boolean((this.openOnSelect && (this.item || (this.items && this.items.length))) ||
+        (this.openOnExceed && (this.exceeding && this.exceeding.length)));
     },
 
     clearItems: function() {
@@ -154,7 +162,10 @@
         this.push('exceeding', item);
 
       this.isExceeding = (this.exceeding.length > 0) ? true : false;
-      this.opened = this.opened || this.forceOpened || (this.openOnExceed && this.isExceeding);
+
+      this.opened = this.forceOpened ||
+        Boolean((this.openOnSelect && (this.item || (this.items && this.items.length))) ||
+        (this.openOnExceed && (this.exceeding && this.exceeding.length)));
     },
 
     unsetExceeding: function(item) {
@@ -164,7 +175,10 @@
         this.splice('exceeding', pos, 1);
 
       this.isExceeding = (this.exceeding.length > 0) ? true : false;
-      this.opened = this.opened || this.forceOpened || (this.openOnExceed && this.isExceeding);
+
+      this.opened = this.forceOpened ||
+        Boolean((this.openOnSelect && (this.item || (this.items && this.items.length))) ||
+        (this.openOnExceed && (this.exceeding && this.exceeding.length)));
     },
 
     clearExceedings: function() {

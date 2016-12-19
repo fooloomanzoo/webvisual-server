@@ -67,11 +67,15 @@
         z-index: auto;
       }
       :host {
-        background: var(--primary-background);
+        background-color: var(--primary-background);
       }
       :host([page="login"]),
       :host([page="home"]) {
-        background: var(--bright-primary-color);
+        background-color: var(--bright-primary-color);
+      }
+      :host([page="login"][dark]),
+      :host([page="home"][dark]) {
+        background-color: var(--primary-color);
       }
       app-toolbar {
         font-size: 16px;
@@ -122,6 +126,7 @@
       #pageselector {
         display: flex;
         box-sizing: border-box;
+        justify-content: center;
         min-height: 100vh;
         padding-top: 64px;
         position: relative;
@@ -202,10 +207,15 @@
             </webvisual-selectbox>
           </template>
 
-          <template is="dom-if" if="[[isExceeding]]">
+          <template is="dom-if" if="[[detailHasDrawer]]">
+            <webvisual-icon-button icon="subject" on-tap="_toggleDetailControlDrawer">
+            </webvisual-icon-button>
+          </template>
+
+          <!-- <template is="dom-if" if="[[isExceeding]]">
             <webvisual-icon-button icon="error-outline" class="error-icon control"
             on-tap="_toggleAlarmDrawer" hidden$="[[!isExceeding]]"></webvisual-icon-button>
-          </template>
+          </template> -->
 
           <webvisual-icon-button icon="more-vert" checked="{{showTabs}}"></webvisual-icon-button>
 
@@ -262,14 +272,14 @@
         grouped-key="{{groupedKey}}"
         grouping-keys="{{groupingKeys}}"></webvisual-groups>
       <!-- detail view of one item -->
-      <webvisual-detail name="detail" dark$="[[dark]]" plain$="[[plain]]"
+      <webvisual-detail id="detailpage" name="detail" dark$="[[dark]]" plain$="[[plain]]"
         mount="[[subroute.path]]"
         elements="[[elements]]"
-        offline="[[offline]]"></webvisual-detail>
+        show-toggle-icon="{{detailHasDrawer}}"></webvisual-detail>
     </iron-pages>
 
     <!-- EXCEEDING -->
-    <template is="dom-if" if="[[isExceeding]]">
+    <!-- <template is="dom-if" if="[[isExceeding]]">
       <app-drawer id="alarmDrawer" opened="{{alarmDrawerOpened}}" align="right" swipe-open tabindex="0">
         <app-toolbar class="header">
           <webvisual-icon-button icon="warning" on-tap="_toggleAlarmDrawer"></webvisual-icon-button>
@@ -285,7 +295,7 @@
 
         <section style="padding: 0em 0.75em 0.75em 0.75em; float: right;"><a href="#" on-click="_clearExceedingElementsFromList">Liste leeren</a></section>
       </app-drawer>
-    </template>
+    </template> -->
 
     <!-- SIDEMENU -->
     <template is="dom-if" if="[[_shouldRenderDrawer]]">
@@ -570,9 +580,12 @@
           }
         }
 
-        findAllElements(document.querySelectorAll('*'));
+        if (this.shadowRoot) {
+          findAllElements(document.querySelectorAll('*'));
+        } else {
+          elements = document.querySelectorAll('[element]')
+        }
 
-        console.log(elements);
         if (elements.length) {
           Array.prototype.forEach.call(elements,
             (el) => {
@@ -628,6 +641,10 @@
 
       _toggleDrawer: function() {
         this.drawerOpened = !this.drawerOpened;
+      },
+
+      _toggleDetailControlDrawer: function() {
+        this.$.detailpage.toggleControlDrawer();
       },
 
       _toggleAlarmDrawer: function() {

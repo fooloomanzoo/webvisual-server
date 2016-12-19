@@ -30,8 +30,6 @@
         value: false
       },
 
-      bubbles: Boolean,
-
       storeInside: Boolean,
 
       viewLength: {
@@ -66,7 +64,7 @@
 
     ready: function() {
       var sel, uniqueid;
-      while (true) {
+      while (true) { // TODO: not valid in ShadowDOM
         uniqueid = String(Math.random().toString(16).slice(2));
         sel = document.querySelector("[uniqueid='" + uniqueid + "']");
         if (!sel) break;
@@ -84,12 +82,11 @@
     },
 
     _linkElement: function(mount, uniqueid, noLink) {
-      // console.log(mount , uniqueid , !noLink);
-      if (!(mount && uniqueid && !noLink)) {
-        return;
-      }
       if (this._olditem) {
         this._unlinkElement(this._olditem);
+      }
+      if (!(mount && uniqueid && !noLink)) {
+        return;
       }
       this._olditem = this.item;
       if (this._initialized) {
@@ -99,20 +96,21 @@
         window.Webvisual.assignElement(this);
       }
 
-      this.requestLastValue()
-          .then( (ret) => {
-            for (var mount in ret) {
-              this.insertValues(ret[mount]);
-            }
+      this.requestLastValue(this.viewLength, 3)
+          .then( (values) => {
+            this.insertValues(values);
           })
           .catch( (err) => {
-            console.log(err);
+            if (err) {
+              console.log(err);
+            }
           } );
     },
 
     _unlinkElement: function(item) {
       if (window.Webvisual && Webvisual.retractElement && item && item.mount) {
         window.Webvisual.retractElement(this, item);
+        this._olditem = null;
       }
     },
 
@@ -121,7 +119,7 @@
     },
 
     computeDate: function(x) {
-      return x ? (this.showFullDate ? new Date(x).toLocaleString() : new Date(x).toLocaleTimeString()) : '';
+      return x ? (this.fullDate ? new Date(x).toLocaleString() : new Date(x).toLocaleTimeString()) : '';
     },
 
     computeValue: function(y, state) {
@@ -186,8 +184,8 @@
       this.renderInsertedValues(this.values);
     },
 
-    clearValues: function() {
-      if (this._initialized) {
+    clearValues: function(force) {
+      if (this._initialized || force) {
         this.resetState();
         this.values = [];
         this.notifyPath('values');
@@ -195,15 +193,17 @@
       }
     },
 
-    requestLastValue: function(len) {
+    requestLastValue: function(len, attempts) {
 
       this._messageCount++;
+      var self = this;
       len = len || this.viewLength || 1;
-      var messageId = 'requestLastValue' + this.uniqueid + this._messageCount;
+      var messageId = 'requestLastValue' + this.uniqueid + '#' + this._messageCount;
       var req = {
         request: {
           messageId: messageId,
-          requestLast: {
+          func: 'requestLast',
+          arg: {
             mounts: [this.item.mount],
             length: len || 1
           }
@@ -223,7 +223,14 @@
              && e.data.messageId
              && e.data.messageId === messageId) {
                this.webworker.removeEventListener('message', onMessage, false );
-               resolve(e.data.values);
+               if (e.data.response && e.data.response[self.item.mount]) {
+                 resolve(e.data.response[self.item.mount]);
+               } else if (attempts) {
+                //  console.log(self.item.mount + ': ' + attempts + '  ' + JSON.stringify(e.data.response));
+                 resolve(self.requestLastValue(len, --attempts));
+               } else {
+                 reject(self.item.mount + ': ' + self.nodeName + ': no values received')
+               }
              }
           }.bind(this), false );
 
@@ -232,7 +239,7 @@
       } else {
         return new Promise( (resolve, reject) => {
           if (this.values)
-           resolve(this.values.slice(this.values.length - len, this.values.length))
+            resolve(this.values.slice(this.values.length - len, this.values.length))
           else {
             reject();
           }
@@ -240,20 +247,26 @@
       }
     },
 
-    requestRange: function(key) {
+    requestRange: function(key, attempts) {
       var mount = this.mount;
       var uniqueid = this.uniqueid;
-      _messageCount = this._messageCount++;
+      messageCount = this._messageCount++;
       if (!this.storeInside && window.Webvisual && window.Webvisual.webworker) {
         return new Promise( function (resolve, reject) {
 
-          var messageId = 'requestRange' + uniqueId + _messageCount;
+          var messageId = 'requestRange' + uniqueId + '#' + messageCount;
           this.webworker.addEventListener('message', function onMessage(e) {
             if (e.data
              && e.data.messageId
              && e.data.messageId === messageId) {
                this.webworker.removeEventListener('message', onMessage);
-               resolve(e.data.values);
+               if (e.data.response && e.data.response.length === 2) {
+                 resolve(e.data.response);
+               } else if (attempts) {
+                 resolve(this.requestRange(key, attempts--));
+               } else {
+                 reject(self.item.mount + ': no range received')
+               }
              }
           }.bind(this));
 
@@ -261,7 +274,8 @@
             {
               request: {
                 messageId: messageId,
-                rangedValues: {
+                func: 'rangedValues',
+                arg: {
                   mounts: [mount],
                   key: key
                 }
@@ -276,7 +290,8 @@
             resolve( [ min, max ] );
           }
           else {
-            reject('no values set');
+            // reject('no values are set');
+            resolve( [ ] );
           }
         });
       }
@@ -333,9 +348,7 @@
 
     _exceedingChanged: function(isExceeding, old) {
       if (this.item && this.item.exceedable === true) {
-        if (this.bubbles === true) {
-          this.dispatchEvent(new CustomEvent('exceeding', {detail: { item: this.item, value: isExceeding }}), {bubbles: true });
-        }
+        this.fire('exceeding', { item: this.item, value: isExceeding });
       }
     },
 

@@ -147,7 +147,21 @@
 
       _computeItems: function(system) {
         // console.log('items', system);
+        var color = '';
         if (system && system.items) {
+          for (var i = 0; i < system.items.length; i++) {
+            if (!system.items[i].color && !system.items[i].isIndicatorLamp) { // custom colors
+              color = '#';
+              var perm = ['2C', 'F5'];
+              perm.push((4 * Math.floor(Math.random() * 64)).toString(16));
+              for (var j = 3; j > 0; j--) {
+                var pos = Math.floor(Math.random() * j);
+                color += ((perm[pos].length === 1) ? '0' : '') + perm[pos];
+                perm.splice(pos, 1);
+              }
+              system.items[i].color = color;
+            }
+          }
           this.set('items', system.items);
           // console.log(system.items);
         } else {

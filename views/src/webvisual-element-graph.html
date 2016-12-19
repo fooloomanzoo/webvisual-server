@@ -90,6 +90,10 @@
         }
       },
 
+      observers: [
+        '_itemChanged(item)'
+      ],
+
       created: function() {
         this.line = d3.line()
           .x( (d) => {
@@ -99,11 +103,29 @@
             return this.chartElement._y(d.y);
           });
         this.area = d3.area()
-          .x(this.line.x())
-          .y1(this.line.y());
+          .x(this.line.x.call(this.area))
+          .y0( (d) => {
+            if (this.chartElement.yScale === "ln" || this.chartElement.yScale === 'log₁₀') {
+              return this.chartElement._y(Number.EPSILON);
+            }
+            return this.chartElement._y(0);
+          })
+          .y1(this.line.y.call(this.area));
       },
 
       attached: function() {
+        this.addNodes();
+      },
+
+      detached: function() {
+        this.removeNodes();
+      },
+
+      addNodes: function() {
+        if (this._isAttached) {
+          this.removeNodes();
+          this.clearValues(true);
+        }
         var containerRoot = this.containerRoot;
         // performance.mark('graph attached start');
 
@@ -127,19 +149,18 @@
           .attr("class", "line")
           .attr('hidden', this.noLine ? true : null)
           .attr('fill', 'none')
-          .attr('stroke', this.item.color);
+          .attr('stroke', this.item.color || '#fff');
         this.lineNode
           .datum([])
           .attr("d", this.line);
 
         // fill area
-        this.area.y0(this.chartElement.height);
         this.areaNode = this.chartElement._areas
           .append('svg:path')
           .attr('mount', this.item.mount)
           .attr("class", "area")
           .attr('hidden', this.noFill ? true : null)
-          .attr('fill', this.item.color)
+          .attr('fill', this.item.color || '#000')
           .attr('stroke', 'none');
         this.areaNode
           .datum([])
@@ -157,12 +178,22 @@
         this.chartElement.redraw();
       },
 
-      detached: function() {
-        this.lineNode.node().parentElement.removeChild(this.lineNode.node());
-        this.areaNode.node().parentElement.removeChild(this.areaNode.node());
-        this.dots.node().parentElement.removeChild(this.dots.node());
+      removeNodes: function() {
+        if (this.lineNode.node())
+          this.lineNode.node().parentElement.removeChild(this.lineNode.node());
+        if (this.areaNode.node())
+          this.areaNode.node().parentElement.removeChild(this.areaNode.node());
+        if (this.dots.node())
+          this.dots.node().parentElement.removeChild(this.dots.node());
 
         this.chartElement._graphs.delete(this);
+      },
+
+      _itemChanged: function(item) {
+        if (!item || !this._isAttached) {
+          return;
+        }
+        this.addNodes();
       },
 
       insertValues: function(values, len) {
@@ -233,9 +264,9 @@
             .attr('d', this.line);
         }
 
-        if (this.noFill === false && this.chartElement.height) {
-          this.area
-            .y0(this.chartElement.height);
+        if (this.noFill === false && this.chartElement._height) {
+          // this.area
+          //   .y0(this.chartElement._y(0));
           this.areaNode
             .datum(data)
             .attr('d', this.area);
@@ -319,7 +350,7 @@
           return undefined; // NaN and null are displayable
         else if (d.state !== 0)
           return true; // element is exceeding
-        else if (yScale !== "linear" && d.y <= 0)
+        else if ((yScale === "ln" || yScale === 'log₁₀') && d.y <= 0)
           return undefined; // log- and sqrt-scales require larger than 0-Values
         else if ((d.x >= domainX[0] && d.x <= domainX[1]) || (i > 0 && i + 1 < data.length && (data[i + 1].x > domainX[0] && data[i - 1].x < domainX[1])))
           return true; // only numbers in x-Domain are shown (and their successor and predecessor) (graph is a function by definition, so y-Domain is not relevant)

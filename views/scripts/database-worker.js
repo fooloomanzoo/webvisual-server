@@ -13,8 +13,8 @@
 	}];
 
 	function IndexedDBHandler(opt) {
-		this.keyPath = opt.keyPath || DB_KEYPATH;
-		this.indexKeys = opt.indexKeys || DB_INDEXKEYS;
+		this.keyPath = opt && opt.keyPath || DB_KEYPATH;
+		this.indexKeys = opt && opt.indexKeys || DB_INDEXKEYS;
 
 		this.__dbOpenPromise = null;
 
@@ -403,45 +403,46 @@
 		}
 	};
 	if (self) {
-		// acting as a webworker
-
-		self.addEventListener(
-			'unhandledrejection',
-			function(error) {
-				console.log("unhandledrejection", error);
-			});
-		self.addEventListener(
-			'error',
-			function(error) {
-				console.log(error);
-			});
 
 		self.IndexedDBHandler = IndexedDBHandler;
-		var databaseWorker;
+		// var databaseWorker;
 
-		onmessage = function(e) {
-			var message = JSON.parse(e.data) || {};
-			if (message.type === 'connect') {
-				if (databaseWorker) {
-					Promise.resolve(databaseWorker.close).then(function() {
-						databaseWorker = new IndexedDBHandler(message.args);
-						postMessage({
-							type: 'db-connected'
-						});
-					})
-				} else {
-					databaseWorker = new IndexedDBHandler(message.args);
-					postMessage({
-						type: 'db-connected'
-					});
-				}
-			} else if (databaseWorker && databaseWorker.handleMessage) {
-				// console.log('onMessage', message.dbName, (+(new Date())));
-				databaseWorker.handleMessage(message);
-			} else {
-				console.log('Not possible', message)
-			}
-		};
+		// acting as a webworker
+
+		// self.addEventListener(
+		// 	'unhandledrejection',
+		// 	function(error) {
+		// 		console.log("unhandledrejection", error);
+		// 	});
+		// self.addEventListener(
+		// 	'error',
+		// 	function(error) {
+		// 		console.log(error);
+		// 	});
+		//
+		// onmessage = function(e) {
+		// 	var message = JSON.parse(e.data) || {};
+		// 	if (message.type === 'connect') {
+		// 		if (databaseWorker) {
+		// 			Promise.resolve(databaseWorker.close).then(function() {
+		// 				databaseWorker = new IndexedDBHandler(message.args);
+		// 				postMessage({
+		// 					type: 'db-connected'
+		// 				});
+		// 			})
+		// 		} else {
+		// 			databaseWorker = new IndexedDBHandler(message.args);
+		// 			postMessage({
+		// 				type: 'db-connected'
+		// 			});
+		// 		}
+		// 	} else if (databaseWorker && databaseWorker.handleMessage) {
+		// 		// console.log('onMessage', message.dbName, (+(new Date())));
+		// 		databaseWorker.handleMessage(message);
+		// 	} else {
+		// 		console.log('Not possible', message)
+		// 	}
+		// };
 	} else {
 		// acting as a non-webworker (class)
 		// window.IndexedDBHandler = IndexedDBHandler;

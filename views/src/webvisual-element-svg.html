@@ -57,6 +57,10 @@
     }
     :host([fullscreen]) {
       background-color: var(--fullscreen-background-color);
+      max-height: 100% !important;
+      max-width: 100% !important;
+      height: 100% !important;
+      width: 100% !important;
     }
     :host(:-webkit-full-screen) {
       background-color: var(--fullscreen-background-color);
@@ -110,14 +114,16 @@
     }
     .clicked {
       fill: #3852D7 !important;
+      fill-opacity: 0.5;
       @apply(--svg-clicked);
     }
     .selected {
-      fill: #B15EF4 !important;
+      fill-opacity: 0.5;
       @apply(--svg-selected);
     }
     .exceeding {
       stroke: #D95656;
+      fill-opacity: 1;
       stroke-width: 1.5px;
       stroke-linecap: round;
       stroke-linejoin: round;
@@ -134,9 +140,9 @@
         transform: scale(1.0);
       }
       50% {
+        fill: #D95656;
         transform: scale(0.8);
         -moz-transform: scale(1.0);
-        fill: #D95656;
       }
       100% {
         transform: scale(1.0);
@@ -224,7 +230,7 @@
        */
       maxZoom: {
         type: Number,
-        value: 6
+        value: 5
       },
       /**
        * a clicked or selected Node will be centered and zoomed, depending how many times a zoomed Node,
@@ -238,11 +244,31 @@
       /**
        * selectable css-selectors (key as id, value as selector), so that an eventlistener can be attached
        */
-      selectableItems: Object,
+      selectableItems: {
+        type: Object,
+        value: function() {
+          return {};
+        }
+      },
 
-      item: Object,
-      items: Array,
-      exceeding: Array
+      item: {
+        type: Object,
+        value: function() {
+          return {};
+        }
+      },
+      items: {
+        type: Array,
+        value: function() {
+          return [];
+        }
+      },
+      exceeding: {
+        type: Array,
+        value: function() {
+          return [];
+        }
+      }
 
     },
 
@@ -271,8 +297,8 @@
       '_srcChanged(src, urlPrefix)',
       '_selectableItemsChanged(selectableItems)',
       '_selectedItemChanged(item)',
-      '_selectedItemsChanged(items.splices)',
-      '_exceedingChanged(exceeding.splices)'
+      '_selectedItemsChanged(items.length)',
+      '_exceedingChanged(exceeding.length)'
     ],
 
     listeners: {
@@ -427,6 +453,7 @@
           this._mainG.selectAll(this.selectableItems.items[key])
                     .classed('selectable', true)  // for styling selectable
                     .classed('style-scope', true).classed('webvisual-element-svg', true) // for style-scoping in polymer
+                    .attr('title', key)
                     .on('click',
                       function() {
                         d3.event.stopPropagation();
@@ -437,11 +464,7 @@
                         if (!clicked) {
                           this.classList.add('clicked');
                         }
-                      })
-                    .append('title')
-                    .text(function() {
-                        return key;
-                     });
+                      });
         }
         this._inialized = true;
       }
@@ -469,10 +492,31 @@
 
     _selectSelected: function() {
       var sel = this.items || [];
-      if (this.item && sel.indexOf(this.item) === -1)
+      if (this.item && Object.keys(this.item).length && sel.indexOf(this.item) === -1)
         sel.push(this.item);
-      if (sel && sel.length)
+      if (sel && sel.length) {
+        for (var i = 0; i < sel.length; i++) {
+          if (sel[i].color && sel[i].svg && sel[i].svg.selector) {
+            var style;
+            if (this.shadowRoot) {
+              style = this.shadowRoot.querySelector('style');
+            } else {
+              var scopeName;
+              this.classList.forEach( (cl) => {
+                if (cl.startsWith('webvisual-element-svg')) {
+                  scopeName = cl;
+                }
+              })
+              style = document.querySelector('style[scope="'+scopeName+'"]');
+            }
+            if (style && style.sheet && style.sheet.insertRule) {
+              style.sheet.insertRule(sel[i].svg.selector + '.' + this.selectedClass + ' { fill:' + sel[i].color + '!important;}', style.sheet.cssRules.length);
+            }
+          }
+        }
+        this.updateStyles();
         this.select(sel, this.selectedClass);
+      }
     },
 
     _selectExceeds: function() {
@@ -585,8 +629,8 @@
       if (!this.opened || !this._mainG || !this._mainG.node) return;
 
       // zoom to selectedItems
-      if(!this.initiallyZoomToAll) {
-        if (this.item || (this.items && this.items.length)) {
+      if (!this.initiallyZoomToAll) {
+        if (this.item && Object.keys(this.item).length || (this.items && this.items.length)) {
           this.debounce('select', this._selectSelected, 50);
           return;
         }

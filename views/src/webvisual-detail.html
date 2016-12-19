@@ -1,6 +1,5 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
-
-<link rel="import" href="behaviors/container-behavior.html"/>
+<link rel="import" href="../bower_components/iron-media-query/iron-media-query.html">
 
 <link rel="import" href="components/webvisual-tabs.html"/>
 
@@ -15,106 +14,142 @@
 <link rel="import" href="style/webvisual-button.html">
 
 <dom-module id="webvisual-detail">
-  <template>
+  <template strip-whitespace>
     <style include="shared-styles page-layout webvisual-button">
       :host {
         display: flex;
-        flex-direction: row;
         width: 100%;
-      }
-      :host > * {
+        max-width: 100vw;
+        box-sizing: border-box;
+        flex: 1;
         position: relative;
+        overflow: hidden;
+        --app-drawer-width: 256px;
+        --app-drawer-content-container: {
+          padding: 0 !important;
+          background-color: transparent;
+        };
+      }
+      #content {
+        display: flex;
+        position: relative;
+        flex: 1;
+        margin: 0;
+        /*height: 100%;*/
+      }
+      #control {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        height: 100%;
         box-sizing: border-box;
       }
-      #select {
+      #table,
+      #tabs {
+        box-sizing: border-box;
+        flex: 1 1;
+        -webkit-flex-basis: 50%;
+        flex-basis: 50%;
+      }
+      #tabs {
+        margin-bottom: 0.5em;
         --tab-vertical-overlay: {
-          background: rgba(255, 255, 255, 0.15);
+          background-color: rgba(255, 255, 255, 0.15);
           border-left: 3px solid var(--bright-primary-color, white);
           border-bottom: none;
         }
       }
-      .responsive {
-        display: flex;
-        flex-direction: column;
-        flex: 1 0 auto;
+      #table {
+        margin-top: 0.5em;
       }
-      .responsive > * {
+      #chart,
+      #svg {
+        height: 50%;
+        position: absolute;
         box-sizing: border-box;
-        flex: 1 0 50%;
+        padding: 0.5em 1em;
       }
-      .fixed {
-        display: flex;
-        flex-direction: column;
-        width: 200px;
+      #chart {
+        top: 0; left: 0;
+        padding-top: 0.5em;
+        padding-bottom: 2.5em;
+        isolation: isolate;
       }
-      .fixed > * {
-        position: relative;
-        box-sizing: border-box;
-        flex: 1 0 1px;
+      #svg {
+        bottom: 0; left: 0;
       }
-      webvisual-element-svg.detail {
+      #drawer {
+        position: absolute;
+        bottom: 0;
+        top: 0;
+      }
+      #chart[fullheight] {
+        height: 100%;
+      }
+      .checkbox {
         flex-shrink: 0;
       }
-      webvisual-element-chart.detail {
-        padding-bottom: 3em;
-      }
-      webvisual-element-checkbox.detail {
-        flex-shrink: 0;
-      }
-      webvisual-element-caption.detail {
+      .caption {
         flex: auto;
         --caption-background: transparent;
         --caption-color: var(--bright-text-color);
       }
-
-      webvisual-element-checkbox.detail[checked] > .detail {
+      .checkbox[checked] .caption {
         mix-blend-mode: difference;
       }
-
+      @media (max-width: 600px) {
+        #control {
+          background-color: rgba(255,255,255,0.25);
+        }
+      }
+      @media (min-width: 601px) {
+        #content {
+          margin-right: 256px;
+        }
+      }
     </style>
 
+    <iron-media-query query="(max-width: 600px)" query-matches="{{showControlAsDrawer}}"></iron-media-query>
+
     <webvisual-svg-data
+      hidden
       svg-data="{{svgData}}"
       mount="[[mount]]"></webvisual-svg-data>
 
     <template is="dom-if" if="[[visible]]">
+      <!-- <div id="content"> -->
+      <div id="content">
+        <webvisual-element-chart id="chart" opened fullheight$="[[!_withSvg]]"
+          item="[[selectedElement]]"></webvisual-element-chart>
 
-      <section class="responsive">
-
-        <template is="dom-if" if="[[selectedElement.svg.path]]">
-          <webvisual-element-svg opened
+        <template is="dom-if" if="[[_withSvg]]">
+          <webvisual-element-svg id="svg" opened
             url-prefix="/images[[mount]]/"
             src="[[selectedElement.svg.path]]"
             selectable-items="[[_getSvgSelectable(selectedElement.svg.path, svgData.paths)]]"
             item="[[selectedElement]]"
             exceeding="[[exceeding]]"></webvisual-element-svg>
         </template>
+      </div>
 
-        <webvisual-element-chart class="detail" opened
-          item="[[selectedElement]]"></webvisual-element-chart>
+      <!-- </div> -->
 
-      </section>
-
-      <section class="fixed">
-        <webvisual-tabs id="select" vertical selected="{{selectedElementMount}}" attr-for-selected="item-mount" selected-attribute="checked">
-          <template is="dom-repeat" items="[[_getListItems(elements)]]">
-            <webvisual-element-checkbox class="detail"
-              item="[[item]]"
-              item-mount="[[item.mount]]"
-              selectable>
-              <webvisual-element-caption class="detail"
-                keys="[[item.keys]]"></webvisual-element-caption>
-            </webvisual-element-checkbox>
-          </template>
-        </webvisual-tabs>
-
-        <webvisual-element-table class="detail" item="[[selectedElement]]"></webvisual-element-table>
-      </section>
-
-      <!-- <webvisual-snackbar opened>
-        <webvisual-element-sign item="[[item]]"></webvisual-element-sign>
-        <webvisual-element-caption keys="[[item.keys]]" vertical></webvisual-element-caption>
-      </webvisual-snackbar> -->
+      <app-drawer id="drawer" opened="[[_ensureOpened(showControlAsDrawer)]]" swipe-open persistent="[[!showControlAsDrawer]]" align="right">
+        <div id="control">
+          <webvisual-tabs id="tabs" vertical selected="{{selectedElementMount}}" attr-for-selected="item-mount" selected-attribute="checked">
+            <template is="dom-repeat" items="[[_getListItems(elements)]]">
+              <webvisual-element-checkbox class="checkbox"
+                item="[[item]]"
+                item-mount="[[item.mount]]"
+                selectable>
+                <webvisual-element-caption class="caption"
+                  keys="[[item.keys]]"></webvisual-element-caption>
+              </webvisual-element-checkbox>
+            </template>
+          </webvisual-tabs>
+          <webvisual-element-table id="table" full-date item="[[selectedElement]]"></webvisual-element-table>
+        </div>
+      </app-drawer>
 
     </template>
 
@@ -133,23 +168,82 @@
           notify: true
         },
 
+        exceeding: {
+          type: Array,
+          value: function() {
+            return [];
+          },
+          notify: true
+        },
+
         selectedElementMount: String,
 
         selectedElement: {
           type: Object,
+          value: function() {
+            return {};
+          },
           notify: true,
           computed: '_getCurrentElement(elements, selectedElementMount)'
         },
 
         svgData: Object,
 
-        visible: Boolean
+        visible: Boolean,
+
+        _withSvg: {
+          type: Boolean,
+          computed: '_calculateWithSvg(selectedElement)'
+        },
+
+        showControlAsDrawer: {
+          type: Boolean,
+          value: false,
+          notify: true
+        },
+
+        showToggleIcon: {
+          type: Boolean,
+          notify: true,
+          computed: '_computeShowToggleIcon(showControlAsDrawer, visible)'
+        }
 
       },
 
       observers: [
         '_routeChanged(mount, visible)'
       ],
+
+      listeners: {
+        'exceeding': '_setExceeding'
+      },
+
+      _setExceeding: function(e) {
+        console.log(e);
+        if (e && e.detail && e.detail.item) {
+          if (e.detail.value === true)
+            this.setExceeding(e.detail.item);
+          else
+            this.unsetExceeding(e.detail.item);
+        }
+      },
+
+      setExceeding: function(item) {
+        var pos = this.exceeding.indexOf(item);
+        if (pos === -1)
+          this.push('exceeding', item);
+
+        this.isExceeding = (this.exceeding.length > 0) ? true : false;
+      },
+
+      unsetExceeding: function(item) {
+        if (this.noAutoRemovalExceedings === true) return;
+        var pos = this.exceeding.indexOf(item);
+        if (pos !== -1)
+          this.splice('exceeding', pos, 1);
+
+        this.isExceeding = (this.exceeding.length > 0) ? true : false;
+      },
 
       _getListItems: function(items) {
         // Return placeholder items when the items haven't loaded yet.
@@ -176,12 +270,44 @@
               title: mount
             });
           });
+          // this.debounce('chart-resize', () => {
+          //   var chart;
+          //   if (chart = this.$$('#chart')) {
+          //     chart.notifyResize();
+          //   }
+          // }, 500);
         }
       },
 
       _getSvgSelectable: function(src, svgSrcPaths) {
         return svgSrcPaths[src] || {};
       },
+
+      _calculateWithSvg: function(selectedElement) {
+        // notify the chart to resize
+        if (!this._withSvg) {
+          var chart;
+          if (chart = this.$$('#chart')) {
+            this.debounce('chart-resize', chart.notifyResize.bind(chart));
+          }
+        }
+        return Boolean(selectedElement && selectedElement.svg && selectedElement.svg.path);
+      },
+
+      _ensureOpened: function(showControlAsDrawer) {
+        return true; // if 'showControlAsDrawer' changes the drawer is opened
+      },
+
+      _computeShowToggleIcon: function(showControlAsDrawer, visible) {
+        return showControlAsDrawer && visible;
+      },
+
+      toggleControlDrawer: function() {
+        var drawer = this.$$('#drawer');
+        if (drawer) {
+          drawer.toggle();
+        }
+      }
     });
   </script>
 

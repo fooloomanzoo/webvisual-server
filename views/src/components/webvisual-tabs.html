@@ -18,13 +18,13 @@
         -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
 
         --tab-overlay: {
-          background: rgba(255, 255, 255, 0.15);
+          background-color: rgba(255, 255, 255, 0.15);
           border-left: none;
           border-bottom: 2px solid var(--highlight-color, var(--primary-color));
         }
 
         --tab-vertical-overlay: {
-          background: rgba(255, 255, 255, 0.15);
+          background-color: rgba(255, 255, 255, 0.15);
           border-left: 2px solid var(--highlight-color, var(--primary-color));
           border-bottom: none;
         }
@@ -64,6 +64,7 @@
 
       :host([vertical]) #container {
         flex-direction: column;
+        width: 100%;
       }
 
       :host([vertical]) #overlay {
@@ -75,7 +76,7 @@
       }
 
     </style>
-    <nav id="container" on-track="_scroll">
+    <nav id="container" on-track="_onscroll">
       <webvisual-tabs-overlay id="overlay"></webvisual-tabs-overlay>
       <content></content>
     </nav>
@@ -101,13 +102,28 @@
         '_onSelectedItemChanged(selectedItem)'
       ],
 
+      listeners: {
+        mousewheel: '_onmousewheel'
+      },
+
       _onSelectedItemChanged: function(selectedItem) {
         if (selectedItem === undefined && this.selected) return;
 
         this.$.overlay.target = selectedItem;
       },
 
-      _scroll: function(e, detail) {
+      _onmousewheel: function (e) {
+        var scrollChange;
+        if (this.vertical) {
+          scrollChange = (e && e.deltaY) || 0;
+          this.$.container.scrollTop += scrollChange/6;
+        } else {
+          scrollChange = (detail && e.deltaX) || 0;
+          this.$.container.scrollLeft += scrollChange/6;
+        }
+      },
+
+      _onscroll: function(e, detail) {
         var scrollChange;
         if (this.vertical) {
           scrollChange = (detail && -detail.ddy) || 0;

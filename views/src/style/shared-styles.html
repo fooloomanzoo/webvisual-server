@@ -82,9 +82,10 @@
 
       :host(:not([plain])) {
         --caption-background: #fff;
+        --caption-color: var(--primary-text-color);
         --checkbox-checked-background: #fff;
         --table-background: #fff;
-        --caption-color: var(--primary-text-color);
+        --table-color: var(--primary-text-color);
         --groupcard-background: #d0d0d0;
         --groupcard-header-background: var(--bright-primary-color);
         --groupcard-header-color: var(--bright-text-color);
@@ -92,15 +93,20 @@
       }
       :host(:not([plain])[dark]) {
         --caption-background: #999;
+        --caption-color: #000;
         --checkbox-checked-background: #999;
         --table-background: #999;
-        --caption-color: #000;
         --groupcard-background: #505050;
         --groupcard-header-background: var(--dark-primary-color);
         --groupcard-header-color: var(--bright-text-color);
         --grid-border-color: #606060;
       }
       :host([plain]) {
+        --caption-background: #fff;
+        --caption-color: var(--primary-text-color);
+        --checkbox-checked-background: #fff;
+        --table-background: #fff;
+        --table-color: var(--primary-text-color);
         --groupcard-background: transparent;
         --groupcard-header-background: transparent;
         --groupcard-header-color: var(--bright-text-color);
@@ -109,6 +115,14 @@
         --toggle-button-unchecked-bar-color: var(--bright-primary-color);
         --toggle-button-unchecked-button-color: #f1f1f1;
         --toggle-button-unchecked-ink-color: var(--bright-primary-color);
+      }
+      :host([plain][dark]) {
+        --caption-background: #999;
+        --caption-color: #000;
+        --checkbox-checked-background: #999;
+        --table-background: #999;
+        --table-color: #000;
+        --checkbox-checked-background: var(--saturated-primary-color);
       }
 
       paper-ripple {

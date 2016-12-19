@@ -1,9 +1,11 @@
 importScripts('/socket.io/socket.io.js');
 importScripts('/scripts/cache.js');
+importScripts('/scripts/database-worker.js');
 
 var socket
   , options = {}
-  , cache = new ClientCache();
+  , cache = new ClientCache()
+  , db = new IndexedDBHandler();
 
 self.onconnect = function(e) {
   for (var key in e.data) {
@@ -55,10 +57,10 @@ self.createSocketConnection = function(opt) {
     });
 
     socket.on('initial', function(message) {
-      self._updateData(message);
+      self._updateData(message, 'initial');
     });
     socket.on('update', function(message) {
-      self._updateData(message);
+      self._updateData(message, 'update');
     });
 
     if (opt.socketRoom) {
@@ -90,18 +92,18 @@ self.setupConnection = function(opt) {
   }
 }
 
-self._updateData = function(message) {
+self._updateData = function(message, type) {
   if (Array.isArray(message)) // if message is an Array
     for (var i = 0; i < message.length; i++) {
     this._updateCache(message[i]);
-    this._updateClient(message[i]);
+    this._updateClient(message[i], type);
 
     // this._updateDatabase(message[i]);
   }
   else if (message.values) { // if message is a single Object
     this._updateCache(message);
     this._updateClient(message);
-    // this._updateDatabase(message);
+    this._updateDatabase(message);
   }
 }
 
@@ -126,21 +128,32 @@ self._updateClient = function(message) {
 }
 
 self.request = function(opt) {
-  var values = []
-    , messageId;
-
-  for (var func in opt) {
-    if (func === 'messageId')
-      continue;
-    if (cache[func]) {
-      messageId = opt.messageId;
-      values = cache[func](opt[func]);
-      self.postMessage({
-        messageId: messageId,
-        values: values
+  if (opt.func && opt.messageId && cache[opt.func]) {
+    cache[opt.func](opt.arg)
+      .then( (res) => {
+        self.postMessage({
+          messageId: opt.messageId,
+          response: res
+        });
+      })
+      .catch( (err) => {
+        console.warn(err);
+        self.postMessage({
+          messageId: messageId,
+          response: {}
+        });
       });
-    }
+  } else { // return, to remove EventListener
+    self.postMessage({
+      messageId: messageId,
+      response: {}
+    });
   }
 }
 
-self._updateDatabase = function() {}
+self._updateDatabase = function() {
+
+  // for (var mount in message.values) {
+  //   ret[mount].values = message.values[mount];
+  // }
+}

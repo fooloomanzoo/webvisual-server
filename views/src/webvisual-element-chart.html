@@ -2,8 +2,10 @@
 <link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
 
 <link rel="import" href="behaviors/fullscreen-behavior.html"/>
+<link rel="import" href="behaviors/container-behavior.html"/>
 
 <link rel="import" href="components/webvisual-icon-button.html"/>
+<link rel="import" href="style/webvisual-selectbox.html"/>
 
 <link rel="import" href="webvisual-element-graph.html"/>
 
@@ -11,21 +13,27 @@
 
 <dom-module id="webvisual-element-chart">
   <template strip-whitespace>
-    <style>
+    <style include="webvisual-selectbox">
       :host {
         display: block;
         width: 100%;
         height: 100%;
-        overflow: hidden;
+        /*overflow: hidden;*/
         position: relative;
         font-family: inherit;
-        color: currentColor;
+        /*color: currentColor;*/
+        color: white;
         letter-spacing: normal !important;
         user-select: none !important;
+        padding-bottom: 2em;
       }
       :host[fullscreen],
       :host([fullscreen]) {
         background-color: var(--fullscreen-background-color);
+        max-height: 100% !important;
+        max-width: 100% !important;
+        height: 100% !important;
+        width: 100% !important;
         padding: 3em !important;
       }
       :host(:-webkit-full-screen) {
@@ -38,12 +46,11 @@
         height: 100%;
       }
       #svgchart {
-        overflow: visible;
+        overflow: hidden;
         position: relative;
         width: 100%;
         height: 100%;
         display: block;
-        mix-blend-mode: exclusion;
         font-family: inherit;
       }
       text {
@@ -82,7 +89,6 @@
       .grid .tick line {
         stroke: currentColor;
         stroke-opacity: 0.1;
-        mix-blend-mode: exclusion;
       }
       .grid path {
         stroke-width: 0;
@@ -92,7 +98,6 @@
         stroke: currentColor;
         stroke-opacity: 0.5;
         stroke-width: 1.5px;
-        mix-blend-mode: exclusion;
       }
       .axis {
         font-family: inherit;
@@ -100,12 +105,8 @@
       /*g#chart g.axis path, g#chart g.axis line {
         stroke-opacity: 0.5;
       }*/
-      #graphs {
-        isolation: isolate;
-      }
       #graphs .area, #graphs .line {
         pointer-events: none;
-        mix-blend-mode: exclusion;
       }
       #graphs .area {
         fill-opacity: 0.3;
@@ -124,15 +125,18 @@
         stroke-opacity: 1;
         @apply(--chart-dot);
       }
+      #zoom {
+        mix-blend-mode: hard-light;
+      }
       #zoom .overlay {
         fill: none;
-        fill-opacity: 0.1;
         pointer-events: none;
         stroke-width: 0;
       }
       #zoom .overlay.active {
         pointer-events: all;
-        fill: #8B5F45;
+        fill-opacity: 0.25;
+        fill: #ab0c0c;
         cursor: zoom-in;
         stroke: #1f1f1f;
         stroke-opacity: 0.3;
@@ -145,7 +149,6 @@
         stroke-opacity: 0.2;
         stroke-width: 1px;
         stroke-dasharray: 2;
-        mix-blend-mode: exclusion;
       }
       .axis, .grid, #plot {
         pointer-events: none;
@@ -160,11 +163,23 @@
       webvisual-icon-button:hover {
         opacity: 1;
       }
+      webvisual-selectbox {
+        padding: 0;
+        margin-left: 0.25em;
+      }
+      webvisual-selectbox > * {
+        padding: 0.4em;
+      }
       #control {
-        display: inline-block;
+        display: inline-flex;
+        justify-content: center;
         position: absolute;
         bottom: 0;
         right: 4px;
+      }
+      #subcontrol {
+        display: inline-flex;
+        justify-content: center;
       }
       [hidden] {
         display: none !important;
@@ -178,8 +193,8 @@
             <rect x="0" y="0"></rect>
           </clipPath>
           <rect id="plot" clip-path="url(#clip)"></rect>
-          <g id="xAxis=" class="axis="></g>
-          <g id="yAxis=" class="axis="></g>
+          <g id="xAxis" class="axis"></g>
+          <g id="yAxis" class="axis"></g>
           <g id="xGrid" class="grid" clip-path="url(#clip)"></g>
           <g id="yGrid" class="grid" clip-path="url(#clip)"></g>
           <g id="brush" clip-path="url(#clip)"></g>
@@ -202,7 +217,31 @@
 
       <!-- <webvisual-icon-button id="zoombutton" icon="search" on-tap="_startZoomSession"></webvisual-icon-button> -->
     <section id="control">
-		  <webvisual-icon-button title="legend" icon="timeline" on-tap="openLegend"></webvisual-icon-button>
+      <section id="subcontrol" hidden$="[[!_showSubControl]]">
+        <webvisual-selectbox>
+          <select value="{{interpolation::input}}">
+            <option value="Lineare Verbindung">Lineare Verbindung</option>
+            <option value="Basis Spline">Basis Spline</option>
+            <option value="Kubischer Spline">Kubischer Spline</option>
+            <option value="Cardinaler Spline">Cardinaler Spline</option>
+            <option value="Catmull-Rom-Spline">Catmull-Rom-Spline</option>
+            <option value="Stufe (mitte)">Stufe (mitte)</option>
+            <option value="Stufe (davor)">Stufe (davor)</option>
+            <option value="Stufe (danach)">Stufe (danach)</option>
+          </select>
+        </webvisual-selectbox>
+        <webvisual-selectbox>
+          <select value="{{yScale::input}}">
+            <option value="linear">linear</option>
+            <option value="√">√</option>
+            <option value="ln">ln</option>
+            <option value="log₁₀">log₁₀</option>
+          </select>
+        </webvisual-selectbox>
+        <webvisual-icon-button title="zoom-mode" icon="zoom-in" on-tap="_startZoomSession"></webvisual-icon-button>
+  		  <webvisual-icon-button title="legend" icon="timeline" on-tap="openLegend"></webvisual-icon-button>
+      </section>
+      <webvisual-icon-button title="settings" icon="tune" checked="{{_showSubControl}}"></webvisual-icon-button>
       <webvisual-icon-button title="fullscreen" icon="[[fullscreenIcon]]" on-tap="toggleFullscreen"></webvisual-icon-button>
     </section>
 		  <!--<webvisual-icon-button id="optionsbutton" icon="juelich:app-inverted"></webvisual-icon-button>
@@ -236,16 +275,17 @@
 		      <webvisual-button interpolate="Stufe (danach)">Stufe (danach)</webvisual-button>
 		    </iron-selector>
 		  </webvisual-dropdown> -->
-
-    <template is="dom-repeat" items="[[items]]">
-      <webvisual-element-graph
-        item="[[item]]"
-        interpolation="[[interpolation]]"
-        store-inside>
-      </webvisual-element-graph>
+    <template is="dom-if" if="[[multi]]" restamp>
+      <template is="dom-repeat" items="[[items]]">
+        <webvisual-element-graph
+          item="[[item]]"
+          interpolation="[[interpolation]]"
+          store-inside>
+        </webvisual-element-graph>
+      </template>
     </template>
 
-    <template is="dom-if" if="[[item]]">
+    <template is="dom-if" if="[[!multi]]" restamp>
       <webvisual-element-graph
         item="[[item]]"
         interpolation="[[interpolation]]"
@@ -278,7 +318,8 @@
 
       behaviors: [
         Polymer.IronResizableBehavior,
-        WebvisualBehaviors.FullscreenBehavior
+        WebvisualBehaviors.FullscreenBehavior,
+        WebvisualBehaviors.ContainerBehavior
       ],
 
       properties: {
@@ -286,6 +327,11 @@
         opened: {
           type: Boolean,
           reflectToAttribute: true
+        },
+
+        openOnSelect: {
+          type: Boolean,
+          value: true
         },
 
         gridMult: {
@@ -340,6 +386,16 @@
           }
         },
 
+        multi: {
+          type: Boolean,
+          value: false
+        },
+
+        _showSubControl: {
+          type: Boolean,
+          value: false
+        },
+
         uniqueid: String
 
       },
@@ -347,10 +403,10 @@
       _width: 0,
       _height: 0,
       _margin: {
-        top: 0,
-        right: 15,
+        top: 5,
+        right: 10,
         bottom: 20,
-        left: 40
+        left: 46
       },
 
       _xGrid: Object,
@@ -391,8 +447,6 @@
         Year: Function
       },
 
-      _graphs: new Set(),
-
       _brushBehavior: Function,
 
       _messageCount: 0,
@@ -407,10 +461,11 @@
       },
 
       observers: [
-        'redraw(items.length)'
+        '_sizeChanged(opened)'
       ],
 
       created: function() {
+        this._graphs = new Set();
         this.format.Millisecond = d3.timeFormat(':%S,%L');
         this.format.LongSecond = d3.timeFormat(':%M:%S,%L');
         this.format.Second = d3.timeFormat(':%M:%S');
@@ -431,13 +486,18 @@
           if (!sel) break;
         }
         this.setAttribute('uniqueid', uniqueid);
-        this._buildLayout();
       },
 
-      _sizeChanged: function(e) {
+      attached: function() {
+
+        this._buildLayout();
+        // this._sizeChanged();
+      },
+
+      _sizeChanged: function() {
         // only resize if opened attribute is set
         if (this.opened) {
-          this.debounce('resize', this._sizeLayout, 25);
+          this.debounce('resize', this._sizeLayout);
         }
       },
 
@@ -642,7 +702,9 @@
         Promise.resolve( this.setDomains.call(this) )
               .then( this._redraw.bind(this) )
               .catch( (err) => {
-                console.warn(err);
+                if (err) {
+                  console.warn(err);
+                }
               });
       },
 
@@ -702,9 +764,6 @@
       },
 
       setDomains: function() {
-        var domainX
-          , domainY;
-
         return new Promise( (resolve, reject) => {
           if (!this._graphs.size)
             reject('No Graphs are attached');
@@ -714,11 +773,11 @@
 
           this.requestRange('x')
               .then( (rangeX) => {
-                domainX = rangeX;
+                var domainX = rangeX;
                 this.requestRange('y')
                     .then( (rangeY) => {
 
-                      domainY = rangeY;
+                      var domainY = rangeY;
 
                       // rounding y-domains to the according decimal exponent
                       if (domainY[0] !== undefined && domainY[1] !== undefined && domainY[0] === domainY[1]) {
@@ -730,12 +789,12 @@
                         domainY[1] = Math.ceil(v[0] + 0.1) * Math.pow(10, v[1]);
                       }
 
-                      if (this.yScale === '√' || this.yScale === 'ln' || this.yScale === 'log₁₀') {
+                      if (this.yScale === 'ln' || this.yScale === 'log₁₀') {
                         if (domainY[0] <= 0) {
-                          domainY[0] = 1e-15;
+                          domainY[0] = Number.EPSILON;
                         }
                         if (domainY[1] <= 0) {
-                          domainY[1] = 1e-15;
+                          domainY[1] = Number.EPSILON;
                         }
                       }
 
@@ -757,16 +816,13 @@
       requestRange: function(key) {
         return new Promise( (resolve, reject) => {
           var p = [];
-          var res = [];
+          var l = '';
           this._graphs.forEach( (g) => {
-            p.push( g.requestRange(key)
-                     .then( (range) => { res.push(range) })
-                     .catch( (err) => {
-                       reject(err);
-                     }) );
+            p.push( g.requestRange(key) );
+            l += g.item.mount + ' ';
           });
           Promise.all(p)
-                 .then( () => {
+                 .then( (res) => {
                    var min, max;
                    for (var i = 0; i < res.length; i++) {
                      min = (min === undefined || min > res[i][0]) ? res[i][0] : min;
@@ -778,7 +834,10 @@
                    resolve([min, max]);
                  })
                  .catch( (err) => {
-                   reject(err);
+                  //  reject(err);
+                  //  if (err) {
+                  //    console.log(err);
+                  //  }
                  });
         } );
       },
@@ -859,32 +918,32 @@
         if (!this._graphs.size) return;
         this._graphs.forEach(
           (g) => {
-            g.interpolation = interpolation;
+            g.set('interpolation', interpolation);
           });
       },
 
       changeScale: function(newValue, oldValue) {
         if (oldValue === undefined) return;
-        if (this._isZoomed === false) {
-          Promise.resolve(this.setDomains.call(this))
-                 .then( () => {
-                   this._buildLayout();
-                   this._sizeLayout();
-                   this._redraw();
-                 })
-                 .catch( (err) => {
-                   console.warn(err);
-                 });
-          return;
-        }
+        // if (this._isZoomed === false) {
+        //   Promise.resolve(this.setDomains.call(this))
+        //          .then( () => {
+        //            this._buildLayout();
+        //            this._sizeLayout();
+        //            this._redraw();
+        //          })
+        //          .catch( (err) => {
+        //            console.warn(err);
+        //          });
+        //   return;
+        // }
         var domainX = this._x.domain();
         var domainY = this._y.domain();
-        if (this.yScale === '√' || this.yScale === 'ln' || this.yScale === 'log₁₀') {
+        if (this.yScale === 'ln' || this.yScale === 'log₁₀') {
           if (domainY[0] <= 0) {
-            domainY[0] = 1e-15;
+            domainY[0] = Number.EPSILON;
           }
           if (domainY[1] <= 0) {
-            domainY[1] = 1e-15;
+            domainY[1] = Number.EPSILON;
           }
         }
         this._buildLayout();
