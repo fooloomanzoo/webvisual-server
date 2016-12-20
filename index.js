@@ -76,54 +76,62 @@ class WebvisualServer {
 
       // ensuring (with defaults) that a ssl encrypting (by self-signed key-pairs)
       // is available for the http2 server
-      var sslSettings = JSON.parse(JSON.stringify(defaults.server.ssl));
+      let sslSettings = JSON.parse(JSON.stringify(defaults.server.ssl)); // defaults
       sslSettings.port = settings.server.port || 443;
 
-      try {
-        if (this.config.server.ssl &&
-          this.config.server.ssl.cert &&
-          this.config.server.ssl.key &&
-          this.config.server.ssl.passphrase) {
+      let filepaths = {
+        cert: '',
+        key: '',
+        passphrase: ''
+      }
 
-          var cert = path.resolve(this.config.server.ssl.cert)
-            , key = path.resolve(this.config.server.ssl.key)
-            , passphrase = path.resolve(this.config.server.ssl.passphrase);
+      let p = new Promise( (res, rej) => {
+        if ( this.config.server
+          && this.config.server.ssl
+          && this.config.server.ssl.cert
+          && this.config.server.ssl.key
+          && this.config.server.ssl.passphrase) {
 
-            console.log(this.config.server);
-
-          // TODO: Promised based
-          fs.access( cert, fs.constants.R_OK, (err) => {
-            if (err)
-              process.send( { error: `File for certification (ssl) not found \n ${err}`} );
-            else {
-              fs.access( key, fs.constants.R_OK, (err) => {
-                if (err)
-                  process.send( { error: `File for public key (ssl) not found \n ${err}`} );
-                else {
-                  fs.access( passphrase, fs.constants.R_OK, (err) => {
-                    if (err)
-                      process.send( { error: `File for passphrase (ssl) not found \n ${err}`} );
-                    else {
-                      // Configure SSL Encryption
-                      sslSettings.key = key;
-                      sslSettings.cert = cert;
-                      sslSettings.passphrase = passphrase;
-                    }
-                  });
-                }
-              });
+          filepaths.cert = path.resolve(this.config.server.ssl.cert);
+          filepaths.key = path.resolve(this.config.server.ssl.key);
+          filepaths.passphrase = path.resolve(this.config.server.ssl.passphrase);
+          console.log(filepaths);
+        } else {
+          rej( 'Given Filepaths to certificate-files incomplete' );
+        }
+        for (let kind in filepaths) {
+          fs.open(filepaths[kind], 'r', (err, fd) => {
+            if (err) {
+              if (err.code === "ENOENT") {
+                rej( `${filepaths[kind]} does not exist` );
+                return;
+              } else {
+                rej( `${filepaths[kind]} Error accessing file\n${err}` );
+              }
+            } else {
+              res();
             }
           });
         }
-      } catch (err) {
-        process.send( { error: err } );
-      } finally {
-        // read sync ssl encryption
-        sslSettings.key = fs.readFileSync(sslSettings.key, 'utf8');
-        sslSettings.cert = fs.readFileSync(sslSettings.cert, 'utf8');
-        sslSettings.passphrase = require(sslSettings.passphrase).password;
-        resolve(sslSettings);
-      }
+      });
+
+      Promise.resolve(p)
+             .then( () => {
+               sslSettings.key = fs.readFileSync(filepaths.key, 'utf8');
+               sslSettings.cert = fs.readFileSync(filepaths.cert, 'utf8');
+               sslSettings.passphrase = require(filepaths.passphrase).password;
+               resolve(sslSettings);
+             })
+             .catch( (err) => {
+               process.send( {
+                 error: err,
+                 info: 'Encryption: using default selfsigned certificates.\nPlease ensure, that the certificate-files are valid and exist.\nIf so, restart the server, please.'
+               } );
+               sslSettings.key = fs.readFileSync(sslSettings.key, 'utf8');
+               sslSettings.cert = fs.readFileSync(sslSettings.cert, 'utf8');
+               sslSettings.passphrase = require(sslSettings.passphrase).password;
+               resolve(sslSettings);
+             })
     });
   }
 

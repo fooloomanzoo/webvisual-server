@@ -22,20 +22,15 @@
         max-width: 100vw;
         box-sizing: border-box;
         flex: 1;
-        position: relative;
         overflow: hidden;
-        --app-drawer-width: 256px;
-        --app-drawer-content-container: {
-          padding: 0 !important;
-          background-color: transparent;
-        };
+        position: relative;
       }
-      #content {
+      :host > #content {
         display: flex;
         position: relative;
         flex: 1;
         margin: 0;
-        /*height: 100%;*/
+        height: 100%;
       }
       #control {
         display: flex;
@@ -44,14 +39,14 @@
         height: 100%;
         box-sizing: border-box;
       }
-      #table,
-      #tabs {
+      #elementTable,
+      #elementTabs {
         box-sizing: border-box;
         flex: 1 1;
         -webkit-flex-basis: 50%;
         flex-basis: 50%;
       }
-      #tabs {
+      #elementTabs {
         margin-bottom: 0.5em;
         --tab-vertical-overlay: {
           background-color: rgba(255, 255, 255, 0.15);
@@ -59,29 +54,35 @@
           border-bottom: none;
         }
       }
-      #table {
+      #elementTable {
         margin-top: 0.5em;
+      }
+      #elementDrawer {
+        position: absolute;
+        bottom: 0;
+        top: 0;
+        --app-drawer-width: 256px;
+        --app-drawer-content-container: {
+          padding: 0 !important;
+          background-color: transparent;
+        };
       }
       #chart,
       #svg {
         height: 50%;
         position: absolute;
         box-sizing: border-box;
-        padding: 0.5em 1em;
       }
       #chart {
         top: 0; left: 0;
-        padding-top: 0.5em;
+        /*padding-top: 0.5em;*/
         padding-bottom: 2.5em;
         /*isolation: isolate;*/
       }
       #svg {
+        /*padding-top: 0.5em;*/
+        padding-bottom: 0.5em;
         bottom: 0; left: 0;
-      }
-      #drawer {
-        position: absolute;
-        bottom: 0;
-        top: 0;
       }
       #chart[fullheight] {
         height: 100%;
@@ -107,6 +108,28 @@
           margin-right: 256px;
         }
       }
+      @media (min-width: 800px) {
+        #chart,
+        #svg {
+          padding-left: 0.5em;
+          padding-right: 0.5em;
+        }
+      }
+      @media (min-width: 1280px) {
+        #chart,
+        #svg {
+          padding-left: 1em;
+          padding-right: 1em;
+        }
+      }
+      @media (min-width: 1600px) {
+        #chart,
+        #svg {
+          padding-left: 1.5em;
+          padding-right: 1.5em;
+        }
+      }
+
     </style>
 
     <iron-media-query query="(max-width: 600px)" query-matches="{{showControlAsDrawer}}"></iron-media-query>
@@ -134,9 +157,9 @@
 
       <!-- </div> -->
 
-      <app-drawer id="drawer" opened="[[_ensureOpened(showControlAsDrawer)]]" swipe-open persistent="[[!showControlAsDrawer]]" align="right">
+      <app-drawer id="elementDrawer" opened="[[_ensureOpened(showControlAsDrawer)]]" swipe-open persistent="[[!showControlAsDrawer]]" align="right">
         <div id="control">
-          <webvisual-tabs id="tabs" vertical selected="{{selectedElementMount}}" attr-for-selected="item-mount" selected-attribute="checked">
+          <webvisual-tabs id="elementTabs" vertical selected="{{selectedElementMount}}" attr-for-selected="item-mount" selected-attribute="checked">
             <template is="dom-repeat" items="[[_getListItems(elements)]]">
               <webvisual-element-checkbox class="checkbox"
                 item="[[item]]"
@@ -147,7 +170,7 @@
               </webvisual-element-checkbox>
             </template>
           </webvisual-tabs>
-          <webvisual-element-table id="table" full-date item="[[selectedElement]]"></webvisual-element-table>
+          <webvisual-element-table id="elementTable" full-date item="[[selectedElement]]"></webvisual-element-table>
         </div>
       </app-drawer>
 
@@ -297,7 +320,7 @@
       },
 
       toggleControlDrawer: function() {
-        var drawer = this.$$('#drawer');
+        var drawer = this.$$('#elementDrawer');
         if (drawer) {
           drawer.toggle();
         }

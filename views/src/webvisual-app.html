@@ -1,4 +1,5 @@
 <link rel="import" href="../bower_components/polymer/polymer.html"/>
+
 <link rel="import" href="../bower_components/app-layout/app-header/app-header.html"/>
 <link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html"/>
 
@@ -140,6 +141,9 @@
         position: relative;
         transition: padding-top 250ms cubic-bezier(0.6, 0, 0.2, 1);
       }
+      #pageselector > * {
+        width: 100%;
+      }
       :host([show-tabs]) #pageselector {
         padding-top: calc(64px + 2.5em);
       }
@@ -250,7 +254,7 @@
 
     </app-header>
 
-    <iron-pages id="pageselector" role="main" selected="[[page]]" attr-for-selected="name" selected-attribute="visible">
+    <iron-pages id="pageselector" role="main" selected="[[page]]" attr-for-selected="name" selected-attribute="visible" fallback-selection="home">
       <!-- home view for selecting the facility -->
       <webvisual-home name="home" dark$="[[dark]]" plain$="[[plain]]"
         facilities="[[facilities]]"
@@ -529,7 +533,7 @@
       },
 
       created: function() {
-        window.performance && performance.mark && performance.mark('webvisual-app.created');
+        // window.performance && performance.mark && performance.mark('webvisual-app.created');
         // Custom elements polyfill safe way to indicate an element has been upgraded.
         this.removeAttribute('unresolved');
       },

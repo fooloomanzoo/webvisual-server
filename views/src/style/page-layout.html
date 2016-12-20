@@ -4,9 +4,18 @@
   <template>
     <style>
       .grid {
+        display: -ms-flexbox;
+        display: -webkit-flex;
         display: flex;
+        -ms-flex-direction: row;
+        -webkit-flex-direction: row;
         flex-direction: row;
+        -ms-flex-wrap: wrap;
+        -webkit-flex-wrap: wrap;
         flex-wrap: wrap;
+        -ms-flex-pack: start;
+        -webkit-justify-content: flex-start;
+        justify-content: flex-start;
         margin: 0.25em 0.75em 2em 0.75em;
         padding: 0;
         list-style: none;
@@ -15,11 +24,21 @@
       }
 
       .grid li {
+        display: -ms-flexbox;
+        display: -webkit-flex;
         display: flex;
+        -ms-flex-direction: column;
+        -webkit-flex-direction: column;
         flex-direction: column;
-        box-sizing: border-box;
+        -ms-flex-wrap: wrap;
+        -webkit-flex-wrap: wrap;
+        flex-wrap: wrap;
+        -ms-flex-pack: start;
+        -webkit-justify-content: flex-start;
+        justify-content: flex-start;
         -webkit-flex: 1 1;
         flex: 1 1;
+        box-sizing: border-box;
         -webkit-flex-basis: 20%;
         flex-basis: 20%;
         max-width: 20%;

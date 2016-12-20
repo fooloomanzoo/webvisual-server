@@ -2,6 +2,10 @@ importScripts('/socket.io/socket.io.js');
 importScripts('/scripts/cache.js');
 importScripts('/scripts/database-worker.js');
 
+if (!self.Promise) {
+  importScripts('/scripts/promise.js');
+}
+
 var socket
   , options = {}
   , cache = new ClientCache()

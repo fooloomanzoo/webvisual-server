@@ -44,6 +44,7 @@
       dom: 'shadow',
       lazyRegister: true
     };
+
     // Load webcomponentsjs polyfill if browser does not support native Web Components
     (function() {
       'use strict';
@@ -77,6 +78,16 @@
         navigator.serviceWorker.register('/service-worker.js');
       });
     }
+    // Load Promise Polyfill
+    (function() {
+      'use strict';
+      if (!window.Promise) {
+        var scr = document.createElement('script');
+        scr.async = true;
+        scr.src = '/scripts/promise.js';
+        document.head.appendChild(scr);
+      }
+    })();
   </script>
 
   <link rel="import" href="/src/webvisual-app.html" async>
@@ -124,21 +135,13 @@
       font-size: 1.5em;
       letter-spacing: 0.3em;
       color: #fff;
-      /*overflow: hidden;
-      position: relative;
-      min-height: 100vh;
-      min-width: 100vw;
-      text-align: center;*/
-      /*white-space: nowrap;
-      -webkit-overflow-scrolling: auto;
-      text-overflow: ellipsis;*/
-      /*background: #669DB4;*/
-      /*padding: 19vh 19vw;*/
-      /*box-sizing: border-box;*/
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
     }
     webvisual-app[unresolved] * {
-      margin: 0 auto 1.5em auto;
-      width: 100%;
+      margin-bottom: 1.5em;
     }
   </style>
 
