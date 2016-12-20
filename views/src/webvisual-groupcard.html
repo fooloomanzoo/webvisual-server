@@ -192,7 +192,7 @@
 
       <section id='header'>
         <iron-pages id="headerContent" selected="[[view]]" selectable=".view" selected-attribute="opened" on-transitionend="_transitionEnd">
-          <template is="dom-if" if="[[svgSrcPath]]">
+          <template is="dom-if" if="[[_lazyRenderSvg]]">
             <webvisual-element-svg class="view"
               url-prefix="[[svgUrlPrefix]]"
               src="[[svgSrcPath]]"
@@ -279,6 +279,10 @@
         _shouldRenderExtensions: {
           type: Boolean,
           computed: '_computeShouldRenderExtensions(items.length)'
+        },
+
+        _lazyRenderSvg: {
+          computed: '_computeLazyRenderSvg(opened, svgSrcPath)'
         }
 
       },
@@ -341,7 +345,11 @@
 
 			_computeShouldRenderExtensions: function(length) {
 			  return length > 0;
-			}
+			},
+
+      _computeLazyRenderSvg: function(opened, svgSrcPath) {
+        return opened && Boolean(svgSrcPath);
+      }
 
     });
   </script>

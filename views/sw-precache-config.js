@@ -22,7 +22,7 @@ module.exports = {
   runtimeCaching: [
     {
       urlPattern: /\/images\/.*/,
-      handler: 'cacheFirst',
+      handler: 'fastest',
       options: {
         cache: {
           maxEntries: 100,
