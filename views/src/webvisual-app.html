@@ -71,11 +71,11 @@
       }
       :host([page="login"]),
       :host([page="home"]) {
-        background-color: var(--bright-primary-color);
+        background-color: var(--primary-color);
       }
       :host([page="login"][dark]),
       :host([page="home"][dark]) {
-        background-color: var(--primary-color);
+        background-color: var(--dark-primary-color);
       }
       app-toolbar {
         font-size: 16px;
@@ -84,9 +84,9 @@
       app-drawer {
         z-index: 2;
       }
-      app-drawer > app-drawer-content {
+      app-drawer > .drawer-content {
         display: block;
-        height: calc(100% - 64px);
+        height: calc(100% - 128px);
         padding: 0 16px;
         overflow-x: hidden;
         overflow-y: auto;
@@ -96,19 +96,27 @@
         width: calc(100% - 32px);
         margin: 0;
         padding: 0 16px;
+        display: flex;
+        align-items: center;
         @apply(--app-drawer-header);
+      }
+      app-drawer > .top {
+        justify-content: flex-start;
+      }
+      app-drawer > .bottom {
+        justify-content: flex-end;
       }
       app-drawer .spacer {
         margin-bottom: 1em;
       }
-      app-drawer-content webvisual-selectbox,
-      app-drawer-content webvisual-button,
-      app-drawer-content webvisual-toggle-button {
+      .drawer-content webvisual-selectbox,
+      .drawer-content webvisual-button,
+      .drawer-content webvisual-toggle-button {
         width: 100%;
         padding: 1.25em 1em;
         box-sizing: border-box;
       }
-      app-drawer-content iron-collapse > .collapse-content {
+      .drawer-content iron-collapse > .collapse-content {
         padding: 0.5em 1em;
         width: 100%;
         display: inline-flex;
@@ -118,7 +126,7 @@
         border-right: thin solid rgba(255,255,255,0.1);
         box-shadow: 0 5px 15px -10px rgba(0,0,0,0.25) inset;
       }
-      app-drawer-content iron-collapse > .collapse-content > * {
+      .drawer-content iron-collapse > .collapse-content > * {
         box-sizing: border-box;
         width: 100%;
         font-size: 0.8em;
@@ -183,22 +191,23 @@
       logged-in="{{loggedIn}}"
       offline="[[offline]]"></webvisual-facility-data>
 
-    <webvisual-element-socket-data
+    <webvisual-element-socket-data id="socketHandler"
       socket-name="data"
       socket-room="[[subroute.path]]"
+      socket-status="{{socketStatus}}"
       lazy-connect="[[_shouldConnectSocket]]"></webvisual-element-socket-data>
 
-    <app-header role="home" id="header" hidden$="[[!_shouldShowHeader]]" threshold="1">
+    <app-header role="home" id="header" hidden$="[[!_shouldShowHeader]]" threshold="100" reveals>
 
       <app-toolbar>
-        <webvisual-icon-button icon="menu" class="menu-icon" on-tap="_toggleDrawer"></webvisual-icon-button>
+        <webvisual-icon-button icon="menu" class="menu-icon" title="menu" on-tap="_toggleDrawer"></webvisual-icon-button>
 
-        <webvisual-logo id="logo" href="/home" main-title></webvisual-logo>
+        <webvisual-logo id="logo" href="/home" main-title title="[[localize('home', 'name')]]"></webvisual-logo>
 
         <template is="dom-if" if="[[_shouldRenderControlButtons]]">
 
           <template is="dom-if" if="[[_shouldRenderGroupingKeys]]">
-            <webvisual-selectbox class="toolbar grouping">
+            <webvisual-selectbox class="toolbar grouping" title="grouping keys">
               <select value="{{groupedKey::input}}">
                 <template is="dom-repeat" items="[[groupingKeys]]">
                   <option value="[[item]]">[[item]]</option>
@@ -208,16 +217,11 @@
           </template>
 
           <template is="dom-if" if="[[detailHasDrawer]]">
-            <webvisual-icon-button icon="subject" on-tap="_toggleDetailControlDrawer">
+            <webvisual-icon-button icon="subject" title="items" on-tap="_toggleDetailControlDrawer">
             </webvisual-icon-button>
           </template>
 
-          <!-- <template is="dom-if" if="[[isExceeding]]">
-            <webvisual-icon-button icon="error-outline" class="error-icon control"
-            on-tap="_toggleAlarmDrawer" hidden$="[[!isExceeding]]"></webvisual-icon-button>
-          </template> -->
-
-          <webvisual-icon-button icon="more-vert" checked="{{showTabs}}"></webvisual-icon-button>
+          <webvisual-icon-button icon="more-vert" title="tabs" checked="{{showTabs}}"></webvisual-icon-button>
 
         </template>
 
@@ -228,21 +232,21 @@
         </template>
       </app-toolbar>
 
-        <template is="dom-if" if="[[_shouldRenderTabs]]">
-          <webvisual-tabs id="tabs" sticky$="[[_shouldShowTabs]]" hidden$="[[!_shouldShowTabs]]"
-            selected="{{page}}"
-            attr-for-selected="name">
-            <webvisual-button name="list">
-              <a href="/list[[subroute.path]]">{{localize('list', 'name')}}</a>
-            </webvisual-button>
-            <webvisual-button name="groups">
-              <a href="/groups[[subroute.path]]">{{localize('groups', 'name')}}</a>
-            </webvisual-button>
-            <webvisual-button name="detail">
-              <a href="/detail[[subroute.path]]">{{localize('detail', 'name')}}</a>
-            </webvisual-button>
-          </webvisual-tabs>
-        </template>
+      <template is="dom-if" if="[[_shouldRenderTabs]]">
+        <webvisual-tabs id="tabs" sticky="[[_shouldShowTabs]]" hidden$="[[!_shouldShowTabs]]"
+          selected="{{page}}"
+          attr-for-selected="name">
+          <webvisual-button name="list">
+            <a href="/list[[subroute.path]]">{{localize('list', 'name')}}</a>
+          </webvisual-button>
+          <webvisual-button name="groups">
+            <a href="/groups[[subroute.path]]">{{localize('groups', 'name')}}</a>
+          </webvisual-button>
+          <webvisual-button name="detail">
+            <a href="/detail[[subroute.path]]">{{localize('detail', 'name')}}</a>
+          </webvisual-button>
+        </webvisual-tabs>
+      </template>
 
     </app-header>
 
@@ -300,12 +304,11 @@
     <!-- SIDEMENU -->
     <template is="dom-if" if="[[_shouldRenderDrawer]]">
       <app-drawer id="drawerPanel" opened="{{drawerOpened}}" align="left" swipe-open tabindex="0">
-        <app-toolbar class="header">
-          <webvisual-icon-button icon="close" on-tap="_toggleDrawer"></webvisual-icon-button>
-          <!-- <div main-title style="text-align:end;padding-right:0.5em;">Webvisual</div> -->
+        <app-toolbar class="top">
+          <webvisual-icon-button icon="close" title="close" on-tap="_toggleDrawer"></webvisual-icon-button>
         </app-toolbar>
 
-        <app-drawer-content>
+        <div class="drawer-content">
           <webvisual-button for="route-collapse" on-tap="_toggleCollapse">
             <iron-icon icon="more-vert" class="left"></iron-icon>
             <span>{{localize('view')}}</span>
@@ -401,7 +404,11 @@
               </select>
             </webvisual-selectbox>
           </template>
-        </app-drawer-content>
+        </div>
+
+        <app-toolbar class="bottom">
+          <webvisual-icon-button icon="[[_socketStatusIcon]]" title="[[socketStatus]]" on-tap="_socketConnect"></webvisual-icon-button>
+        </app-toolbar>
       </app-drawer>
 
     </template>
@@ -468,6 +475,10 @@
         showTabs: {
           type: Boolean,
           reflectToAttribute: true
+        },
+
+        _socketStatusIcon: {
+          computed: '_computeStatusIcon(socketStatus)'
         },
 
         _shouldShowHeader: {
@@ -557,6 +568,15 @@
         }
       },
 
+      _socketConnect: function(e) {
+        if (this.$.socketHandler.socketStatus === 'sync-disabled') {
+          this.$.socketHandler.connect();
+        } else {
+          this.$.socketHandler.socketStatus = 'sync-disabled';
+          this.$.socketHandler.disconnect();
+        }
+      },
+
       _resetElements: function(mount) {
         if (!mount) {
           return;
@@ -588,7 +608,7 @@
 
         if (elements.length) {
           Array.prototype.forEach.call(elements,
-            (el) => {
+            function(el) {
               el.clearValues();
             });
         }
@@ -788,6 +808,19 @@
 
       _computeShouldConnectSocket: function(offline, loggedIn, loadComplete) {
         return !offline && loggedIn && loadComplete;
+      },
+
+      _computeStatusIcon: function(status) {
+        switch (status) {
+          case 'sync-problem':
+            return 'sync-problem';
+          case 'connect':
+            return 'sync';
+          case 'connected':
+            return 'wifi';
+          default:
+            return 'sync-disabled';
+        }
       },
 
       _toggleCollapse: function(e) {

@@ -181,6 +181,11 @@
         right: 4px;
       }
       #subcontrol {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      #subcontrol > .buttons {
         display: inline-flex;
         justify-content: center;
       }
@@ -220,7 +225,7 @@
 
       <!-- <webvisual-icon-button id="zoombutton" icon="search" on-tap="_startZoomSession"></webvisual-icon-button> -->
     <section id="control">
-      <section id="subcontrol" hidden$="[[!_showSubControl]]">
+      <iron-collapse id="subcontrol" opened="[[_showSubControl]]">
         <webvisual-selectbox>
           <select value="{{interpolation::input}}">
             <option value="Lineare Verbindung">Lineare Verbindung</option>
@@ -241,10 +246,12 @@
             <option value="log₁₀">log₁₀</option>
           </select>
         </webvisual-selectbox>
-        <webvisual-icon-button title="zoom-mode" icon="zoom-in" on-tap="_startZoomSession"></webvisual-icon-button>
-  		  <!-- <webvisual-icon-button title="legend" icon="timeline" on-tap="openLegend"></webvisual-icon-button> -->
-  		  <webvisual-icon-button title="refresh" icon="refresh" on-tap="_refresh"></webvisual-icon-button>
-      </section>
+        <section class="buttons">
+          <webvisual-icon-button title="zoom-mode" icon="zoom-in" on-tap="_startZoomSession"></webvisual-icon-button>
+          <!-- <webvisual-icon-button title="legend" icon="timeline" on-tap="openLegend"></webvisual-icon-button> -->
+          <webvisual-icon-button title="refresh" icon="refresh" on-tap="_refresh"></webvisual-icon-button>
+        </section>
+      </iron-collapse>
       <webvisual-icon-button title="settings" icon="tune" checked="{{_showSubControl}}"></webvisual-icon-button>
       <webvisual-icon-button title="fullscreen" icon="[[fullscreenIcon]]" on-tap="toggleFullscreen"></webvisual-icon-button>
     </section>
@@ -530,7 +537,7 @@
         this._focusX = this._focus.select('#focusX');
         this._focusY = this._focus.select('#focusY');
         this._zoomOverlay = d3.select(this.$.zoom).select('rect.overlay')
-          .on('click', (d) => {
+          .on('click', function(d) {
             var offset = Math.floor(Math.min(this._height, this._width) / 5);
             var x = d3.event.offsetX - this._margin.left;
             var y = d3.event.offsetY - this._margin.top;
@@ -539,7 +546,7 @@
               [x + offset, y + offset]
             ];
             this.brushed();
-          })
+          }.bind(this))
           .on('touchmove', this._resetZoom.bind(this));
 
         this._svg.selectAll('g,line,text,path,rect')
@@ -670,7 +677,7 @@
           axis.ticks(ticks * tickmult)
           .tickFormat(this.timeFormat.bind(this));
         else if (scale.base && scale.base() === Math.E)
-          axis.tickFormat( (d) => {
+          axis.tickFormat( function(d) {
             return (d < 1 || d > 1000 ? (Math.log(d)).toExponential(3) : (Math.log(d)).toFixed(2));
           })
 
@@ -705,7 +712,7 @@
         if (this._chart === undefined || this._chart.select === undefined) return;
         Promise.resolve( this.setDomains.call(this) )
               .then( this._redraw.bind(this) )
-              .catch( (err) => {
+              .catch( function(err) {
                 if (err) {
                   console.warn(err);
                 }
@@ -715,7 +722,7 @@
       _redraw: function() {
         if (this._chart === undefined || this._chart.select === undefined) return;
         if (this._graphs.size > 0) {
-          this._graphs.forEach( (g) => {
+          this._graphs.forEach( function(g) {
             // performance.mark('start');
             if (g.redraw)
               g.redraw();
@@ -759,7 +766,7 @@
           this._isZoomed = false;
           Promise.resolve(this.setDomains.call(this))
                  .then( this._redraw.bind(this) )
-                 .catch( (err) => {
+                 .catch( function(err) {
                     console.warn(err);
                  });
           return;
@@ -768,7 +775,7 @@
       },
 
       setDomains: function() {
-        return new Promise( (resolve, reject) => {
+        return new Promise( function(resolve, reject) {
           if (!this._graphs.size)
             reject('No Graphs are attached');
           if (this._isZoomed === true) {
@@ -776,20 +783,18 @@
           }
 
           this.requestRange('x')
-              .then( (rangeX) => {
+              .then( function(rangeX) {
                 var domainX = rangeX;
                 this.requestRange('y')
-                    .then( (rangeY) => {
+                    .then( function(rangeY) {
 
                       var domainY = rangeY;
 
                       // rounding y-domains to the according decimal exponent
                       if (domainY[0] !== undefined && domainY[1] !== undefined && domainY[0] === domainY[1]) {
                         v = (domainY[0]).toExponential().split('e');
-                        v.map( (vl) => { return parseInt(vl); });
+                        v.map( function(vl) { return parseInt(vl); });
                         domainY[0] = Math.floor(v[0] - 0.1) * Math.pow(10, v[1]);
-                        v = (domainY[1]).toExponential().split('e');
-                        v.map( (vl) => { return parseInt(vl); });
                         domainY[1] = Math.ceil(v[0] + 0.1) * Math.pow(10, v[1]);
                       }
 
@@ -806,27 +811,27 @@
                       this._y.domain(domainY).nice(this.yTicks);
                       resolve();
 
-                    })
-                    .catch( (err) => {
+                    }.bind(this))
+                    .catch( function(err) {
                       reject(err);
                     });
-              })
-              .catch( (err) => {
+              }.bind(this))
+              .catch( function(err) {
                 reject(err);
               });
-        });
+        }.bind(this));
       },
 
       requestRange: function(key) {
-        return new Promise( (resolve, reject) => {
+        return new Promise( function(resolve, reject) {
           var p = [];
           var l = '';
-          this._graphs.forEach( (g) => {
+          this._graphs.forEach( function(g) {
             p.push( g.requestRange(key) );
             l += g.item.mount + ' ';
           });
           Promise.all(p)
-                 .then( (res) => {
+                 .then( function(res) {
                    var min, max;
                    for (var i = 0; i < res.length; i++) {
                      min = (min === undefined || min > res[i][0]) ? res[i][0] : min;
@@ -837,13 +842,13 @@
                    }
                    resolve([min, max]);
                  })
-                 .catch( (err) => {
+                 .catch( function(err) {
                   //  reject(err);
                   //  if (err) {
                   //    console.log(err);
                   //  }
                  });
-        } );
+        }.bind(this) );
       },
 
       _showInfo: function(d) {
@@ -903,7 +908,7 @@
       openLegend: function() {
         var graphs = [];
         this._graphs.forEach(
-          (g) => {
+          function(g) {
             graphs.push({type: 'webvisual-element-checkbox', checked: g.checked, item: g.item})
           });
         // console.log(graphs);
@@ -921,7 +926,7 @@
       changeInterpolation: function(interpolation, oldValue) {
         if (!this._graphs.size) return;
         this._graphs.forEach(
-          (g) => {
+          function(g) {
             g.set('interpolation', interpolation);
           });
       },
@@ -930,12 +935,12 @@
         if (oldValue === undefined) return;
         // if (this._isZoomed === false) {
         //   Promise.resolve(this.setDomains.call(this))
-        //          .then( () => {
+        //          .then( function() {
         //            this._buildLayout();
         //            this._sizeLayout();
         //            this._redraw();
-        //          })
-        //          .catch( (err) => {
+        //          }.bind(this))
+        //          .catch( function(err) {
         //            console.warn(err);
         //          });
         //   return;
@@ -961,7 +966,7 @@
         this.noDots = !e.target.checked;
         if (!this._graphs.size) return;
         this._graphs.forEach(
-          (g) => {
+          function(g) {
             g.set('noDots', !e.target.checked)
           });
       },
@@ -970,7 +975,7 @@
         this.noLines = !e.target.checked;
         if (!this._graphs.size) return;
         this._graphs.forEach(
-          (g) => {
+          function(g) {
             g.set('noLine', !e.target.checked)
           });
       },
@@ -979,7 +984,7 @@
         this.noAreas = !e.target.checked;
         if (!this._graphs.size) return;
         this._graphs.forEach(
-          (g) => {
+          function(g) {
             g.set('noFill', !e.target.checked)
           });
       },
@@ -1005,18 +1010,18 @@
       _refresh: function() {
         if (!this._graphs.size) return;
         this._graphs.forEach(
-          (g) => {
+          function(g) {
             g.clearValues(true);
             g.requestLastValue(this.viewLength, 3)
               .then( function(values) {
                 this.insertValues(values);
               }.bind(g))
-              .catch( (err) => {
+              .catch( function(err) {
                 if (err) {
                   console.log(err);
                 }
-              } );
-          });
+              }.bind(this) );
+          }.bind(this));
         this._isZoomed = false;
         this.redraw();
       }

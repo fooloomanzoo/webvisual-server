@@ -140,7 +140,7 @@
 			insertValues: function(values) {
 				if (!values || !values.length) return;
 
-        this.async( () => {
+        this.async( function() {
   				if (!this._initialized) {
   					this.set('values', values.reverse());
   					this._initialized = true;
@@ -149,13 +149,13 @@
   						this.unshift('values', values[i]);
   					}
   				}
-        });
+        }.bind(this));
 			},
 
 			spliceValues: function(splices) {
         // var list = this.$.list.items;
 
-        requestAnimationFrame( () => {
+        requestAnimationFrame( function() {
           var changeRecord = [];
 
           function find(item) {
@@ -171,7 +171,7 @@
           }
 
           this.notifySplices('values', changeRecord);
-        })
+        }.bind(this))
 
 			},
 

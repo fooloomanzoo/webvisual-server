@@ -23,7 +23,7 @@
         -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
         border: none;
         border-color: var(--highlight-color);
-        background-color: linear-gradient(to bottom, rgba(255,255,255,0.04) 5%,rgba(255,255,255,0.10) 40%);
+        background: linear-gradient(to bottom, rgba(255,255,255,0.04) 5%,rgba(255,255,255,0.10) 40%);
         color: currentColor;
         cursor: pointer;
         transition: background 0.28s cubic-bezier(0.4, 0, 0.2, 1);
@@ -54,21 +54,21 @@
         border: none;
       }
       webvisual-button:hover {
-        background-color: linear-gradient(to bottom, rgba(255,255,255,0.06) 5%,rgba(255,255,255,0.15) 40%);
+        background: linear-gradient(to bottom, rgba(255,255,255,0.06) 5%,rgba(255,255,255,0.15) 40%);
       }
       webvisual-button[raised][focus]) {
         font-weight: bold;
       }
       webvisual-button[disabled] {
         color: var(--disabled-text-color);
-        background-color: none;
+        background: none;
         border-color: var(--disabled-text-color);
         cursor: auto;
         pointer-events: none;
       }
 
       webvisual-button.iron-selected {
-        background-color: linear-gradient(to bottom, rgba(173,173,173,0.1) 5%,rgba(173,173,173,0.25) 40%);
+        background: linear-gradient(to bottom, rgba(173,173,173,0.1) 5%,rgba(173,173,173,0.25) 40%);
         font-family: 'FiraSans-Medium', serif;
       }
       webvisual-button > iron-icon {

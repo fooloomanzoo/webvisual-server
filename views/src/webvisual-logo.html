@@ -10,21 +10,23 @@
       height: 48px;
       transition: color 0.3s cubic-bezier(0.6, 0, 0.3, 1);
     }
-    a:visited,
-    a:link {
+    a.link {
+      pointer-events: all;
+    }
+    a.link:visited,
+    a.link:link {
       color: currentColor;
     }
     :host(:hover) svg#logo {
-      fill: var(--highlight-color);
+      color: var(--highlight-color);
     }
     :host([dark]) {
       color: var(--highlight-color);
     }
     svg path {
-      pointer-events: all;
       fill: currentColor;
       shape-rendering: geometricPrecision;
-      transition: fill 0.3s cubic-bezier(0.6, 0, 0.3, 1);
+      transition: color 0.3s cubic-bezier(0.6, 0, 0.3, 1);
     }
     @media all and (max-width: 520px) {
       :host(:not([show-always])) svg:not(#logo) {
@@ -33,7 +35,7 @@
     }
   </style>
 
-  <a href$="[[href]]">
+  <a href$="[[href]]" class="link">
     <svg id="logo"
       xmlns:svg="http://www.w3.org/2000/svg"
       xmlns="http://www.w3.org/2000/svg"

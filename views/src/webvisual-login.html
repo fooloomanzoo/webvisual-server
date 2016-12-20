@@ -1,4 +1,5 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
 
 <link rel="import" href="behaviors/localize-behavior.html">
 
@@ -12,14 +13,18 @@
 
     <style include="shared-styles webvisual-input webvisual-button">
       :host {
-        @apply(--layout-vertical);
-        @apply(--layout-justified);
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
         min-height: 100vh;
         box-sizing: border-box;
-        color: var(--bright-text-color);
         outline: none;
       }
       .box {
+        background: #f1f1f1;
+        box-shadow: 0px 2px 6px 4px rgba(0,0,0,0.16);
+        color: black;
+        border-radius: 32px;
         position: relative;
         box-sizing: border-box;
         font-size: 1em;
@@ -30,8 +35,9 @@
         line-height: 1.4;
       }
       #login {
-        @apply(--layout-vertical);
-        @apply(--layout-justified);
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
         position: relative;
         box-sizing: border-box;
         font-size: 1em;
@@ -46,14 +52,15 @@
         margin-bottom: 1em;
       }
 
-      h1, h2 {
+      h1, h4 {
         font-weight: normal;
         text-align: center;
         white-space: normal;
       }
-      h1 {
-        font-size: 2em;
+      #loginInfo {
+        font-size: 1.1em;
         margin: 0;
+        margin-bottom: 1.5em;
       }
       .input-box {
         display: inline-flex;
@@ -64,6 +71,19 @@
       }
       .right {
         margin-left: 0.75em;
+      }
+      #loginbutton {
+        border-radius: 12px;
+        padding: 0;
+        pointer-events: none;
+        border: thin solid currentColor;
+      }
+      #loginbutton > button {
+        padding: 1em;
+        pointer-events: all;
+      }
+      button > span {
+        padding: 0.5em;
       }
 
     </style>
@@ -78,7 +98,7 @@
         action="/login"
         method="post">
 
-        <h2 id="loginInfo">{{localize('login', 'name')}}</h2>
+        <h4 id="loginInfo">{{localize('login', 'title')}}</h4>
 
         <section class="input-box">
           <iron-icon class="left" icon="perm-identity"></iron-icon>
@@ -105,7 +125,8 @@
           </webvisual-input>
         </section>
 
-        <webvisual-button on-tap="_onSignIn">
+        <webvisual-button id="loginbutton" on-tap="_onSignIn">
+          <paper-ripple></paper-ripple>
           <button type="submit" name="button" class="button">
             <iron-icon class="left" icon="juelich:logo"></iron-icon>
             <span>{{localize('login', 'name')}}</span>

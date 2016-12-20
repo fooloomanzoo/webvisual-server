@@ -192,9 +192,9 @@
           clearTimeout( this._activeCloseTimeout );
           this._activeCloseTimeout = null;
         }
-        this._activeCloseTimeout = setInterval(() => {
+        this._activeCloseTimeout = setInterval( function() {
           this.opened = false;
-        }, this.autoClose || 0)
+        }.bind(this), this.autoClose || 0)
       }
     },
 

@@ -20,7 +20,14 @@ WebvisualClient.prototype = {
 
         this.webworker.onmessage = function(e) {
           if (e.data && !e.data.messageId) {
-            this.updateNodes(e.data);
+            switch (e.data.type) {
+              case 'updateNodes':
+                this.updateNodes(e.data);
+                break;
+              case 'status':
+                this.updateStatus(e.data);
+                break;
+            }
           }
         }.bind(this)
       }
@@ -44,8 +51,25 @@ WebvisualClient.prototype = {
         setupConnection: {
           socketRoom: this.socketRoom,
           mobile: this.mobile
-        }
-      })
+        }});
+    }
+  },
+
+  disconnect: function() {
+    if (this.webworker) {
+      this.webworker.postMessage({
+        disconnect: ''
+      });
+    }
+  },
+
+  assignStatusNotifications: function(connector) {
+    this.statusHandler = connector;
+  },
+
+  updateStatus: function(data) {
+    if (this.statusHandler && this.statusHandler.socketStatus !== 'sync-disabled') {
+      this.statusHandler.set('socketStatus', data.status);
     }
   },
 
@@ -116,9 +140,7 @@ WebvisualClient.prototype = {
 
       if (Object.keys(message).length > 0)
         requestAnimationFrame(processMessage);
-
     };
-
   },
 
   _testMobile: function() {

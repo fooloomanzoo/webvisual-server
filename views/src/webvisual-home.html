@@ -56,7 +56,6 @@
         align-items: center;
         justify-content: center;
         text-decoration: none;
-        width: 100%;
       }
       .item.facility {
         margin: 1em 1.5em;
@@ -71,9 +70,8 @@
         border-width: medium;
       }
       .item.system {
-        margin: 0 25% 0.5em 25%;
         box-sizing: border-box;
-        width: auto;
+        margin-bottom: 0.5em;
         padding: 1em;
         border-radius: 8px;
         border: thin solid var(--highlight-color);
@@ -84,7 +82,11 @@
       iron-collapse {
         margin-bottom: 1.5em;
       }
-
+      .collapse-content {
+        display: flex;
+        flex-direction: column;
+        margin: 0 5em;
+      }
       a:link,
       a:visited {
         color: var(--bright-text-color);

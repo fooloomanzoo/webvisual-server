@@ -33,27 +33,44 @@ self.onmessage = function(e) {
 }
 
 self.createSocketConnection = function(opt) {
+  if (!socket) {
+    options.locationHost = opt.locationHost || options.locationHost;
+    options.socketName = opt.socketName || options.socketName;
 
-  if (!socket && opt.locationHost && opt.socketName) {
-
-    options.locationHost = opt.locationHost;
-    options.socketName = opt.socketName;
-
+    if (!options.locationHost || !options.socketName) {
+      return;
+    }
     socket = io.connect(options.locationHost + '/' + options.socketName, {
       multiplex: false
     });
 
     socket.on('connect', function() {
       console.info('clientSocket connected to: ' + options.locationHost);
+      self.postMessage( {
+        type: 'status',
+        status: 'connected'
+      })
     });
     socket.on('disconnect', function() {
       console.warn('clientSocket disconnected to: ' + options.locationHost);
+      self.postMessage( {
+        type: 'status',
+        status: 'disconnected'
+      })
     });
     socket.on('reconnect', function() {
       console.info('clientSocket reconnected to: ' + options.locationHost);
+      self.postMessage( {
+        type: 'status',
+        status: 'connected'
+      })
     });
     socket.on('error', function(err) {
       console.error('clientSocket error: ', err);
+      self.postMessage( {
+        type: 'status',
+        status: 'sync-problem'
+      })
     });
 
     socket.on('initial', function(message) {
@@ -65,15 +82,18 @@ self.createSocketConnection = function(opt) {
 
     if (opt.socketRoom) {
       options.socketRoom = opt.socketRoom;
-      self._setup(options)
+      self.setupConnection(options)
     }
     else if (options.socketRoom) {
-      self._setup(options)
+      self.setupConnection(options)
     }
   }
 }
 
 self.setupConnection = function(opt) {
+  if (!socket) {
+    self.createSocketConnection(opt);
+  }
   if (socket && opt.socketRoom) {
     var facility = opt.socketRoom.split('/')[0],
       system = opt.socketRoom.split('/')[1];
@@ -89,6 +109,13 @@ self.setupConnection = function(opt) {
       room: options.socketRoom,
       mobile: options.mobile
     });
+  }
+}
+
+self.disconnect = function() {
+  if (socket && socket.disconnect) {
+    socket.disconnect();
+    socket = null;
   }
 }
 
@@ -115,7 +142,7 @@ self._updateCache = function(message, noHeap) {
 }
 
 self._updateClient = function(message) {
-  var ret = {};
+  var ret = { type: 'updateNodes' };
 
   for (var mount in message.values) {
     ret[mount] = {};
@@ -136,11 +163,11 @@ self._updateDatabase = function(message) {
     var idb = db.get(mount);
 
     idb.place('x', message.values[mount])
-       .then( ret => {
+       .then( function(ret) {
         //  console.log(ret);
        } )
-       .catch( err => {
-        //  console.log(err); 
+       .catch( function(err) {
+        //  console.log(err);
        });
   }
 }
@@ -148,21 +175,24 @@ self._updateDatabase = function(message) {
 self.request = function(opt) {
   if (opt.func && opt.messageId && cache[opt.func]) {
     cache[opt.func](opt.arg)
-      .then( (res) => {
+      .then( function(res) {
         self.postMessage({
+          type: 'request',
           messageId: opt.messageId,
           response: res
         });
       })
-      .catch( (err) => {
+      .catch( function(err) {
         console.warn(err);
         self.postMessage({
+          type: 'request',
           messageId: messageId,
           response: {}
         });
       });
   } else { // return, to remove EventListener
     self.postMessage({
+      type: 'request',
       messageId: messageId,
       response: {}
     });

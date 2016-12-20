@@ -97,10 +97,10 @@
       }
 
       this.requestLastValue(this.viewLength, 3)
-          .then( (values) => {
+          .then( function(values) {
             this.insertValues(values);
-          })
-          .catch( (err) => {
+          }.bind(this))
+          .catch( function(err) {
             if (err) {
               console.log(err);
             }
@@ -166,7 +166,7 @@
     spliceValues: function(splices) {
       if (splices) {
         if (this.storeInside === true) {
-          this.values = this.values.filter( (v) => {
+          this.values = this.values.filter( function(v) {
             return splices.indexOf(v) === -1;
           })
           this.notifyPath('values');
@@ -237,13 +237,13 @@
           this.webworker.postMessage( req );
         }.bind(window.Webvisual))
       } else {
-        return new Promise( (resolve, reject) => {
+        return new Promise( function(resolve, reject) {
           if (this.values)
             resolve(this.values.slice(this.values.length - len, this.values.length))
           else {
             reject();
           }
-        });
+        }.bind(this));
       }
     },
 
@@ -283,7 +283,7 @@
             });
         }.bind(window.Webvisual))
       } else {
-        return new Promise( (resolve, reject) => {
+        return new Promise( function(resolve, reject) {
           if (this.values && this.values.length) {
             var min = this.min(this.values, key);
             var max = this.max(this.values, key);
@@ -293,7 +293,7 @@
             // reject('no values are set');
             resolve( [ ] );
           }
-        });
+        }.bind(this));
       }
     },
 

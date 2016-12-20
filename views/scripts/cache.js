@@ -183,7 +183,7 @@
         },
 
         clear: function() {
-            this._cache.forEach((value, key) => {
+            this._cache.forEach( function(value, key) {
                 value.clear();
                 delete this[key];
             })
@@ -205,7 +205,7 @@
                 len = opt.length,
                 ret = {};
 
-            return new Promise((resolve, reject) => {
+            return new Promise( function(resolve, reject) {
                 if (mounts === undefined || !Array.isArray(mounts)) {
                     this._cache.forEach(function(value, key) {
                         ret[v] = value.requestLast(len);
@@ -219,14 +219,14 @@
                     }
                 }
                 resolve(ret);
-            });
+            }.bind(this));
         },
 
         operation: function(func, compareFn, key, mounts) {
             var ret = [];
             if (mounts === undefined || !Array.isArray(mounts)) {
-                this._cache.forEach((v, e) => {
-                    e[func](key).then((res) => {
+                this._cache.forEach( function(v, e) {
+                    e[func](key).then( function(res) {
                         ret.push(res);
                     });
                 })
@@ -254,15 +254,15 @@
         },
 
         range: function(opts) {
-            return new Promise((resolve, reject) => {
+            return new Promise( function(resolve, reject) {
                 resolve([this.first(opts), this.last(opts)]);
-            });
+            }.bind(this));
         },
 
         rangedValues: function(opts) {
-            return new Promise((resolve, reject) => {
+            return new Promise( function(resolve, reject) {
                 resolve([this.min(opts), this.max(opts)]);
-            });
+            }.bind(this));
         },
 
         _max: function(array) { // inspired by d3.array

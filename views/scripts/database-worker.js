@@ -20,65 +20,65 @@ importScripts('/scripts/idb.js');
 	function IndexedDBHandler(dbName, storeName) {
 		this.dbName = dbName;
 		this.storeName = storeName;
-    this.dbPromise = idb.open(dbName, 1, upgradeDB => {
+    this.dbPromise = idb.open(dbName, 1, function (upgradeDB) {
       upgradeDB.createObjectStore(this.storeName);
-    });
+    }.bind(this));
 	}
 
   IndexedDBHandler.prototype = {
     get(key) {
-      return this.dbPromise.then(db => {
+      return this.dbPromise.then( function(db) {
         return db.transaction(storeName)
           .objectStore(this.storeName).get(key);
-      });
+      }.bind(this));
     },
     set(key, val) {
-      return this.dbPromise.then(db => {
+      return this.dbPromise.then( function(db) {
         const tx = db.transaction(this.storeName, 'readwrite');
         tx.objectStore(this.storeName).put(val, key);
         return tx.complete;
-      });
+      }.bind(this));
     },
     place(key, values) {
-      return this.dbPromise.then(db => {
+      return this.dbPromise.then( function(db) {
         const tx = db.transaction(this.storeName, 'readwrite');
 
         for (var i = values.length - 1 ; i >=0 ; i--) {
         tx.objectStore(this.storeName).put(values[i], values[i][key]);
         }
         return tx.complete;
-      });
+      }.bind(this));
     },
     delete(key) {
-      return this.dbPromise.then(db => {
+      return this.dbPromise.then( function(db) {
         const tx = db.transaction(this.storeName, 'readwrite');
         tx.objectStore(this.storeName).delete(key);
         return tx.complete;
-      });
+      }.bind(this));
     },
     clear() {
-      return this.dbPromise.then(db => {
+      return this.dbPromise.then(  function(db) {
         const tx = db.transaction(this.storeName, 'readwrite');
         tx.objectStore(this.storeName).clear();
         return tx.complete;
-      });
+      }.bind(this));
     },
     keys() {
-      return this.dbPromise.then(db => {
+      return this.dbPromise.then( function(db) {
         const tx = db.transaction(this.storeName);
         const keys = [];
         const store = tx.objectStore(this.storeName);
 
         // This would be store.getAllKeys(), but it isn't supported by Edge or Safari.
         // openKeyCursor isn't supported by Safari, so we fall back
-        (store.iterateKeyCursor || store.iterateCursor).call(store, cursor => {
+        (store.iterateKeyCursor || store.iterateCursor).call(store, function(cursor) {
           if (!cursor) return;
           keys.push(cursor.key);
           cursor.continue();
         });
 
-        return tx.complete.then(() => keys);
-      });
+        return tx.complete.then( function(res) { keys = res; });
+      }.bind(this));
     }
   };
 

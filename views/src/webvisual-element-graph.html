@@ -96,21 +96,21 @@
 
       created: function() {
         this.line = d3.line()
-          .x( (d) => {
+          .x( function(d) {
             return this.chartElement._x(d.x);
-          })
-          .y( (d) => {
+          }.bind(this))
+          .y( function(d) {
             return this.chartElement._y(d.y);
-          });
+          }.bind(this));
         this.area = d3.area()
           .x(this.line.x.call(this.area))
-          .y0( (d) => {
+          .y0( function(d) {
             if (this.chartElement.yScale === "ln" || this.chartElement.yScale === 'log₁₀') {
               return this.chartElement._y(Number.EPSILON);
             } else {
               return this.chartElement._y(0)
             }
-          })
+          }.bind(this) )
           .y1(this.line.y.call(this.area));
       },
 
@@ -214,7 +214,7 @@
           //     this.checkExceedingState(value);
           //   }, this)
           // }
-          values.map( (v) => {
+          values.map( function(v) {
             return { x: new Date(v.x), y: +v.y, state: +v.state };
           });
           if (this.storeInside) {
@@ -229,7 +229,7 @@
           //     this.checkExceedingState(value);
           //   }, this)
           // }
-          tmp.map( (v) => {
+          tmp.map( function(v) {
             return { x: new Date(v.x), y: +v.y, state: +v.state };
           });
           if (this.storeInside) {
@@ -243,7 +243,7 @@
       spliceValues: function(splices) {
         // var list = this.$.list.items;
 
-        requestAnimationFrame( () => {
+        requestAnimationFrame( function() {
           var changeRecord = [];
 
           function find(item) {
@@ -257,7 +257,7 @@
               // changeRecord.push( { index: pos, removed: [this.values[pos]], addedCount: 0, object: this.values, type: 'splice'} );
             }
           }
-        })
+        }.bind(this))
         // this.notifySplices('values', changeRecord);
       },
 
@@ -275,7 +275,7 @@
       },
 
       redraw: function() {
-        this.async( () => {
+        this.async( function() {
           if (!this.values || !this.values.length || this._hidden === true) return;
           // performance.mark('graph redraw start');
           var self = this;
@@ -299,24 +299,24 @@
             var everyOverlappingDot = (data.length / Math.max(this.chartElement._height, this.chartElement._width) * (this.dotRadius * 3));
 
             if (everyOverlappingDot > 1)
-              data = data.filter( (d, i) => {
+              data = data.filter( function(d, i) {
                 return (i % everyOverlappingDot <= 1);
               })
               var dots = this.dots.selectAll('circle')
                 .data(data);
               // update current dots
-              dots.attr('cx', (d) => {
+              dots.attr('cx', function(d) {
                   return this.chartElement._x(d.x)
-                })
-                .attr('cy', (d) => {
+                }.bind(this))
+                .attr('cy', function(d) {
                   return this.chartElement._y(d.y)
-                });
+                }.bind(this));
               // enter new dots
               dots.enter()
                 .append('circle')
                 .classed('dot style-scope webvisual-element-graph', true)
                 .attr('r', this.dotRadius)
-                .attr('fill', (d) => {
+                .attr('fill', function(d) {
                   switch (d.state) {
                     case 1:
                       return this.customStyle['element-state-exceeds-color'];
@@ -327,16 +327,16 @@
                     default:
                       return this.item.exceedable ? this.customStyle['element-state-inrange-color'] || this.item.color : this.item.color;
                   }
-                })
-                .attr('cx', (d) => {
+                }.bind(this))
+                .attr('cx', function(d) {
                   return this.chartElement._x(d.x)
-                })
-                .attr('cy', (d) => {
+                }.bind(this))
+                .attr('cy', function(d) {
                   return this.chartElement._y(d.y)
-                })
-                .attr('title', (d) => {
+                }.bind(this))
+                .attr('title', function(d) {
                   return this.computeDate(d.x) + ' | ' + this.computeValue(d.y);
-                })
+                }.bind(this))
                 .on('mouseenter', function(d) {
                   this.setAttribute('r', self.dotRadius * 1.5);
                   self.chartElement._showInfo(d);
@@ -345,7 +345,7 @@
                   this.setAttribute('r', self.dotRadius);
                   self.chartElement._hideInfo();
                 })
-                .on('click', (d) => {
+                .on('click', function(d) {
                   var offset = this.dotRadius * 5;
                   var x = this.chartElement._x(d.x);
                   var y = this.chartElement._y(d.y);
@@ -354,12 +354,12 @@
                     [x + offset, y + offset]
                   ];
                   this.chartElement.brushed();
-                });
+                }.bind(this));
               //  remove old dots
               dots.exit()
                   .remove();
           }
-        });
+        }.bind(this));
 
         // performance.mark('graph redraw end');
         // performance.measure('graph redraw', 'graph redraw start', 'graph redraw end');

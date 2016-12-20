@@ -114,11 +114,11 @@
     }
     .clicked {
       fill: #3852D7 !important;
-      fill-opacity: 0.5;
+      fill-opacity: 0.25;
       @apply(--svg-clicked);
     }
     .selected {
-      fill-opacity: 0.5;
+      fill-opacity: 0.75;
       @apply(--svg-selected);
     }
     .exceeding {
@@ -499,7 +499,7 @@
               style = this.shadowRoot.querySelector('style');
             } else {
               var scopeName; // shadyDOM
-              this.classList.forEach( (cl) => {
+              this.classList.forEach( function(cl) {
                 if (cl.startsWith('webvisual-element-svg')) {
                   scopeName = cl;
                 }
