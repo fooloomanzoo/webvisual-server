@@ -13,6 +13,8 @@ module.exports = {
    '/bower_components/webcomponentsjs/webcomponents-lite.min.js',
    '/locales.json',
    '/manifest.json',
+   '/scripts/*',
+   '/socket.io/socket.io.js',
    '/fonts/*',
    '/icons/*'
   ],

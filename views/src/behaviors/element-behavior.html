@@ -96,7 +96,7 @@
         window.Webvisual.assignElement(this);
       }
 
-      this.requestLastValue(this.viewLength, 1)
+      this.requestLastValue(this.viewLength, 0)
           .then( function(values) {
             this.insertValues(values);
           }.bind(this))
@@ -225,13 +225,13 @@
              && e.data.messageId
              && e.data.messageId === messageId) {
                this.webworker.removeEventListener('message', onMessage, false );
-               if (e.data.response && e.data.response[self.item.mount]) {
+               if (self.item && e.data.response && e.data.response[self.item.mount]) {
                  resolve(e.data.response[self.item.mount]);
                } else if (attempts) {
                 //  console.log(self.item.mount + ': ' + attempts + '  ' + JSON.stringify(e.data.response));
                  resolve(self.requestLastValue(len, --attempts));
                } else {
-                 reject(self.item.mount + ': ' + self.nodeName + ': no values received')
+                 reject(self.nodeName + ': no values received')
                }
              }
           }.bind(this), false );
@@ -267,7 +267,7 @@
                } else if (attempts) {
                  resolve(this.requestRange(key, attempts--));
                } else {
-                 reject(self.item.mount + ': no range received')
+                 reject(self.item + ': no range received')
                }
              }
           }.bind(this));

@@ -66,7 +66,6 @@
         right: 0;
         left: 0;
         pointer-events: none;
-        mix-blend-mode: hard-light;
         background: linear-gradient(180deg,rgba(255,255,255,0),rgba(255,255,255,0.05),rgba(255,255,255,0));
       }
       :host([state="1"]) .value::before, :host([state="-1"]) .value::before {
@@ -89,12 +88,12 @@
       #valueSection {
         display: inline-flex;
         align-items: center;
+        justify-content: center;
         max-width: 100%;
         text-align: center;
         mix-blend-mode: hard-light;
       }
-      #valueSection::before {
-        content: attr(title);
+      #value {
         font-size: 0.9em;
         padding-right: 0.2em;
         white-space: nowrap;
@@ -117,10 +116,6 @@
         box-sizing: border-box;
         mix-blend-mode: hard-light;
       }
-      #dateSection::after {
-        content: attr(title);
-        pointer-events: all;
-      }
       svg#icon {
         height: 1.5em;
         width: 1.5em;
@@ -136,12 +131,11 @@
         cursor: pointer;
         outline: none;
         position: absolute;
-        mix-blend-mode: hard-light;
         right: -5px;
         top: -5px;
         height: 1.25em;
         width: 1.25em;
-        fill: currentColor;
+        fill: #fff;
         opacity: 0.75;
         will-change: transform, opacity;
         transform-origin: center;
@@ -152,12 +146,12 @@
         opacity: 1;
       }
       #checkbox {
-        fill: currentColor;
+        fill: #fff;
         cursor: pointer;
         outline: none;
         pointer-events: none;
         position: absolute;
-        mix-blend-mode: overlay;
+        opacity: 0.5;
         right: 0;
         bottom: 0;
         height: 1.25em;
@@ -169,21 +163,22 @@
       }
     </style>
 
-    <section class="value" on-tap="select">
+    <div class="value" on-tap="select">
       <template is="dom-if" if="[[selectable]]">
         <paper-ripple id="ripple" recenters></paper-ripple>
       </template>
 
-      <section id="valueSection" hidden$="[[item.isIndicatorLamp]]">
-        <section id="unitSection">[[item.unit]]</section>
-      </section>
+      <div id="valueSection" hidden$="[[item.isIndicatorLamp]]">
+        <span id="value"></span>
+        <span id="unitSection">[[item.unit]]</span>
+      </div>
 
       <svg id="icon" hidden$="[[!item.isIndicatorLamp]]" aria-label="Alarm" viewBox="0 0 24 24">
         <g id="error-outline" hidden$="[[!isExceeding]]"><path d="M11 15h2v2h-2zm0-8h2v6h-2zm.99-5C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/></g>
       </svg>
-    </section>
+    </div>
 
-    <span id="dateSection" hidden$="[[!showDate]]" title=""></span>
+    <span id="dateSection" hidden$="[[!showDate]]"></span>
 
     <svg id="bookmark" hidden$="[[!hasExceeded]]"
       viewBox="0 0 24 24"
@@ -231,27 +226,28 @@
 
       insertValues: function(values) {
         if (values && values.length) {
-          if (!this._initialized)
-            this._initialized = true;
+          this.async( function() {
 
-          var value = values[values.length-1];
+            if (!this._initialized)
+              this._initialized = true;
 
-          if (!this.item.isIndicatorLamp) {
-            var vy = this.computeValue(value.y);
-            if (!this.$.valueSection.hasAttribute('title') || this.$.valueSection.title != vy) {
-              this.$.valueSection.setAttribute('title', vy);
+            var value = values[values.length-1];
+
+            if (!this.item.isIndicatorLamp) {
+              this.$.value.textContent = this.computeValue(value.y);
             }
-          }
 
-          if (this.showDate)
-            this.$.dateSection.setAttribute('title', this.computeDate(value.x));
+            if (this.showDate)
+              this.$.dateSection.textContent = this.computeDate(value.x);
 
-          if (this.item.exceedable) {
-            this.checkExceedingState(value);
-            if (!this.hasAttribute('state') || this.state != value.state) {
-              this.setAttribute('state', value.state);
+            if (this.item.exceedable) {
+              this.checkExceedingState(value);
+              if (!this.hasAttribute('state') || this.state !== value.state) {
+                this.setAttribute('state', value.state);
+              }
             }
-          }
+
+          }.bind(this));
         }
       },
 

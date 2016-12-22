@@ -3,6 +3,8 @@
 <link rel="import" href="../bower_components/app-route/app-route.html"/>
 <link rel="import" href="../bower_components/app-layout/app-drawer/app-drawer.html">
 
+<link rel="import" href="data/webvisual-svg-data.html"/>
+
 <link rel="import" href="components/webvisual-tabs.html"/>
 
 <link rel="import" href="webvisual-element-checkbox.html"/>
@@ -34,7 +36,7 @@
         height: 100%;
       }
       #control {
-        display: block;;
+        display: block;
         height: 100%;
         box-sizing: border-box;
       }
@@ -48,7 +50,7 @@
         box-sizing: border-box;
       }
       #elementTabs {
-        margin-bottom: 0.4em;
+        padding-bottom: 0.4em;
         --tab-vertical-overlay: {
           background-color: rgba(255, 255, 255, 0.15);
           border-left: 3px solid var(--saturated-primary-color, white);
@@ -56,12 +58,14 @@
         }
       }
       #elementTable {
-        margin-top: 0.4em;
+        padding-top: 0.4em;
       }
       #elementDrawer {
+        padding-top: inherit;
         position: absolute;
         bottom: 0;
         top: 0;
+        right: 0px;
         --app-drawer-width: 256px;
         --app-drawer-content-container: {
           padding: 0 !important;
@@ -73,6 +77,7 @@
         isolation: isolate;
       }
       #svg {
+        overflow: hidden;
         padding-bottom: 0.5em;
       }
       #chart[fullheight] {
@@ -92,13 +97,16 @@
         --caption-color: currentColor;
       }
       @media (max-width: 600px) {
-        #control {
+        #elementTabs {
           background-color: rgba(255,255,255,0.25);
         }
       }
       @media (min-width: 601px) {
         #content {
           margin-right: 256px;
+        }
+        #elementDrawer {
+          right: -256px;
         }
       }
       @media (min-width: 800px) {
@@ -136,25 +144,21 @@
       facility-system="[[facilitySystem]]"></webvisual-svg-data>
 
     <template is="dom-if" if="[[visible]]">
-      <!-- <div id="content"> -->
+
       <div id="content">
-        <webvisual-element-chart id="chart" opened fullheight$="[[!_withSvg]]"
+        <webvisual-element-chart id="chart" opened="[[visible]]" fullheight$="[[!_withSvg]]"
           item="[[selectedElement]]"></webvisual-element-chart>
 
         <template is="dom-if" if="[[_withSvg]]">
-          <webvisual-element-svg id="svg" opened
+          <webvisual-element-svg id="svg" opened="[[visible]]"
             url-prefix="/images/[[facilitySystem]]/"
             src="[[selectedElement.svg.path]]"
             selectable-items="[[_getSvgSelectable(selectedElement.svg.path, svgData.paths)]]"
             item="[[selectedElement]]"
             exceeding="[[exceeding]]"></webvisual-element-svg>
         </template>
-      </div>
 
-      <!-- </div> -->
-
-      <app-drawer id="elementDrawer" opened="[[_ensureOpened(showControlAsDrawer)]]" swipe-open persistent="[[!showControlAsDrawer]]" align="right">
-        <div id="control">
+        <app-drawer id="elementDrawer" opened="[[_ensureOpened(showControlAsDrawer)]]" swipe-open persistent="[[!showControlAsDrawer]]" align="right">
           <webvisual-tabs id="elementTabs" vertical selected="{{route.path}}" attr-for-selected="item-mount" selected-attribute="checked">
             <template is="dom-repeat" items="[[_getListItems(elements)]]">
               <webvisual-element-checkbox class="checkbox"
@@ -167,8 +171,8 @@
             </template>
           </webvisual-tabs>
           <webvisual-element-table id="elementTable" full-date item="[[selectedElement]]"></webvisual-element-table>
-        </div>
-      </app-drawer>
+        </app-drawer>
+      </div>
 
     </template>
 

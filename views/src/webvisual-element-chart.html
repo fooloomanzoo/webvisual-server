@@ -384,19 +384,9 @@
           value: false
         },
 
-        item: {
-          type: Object,
-          value: function() {
-            return {};
-          }
-        },
+        item: Object,
 
-        items: {
-          type: Array,
-          value: function() {
-            return [];
-          }
-        },
+        items: Array,
 
         multi: {
           type: Boolean,
@@ -501,7 +491,6 @@
       },
 
       attached: function() {
-
         this._buildLayout();
         // this._sizeChanged();
       },
@@ -629,7 +618,7 @@
         this._focusY.attr('y1', this._height);
         // performance.mark('size end');
         // performance.measure('size', 'size start', 'size end');
-        this._redraw();
+        this.redraw();
       },
 
       _createScale: function(option) {
@@ -710,7 +699,7 @@
       },
 
       redraw: function() {
-        if (this._chart === undefined || this._chart.select === undefined) return;
+        if (!(this.opened && this._chart && this._chart.select)) return;
         Promise.resolve( this.setDomains.call(this) )
               .then( this._redraw.bind(this) )
               .catch( function(err) {
@@ -721,23 +710,12 @@
       },
 
       _redraw: function() {
-        if (this._chart === undefined || this._chart.select === undefined) return;
+        if (!(this.opened && this._chart && this._chart.select)) return;
         if (this._graphs.size > 0) {
           this._graphs.forEach( function(g) {
-            // performance.mark('start');
             if (g.redraw)
               g.redraw();
-            // performance.mark('end');
-            // performance.measure(g.ident, 'start', 'end');
           });
-          // p = performance.getEntriesByType('measure');
-          //   for (var i=0; i < p.length; i++) {
-          //     console.log ('performance.measure ' + p[i].name +
-          //         //  ' startTime = ' + p[i].startTime +
-          //          ' duration  = ' + p[i].duration);
-          //   }
-          // performance.clearMarks();
-          // performance.clearMeasures();
         }
 
         this._chart.select('#xAxis').call(this._xAxis);
@@ -766,11 +744,7 @@
           this._isBrushed = false;
         } else {
           this._isZoomed = false;
-          Promise.resolve(this.setDomains.call(this))
-                 .then( this._redraw.bind(this) )
-                 .catch( function(err) {
-                    console.warn(err);
-                 });
+          this.redraw();
           return;
         }
         this._redraw();
@@ -834,10 +808,9 @@
       requestRange: function(key) {
         return new Promise( function(resolve, reject) {
           var p = [];
-          var l = '';
           this._graphs.forEach( function(g) {
-            p.push( g.requestRange(key) );
-            l += g.item.mount + ' ';
+            if (g.item && g.item.mount)
+              p.push( g.requestRange(key) );
           });
           Promise.all(p)
                  .then( function(res) {

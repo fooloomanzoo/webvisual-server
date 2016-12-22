@@ -62,7 +62,6 @@
       // areaNode: Object,
       area: Object,
 
-      _hidden: false,
       _isAttached: false,
 
       get containerRoot() {
@@ -120,7 +119,7 @@
         // performance.mark('graph attached start');
 
         if (!containerRoot || containerRoot.nodeName !== 'WEBVISUAL-ELEMENT-CHART') {
-          console.error('Registration of Graph Element failed');
+          console.warn('No parentElement (chart) for graph found. Registration of Graph Element failed');
           return;
         } else {
           this.chartElement = containerRoot;
@@ -261,21 +260,21 @@
       spliceValues: function(splices) {
         // var list = this.$.list.items;
 
-        requestAnimationFrame( function() {
+        // requestAnimationFrame( function() {
           var changeRecord = [];
 
-          function find(item) {
-            return this.x === item.x;
-          }
-
           for (var i = 0; i < splices.length; i++) {
-            var pos = this.values.findIndex( find, splices[i]);
-            if (pos !== -1) {
-              this.values.splice(pos, 1);
-              // changeRecord.push( { index: pos, removed: [this.values[pos]], addedCount: 0, object: this.values, type: 'splice'} );
+            for (var j = this.values.length - 1; j >= 0; j--) {
+              if (this.values[j].x === splices[i].x)
+                break;
+            }
+            if (j !== -1) {
+              this.values.splice(j, 1);
+              // changeRecord.push( { index: j, removed: [this.values[j]], addedCount: 0, object: this.values, type: 'splice'} );
             }
           }
-        }.bind(this))
+
+        // }.bind(this))
         // this.notifySplices('values', changeRecord);
       },
 
@@ -292,8 +291,8 @@
       },
 
       redraw: function() {
+        if (!(this.chartElement && this.chartElement.opened && this.values && this.values.length)) return;
         this.async( function() {
-          if (!this.values || !this.values.length || this._hidden === true) return;
           // performance.mark('graph redraw start');
           var self = this;
           var data = this.values.filter(this._defined.bind(this)) || [];
@@ -382,8 +381,6 @@
           return undefined; // log- and sqrt-scales require larger than 0-Values
         else if ((d.x >= domainX[0] && d.x <= domainX[1]) || (i > 0 && i + 1 < data.length && (data[i + 1].x > domainX[0] && data[i - 1].x < domainX[1])))
           return true; // only numbers in x-Domain are shown (and their successor and predecessor) (graph is a function by definition, so y-Domain is not relevant)
-        else if (d.state === 1 || d.state === -1)
-          return true; // element is exceeding
         else
           return undefined;
       },
@@ -401,7 +398,7 @@
       },
 
       _calcColor: function(d) {
-        if (this.item.exceedable) {
+        if (this.item && this.item.exceedable) {
           switch (d.state) {
             case 1:
               return this.customStyle['element-state-exceeds-color'] || '#dd280e';

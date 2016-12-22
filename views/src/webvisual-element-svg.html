@@ -360,7 +360,7 @@
           } catch (e) {
             console.log(e);
             return;
-          } 
+          }
         }.bind(req);
         req.open("GET", url);
         req.withCredentials = true;
@@ -504,8 +504,8 @@
               style = this.shadowRoot.querySelector('style');
             } else {
               var scopeName; // shadyDOM
-              this.classList.forEach( function(cl) {
-                if (cl.startsWith('webvisual-element-svg')) {
+              Array.prototype.forEach.call(this.classList, function(cl) {
+                if (cl.indexOf('webvisual-element-svg', 0)) {
                   scopeName = cl;
                 }
               })

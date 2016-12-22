@@ -155,18 +155,17 @@
 			spliceValues: function(splices) {
         // var list = this.$.list.items;
 
-        requestAnimationFrame( function() {
+        this.async( function() {
           var changeRecord = [];
 
-          function find(item) {
-            return this.x === item.x;
-          }
-
           for (var i = 0; i < splices.length; i++) {
-            var pos = this.values.findIndex( find, splices[i]);
-            if (pos !== -1) {
-              this.values.splice(pos, 1);
-              changeRecord.push( { index: pos, removed: [this.values[pos]], addedCount: 0, object: this.values, type: 'splice'} );
+            for (var j = this.values.length - 1; j >= 0; j--) {
+              if (this.values[j].x === splices[i].x)
+                break;
+            }
+            if (j !== -1) {
+              this.values.splice(j, 1);
+              changeRecord.push( { index: j, removed: [this.values[j]], addedCount: 0, object: this.values, type: 'splice'} );
             }
           }
 

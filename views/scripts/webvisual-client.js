@@ -105,42 +105,56 @@ WebvisualClient.prototype = {
   updateNodes: function(message) {
     if (!message || message.hasOwnProperty('messageId')) return;
 
-    var nodes = this.nodes;
+    // requestAnimationFrame( function() {
+      for (var mount in message) {
 
-    requestAnimationFrame(processMessage);
-
-    function processMessage(taskStartTime) {
-      var v, mount, taskFinishTime, nodeList;
-      do {
-        mount = Object.keys(message)[0];
-        v = message[mount];
-        nodeList = nodes.get(mount);
-
-        if (nodeList) {
-          if (v.values) {
-            var values = v.values;
-            nodeList.forEach(function(node) {
-              node.insertValues(values);
-            });
-          }
-
-          if (v.splices) {
-            var splices = v.splices;
-            nodeList.forEach(function(node) {
-              node.spliceValues(splices);
-            });
-          }
+        if (this.nodes.has(mount)) {
+          this.nodes.get(mount).forEach(function(node) {
+            node.spliceValues(message[mount].splices);
+            node.insertValues(message[mount].values);
+          });
         }
 
-        nodeList = undefined;
-        v = undefined;
         delete message[mount];
-        taskFinishTime = window.performance.now();
-      } while (taskFinishTime - taskStartTime < 10);
+      }
+    // }.bind(this));
 
-      if (Object.keys(message).length > 0)
-        requestAnimationFrame(processMessage);
-    };
+    // var nodes = this.nodes;
+    //
+    // requestAnimationFrame(processMessage);
+    //
+    // function processMessage(taskStartTime) {
+    //   var v, mount, taskFinishTime, nodeList;
+    //   do {
+    //     mount = Object.keys(message)[0];
+    //     v = message[mount];
+    //     nodeList = nodes.get(mount);
+    //
+    //     if (nodeList) {
+    //       if (v.values) {
+    //         var values = v.values;
+    //         nodeList.forEach(function(node) {
+    //           node.insertValues(values);
+    //         });
+    //       }
+    //
+    //       if (v.splices) {
+    //         var splices = v.splices;
+    //         nodeList.forEach(function(node) {
+    //           node.spliceValues(splices);
+    //         });
+    //       }
+    //     }
+    //
+    //     nodeList = undefined;
+    //     v = undefined;
+    //     delete message[mount];
+    //     taskFinishTime = window.performance.now();
+    //   } while (taskFinishTime - taskStartTime < 3);
+    //
+    //   if (Object.keys(message).length > 0)
+    //     requestAnimationFrame(processMessage);
+    // };
   },
 
   _testMobile: function() {

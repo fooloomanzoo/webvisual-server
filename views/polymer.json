@@ -19,6 +19,7 @@
     "src/**/*",
     "src/*",
     "!src/demo/*",
+    "!src/demo/**/*",
     "favicon.ico",
     "bower.json"
   ],
