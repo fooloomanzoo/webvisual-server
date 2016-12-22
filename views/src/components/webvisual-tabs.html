@@ -118,13 +118,16 @@
         var mult;
         switch (e.deltaMode) {
           case 0:
-            mult = 1/5;
+            mult = 0.2;
             break;
           case 1:
             mult = 20;
             break;
+          case 2:
+            mult = this.$.container.offsetHeight;
+            break;
           default:
-            mult = 100;
+            mult = 1;
         }
 
         if (this.vertical) {

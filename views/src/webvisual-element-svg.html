@@ -349,13 +349,18 @@
       return new Promise(function(resolve, reject) {
         var req = new XMLHttpRequest();
         req.onreadystatechange = function() {
-          if (this.readyState === 4 && this.status < 400) {
-            if (this.responseXML) {
-              resolve(this.responseXML.documentElement);
-            } else {
-              reject(this);
+          try {
+            if (this.readyState === 4 && this.status < 400) {
+              if (this.responseXML) {
+                resolve(this.responseXML.documentElement);
+              } else {
+                reject(this);
+              }
             }
-          }
+          } catch (e) {
+            console.log(e);
+            return;
+          } 
         }.bind(req);
         req.open("GET", url);
         req.withCredentials = true;

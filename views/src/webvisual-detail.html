@@ -19,34 +19,33 @@
   <template strip-whitespace>
     <style include="shared-styles page-layout webvisual-button">
       :host {
-        display: flex;
-        width: 100%;
-        max-width: 100vw;
+        padding-top: inherit;
+        position: absolute;
+        display: block;
+        top: 0; bottom: 0; left: 0; right: 0;
         box-sizing: border-box;
-        flex: 1;
         overflow: hidden;
-        position: relative;
       }
       :host > #content {
-        display: flex;
-        position: relative;
-        flex: 1;
+        display: block;
         margin: 0;
+        box-sizing: border-box;
+        position: relative;
         height: 100%;
       }
       #control {
-        display: flex;
-        flex-direction: column;
-        flex: 1;
+        display: block;;
         height: 100%;
         box-sizing: border-box;
       }
+      #chart,
+      #svg,
       #elementTable,
       #elementTabs {
+        height: 50%;
+        width: 100%;
+        position: relative;
         box-sizing: border-box;
-        flex: 1 1;
-        -webkit-flex-basis: 50%;
-        flex-basis: 50%;
       }
       #elementTabs {
         margin-bottom: 0.4em;
@@ -69,35 +68,28 @@
           background-color: transparent;
         };
       }
-      #chart,
-      #svg {
-        height: 50%;
-        position: absolute;
-        box-sizing: border-box;
-      }
       #chart {
-        top: 0; left: 0;
         padding-bottom: 2.5em;
         isolation: isolate;
       }
       #svg {
-        /*padding-top: 0.5em;*/
         padding-bottom: 0.5em;
-        bottom: 0; left: 0;
       }
       #chart[fullheight] {
         height: 100%;
       }
       .checkbox {
         flex-shrink: 0;
+        color: var(--bright-text-color);
+      }
+      .checkbox[checked] {
+        flex-shrink: 0;
+        color: var(--primary-text-color);
       }
       .caption {
         flex: auto;
         --caption-background: transparent;
-        --caption-color: var(--bright-text-color);
-      }
-      .checkbox[checked] .caption {
-        mix-blend-mode: difference;
+        --caption-color: currentColor;
       }
       @media (max-width: 600px) {
         #control {
