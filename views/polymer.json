@@ -18,6 +18,7 @@
     "src/behaviors/*",
     "src/**/*",
     "src/*",
+    "!src/demo/*",
     "favicon.ico",
     "bower.json"
   ],

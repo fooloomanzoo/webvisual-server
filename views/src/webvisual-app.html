@@ -599,7 +599,7 @@
         var elements = [];
 
         function findAllElements(nodes) {
-          for (let i = 0, el; el = nodes[i]; ++i) {
+          for (var i = 0, el; el = nodes[i]; ++i) {
 
             if (el.matches(selector)) {
               elements.push(el);
