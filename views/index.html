@@ -78,18 +78,8 @@
         navigator.serviceWorker.register('/service-worker.js');
       });
     }
-    // Load Promise Polyfill
-    (function() {
-      'use strict';
-      if (!window.Promise) {
-        var scr = document.createElement('script');
-        scr.async = true;
-        scr.src = '/scripts/promise.js';
-        document.head.appendChild(scr);
-      }
-    })();
   </script>
-
+  <script src="/scripts/polyfills.js" type="text/javascript"></script>
   <link rel="import" href="/src/webvisual-app.html" async>
 
   <style>

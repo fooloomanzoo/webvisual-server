@@ -1,5 +1,7 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/iron-media-query/iron-media-query.html">
+<link rel="import" href="../bower_components/app-route/app-route.html"/>
+<link rel="import" href="../bower_components/app-layout/app-drawer/app-drawer.html">
 
 <link rel="import" href="components/webvisual-tabs.html"/>
 
@@ -47,15 +49,15 @@
         flex-basis: 50%;
       }
       #elementTabs {
-        margin-bottom: 0.5em;
+        margin-bottom: 0.4em;
         --tab-vertical-overlay: {
           background-color: rgba(255, 255, 255, 0.15);
-          border-left: 3px solid var(--bright-primary-color, white);
+          border-left: 3px solid var(--saturated-primary-color, white);
           border-bottom: none;
         }
       }
       #elementTable {
-        margin-top: 0.5em;
+        margin-top: 0.4em;
       }
       #elementDrawer {
         position: absolute;
@@ -131,12 +133,15 @@
 
     </style>
 
+    <app-route
+      route="[[route]]"></app-route>
+
     <iron-media-query query="(max-width: 600px)" query-matches="{{showControlAsDrawer}}"></iron-media-query>
 
     <webvisual-svg-data
       hidden
       svg-data="{{svgData}}"
-      mount="[[mount]]"></webvisual-svg-data>
+      facility-system="[[facilitySystem]]"></webvisual-svg-data>
 
     <template is="dom-if" if="[[visible]]">
       <!-- <div id="content"> -->
@@ -146,7 +151,7 @@
 
         <template is="dom-if" if="[[_withSvg]]">
           <webvisual-element-svg id="svg" opened
-            url-prefix="/images[[mount]]/"
+            url-prefix="/images/[[facilitySystem]]/"
             src="[[selectedElement.svg.path]]"
             selectable-items="[[_getSvgSelectable(selectedElement.svg.path, svgData.paths)]]"
             item="[[selectedElement]]"
@@ -158,11 +163,11 @@
 
       <app-drawer id="elementDrawer" opened="[[_ensureOpened(showControlAsDrawer)]]" swipe-open persistent="[[!showControlAsDrawer]]" align="right">
         <div id="control">
-          <webvisual-tabs id="elementTabs" vertical selected="{{selectedElementMount}}" attr-for-selected="item-mount" selected-attribute="checked">
+          <webvisual-tabs id="elementTabs" vertical selected="{{route.path}}" attr-for-selected="item-mount" selected-attribute="checked">
             <template is="dom-repeat" items="[[_getListItems(elements)]]">
               <webvisual-element-checkbox class="checkbox"
                 item="[[item]]"
-                item-mount="[[item.mount]]"
+                item-mount="/[[item.mount]]"
                 selectable>
                 <webvisual-element-caption class="caption"
                   keys="[[item.keys]]"></webvisual-element-caption>
@@ -183,7 +188,9 @@
 
       properties: {
 
-        mount: String,
+        route: Object,
+
+        facilitySystem: String,
 
         elements: {
           type: Array,
@@ -198,15 +205,13 @@
           notify: true
         },
 
-        selectedElementMount: String,
-
         selectedElement: {
           type: Object,
           value: function() {
             return {};
           },
           notify: true,
-          computed: '_getCurrentElement(elements, selectedElementMount)'
+          computed: '_getCurrentElement(elements, route.path)'
         },
 
         svgData: Object,
@@ -229,12 +234,7 @@
           notify: true,
           computed: '_computeShowToggleIcon(showControlAsDrawer, visible)'
         }
-
       },
-
-      observers: [
-        '_routeChanged(mount, visible)'
-      ],
 
       listeners: {
         'exceeding': '_setExceeding'
@@ -271,27 +271,17 @@
         return items || [{},{},{},{},{},{},{},{},{},{}];
       },
 
-      _getCurrentElement: function(elements, selectedElementMount) {
-        if (!elements || !elements.length || !selectedElementMount) {
+      _getCurrentElement: function(elements, mount) {
+        if (!elements || !elements.length || !mount) {
           return null;
         }
+        mount = mount.substring(1); // cut off leading '/'
         for (var i = 0; i < elements.length; i++) {
-          if (elements[i].mount && elements[i].mount === selectedElementMount) {
+          if (elements[i].mount && elements[i].mount === mount) {
             return elements[i];
           }
         }
         return null;
-      },
-
-      _routeChanged: function(mount, visible) {
-        if (visible) {
-          this.debounce('change-page', function() {
-            // Notify the facility and the page's title
-            this.fire('change-page', {
-              title: mount
-            });
-          });
-        }
       },
 
       _getSvgSelectable: function(src, svgSrcPaths) {
@@ -300,13 +290,14 @@
 
       _calculateWithSvg: function(selectedElement) {
         // notify the chart to resize
-        if (!this._withSvg) {
+        var ret = Boolean(selectedElement && selectedElement.svg && selectedElement.svg.path)
+        if (ret !== this._withSvg) {
           var chart;
           if (chart = this.$$('#chart')) {
             this.debounce('chart-resize', chart.notifyResize.bind(chart));
           }
         }
-        return Boolean(selectedElement && selectedElement.svg && selectedElement.svg.path);
+        return ret;
       },
 
       _ensureOpened: function(showControlAsDrawer) {

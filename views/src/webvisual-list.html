@@ -1,6 +1,5 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
-
-<link rel="import" href="behaviors/container-behavior.html"/>
+<link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
 
 <link rel="import" href="webvisual-element-sign.html"/>
 <link rel="import" href="webvisual-element-caption.html"/>
@@ -14,25 +13,39 @@
       .grid li {
         flex-direction: row;
       }
-      :host(:not([plain])) .grid li > * {
-        border-radius: 0px;
-        border: thin solid var(--grid-border-color);
-        border-left: none;
+      a {
+        border-radius: 4px;
+        display: flex;
+        flex: 1 1;
+        -webkit-flex-basis: auto;
+        flex-basis: auto;
+        position: relative;
       }
-      .grid li > :first-child {
-        border-top-left-radius: 6px;
-        border-bottom-left-radius: 6px;
-        border-left: thin solid var(--grid-border-color);
+      a > webvisual-element-sign {
+        border-top-left-radius: inherit;
+        border-bottom-left-radius: inherit;
+        border-right: thin solid var(--grid-border-color);
       }
-      .grid li > :last-child {
-        border-top-right-radius: 6px;
-        border-bottom-right-radius: 6px;
+      a > webvisual-element-caption {
+        border-top-right-radius: inherit;
+        border-bottom-right-radius: inherit;
+      }
+      :host([plain]) a > :first-child {
+        border-right: none;
       }
       webvisual-element-caption {
-        flex: 1 0 50%;
+        flex: 1 0;
+        -webkit-flex-basis: 50%;
+        flex-basis: 50%;
       }
       webvisual-element-sign {
-        flex: 1 0 4em;
+        flex: 1 0;
+        -webkit-flex-basis: 4em;
+        flex-basis: 4em;
+      }
+      .ripple {
+        color: currentColor;
+        opacity: 0.5;
       }
     </style>
 
@@ -40,21 +53,17 @@
       <ul class="grid">
         <template is="dom-repeat" items="[[_getListItems(elements)]]">
           <li>
-            <!-- <a href$="[[_getItemHref(item)]]"> -->
+            <a href$="/detail/[[item.mount]]">
               <webvisual-element-sign
                 item="[[item]]"
                 show-date></webvisual-element-sign>
               <webvisual-element-caption
                 keys="[[item.keys]]"></webvisual-element-caption>
-            <!-- </a> -->
+              <paper-ripple recenters class="circle ripple"></paper-ripple>
+            </a>
           </li>
         </template>
       </ul>
-
-      <!-- <webvisual-snackbar opened>
-        <webvisual-element-sign item="[[item]]"></webvisual-element-sign>
-        <webvisual-element-caption keys="[[item.keys]]" vertical></webvisual-element-caption>
-      </webvisual-snackbar> -->
 
     </template>
   </template>
@@ -63,13 +72,9 @@
     Polymer({
       is: 'webvisual-list',
 
-      behaviors: [
-        WebvisualBehaviors.ContainerBehavior
-      ],
-
       properties: {
 
-        mount: String,
+        facilitySystem: String,
 
         elements: {
           type: Array,
@@ -80,25 +85,11 @@
 
       },
 
-      observers: [
-        '_routeChanged(mount, visible)'
-      ],
-
       _getListItems: function(items) {
         // Return placeholder items when the items haven't loaded yet.
         return items || [{},{},{},{},{},{},{},{},{},{}];
-      },
-
-      _routeChanged: function(mount, visible) {
-        if (visible) {
-          this.debounce('change-page', function() {
-            // Notify the facility and the page's title
-            this.fire('change-page', {
-              title: mount
-            });
-          });
-        }
       }
+
     });
   </script>
 

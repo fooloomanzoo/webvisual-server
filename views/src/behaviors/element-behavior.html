@@ -96,7 +96,7 @@
         window.Webvisual.assignElement(this);
       }
 
-      this.requestLastValue(this.viewLength, 3)
+      this.requestLastValue(this.viewLength, 1)
           .then( function(values) {
             this.insertValues(values);
           }.bind(this))
@@ -186,10 +186,12 @@
 
     clearValues: function(force) {
       if (this._initialized || force) {
-        this.resetState();
+        if (this.selected) {
+          this.selected = false;
+        }
         this.values = [];
         this.notifyPath('values');
-        this.renderClearing();
+        this.resetState();
       }
     },
 
@@ -357,6 +359,10 @@
     resetState: function() {
       this.isExceeding = false;
       this.hasExceeded = false;
+      if (this.checked) {
+        this.checked = false;
+      }
+      this.renderClearing();
     }
   };
 </script>

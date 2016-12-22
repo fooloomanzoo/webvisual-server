@@ -13,7 +13,7 @@
 
         urlPrefix: String,
 
-        mount: String,
+        facilitySystem: String,
 
         facilityName: String,
 
@@ -58,7 +58,7 @@
       observers: [
         '_computeLoggedIn(offline)',
         '_computeFacilityList(loggedIn)',
-        '_computeNames(mount)',
+        '_computeNames(facilitySystem)',
         '_computeFacility(facilities, facilityName)',
         '_computeSystem(facility, systemName)',
         '_computeItems(system)'
@@ -95,9 +95,9 @@
         }.bind(this));
       },
 
-      _computeNames: function(mount) {
-        if (mount) {
-          var names = mount.split('/')
+      _computeNames: function(facilitySystem) {
+        if (facilitySystem) {
+          var names = facilitySystem.split('/')
                            .filter(function (str) { return str !== ''; });
           if (names.length === 2) {
             this.async( function() {

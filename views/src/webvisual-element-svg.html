@@ -411,7 +411,7 @@
         if (!this.src) {
           if (this.item && this.item.svg && this.item.svg.path) {
             this.src = this.item.svg.path;
-          } else if (this.items[this.items.length-1].svg && this.items[this.items.length-1].svg.path) {
+          } else if (this.items.length > 0 && this.items[this.items.length-1].svg && this.items[this.items.length-1].svg.path) {
             this.src = this.items[this.items.length-1].svg.path;
           }
         }

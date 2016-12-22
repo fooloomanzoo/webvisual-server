@@ -8,20 +8,19 @@
 
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html"/>
 <link rel="import" href="../bower_components/iron-selector/iron-selector.html"/>
+<link rel="import" href="../bower_components/iron-collapse/iron-collapse.html"/>
 
 <link rel="import" href="behaviors/localize-behavior.html"/>
 <link rel="import" href="behaviors/container-behavior.html"/>
 
+<link rel="import" href="webvisual-login.html"/>
+<link rel="import" href="webvisual-home.html"/>
+
 <link rel="import" href="webvisual-logo.html"/>
 <link rel="import" href="components/webvisual-icon-button.html"/>
 
+<link rel="import" href="data/webvisual-element-socket-data.html"/>
 <link rel="import" href="data/webvisual-facility-data.html"/>
-
-<link rel="import" href="webvisual-login.html"/>
-<link rel="import" href="webvisual-home.html"/>
-<link rel="import" href="webvisual-list.html"/>
-<link rel="import" href="webvisual-groups.html"/>
-<link rel="import" href="webvisual-detail.html"/>
 
 <link rel="import" href="style/shared-styles.html">
 <link rel="import" href="style/webvisual-selectbox.html">
@@ -190,14 +189,14 @@
 
     <webvisual-facility-data
       facilities="{{facilities}}"
-      mount="[[subroute.path]]"
+      facility-system="[[facilitySystem]]"
       items="{{elements}}"
       logged-in="{{loggedIn}}"
       offline="[[offline]]"></webvisual-facility-data>
 
     <webvisual-element-socket-data id="socketHandler"
       socket-name="data"
-      socket-room="[[subroute.path]]"
+      socket-room="[[facilitySystem]]"
       socket-status="{{socketStatus}}"
       lazy-connect="[[_shouldConnectSocket]]"></webvisual-element-socket-data>
 
@@ -241,13 +240,13 @@
           selected="{{page}}"
           attr-for-selected="name">
           <webvisual-button name="list">
-            <a href="/list[[subroute.path]]">{{localize('list', 'name')}}</a>
+            <a href="/list/[[facilitySystem]]">{{localize('list', 'name')}}</a>
           </webvisual-button>
           <webvisual-button name="groups">
-            <a href="/groups[[subroute.path]]">{{localize('groups', 'name')}}</a>
+            <a href="/groups/[[facilitySystem]]">{{localize('groups', 'name')}}</a>
           </webvisual-button>
           <webvisual-button name="detail">
-            <a href="/detail[[subroute.path]]">{{localize('detail', 'name')}}</a>
+            <a href="/detail/[[facilitySystem]]">{{localize('detail', 'name')}}</a>
           </webvisual-button>
         </webvisual-tabs>
       </template>
@@ -258,30 +257,28 @@
       <!-- home view for selecting the facility -->
       <webvisual-home name="home" dark$="[[dark]]" plain$="[[plain]]"
         facilities="[[facilities]]"
-        route="{{subroute}}"
         logged-in="{{loggedIn}}"
         language="[[language]]"
         language-resources="[[languageResources]]"></webvisual-home>
       <!-- login view-->
       <webvisual-login name="login" dark$="[[dark]]" plain$="[[plain]]"
-        route="[[subroute]]"
         offline="[[offline]]"
         language="[[language]]"
         language-resources="[[languageResources]]"></webvisual-login>
       <!-- list view of items in a facility -->
       <webvisual-list name="list" dark$="[[dark]]" plain$="[[plain]]"
-        mount="[[subroute.path]]"
-        elements="[[elements]]"
-        select-notify></webvisual-list>
+        facility-system="[[facilitySystem]]"
+        elements="[[elements]]"></webvisual-list>
       <!-- group view of items -->
       <webvisual-groups name="groups" dark$="[[dark]]" plain$="[[plain]]"
-        mount="[[subroute.path]]"
+        facility-system="[[facilitySystem]]"
         elements="[[elements]]"
         grouped-key="{{groupedKey}}"
         grouping-keys="{{groupingKeys}}"></webvisual-groups>
       <!-- detail view of one item -->
       <webvisual-detail id="detailpage" name="detail" dark$="[[dark]]" plain$="[[plain]]"
-        mount="[[subroute.path]]"
+        route="{{subroute}}"
+        facility-system="[[facilitySystem]]"
         elements="[[elements]]"
         show-toggle-icon="{{detailHasDrawer}}"></webvisual-detail>
     </iron-pages>
@@ -335,19 +332,19 @@
                   {{localize('home', 'name')}}
                 </webvisual-button>
               </a>
-              <a href="/list[[subroute.path]]">
+              <a href="/list/[[facilitySystem]]">
                 <webvisual-button name="list">
                   <iron-icon icon="list" class="left"></iron-icon>
                   {{localize('list', 'name')}}
                 </webvisual-button>
               </a>
-              <a href="/groups[[subroute.path]]">
+              <a href="/groups/[[facilitySystem]]">
                 <webvisual-button name="groups">
                   <iron-icon icon="grid-on" class="left"></iron-icon>
                   {{localize('groups', 'name')}}
                 </webvisual-button>
               </a>
-              <a href="/detail[[subroute.path]]">
+              <a href="/detail/[[facilitySystem]]">
                 <webvisual-button name="detail">
                   <iron-icon icon="chrome-reader-mode" class="left"></iron-icon>
                   {{localize('detail', 'name')}}
@@ -462,9 +459,7 @@
           observer: '_plainChanged'
         },
 
-        facilityName: String,
-
-        systemName: String,
+        facilitySystem: String,
 
         groupedKey: {
           type: String,
@@ -517,19 +512,14 @@
 
       observers: [
         '_routePageChanged(routeData.page)',
-        '_groupedKeyChanged(_shouldRenderGroupingKeys)',
-        '_resetElements(subroute.path)'
+        '_subrouteChanged(subroute)',
+        '_setInitialGroupedKey(_shouldRenderGroupingKeys)',
+        '_resetElements(facilitySystem)'
       ],
 
       listeners: {
-        'change-page': '_onChangePage',
-        'announce': '_onAnnounce',
         'open-settings': '_onOpenSettings',
         'dom-change': '_domChange'
-      },
-
-      print: function(arg, arg2) {
-        console.log(arg, arg2);
       },
 
       created: function() {
@@ -547,13 +537,25 @@
         this._loadPresettings();
       },
 
-      _routePageChanged: function(page) {
-        this.page = page || 'home';
+      _routePageChanged: function(route) {
+        this.page = route || 'home';
         // Scroll to the top of the page on every *route* change. Use 'Polymer.AppLayout.scroll'
         // with 'behavior: 'silent'' to disable header scroll effects during the scroll.
         Polymer.AppLayout.scroll({ top: 0, behavior: 'silent' });
         // Close the drawer - in case the *route* change came from a link in the drawer.
         this.drawerOpened = false;
+      },
+
+      _subrouteChanged: function(subroute) {
+        if (!subroute || !subroute.path) {
+          return;
+        }
+        var names = subroute.path.split('/')
+                            .filter(function (str) { return str !== ''; });
+        if (names.length >= 2) {
+          this.facilitySystem = names[0] + '/' + names[1];
+          document.title = this.facilitySystem + ' - Webvisual';
+        }
       },
 
       _pageChanged: function(page, oldPage) {
@@ -581,20 +583,25 @@
         }
       },
 
-      _resetElements: function(mount) {
-        if (!mount) {
+      _resetElements: function(facilitySystem, selector, callback) {
+        if (!facilitySystem) {
           return;
         }
-        if (!this._oldmount || this._oldmount === mount) {
-          this._oldmount = mount;
-          return;
+        // if (!this._oldfacilitySystem || this._oldfacilitySystem === facilitySystem) {
+        //   this._oldfacilitySystem = facilitySystem;
+        //   return;
+        // }
+
+        if (!selector) {
+          selector = '[element]'
         }
 
         var elements = [];
 
         function findAllElements(nodes) {
           for (let i = 0, el; el = nodes[i]; ++i) {
-            if (el.hasAttribute('element')) {
+
+            if (el.matches(selector)) {
               elements.push(el);
             }
             // If the element has shadow DOM, dig deeper.
@@ -607,14 +614,22 @@
         if (this.shadowRoot) {
           findAllElements(document.querySelectorAll('*'));
         } else {
-          elements = document.querySelectorAll('[element]')
+          elements = document.querySelectorAll(selector)
         }
 
         if (elements.length) {
-          Array.prototype.forEach.call(elements,
-            function(el) {
-              el.clearValues();
+          if (callback) {
+            requestAnimationFrame( function() {
+              callback(elements);
             });
+          } else {
+            requestAnimationFrame( function() {
+              Array.prototype.forEach.call(elements,
+                function(el) {
+                  el.clearValues();
+                });;
+            });
+          }
         }
       },
 
@@ -675,33 +690,6 @@
         this.alarmDrawerOpened = !this.alarmDrawerOpened;
       },
 
-      // Elements in the app can notify section changes.
-      // Response by a11y announcing the section and syncronizing the facility.
-      _onChangePage: function(event) {
-        var detail = event.detail;
-        // Announce the page's title
-        if (detail.title) {
-          if (detail.title.substring(0, 1) === '/')
-            detail.title = detail.title.substring(1, detail.title.length);
-          document.title = detail.title + ' - Webvisual';
-          this._announce(detail.title + ', ' + (this.localize ? this.localize('notification', 'loaded') : 'loaded'));
-        }
-        // set SocketConnection
-      },
-
-      // Elements in the app can notify a change to be a11y announced.
-      _onAnnounce: function(e) {
-        this._announce(e.detail);
-      },
-
-      // A11y announce the given message.
-      _announce: function(message) {
-        this._a11yLabel = '';
-        this.debounce('_a11yAnnouncer', function() {
-          this._a11yLabel = message;
-        }, 100);
-      },
-
       // elements can open a settings-dialog
       _onOpenSettings: function(e) {
         this._openSettings(e.detail);
@@ -709,7 +697,6 @@
 
       // settings-dialog for given set of settings
       _openSettings: function(detail) {
-        console.log(detail);
         this.debounce('open-settings', function() {
           if (!this._settingsDialog) {
             this._settingsDialog = document.createElement('webvisual-settings-dialog');
@@ -765,10 +752,10 @@
       },
 
       _updateStyles: function() {
-        this.debounce('update-styles', this.updateStyles, 1);
+        this.debounce('update-styles', this.updateStyles);
       },
 
-      _groupedKeyChanged: function() {
+      _setInitialGroupedKey: function() {
         // Hack: initial binding to native select value property is not bound
         this.async(function() {
           var groupedKey = this.groupedKey;

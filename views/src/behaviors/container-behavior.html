@@ -121,7 +121,7 @@
     select: function(item) {
       this.set('item', item); // store nevertheless the multi option the last selected Element
       if (this.multi === true) {
-        if (this.items.indexOf(item) === -1) {
+        if (this.indexOf(this.items, item) === -1) {
           this.push('items', item);
         }
       }
@@ -133,7 +133,7 @@
 
     deselect: function(item) {
       if (this.multi) {
-        var pos = this.items.indexOf(item);
+        var pos = this.indexOf(this.items, item);
         if (pos !== -1) {
           this.splice('items', pos, 1);
         }
@@ -150,6 +150,14 @@
     clearItems: function() {
       this.set('item', null);
       this.splice('items', 0, this.items.length);
+
+      if (this._activeCloseTimeout) {
+        clearTimeout( this._activeCloseTimeout );
+        this._activeCloseTimeout = null;
+      }
+
+      this.opened = this.forceOpened ||
+        Boolean(this.opened && this.openOnExceed && (this.exceeding && this.exceeding.length));
     },
 
     _setExceeding: function(e) {
@@ -162,7 +170,7 @@
     },
 
     setExceeding: function(item) {
-      var pos = this.exceeding.indexOf(item);
+      var pos = this.indexOf(this.exceeding, item);
       if (pos === -1)
         this.push('exceeding', item);
 
@@ -173,19 +181,20 @@
         this._activeCloseTimeout = null;
       }
       this.opened = this.forceOpened ||
-        Boolean(this.openOnExceed && (this.exceeding && this.exceeding.length));
-    },
+        Boolean((this.openOnSelect && (this.item || (this.items && this.items.length))) ||
+        (this.openOnExceed && (this.exceeding && this.exceeding.length)));    },
 
     unsetExceeding: function(item) {
       if (this.noAutoRemovalExceedings === true) return;
-      var pos = this.exceeding.indexOf(item);
+      var pos = this.indexOf(this.exceeding, item);
       if (pos !== -1)
         this.splice('exceeding', pos, 1);
 
       this.isExceeding = (this.exceeding.length > 0) ? true : false;
 
       var opened = this.forceOpened ||
-        Boolean(this.openOnExceed && (this.exceeding && this.exceeding.length));
+        Boolean((this.openOnSelect && (this.item || (this.items && this.items.length))) ||
+        (this.openOnExceed && (this.exceeding && this.exceeding.length)));
 
       if (!opened) {
         if (this._activeCloseTimeout) {
@@ -201,9 +210,29 @@
     clearExceedings: function() {
       this.splice('exceeding', 0, this.exceeding.length);
       this.isExceeding = false;
+
+      if (this._activeCloseTimeout) {
+        clearTimeout( this._activeCloseTimeout );
+        this._activeCloseTimeout = null;
+      }
+
+      this.opened = this.forceOpened ||
+        Boolean(this.opened && this.openOnSelect && (this.item || (this.items && this.items.length)));
     },
 
-    _handleExceeding: function(value) {}
+    _handleExceeding: function(value) {},
+
+    indexOf: function(items, item) {
+      if (item && item.mount && items) {
+        if (Array.isArray(items)) {
+          for (var i = 0; i < items.length; i++) {
+            if (item.mount === items[i].mount)
+              return i;
+          }
+        }
+      }
+      return -1;
+    }
 
   };
 </script>

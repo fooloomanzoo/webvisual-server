@@ -17,8 +17,8 @@
       // random color if color is not set
       if (color) {
         this.updateStyles({'--element-color': color});
-        if (this.item && this.item.exceedable === true) {
-          this.updateStyles({'--element-state-inrange-color': '#51CC41'});
+        if (this.item && !this.item.isIndicatorLamp ) {
+          this.updateStyles({'--element-state-inrange-color': color});
         }
         this.updateStyles();
       }

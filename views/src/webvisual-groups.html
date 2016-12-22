@@ -2,15 +2,12 @@
 
 <link rel="import" href="../bower_components/app-route/app-route.html">
 
-<link rel="import" href="data/webvisual-element-socket-data.html"/>
-<link rel="import" href="data/webvisual-facility-data.html"/>
 <link rel="import" href="data/webvisual-group-data.html"/>
 <link rel="import" href="data/webvisual-svg-data.html"/>
 
 <link rel="import" href="webvisual-element-sign.html"/>
 <link rel="import" href="webvisual-element-caption.html"/>
 <link rel="import" href="webvisual-groupcard.html"/>
-<link rel="import" href="webvisual-element-svg.html"/>
 
 <link rel="import" href="style/shared-styles.html">
 <link rel="import" href="style/page-layout.html">
@@ -83,16 +80,16 @@
       subgroups="{{subgroups}}"
       grouped-key="{{groupedKey}}"
       grouping-keys="{{groupingKeys}}"
-      mount="[[mount]]"></webvisual-group-data>
+      facility-system="[[facilitySystem]]"></webvisual-group-data>
 
     <webvisual-svg-data
       svg-data="{{svgData}}"
-      mount="[[mount]]"></webvisual-svg-data>
+      facility-system="[[facilitySystem]]"></webvisual-svg-data>
 
     <template is="dom-if" if="[[visible]]">
 
       <ul class="grid">
-        <template is="dom-repeat" items="[[_getSubGroups(subgroups)]]" as="group">
+        <template is="dom-repeat" id="cards" items="[[_getSubGroups(subgroups)]]" as="group">
           <li>
             <webvisual-groupcard
               title="[[group.title]]"
@@ -100,7 +97,7 @@
               open-on-select
               open-on-exceed
               multi
-              svg-url-prefix="/images[[mount]]/"
+              svg-url-prefix="/images/[[facilitySystem]]/"
               svg-src-path="[[group.svg.path]]"
               svg-selectable="[[_getSvgSelectable(group.svg.path, svgData.paths)]]">
 
@@ -131,14 +128,9 @@
     Polymer({
       is: 'webvisual-groups',
 
-      // behaviors: [
-      //   Polymer.NeonSharedElementAnimatableBehavior,
-      //   GroupingBehavior
-      // ],
-
       properties: {
 
-        mount: String,
+        facilitySystem: String,
 
         elements: {
           type: Array,
@@ -149,7 +141,8 @@
 
         groupedKey: {
           type: String,
-          notify: true
+          notify: true,
+          observer: '_groupedKeyChanged'
         },
 
         groupingKeys: {
@@ -165,14 +158,6 @@
 
         svgData: Object
 
-      },
-
-      observers: [
-        '_routeChanged(mount, visible)'
-      ],
-
-      print: function(arg,arg2,arg3) {
-        console.log(arg,arg2,arg3);
       },
 
       _getSubGroups: function(subgroup) {
@@ -206,13 +191,16 @@
         return svgSrcPaths[src] || {};
       },
 
-      _routeChanged: function(mount, visible) {
-        if (visible) {
-          this.debounce('change-page', function() {
-            // Notify the facility and the page's title
-            this.fire('change-page', {
-              title: mount
-            });
+      _groupedKeyChanged: function(groupedKey, old) {
+        if (old !== undefined) {
+          var sel = Polymer.dom(this.root).querySelectorAll('[element]');
+          sel.forEach( function(el) {
+            el.resetState();
+          });
+
+          var groupcards = Polymer.dom(this.root).querySelectorAll('webvisual-groupcard');
+          groupcards.forEach( function(gr) {
+            gr.clearItems();
           });
         }
       }

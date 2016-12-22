@@ -19,12 +19,10 @@
     "html-minifier": "^3.0.1",
     "merge-stream": "^1.0.1",
     "plylog": "^0.4.0",
-    "polymer-build": "*",
+    "polymer-build": "^0.6.0-alpha.3",
     "sw-precache": "^4.2.3",
     "uglify-js": "git+https://github.com/mishoo/UglifyJS2.git#harmony",
     "vinyl-fs": "^2.4.4"
   },
-  "devDependencies": {
-    "polymer-build": "^0.6.0-alpha.1"
-  }
+  "devDependencies": {}
 }

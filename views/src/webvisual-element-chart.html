@@ -78,7 +78,7 @@
         fill: var(--chart-plot-background, #ccc);
       }
       #brush {
-        mix-blend-mode: exclusion;
+        mix-blend-mode: hard-light;
       }
       #brush .overlay {
         cursor: default;
@@ -86,8 +86,8 @@
       #brush .selection {
         stroke: white;
         fill: white;
-        stroke-opacity: 0.5;
-        fill-opacity: 0.25;
+        stroke-opacity: 0.75;
+        fill-opacity: 0.5;
       }
       .grid .tick line {
         stroke: currentColor;
@@ -414,7 +414,7 @@
       _width: 0,
       _height: 0,
       _margin: {
-        top: 5,
+        top: 10,
         right: 10,
         bottom: 20,
         left: 46
@@ -753,6 +753,7 @@
 
       brushed: function() {
         var s = d3.event.selection;
+        this._hideInfo();
         if (s) {
           this._isBrushed = true;
           this._isZoomed = true;
@@ -792,10 +793,8 @@
 
                       // rounding y-domains to the according decimal exponent
                       if (domainY[0] !== undefined && domainY[1] !== undefined && domainY[0] === domainY[1]) {
-                        v = (domainY[0]).toExponential().split('e');
-                        v.map( function(vl) { return parseInt(vl); });
-                        domainY[0] = Math.floor(v[0] - 0.1) * Math.pow(10, v[1]);
-                        domainY[1] = Math.ceil(v[0] + 0.1) * Math.pow(10, v[1]);
+                        domainY[0] -= 0.5;
+                        domainY[1] += 0.5;
                       }
 
                       if (this.yScale === 'ln' || this.yScale === 'log₁₀') {
@@ -809,6 +808,15 @@
 
                       this._x.domain(domainX);
                       this._y.domain(domainY).nice(this.yTicks);
+
+                      domainY = this._y.domain();
+                      if (domainY[0] === rangeY[0]) {
+                        domainY[0] -= (rangeY[1] - rangeY[0]) / this.yTicks;
+                      }
+                      if (domainY[1] === rangeY[1]) {
+                        domainY[1] += (rangeY[1] - rangeY[0]) / this.yTicks;
+                      }
+                      this._y.domain(domainY);
                       resolve();
 
                     }.bind(this))
@@ -882,8 +890,8 @@
         if (this._info.attr('hidden') === '' || this._info.x === undefined || this._info.y === undefined) return;
         var bbox = this._info.node().getBBox();
         // console.log(bbox, this._width, this._height);
-        var x = this._x(this._info.x),
-          y = this._y(this._info.y);
+        var x = this._x(+this._info.x),
+          y = this._y(+this._info.y) || 0;
         this._info
           .attr('x', (x + 4 + bbox.width > this._width ? (x - 4 - bbox.width < 0 ? 0 : x - 4 - bbox.width) : x + 4))
           .attr('y', (y > bbox.height + 4 ? y - 4 : bbox.height));
@@ -959,6 +967,7 @@
         this._sizeLayout();
         this._x.domain(domainX);
         this._y.domain(domainY).nice(this.yTicks);
+        this._hideInfo();
         this._redraw();
       },
 
@@ -1004,6 +1013,7 @@
           e.preventDefault();
         }
         this._isZoomed = false;
+        this._hideInfo();
         this.redraw();
       },
 

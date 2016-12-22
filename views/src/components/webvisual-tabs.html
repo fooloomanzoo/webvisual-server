@@ -76,7 +76,7 @@
       }
 
     </style>
-    <nav id="container" on-track="_onscroll">
+    <nav id="container" on-track="_onscroll" on-wheel="_onwheel">
       <webvisual-tabs-overlay id="overlay"></webvisual-tabs-overlay>
       <content></content>
     </nav>
@@ -102,24 +102,37 @@
         '_onSelectedItemChanged(selectedItem)'
       ],
 
-      listeners: {
-        mousewheel: '_onmousewheel'
-      },
-
       _onSelectedItemChanged: function(selectedItem) {
-        if (selectedItem === undefined && this.selected) return;
+        if (selectedItem === undefined) return;
 
         this.$.overlay.target = selectedItem;
+
+        selectedItem.scrollIntoViewIfNeeded(true);
       },
 
-      _onmousewheel: function (e) {
+      _onwheel: function (e) {
+        if (!e) {
+          return;
+        }
         var scrollChange;
+        var mult;
+        switch (e.deltaMode) {
+          case 0:
+            mult = 1/5;
+            break;
+          case 1:
+            mult = 20;
+            break;
+          default:
+            mult = 100;
+        }
+
         if (this.vertical) {
-          scrollChange = (e && e.deltaY) || 0;
-          this.$.container.scrollTop += scrollChange/6;
+          scrollChange = e.deltaY || 0;
+          this.$.container.scrollTop += scrollChange * mult;
         } else {
-          scrollChange = (detail && e.deltaX) || 0;
-          this.$.container.scrollLeft += scrollChange/6;
+          scrollChange = e.deltaX || 0;
+          this.$.container.scrollLeft += scrollChange * mult;
         }
       },
 

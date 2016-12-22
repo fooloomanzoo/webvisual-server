@@ -48,7 +48,7 @@
     },
 
     checkedChanged: function(checked, old) {
-      if (this.selectable) {
+      if (this.selectable && this.selectEvent) {
         // this.dispatchEvent(new CustomEvent(this.selectEvent, {detail: { item: this.item, value: checked }}), {bubbles: true});
         this.fire(this.selectEvent, { item: this.item, value: checked });
       }

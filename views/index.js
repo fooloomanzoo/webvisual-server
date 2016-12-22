@@ -89,7 +89,10 @@ function build() {
     swPrecacheConfig: require('./sw-precache-config.js'),
     optimizeOptions: {
       html: {
-        removeComments: true
+        removeComments: true,
+        collapseWhitespace: true,
+        conservativeCollapse: true,
+        collapseInlineTagWhitespace: true
       },
       css: {
         stripWhitespace: true

@@ -2,7 +2,7 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 
 <link rel="import" href="behaviors/color-behavior.html"/>
-<link rel="import" href="behaviors/checked-and-select-behavior.html"/>
+<!-- <link rel="import" href="behaviors/checked-and-select-behavior.html"/> -->
 <link rel="import" href="behaviors/element-behavior.html"/>
 
 <link rel="import" href="style/webvisual-element-styles.html"/>
@@ -19,7 +19,7 @@
 
       behaviors: [
         WebvisualBehaviors.ColorBehavior,
-        WebvisualBehaviors.CheckedAndSelectBehavior,
+        // WebvisualBehaviors.CheckedAndSelectBehavior,
         WebvisualBehaviors.ElementBehavior
       ],
 
@@ -31,30 +31,16 @@
           observer: '_interpolationChanged'
         },
 
-        noDots: {
-          type: Boolean,
-          observer: '_noDotsChanged'
-        },
+        noDots: Boolean,
 
-        noLine: {
-          type: Boolean,
-          observer: '_noLineChanged'
-        },
+        noLine: Boolean,
 
-        noFill: {
-          type: Boolean,
-          observer: '_noFillChanged'
-        },
+        noFill: Boolean,
 
         dotRadius: {
           type: Number,
           value: 2.5,
           observer: '_dotRadiusChanged'
-        },
-
-        checked: {
-          type: Boolean,
-          value: true
         },
 
         viewLength: {
@@ -70,10 +56,10 @@
       },
 
       chartElement: Object,
-      dots: Object,
-      lineNode: Object,
+      // dots: Object,
+      // lineNode: Object,
       line: Object,
-      areaNode: Object,
+      // areaNode: Object,
       area: Object,
 
       _hidden: false,
@@ -91,7 +77,8 @@
       },
 
       observers: [
-        '_itemChanged(item)'
+        '_itemChanged(item)',
+        '_presentationChanged(noDots, noLine, noFill)'
       ],
 
       created: function() {
@@ -115,7 +102,9 @@
       },
 
       attached: function() {
-        this.addNodes();
+        if (this.item) {
+          this.addNodes();
+        }
       },
 
       detached: function() {
@@ -124,14 +113,14 @@
 
       addNodes: function() {
         if (this._isAttached) {
-          this.removeNodes();
+          // this.removeNodes();
           this.clearValues(true);
         }
         var containerRoot = this.containerRoot;
         // performance.mark('graph attached start');
 
         if (!containerRoot || containerRoot.nodeName !== 'WEBVISUAL-ELEMENT-CHART') {
-          console.error(this.item.mount, 'Registration of Graph Element failed');
+          console.error('Registration of Graph Element failed');
           return;
         } else {
           this.chartElement = containerRoot;
@@ -139,59 +128,90 @@
 
         this.chartElement._graphs.add(this);
 
-        this.noDots = this.chartElement.noDots || this.noDots;
-        this.noLine = this.chartElement.noLines || this.noLine;
-        this.noFill = this.chartElement.noAreas || this.noFill;
+        this.noDots = this.chartElement.noDots || false;
+        this.noLine = this.chartElement.noLines || false;
+        this.noFill = this.chartElement.noAreas || false;
 
         // node of line
-        this.lineNode = this.chartElement._lines
-          .append('svg:path')
-          .attr('mount', this.item.mount)
-          .attr("class", "line")
-          .attr('hidden', this.noLine ? true : null)
-          .attr('fill', 'none')
-          .attr('stroke', this.item.color || '#fff');
+        if (this.lineNode) {
+          this.lineNode
+            .attr('mount', this.item.mount)
+            .attr('hidden', this.noLine ? true : null)
+            .attr('stroke', this.item.color || '#fff');
+        } else {
+          this.lineNode = this.chartElement._lines
+            .append('svg:path')
+            .attr('mount', this.item.mount)
+            .attr("class", "line")
+            .attr('hidden', this.noLine ? true : null)
+            .attr('fill', 'none')
+            .attr('stroke', this.item.color || '#fff');
+        }
         this.lineNode
           .datum([])
           .attr("d", this.line);
 
         // fill area
-        this.areaNode = this.chartElement._areas
-          .append('svg:path')
-          .attr('mount', this.item.mount)
-          .attr("class", "area")
-          .attr('hidden', this.noFill ? true : null)
-          .attr('fill', this.item.color || '#000')
-          .attr('stroke', 'none');
+        if (this.areaNode) {
+          this.areaNode
+            .attr('mount', this.item.mount)
+            .attr('hidden', this.noFill ? true : null)
+            .attr('fill', this.item.color || '#000');
+        } else {
+          this.areaNode = this.chartElement._areas
+            .append('svg:path')
+            .attr('mount', this.item.mount)
+            .attr("class", "area")
+            .attr('hidden', this.noFill ? true : null)
+            .attr('fill', this.item.color || '#000')
+            .attr('stroke', 'none');
+        }
         this.areaNode
           .datum([])
           .attr("d", this.area);
 
         // group of dots
-        this.dots = this.chartElement._dots
-          .append("svg:g")
-          .attr('mount', this.item.mount)
-          .attr("class", "dots")
-          .attr("hidden", this.noDots ? true : null);
+        if (this.dots) {
+          this.dots.attr('mount', this.item.mount)
+            .attr("hidden", this.noDots ? true : null);
+        } else {
+          this.dots = this.chartElement._dots
+            .append("svg:g")
+            .attr('mount', this.item.mount)
+            .attr("class", "dots")
+            .attr("hidden", this.noDots ? true : null);
+        }
 
         this._isAttached = true;
-
         this.chartElement.redraw();
       },
 
       removeNodes: function() {
-        if (this.lineNode.node())
-          this.lineNode.node().parentElement.removeChild(this.lineNode.node());
-        if (this.areaNode.node())
-          this.areaNode.node().parentElement.removeChild(this.areaNode.node());
-        if (this.dots.node())
-          this.dots.node().parentElement.removeChild(this.dots.node());
+        var parent, node;
+        if (this.lineNode && this.lineNode.node) {
+          node = this.lineNode.node();
+          if (node && node.parentElement)
+            node.parentElement.removeChild(this.lineNode.node());
+        }
+        if (this.areaNode && this.areaNode.node) {
+          node = this.areaNode.node();
+          if (node && node.parentElement)
+            node.parentElement.removeChild(this.areaNode.node());
+        }
+        if (this.dots && this.dots.node) {
+          node = this.dots.node();
+          if (node && node.parentElement)
+            node.parentElement.removeChild(this.dots.node());
+        }
 
-        this.chartElement._graphs.delete(this);
+        if (this.chartElement && this.chartElement._graphs)
+          this.chartElement._graphs.delete(this);
+        this._isAttached = false;
       },
 
       _itemChanged: function(item) {
-        if (!item || !this._isAttached) {
+        if (!item || !item.mount) {
+          // this.removeNodes();
           return;
         }
         this.addNodes();
@@ -201,8 +221,6 @@
         if (values === undefined) {
           return;
         }
-
-        // console.log(this.nodeName, this.item.mount, values, len);
 
         var len = len || (this.viewLength > 0 ? this.viewLength : values.length);
 
@@ -262,7 +280,6 @@
       },
 
       renderInsertedValues: function(values) {
-        WebvisualBehaviors.ElementBehavior.renderInsertedValues.call(this, values);
         if (!this.chartElement)
           this.chartElement = this.containerRoot;
 
@@ -280,14 +297,13 @@
           // performance.mark('graph redraw start');
           var self = this;
           var data = this.values.filter(this._defined.bind(this)) || [];
-
-          if (this.noLine === false) {
+          if (!this.noLine) {
             this.lineNode
               .datum(data)
               .attr('d', this.line);
           }
 
-          if (this.noFill === false && this.chartElement._height) {
+          if (!this.noFill && this.chartElement._height) {
             // this.area
             //   .y0(this.chartElement._y(0));
             this.areaNode
@@ -295,12 +311,12 @@
               .attr('d', this.area);
           }
 
-          if (this.noDots === false) {
+          if (!this.noDots) {
             var everyOverlappingDot = (data.length / Math.max(this.chartElement._height, this.chartElement._width) * (this.dotRadius * 3));
 
             if (everyOverlappingDot > 1)
               data = data.filter( function(d, i) {
-                return (i % everyOverlappingDot <= 1);
+                return (d.state !== 0 || i % everyOverlappingDot <= 1);
               })
               var dots = this.dots.selectAll('circle')
                 .data(data);
@@ -310,24 +326,14 @@
                 }.bind(this))
                 .attr('cy', function(d) {
                   return this.chartElement._y(d.y)
-                }.bind(this));
+                }.bind(this))
+                .attr('fill', this._calcColor.bind(this));
               // enter new dots
               dots.enter()
                 .append('circle')
                 .classed('dot style-scope webvisual-element-graph', true)
                 .attr('r', this.dotRadius)
-                .attr('fill', function(d) {
-                  switch (d.state) {
-                    case 1:
-                      return this.customStyle['element-state-exceeds-color'];
-                      break;
-                    case -1:
-                      return this.customStyle['element-state-deceeds-color'];
-                      break;
-                    default:
-                      return this.item.exceedable ? this.customStyle['element-state-inrange-color'] || this.item.color : this.item.color;
-                  }
-                }.bind(this))
+                .attr('fill', this._calcColor.bind(this))
                 .attr('cx', function(d) {
                   return this.chartElement._x(d.x)
                 }.bind(this))
@@ -370,14 +376,14 @@
         var domainX = this.chartElement._x.domain(),
             yScale = this.chartElement.yScale;
 
-        if (d.y === null || isNaN(d.y))
+        if (d.y === null || d.y === undefined)
           return undefined; // NaN and null are displayable
-        else if (d.state !== 0)
-          return true; // element is exceeding
         else if ((yScale === "ln" || yScale === 'log₁₀') && d.y <= 0)
           return undefined; // log- and sqrt-scales require larger than 0-Values
         else if ((d.x >= domainX[0] && d.x <= domainX[1]) || (i > 0 && i + 1 < data.length && (data[i + 1].x > domainX[0] && data[i - 1].x < domainX[1])))
           return true; // only numbers in x-Domain are shown (and their successor and predecessor) (graph is a function by definition, so y-Domain is not relevant)
+        else if (d.state === 1 || d.state === -1)
+          return true; // element is exceeding
         else
           return undefined;
       },
@@ -394,30 +400,40 @@
         }
       },
 
-      checkedChanged: function(checked, old) {
-        WebvisualBehaviors.CheckedAndSelectBehavior.checkedChanged.call(this, checked, old);
-        this.noDots = (!checked || (this.chartElement && this.chartElement.noDots))  ? true : false;
-        this.noLine = (!checked || (this.chartElement && this.chartElement.noLines)) ? true : false;
-        this.noFill = (!checked || (this.chartElement && this.chartElement.noAreas)) ? true : false;
-        this._hidden = !checked;
+      _calcColor: function(d) {
+        if (this.item.exceedable) {
+          switch (d.state) {
+            case 1:
+              return this.customStyle['element-state-exceeds-color'] || '#dd280e';
+              break;
+            case -1:
+              return this.customStyle['element-state-deceeds-color'] || '#f211d5';
+              break;
+            default:
+              return this.customStyle['element-state-inrange-color'] || this.item.color || '#fff';
+          }
+        }
+        return this.item.color || '#fff';
       },
 
-      _noDotsChanged: function() {
-        if (this.dots && this.dots.attr) {
+      // checkedChanged: function(checked, old) {
+      //   WebvisualBehaviors.CheckedAndSelectBehavior.checkedChanged.call(this, checked, old);
+      //   // this.noDots = (!checked || (this.chartElement && this.chartElement.noDots))  ? true : false;
+      //   // this.noLine = (!checked || (this.chartElement && this.chartElement.noLines)) ? true : false;
+      //   // this.noFill = (!checked || (this.chartElement && this.chartElement.noAreas)) ? true : false;
+      //   // this._hidden = !checked;
+      // },
+
+      _presentationChanged: function(noDots, noLine, noFill) {
+        if (noDots && this.dots && this.dots.attr) {
           this.dots.attr('hidden', this.noDots ? true : null);
           this.debounce('redraw', this.redraw, 16);
         }
-      },
-
-      _noLineChanged: function() {
-        if (this.lineNode && this.lineNode.attr) {
+        if (noLine && this.lineNode && this.lineNode.attr) {
           this.lineNode.attr('hidden', this.noLine ? true : null);
           this.debounce('redraw', this.redraw, 16);
         }
-      },
-
-      _noFillChanged: function() {
-        if (this.areaNode && this.areaNode.attr) {
+        if (noFill && this.areaNode && this.areaNode.attr) {
           this.areaNode.attr('hidden', this.noFill ? true : null);
           this.debounce('redraw', this.redraw, 16);
         }
