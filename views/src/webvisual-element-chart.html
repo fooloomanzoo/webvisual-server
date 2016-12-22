@@ -91,7 +91,7 @@
       }
       .grid .tick line {
         stroke: currentColor;
-        stroke-opacity: 0.1;
+        stroke-opacity: 0.15;
       }
       .grid path {
         stroke-width: 0;
@@ -146,11 +146,12 @@
         stroke-width: 1px;
       }
       #focus .focus.line {
+        mix-blend-mode: hard-light;
         fill: none;
         pointer-events: none;
         stroke: white;
-        stroke-opacity: 0.2;
-        stroke-width: 1px;
+        stroke-opacity: 0.5;
+        stroke-width: 1.5px;
         stroke-dasharray: 2;
       }
       .axis, .grid, #plot {
@@ -182,7 +183,7 @@
       }
       #subcontrol {
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
         align-items: center;
       }
       #subcontrol > .buttons {
@@ -597,10 +598,10 @@
         this._yAxis = this._createAxis(this._y, 'left', this.yScale);
 
         this._xGrid = this._createAxis(this._x, 'bottom', this.xScale, this.gridMult)
-          .tickSize(-this._height, 0, 0)
+          .tickSize(-this._height)
           .tickFormat('');
         this._yGrid = this._createAxis(this._y, 'left', this.yScale, this.gridMult)
-          .tickSize(-this._width, 0, 0)
+          .tickSize(-this._width)
           .tickFormat('');
 
         this._chart.select('#xAxis')
