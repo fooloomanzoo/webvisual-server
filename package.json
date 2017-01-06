@@ -34,6 +34,7 @@
     "mkdirp": "*",
     "passport": "*",
     "passport-local": "*",
+    "redis": "^2.6.3",
     "serve-static": "^1.11.1",
     "socket.io": "*",
     "spdy": "*",

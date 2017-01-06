@@ -49,6 +49,8 @@ class WebvisualServer {
 
     this.dataHandler = new DataModule();
 
+    this.dataHandler.setDatabase(this.config.database);
+
     this.configFilesHandler = new ConfigFileProcessor();
 
     this.configFilesHandler.on('changed', (facility) => {
@@ -100,7 +102,6 @@ class WebvisualServer {
 
           if (this.config.server.ssl.ca) {
             ca = path.resolve(this.config.server.ssl.ca);
-            console.log(ca);
           }
         } else {
           rej( 'Given Filepaths to certificate-files incomplete' );
@@ -128,7 +129,6 @@ class WebvisualServer {
                sslSettings.passphrase = require(filepaths.passphrase).password;
                fs.stat(ca, function(err, stats) {
                  if (!err) {
-                   console.log(ca);
                    try {
                      // Read files for the certification path
                      var cert_chain = [];
@@ -136,7 +136,6 @@ class WebvisualServer {
                        cert_chain.push( fs.readFileSync( path.resolve(ca, filename), "utf-8") );
                      });
                      sslSettings.ca = cert_chain;
-                     console.log(sslSettings.ca);
                    } catch (err) {
                      this.emit("error", "Cannot open \"/ssl/cert_chain\" to read Certification chain");
                    }

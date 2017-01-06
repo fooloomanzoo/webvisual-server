@@ -35,5 +35,9 @@
       "path": "./examples/config/test.json"
     }
   ],
-  "database": {}
+  "database": {
+    "port": 6379,
+    "type": "redis",
+    "host": "https://localhost"
+  }
 }
