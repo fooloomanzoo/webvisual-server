@@ -635,7 +635,6 @@
         }
 
         if (elements.length) {
-          console.log(elements);
           if (callback) {
             requestAnimationFrame( function() {
               callback(elements);
@@ -644,7 +643,7 @@
             requestAnimationFrame( function() {
               Array.prototype.forEach.call(elements,
                 function(el) {
-                  el.clearValues();
+                  el.clearValues(true);
                 });;
             });
           }

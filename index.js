@@ -100,6 +100,7 @@ class WebvisualServer {
 
           if (this.config.server.ssl.ca) {
             ca = path.resolve(this.config.server.ssl.ca);
+            console.log(ca);
           }
         } else {
           rej( 'Given Filepaths to certificate-files incomplete' );
@@ -135,9 +136,12 @@ class WebvisualServer {
                        cert_chain.push( fs.readFileSync( path.resolve(ca, filename), "utf-8") );
                      });
                      sslSettings.ca = cert_chain;
+                     console.log(sslSettings.ca);
                    } catch (err) {
                      this.emit("error", "Cannot open \"/ssl/cert_chain\" to read Certification chain");
                    }
+                 } else {
+                   console.log(err);
                  }
                });
                resolve(sslSettings);

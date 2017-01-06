@@ -362,6 +362,8 @@
       if (this.checked) {
         this.checked = false;
       }
+      if (this.resetColor)
+        this.resetColor();
       this.renderClearing();
     }
   };

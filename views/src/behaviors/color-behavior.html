@@ -22,6 +22,12 @@
         }
         this.updateStyles();
       }
+    },
+
+    resetColor: function() {
+      this.updateStyles({'--element-color': ''});
+      this.updateStyles({'--element-state-inrange-color': ''});
+      this.updateStyles();
     }
   };
 </script>
