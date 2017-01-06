@@ -72,6 +72,7 @@
         border-style: solid;
         border-top: none;
         border-left: none;
+        mix-blend-mode: hard-light;
         border-right-width: calc(2/15 * var(--calculated-box-size));
         border-bottom-width: calc(2/15 * var(--calculated-box-size));
         border-color: var(--box-arrow-color, white);
@@ -84,13 +85,15 @@
         background-color: var(--element-color);
       }
       #boxContainer[state="0"] #box {
-        background-color: var(--element-state-inrange-color);
+        background-color: var(--element-state-inrange-color, var(--element-color));
       }
-      #boxContainer[state="1"] #box {
-        background-color: var(--element-state-exceeds-color);
+      #boxContainer[state="1"] #box,
+      #boxContainer[state="1"] #arrow {
+        border-color: var(--element-state-exceeds-color);
       }
-      #boxContainer[state="-1"] #box {
-        background-color: var(--element-state-deceeds-color);
+      #boxContainer[state="-1"] #box,
+      #boxContainer[state="-1"] #arrow {
+        border-color: var(--element-state-deceeds-color);
       }
 
       #boxContainer #ripple {

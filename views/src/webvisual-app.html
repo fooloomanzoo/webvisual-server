@@ -109,7 +109,7 @@
       app-drawer .spacer {
         margin-bottom: 1em;
       }
-      .drawer-content webvisual-selectbox,
+      .drawer-content .webvisual-selectbox,
       .drawer-content webvisual-button,
       .drawer-content webvisual-toggle-button {
         width: 100%;
@@ -164,7 +164,7 @@
         position: relative;
         height: 2.5em;
       }
-      webvisual-selectbox.toolbar.grouping {
+      .webvisual-selectbox.toolbar.grouping {
         background: url(data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22%3E%3Cg%3E%3Cpath d=%22M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z%22 fill=%22%23FFFFFF%22%3E%3C/path%3E%3C/g%3E%3C/svg%3E);
         background-repeat: no-repeat;
         background-position: 6px center;
@@ -173,7 +173,7 @@
         padding: 0;
         margin: 0 8px;
       }
-      webvisual-selectbox.toolbar > select {
+      .webvisual-selectbox.toolbar > select {
         height: 30px;
         font-size: 12px;
         padding: 0 8px 0 28px;
@@ -199,25 +199,26 @@
       socket-name="data"
       socket-room="[[facilitySystem]]"
       socket-status="{{socketStatus}}"
-      lazy-connect="[[_shouldConnectSocket]]"></webvisual-element-socket-data>
+      logged-in="[[loggedIn]]"
+      lazy-connect="[[loadComplete]]"></webvisual-element-socket-data>
 
     <app-header role="home" id="header" hidden$="[[!_shouldShowHeader]]" threshold="100" reveals>
 
       <app-toolbar>
         <webvisual-icon-button icon="menu" class="menu-icon" title="menu" on-tap="_toggleDrawer"></webvisual-icon-button>
 
-        <webvisual-logo id="logo" href="/home" main-title title="[[localize('home', 'name')]]"></webvisual-logo>
+        <webvisual-logo id="logo" href="/home" main-title title$6="[[localize('home', 'name')]]"></webvisual-logo>
 
         <template is="dom-if" if="[[_shouldRenderControlButtons]]">
 
           <template is="dom-if" if="[[_shouldRenderGroupingKeys]]">
-            <webvisual-selectbox class="toolbar grouping" title="grouping keys">
+            <div class="webvisual-selectbox toolbar grouping" title="grouping keys">
               <select value="{{groupedKey::input}}">
                 <template is="dom-repeat" items="[[groupingKeys]]">
                   <option value="[[item]]">[[item]]</option>
                 </template>
               </select>
-            </webvisual-selectbox>
+            </div>
           </template>
 
           <template is="dom-if" if="[[detailHasDrawer]]">
@@ -240,15 +241,15 @@
         <webvisual-tabs id="tabs" sticky="[[_shouldShowTabs]]" hidden$="[[!_shouldShowTabs]]"
           selected="{{page}}"
           attr-for-selected="name">
-          <webvisual-button name="list">
+          <div class="webvisual-button" name="list">
             <a href="/list/[[facilitySystem]]">{{localize('list', 'name')}}</a>
-          </webvisual-button>
-          <webvisual-button name="groups">
+          </div>
+          <div class="webvisual-button" name="groups">
             <a href="/groups/[[facilitySystem]]">{{localize('groups', 'name')}}</a>
-          </webvisual-button>
-          <webvisual-button name="detail">
+          </div>
+          <div class="webvisual-button" name="detail">
             <a href="/detail/[[facilitySystem]]">{{localize('detail', 'name')}}</a>
-          </webvisual-button>
+          </div>
         </webvisual-tabs>
       </template>
 
@@ -311,56 +312,56 @@
         </app-toolbar>
 
         <div class="drawer-content">
-          <webvisual-button for="route-collapse" on-tap="_toggleCollapse">
+          <div class="webvisual-button" for="route-collapse" on-tap="_toggleCollapse">
             <iron-icon icon="more-vert" class="left"></iron-icon>
             <span>{{localize('view')}}</span>
             <iron-icon icon="expand-more" class="right"></iron-icon>
-          </webvisual-button>
+          </div>
 
           <iron-collapse id="route-collapse">
             <div class="collapse-content">
               <template is="dom-if" if="[[!loggedIn]]">
                 <a href="/login">
-                  <webvisual-button name="login">
+                  <div class="webvisual-button" name="login">
                     <iron-icon icon="perm-identity" class="left"></iron-icon>
                     {{localize('login', 'name')}}
-                  </webvisual-button>
+                  </div>
                 </a>
               </template>
               <a href="/home">
-                <webvisual-button name="home">
+                <div class="webvisual-button" name="home">
                   <iron-icon icon="exit-to-app" class="left"></iron-icon>
                   {{localize('home', 'name')}}
-                </webvisual-button>
+                </div>
               </a>
               <a href="/list/[[facilitySystem]]">
-                <webvisual-button name="list">
+                <div class="webvisual-button" name="list">
                   <iron-icon icon="list" class="left"></iron-icon>
                   {{localize('list', 'name')}}
-                </webvisual-button>
+                </div>
               </a>
               <a href="/groups/[[facilitySystem]]">
-                <webvisual-button name="groups">
+                <div class="webvisual-button" name="groups">
                   <iron-icon icon="grid-on" class="left"></iron-icon>
                   {{localize('groups', 'name')}}
-                </webvisual-button>
+                </div>
               </a>
               <a href="/detail/[[facilitySystem]]">
-                <webvisual-button name="detail">
+                <div class="webvisual-button" name="detail">
                   <iron-icon icon="chrome-reader-mode" class="left"></iron-icon>
                   {{localize('detail', 'name')}}
-                </webvisual-button>
+                </div>
               </a>
             </div>
           </iron-collapse>
 
           <div class="spacer"></div>
 
-          <webvisual-button for="layout-collapse" on-tap="_toggleCollapse">
+          <div class="webvisual-button" for="layout-collapse" on-tap="_toggleCollapse">
             <iron-icon icon="settings" class="left"></iron-icon>
             <span>{{localize('layout')}}</span>
             <iron-icon icon="expand-more" class="right"></iron-icon>
-          </webvisual-button>
+          </div>
 
           <iron-collapse id="layout-collapse">
             <div class="collapse-content">
@@ -377,7 +378,7 @@
 
           <div class="spacer"></div>
 
-          <webvisual-selectbox>
+          <div class="webvisual-selectbox">
             <iron-icon icon="language"></iron-icon>
             <span>{{localize('language')}}</span>
 
@@ -390,10 +391,10 @@
               <option value="ru">русский</option>
               <option value="zh">中文</option>
             </select>
-          </webvisual-selectbox>
+          </div>
 
           <template is="dom-if" if="[[_shouldRenderGroupingKeys]]">
-            <webvisual-selectbox class="grouping">
+            <div class="webvisual-selectbox grouping">
               <iron-icon icon="filter-list"></iron-icon>
               <span>{{localize('groupedKey')}}</span>
 
@@ -404,7 +405,7 @@
                 </template>
 
               </select>
-            </webvisual-selectbox>
+            </div>
           </template>
         </div>
 
@@ -431,6 +432,14 @@
           reflectToAttribute: true,
           observer: '_pageChanged'
         },
+
+        routeData: Object,
+
+        subroute: Object,
+
+        elements: Array,
+
+        groupingKeys: Array,
 
         language: {
           type: String,
@@ -462,6 +471,8 @@
 
         facilitySystem: String,
 
+        socketStatus: String,
+
         groupedKey: {
           type: String,
           notify: true
@@ -471,6 +482,10 @@
           type: Boolean,
           notify: true
         },
+
+        loadComplete: Boolean,
+
+        detailHasDrawer: Boolean,
 
         showTabs: {
           type: Boolean,
@@ -503,11 +518,6 @@
 
         _shouldRenderGroupingKeys: {
           computed: '_computeShouldRenderGroupingKeys(page, loadComplete)'
-        },
-
-        _shouldConnectSocket: {
-          type: Boolean,
-          computed: '_computeShouldConnectSocket(offline, loggedIn, loadComplete)'
         }
       },
 
@@ -760,7 +770,7 @@
         // Hack: initial binding to native select value property is not bound
         this.async(function() {
           var groupedKey = this.groupedKey;
-          var groupingSelectors = Polymer.dom(this.root).querySelectorAll('webvisual-selectbox.grouping');
+          var groupingSelectors = Polymer.dom(this.root).querySelectorAll('.webvisual-selectbox.grouping');
 
           Array.prototype.forEach.call(groupingSelectors, function(el) {
             var sel = el.querySelector('select');
@@ -796,10 +806,6 @@
 
       _computeShouldRenderGroupingKeys: function(page, loadComplete) {
         return page === 'groups' && loadComplete;
-      },
-
-      _computeShouldConnectSocket: function(offline, loggedIn, loadComplete) {
-        return !offline && loggedIn && loadComplete;
       },
 
       _computeStatusIcon: function(status) {

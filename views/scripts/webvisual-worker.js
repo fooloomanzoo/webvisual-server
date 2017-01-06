@@ -9,7 +9,34 @@ if (!self.Promise) {
 var socket
   , options = {}
   , cache = new ClientCache()
-  , db = new Map();
+  , db = new Map()
+  , mounts= new Set();
+
+// load Recent Data into cache
+try {
+  var m = localStorage.getItem('mounts');
+  m = JSON.parse(m);
+  for (var i = 0; i < m.length; i++) {
+    mounts.add(m[i]);
+  }
+  mounts.forEach( function(mount) {
+    if (!db.has(mount)) {
+      db.set(mount, new IndexedDBHandler(mount, 'x'));
+    }
+    var idb = db.get(mount);
+
+    idb.keys()
+       .then( function(ret) {
+         cache.append(ret);
+        //  console.log(ret);
+       } )
+       .catch( function(err) {
+        //  console.log(err);
+       });
+  });
+} catch (e) {
+  console.log(e);
+}
 
 self.onconnect = function(e) {
   for (var key in e.data) {
@@ -26,7 +53,6 @@ self.ononline = function() {
 self.onoffline = function() {
   console.log('Your worker is now offline');
 }
-
 
 self.onmessage = function(e) {
   for (var key in e.data) {
@@ -78,8 +104,16 @@ self.createSocketConnection = function(opt) {
     });
 
     socket.on('initial', function(message) {
+      // reset cache and clear database on initial data (TODO: improve solution)
+      self._clearDatabase();
+      self._clearCache();
+      // get all mounts and add to mounts-set
+      // ....
+      // save to localStorage
+
       self._updateData(message, 'initial');
     });
+
     socket.on('update', function(message) {
       self._updateData(message, 'update');
     });
@@ -139,10 +173,11 @@ self._updateData = function(message, type) {
 }
 
 self._updateCache = function(message, noHeap) {
-  if (!cache) {
-    cache = new ClientCache();
-  }
   cache.append(message.values, noHeap);
+}
+
+self._clearCache = function() {
+  cache.clear();
 }
 
 self._updateClient = function(message) {
@@ -173,6 +208,17 @@ self._updateDatabase = function(message) {
        .catch( function(err) {
         //  console.log(err);
        });
+  }
+}
+
+self._clearDatabase = function() {
+  if (db) {
+    db.forEach( function(idb) {
+      idb.clear()
+        .catch( function(err) {
+         //  console.log(err);
+        });
+    })
   }
 }
 

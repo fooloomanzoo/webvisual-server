@@ -4,6 +4,8 @@
 
 <link rel="import" href="behaviors/localize-behavior.html">
 
+<link rel="import" href="components/webvisual-icon-button.html">
+
 <link rel="import" href="style/shared-styles.html">
 <link rel="import" href="style/webvisual-button.html">
 
@@ -152,6 +154,12 @@
         border-radius: 12px;
         border: thin solid currentColor;
         transition: opacity 300ms cubic-bezier(0.6,0,0.3,1);
+        padding: 0 1em;
+        display: inline-flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        word-wrap: break-word;
       }
       .login:focus,
       .login:hover {
@@ -166,10 +174,10 @@
     </style>
 
     <template is="dom-if" if="[[!loggedIn]]">
-        <a href="/login" class="login">
-          <webvisual-icon-button icon="assignment-ind"></webvisual-icon-button>
-          <span>{{localize('login', 'title')}}</span>
-        </a>
+      <a href="/login" class="login">
+        <webvisual-icon-button icon="assignment-ind"></webvisual-icon-button>
+        <span>{{localize('login', 'title')}}</span>
+      </a>
     </template>
 
     <template is="dom-if" if="[[_shouldRenderBox]]">
@@ -179,17 +187,17 @@
         </header>
         <iron-selector id="selector" selected="{{currentFacility}}" attr-for-selected="item-name" selectable=".facility">
           <template is="dom-repeat" items="[[facilities]]">
-            <webvisual-button raised class="item facility" item-name="[[item.name]]" aria-label$="[[item.title]]" tabindex="1">
+            <div raised class="webvisual-button item facility" item-name="[[item.name]]" aria-label$="[[item.title]]" tabindex="1">
               <div>[[item.title]]</div>
-            </webvisual-button>
+            </div>
 
             <iron-collapse opened="{{_computeOpened(item.name, currentFacility)}}">
               <div class="collapse-content">
                 <template is="dom-repeat" items="[[item.systems]]" as="system">
                   <a href$="/list/[[item.name]]/[[system.name]]" tabindex="-1">
-                    <webvisual-button raised class="item system" aria-label$="[[system.title]]" tabindex="1">
+                    <div raised class="webvisual-button item system" aria-label$="[[system.title]]" tabindex="1">
                       <div>[[system.title]]</div>
-                    </webvisual-button>
+                    </div>
                   </a>
                 </template>
               </div>

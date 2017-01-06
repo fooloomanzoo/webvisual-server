@@ -1,5 +1,6 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
 
 <link rel="import" href="behaviors/localize-behavior.html">
 
@@ -120,36 +121,36 @@
 
         <section class="input-box">
           <iron-icon class="left" icon="perm-identity"></iron-icon>
-          <webvisual-input>
+          <div class="webvisual-input">
             <input id="username" type="text" name="username" placeholder$="{{localize('login', 'username')}}(@fz-juelich.de)" autofocus required tabindex="1"
             aria-labelledby="usernameLabel loginInfo" autocomplete="username"/>
-            <webvisual-md-decorator error-message="Invalid Username" aria-hidden="true">
+            <div class="webvisual-md-decorator" error-message="Invalid Username" aria-hidden="true">
               <label id="usernameLabel">{{localize('login', 'username')}}</label>
-              <webvisual-underline></webvisual-underline>
-            </webvisual-md-decorator>
-          </webvisual-input>
+              <div class="webvisual-underline"></div>
+            </div>
+          </div>
         </section>
 
         <section class="input-box">
           <iron-icon class="left" icon="more-horiz"></iron-icon>
-          <webvisual-input>
+          <div class="webvisual-input">
             <input id="password" class="input" type="password" name="password" placeholder="{{localize('login', 'password')}}" required tabindex="2" autocomplete="password"
             aria-labelledby="passwordLabel loginInfo" autocomplete="password" />
-            <webvisual-md-decorator error-message="Invalid Password" aria-hidden="true">
+            <div class="webvisual-md-decorator" error-message="Invalid Password" aria-hidden="true">
               <label id="passwordLabel">{{localize('login', 'password')}}</label>
-              <webvisual-underline></webvisual-underline>
-            </webvisual-md-decorator>
-            <input id="csrf_token" hidden type="hidden" name="csrf_token" value="{{csrf_token}}" />
-          </webvisual-input>
+              <div class="webvisual-underline"></div>
+            </div>
+            <input id="csrf_token" hidden type="hidden" name="csrf_token"/>
+          </div>
         </section>
 
-        <webvisual-button id="loginbutton" on-tap="_onSignIn">
+        <div class="webvisual-button" id="loginbutton" on-tap="_onSignIn">
           <paper-ripple></paper-ripple>
           <button type="submit" name="button" class="button">
             <iron-icon class="left" icon="juelich:logo"></iron-icon>
             <span>{{localize('login', 'name')}}</span>
           </button>
-        </webvisual-button>
+        </div>
       </form>
     </div>
   </template>
@@ -173,7 +174,9 @@
         authUrl: {
           type: String,
           value: '/auth'
-        }
+        },
+
+        visible: Boolean
 
       },
 

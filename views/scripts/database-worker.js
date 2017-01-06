@@ -80,7 +80,11 @@ if (!self.Promise) {
           cursor.continue();
         });
 
-        return tx.complete.then( function(res) { keys = res; });
+        return tx.complete.then( function() {
+          var ret = {};
+          ret[this.dbName] = keys;
+          return ret; 
+        }.bind(this));
       }.bind(this));
     }
   };

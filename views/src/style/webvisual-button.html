@@ -5,10 +5,10 @@
 <dom-module id="webvisual-button">
   <template>
     <style>
-      a > webvisual-button {
+      a > .webvisual-button {
         width: 100%;
       }
-      webvisual-button {
+      .webvisual-button {
         pointer-events: all;
         display: inline-flex;
         padding: 0.75em 1em;
@@ -16,8 +16,7 @@
         align-items: center;
         align-content: center;
         justify-content: flex-start;
-        white-space: normal;
-        word-break: break-word;
+        white-space: nowrap;
         position: relative;
         box-sizing: border-box;
         -webkit-tap-highlight-color: rgba(0, 0, 0, 0); -webkit-tap-highlight-color: transparent;
@@ -31,20 +30,21 @@
         transition: background 0.28s cubic-bezier(0.4, 0, 0.2, 1);
         letter-spacing: 0.2px;
         flex: 1 0 auto;
-        @apply(--webvisual-button);
+        @apply(--.webvisual-button);
       }
-      webvisual-button > * {
+      .webvisual-button > * {
         -webkit-appearance: none;
         -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
         margin: 0;
       }
-      webvisual-button > span,
-      webvisual-button > button {
+      .webvisual-button > span,
+      .webvisual-button > div,
+      .webvisual-button > button {
         flex: 1;
         text-align: center;
       }
-      webvisual-button > button,
-      webvisual-button > button[type="submit"] {
+      .webvisual-button > button,
+      .webvisual-button > button[type="submit"] {
         font-family: inherit;
         font-size: inherit;
         background-color: transparent;
@@ -53,13 +53,13 @@
         outline: none;
         border: none;
       }
-      webvisual-button:hover {
+      .webvisual-button:hover {
         background: linear-gradient(to bottom, rgba(255,255,255,0.06) 5%,rgba(255,255,255,0.15) 40%);
       }
-      webvisual-button[raised][focus]) {
+      .webvisual-button[raised][focus]) {
         font-weight: bold;
       }
-      webvisual-button[disabled] {
+      .webvisual-button[disabled] {
         color: var(--disabled-text-color);
         background: none;
         border-color: var(--disabled-text-color);
@@ -67,18 +67,18 @@
         pointer-events: none;
       }
 
-      webvisual-button.iron-selected {
+      .webvisual-button.iron-selected {
         background: linear-gradient(to bottom, rgba(173,173,173,0.1) 5%,rgba(173,173,173,0.25) 40%);
         font-family: 'FiraSans-Medium', serif;
       }
-      webvisual-button > iron-icon {
+      .webvisual-button > iron-icon {
         color: currentColor;
       }
-      webvisual-button > .left {
+      .webvisual-button > .left {
         margin-right: 0.75em;
       }
 
-      webvisual-button > .right {
+      .webvisual-button > .right {
         margin-left: 0.75em;
       }
     </style>

@@ -1,485 +1,538 @@
 <!-- Dependent to be content of webvisual-element-chart -->
 <link rel="import" href="../bower_components/polymer/polymer.html">
 
-<link rel="import" href="behaviors/color-behavior.html"/>
+<link rel="import" href="behaviors/color-behavior.html" />
 <!-- <link rel="import" href="behaviors/checked-and-select-behavior.html"/> -->
-<link rel="import" href="behaviors/element-behavior.html"/>
+<link rel="import" href="behaviors/element-behavior.html" />
 
-<link rel="import" href="style/webvisual-element-styles.html"/>
+<link rel="import" href="style/webvisual-element-styles.html" />
 
 <script type="text/javascript" src="../bower_components/d3/d3.min.js"></script>
 
 <dom-module id="webvisual-element-graph">
-  <template>
+    <template>
     <style include="webvisual-element-styles"></style>
   </template>
-  <script>
-    DiagramGraph = Polymer({
-      is: 'webvisual-element-graph',
+    <script>
+        DiagramGraph = Polymer({
+            is: 'webvisual-element-graph',
 
-      behaviors: [
-        WebvisualBehaviors.ColorBehavior,
-        // WebvisualBehaviors.CheckedAndSelectBehavior,
-        WebvisualBehaviors.ElementBehavior
-      ],
+            behaviors: [
+                WebvisualBehaviors.ColorBehavior,
+                // WebvisualBehaviors.CheckedAndSelectBehavior,
+                WebvisualBehaviors.ElementBehavior
+            ],
 
-      properties: {
+            properties: {
 
-        interpolation: {
-          type: String,
-          value: 'Lineare Verbindung',
-          observer: '_interpolationChanged'
-        },
+                interpolation: {
+                    type: String,
+                    value: 'Lineare Verbindung',
+                    observer: '_interpolationChanged'
+                },
 
-        noDots: Boolean,
+                noDots: Boolean,
 
-        noLine: Boolean,
+                noLine: Boolean,
 
-        noFill: Boolean,
+                noFill: Boolean,
 
-        dotRadius: {
-          type: Number,
-          value: 2.5,
-          observer: '_dotRadiusChanged'
-        },
+                dotRadius: {
+                    type: Number,
+                    value: 2.5,
+                    observer: '_dotRadiusChanged'
+                },
 
-        viewLength: {
-          type: Number,
-          value: -1
-        },
+                viewLength: {
+                    type: Number,
+                    value: -1
+                },
 
-        storeInside: {
-          type: Boolean,
-          value: true,
-          readOnly: true
-        }
-      },
+                storeInside: {
+                    type: Boolean,
+                    value: true,
+                    readOnly: true
+                }
+            },
 
-      chartElement: Object,
-      // dots: Object,
-      // lineNode: Object,
-      line: Object,
-      // areaNode: Object,
-      area: Object,
+            chartElement: Object,
+            // dots: Object,
+            // lineNode: Object,
+            line: Object,
+            // areaNode: Object,
+            area: Object,
 
-      _isAttached: false,
+            _isAttached: false,
 
-      get containerRoot() {
-        var root = Polymer.dom(this).getOwnerRoot();
-        if (!root)
-          return Polymer.dom(this).parentNode;
-        else if (root.nodeType == Node.DOCUMENT_FRAGMENT_NODE)
-          return root.host;
-        else {
-          return undefined;
-        }
-      },
+            get containerRoot() {
+                var root = Polymer.dom(this).getOwnerRoot();
+                if (!root)
+                    return Polymer.dom(this).parentNode;
+                else if (root.nodeType == Node.DOCUMENT_FRAGMENT_NODE)
+                    return root.host;
+                else {
+                    return undefined;
+                }
+            },
 
-      observers: [
-        '_itemChanged(item)',
-        '_presentationChanged(noDots, noLine, noFill)'
-      ],
+            observers: [
+                '_itemChanged(item)',
+                '_presentationChanged(noDots, noLine, noFill)'
+            ],
 
-      created: function() {
-        this.line = d3.line()
-          .x( function(d) {
-            return this.chartElement._x(d.x);
-          }.bind(this))
-          .y( function(d) {
-            return this.chartElement._y(d.y);
-          }.bind(this));
-        this.area = d3.area()
-          .x(this.line.x.call(this.area))
-          .y0( function(d) {
-            if (this.chartElement.yScale === "ln" || this.chartElement.yScale === 'log₁₀') {
-              return this.chartElement._y(Number.EPSILON);
-            } else {
-              return this.chartElement._y(0)
-            }
-          }.bind(this) )
-          .y1(this.line.y.call(this.area));
-      },
+            created: function() {
+                this.line = d3.line()
+                    .x(function(d) {
+                        return this.chartElement._x(d.x);
+                    }.bind(this))
+                    .y(function(d) {
+                        return this.chartElement._y(d.y);
+                    }.bind(this));
+                this.area = d3.area()
+                    .x(this.line.x.call(this.area))
+                    .y0(function(d) {
+                        if (this.chartElement.yScale === "ln" || this.chartElement.yScale === 'log₁₀') {
+                            return this.chartElement._y(Number.EPSILON);
+                        } else {
+                            return this.chartElement._y(0)
+                        }
+                    }.bind(this))
+                    .y1(this.line.y.call(this.area));
+            },
 
-      attached: function() {
-        if (this.item) {
-          this.addNodes();
-        }
-      },
+            attached: function() {
+                if (this.item) {
+                    this.addNodes();
+                }
+            },
 
-      detached: function() {
-        this.removeNodes();
-      },
+            detached: function() {
+                this.removeNodes();
+            },
 
-      addNodes: function() {
-        if (this._isAttached) {
-          // this.removeNodes();
-          this.clearValues(true);
-        }
-        var containerRoot = this.containerRoot;
-        // performance.mark('graph attached start');
+            addNodes: function() {
+                if (this._isAttached) {
+                    // this.removeNodes();
+                    this.clearValues(true);
+                }
+                var containerRoot = this.containerRoot;
+                // performance.mark('graph attached start');
 
-        if (!containerRoot || containerRoot.nodeName !== 'WEBVISUAL-ELEMENT-CHART') {
-          console.warn('No parentElement (chart) for graph found. Registration of Graph Element failed');
-          return;
-        } else {
-          this.chartElement = containerRoot;
-        }
+                if (!containerRoot || containerRoot.nodeName !== 'WEBVISUAL-ELEMENT-CHART') {
+                    console.warn('No parentElement (chart) for graph found. Registration of Graph Element failed');
+                    return;
+                } else {
+                    this.chartElement = containerRoot;
+                }
 
-        this.chartElement._graphs.add(this);
+                this.chartElement._graphs.add(this);
 
-        this.noDots = this.chartElement.noDots || false;
-        this.noLine = this.chartElement.noLines || false;
-        this.noFill = this.chartElement.noAreas || false;
+                this.noDots = this.chartElement.noDots || false;
+                this.noLine = this.chartElement.noLines || false;
+                this.noFill = this.chartElement.noAreas || false;
 
-        // node of line
-        if (this.lineNode) {
-          this.lineNode
-            .attr('mount', this.item.mount)
-            .attr('hidden', this.noLine ? true : null)
-            .attr('stroke', this.item.color || '#fff');
-        } else {
-          this.lineNode = this.chartElement._lines
-            .append('svg:path')
-            .attr('mount', this.item.mount)
-            .attr("class", "line")
-            .attr('hidden', this.noLine ? true : null)
-            .attr('fill', 'none')
-            .attr('stroke', this.item.color || '#fff');
-        }
-        this.lineNode
-          .datum([])
-          .attr("d", this.line);
+                // node of line
+                if (this.lineNode) {
+                    this.lineNode
+                        .attr('data-name', this.item.mount)
+                        .attr('hidden', this.noLine ? true : null)
+                        .attr('stroke', this.item.color || '#fff');
+                } else {
+                    this.lineNode = this.chartElement._lines
+                        .append('svg:g')
+                        .attr('data-name', this.item.mount)
+                        .append('svg:path')
+                        .attr("class", "line")
+                        .attr('hidden', this.noLine ? true : null)
+                        .attr('fill', 'none')
+                        .attr('stroke', this.item.color || '#fff');
+                }
+                this.lineNode
+                    .datum([])
+                    .attr("d", this.line);
 
-        // fill area
-        if (this.areaNode) {
-          this.areaNode
-            .attr('mount', this.item.mount)
-            .attr('hidden', this.noFill ? true : null)
-            .attr('fill', this.item.color || '#000');
-        } else {
-          this.areaNode = this.chartElement._areas
-            .append('svg:path')
-            .attr('mount', this.item.mount)
-            .attr("class", "area")
-            .attr('hidden', this.noFill ? true : null)
-            .attr('fill', this.item.color || '#000')
-            .attr('stroke', 'none');
-        }
-        this.areaNode
-          .datum([])
-          .attr("d", this.area);
+                // fill area
+                if (this.areaNode) {
+                    this.areaNode
+                        .attr('data-name', this.item.mount)
+                        .attr('hidden', this.noFill ? true : null)
+                        .attr('fill', this.item.color || '#000');
+                } else {
+                    this.areaNode = this.chartElement._areas
+                        .append('svg:path')
+                        .attr('data-name', this.item.mount)
+                        .attr("class", "area")
+                        .attr('hidden', this.noFill ? true : null)
+                        .attr('fill', this.item.color || '#000')
+                        .attr('stroke', 'none');
+                }
+                this.areaNode
+                    .datum([])
+                    .attr("d", this.area);
 
-        // group of dots
-        if (this.dots) {
-          this.dots.attr('mount', this.item.mount)
-            .attr("hidden", this.noDots ? true : null);
-        } else {
-          this.dots = this.chartElement._dots
-            .append("svg:g")
-            .attr('mount', this.item.mount)
-            .attr("class", "dots")
-            .attr("hidden", this.noDots ? true : null);
-        }
+                // threshold markings
+                if (this.item && this.item.threshold) {
+                    var y;
+                    var lineOuter = this.chartElement._lines
+                        .select('g[data-name="' + this.item.mount + '"]');
+                    if (this.item.threshold.from !== undefined) {
+                        if (!this._lowerBoundery) {
+                            y = this.chartElement._y(this.item.threshold.from);
+                            this._lowerBoundery = lineOuter.append('rect')
+                                .attr('class', 'lower boundery')
+                                .attr('x', 0)
+                                .attr('y', y)
+                                .attr('height', this.chartElement._height - y)
+                                .attr('width', this.chartElement._width);
+                        }
+                    }
+                    if (this.item.threshold.to !== undefined) {
+                        if (!this._upperBoundery) {
+                            y = this.chartElement._y(this.item.threshold.to);
+                            this._upperBoundery = lineOuter.append('rect')
+                                .attr('class', 'upper boundery')
+                                .attr('x', 0)
+                                .attr('y', 0)
+                                .attr('height', this.chartElement._height - y)
+                                .attr('width', this.chartElement._width);
+                        }
+                    }
+                }
+                // group of dots
+                if (this.dots) {
+                    this.dots.attr('mount', this.item.mount)
+                        .attr("hidden", this.noDots ? true : null);
+                } else {
+                    this.dots = this.chartElement._dots
+                        .append("svg:g")
+                        .attr('mount', this.item.mount)
+                        .attr("class", "dots")
+                        .attr("hidden", this.noDots ? true : null);
+                }
 
-        this._isAttached = true;
-        this.chartElement.redraw();
-      },
+                this._isAttached = true;
+                this.chartElement.redraw();
+            },
 
-      removeNodes: function() {
-        var parent, node;
-        if (this.lineNode && this.lineNode.node) {
-          node = this.lineNode.node();
-          if (node && node.parentElement)
-            node.parentElement.removeChild(this.lineNode.node());
-        }
-        if (this.areaNode && this.areaNode.node) {
-          node = this.areaNode.node();
-          if (node && node.parentElement)
-            node.parentElement.removeChild(this.areaNode.node());
-        }
-        if (this.dots && this.dots.node) {
-          node = this.dots.node();
-          if (node && node.parentElement)
-            node.parentElement.removeChild(this.dots.node());
-        }
+            removeNodes: function() {
+                var node;
+                if (this.lineNode && this.lineNode.node) {
+                    node = this.chartElement._lines.select('g[data-name="' + this.item.mount + '"]', this.item.mount);
+                    node = node.node();
+                    if (node && node.parentElement)
+                        node.parentElement.removeChild(node);
+                    this.lineNode = null;
+                }
+                if (this.areaNode && this.areaNode.node) {
+                    node = this.areaNode.node();
+                    if (node && node.parentElement)
+                        node.parentElement.removeChild(node);
+                    this.areaNode = null;
+                }
+                if (this.dots && this.dots.node) {
+                    node = this.dots.node();
+                    if (node && node.parentElement)
+                        node.parentElement.removeChild(node);
+                    this.dots = null;
+                }
 
-        if (this.chartElement && this.chartElement._graphs)
-          this.chartElement._graphs.delete(this);
-        this._isAttached = false;
-      },
+                if (this.chartElement && this.chartElement._graphs)
+                    this.chartElement._graphs.delete(this);
+                this._isAttached = false;
+            },
 
-      _itemChanged: function(item) {
-        if (!item || !item.mount) {
-          // this.removeNodes();
-          return;
-        }
-        this.addNodes();
-      },
+            _itemChanged: function(item) {
+                if (!item || !item.mount) {
+                    // this.removeNodes();
+                    return;
+                }
+                this.addNodes();
+            },
 
-      insertValues: function(values, len) {
-        if (values === undefined) {
-          return;
-        }
+            insertValues: function(values, len) {
+                if (values === undefined) {
+                    return;
+                }
 
-        var len = len || (this.viewLength > 0 ? this.viewLength : values.length);
+                var len = len || (this.viewLength > 0 ? this.viewLength : values.length);
 
-        if (!this._initialized)
-          this._initialized = true;
-        if (!len) {
-          // if (this.item && this.item.exceedable === true) {
-          //   values.forEach(function (value) {
-          //     this.checkExceedingState(value);
-          //   }, this)
-          // }
-          values.map( function(v) {
-            return { x: new Date(v.x), y: +v.y, state: +v.state };
-          });
-          if (this.storeInside) {
-            this.values = this.values.concat(values);
-          }
-          // console.log(this.values);
-          this.renderInsertedValues(values);
-        } else {
-          var tmp = values.slice(values.length - len, values.length);
-          // if (this.item && this.item.exceedable === true) {
-          //   tmp.forEach(function (value) {
-          //     this.checkExceedingState(value);
-          //   }, this)
-          // }
-          tmp.map( function(v) {
-            return { x: new Date(v.x), y: +v.y, state: +v.state };
-          });
-          if (this.storeInside) {
-            this.values = this.values.concat(tmp);
-          }
-          this.renderInsertedValues(tmp);
-          tmp.length = 0;
-        }
-      },
+                if (!this._initialized)
+                    this._initialized = true;
+                if (!len) {
+                    // if (this.item && this.item.exceedable === true) {
+                    //   values.forEach(function (value) {
+                    //     this.checkExceedingState(value);
+                    //   }, this)
+                    // }
+                    values.map(function(v) {
+                        return {
+                            x: new Date(v.x),
+                            y: +v.y,
+                            state: +v.state
+                        };
+                    });
+                    if (this.storeInside) {
+                        this.values = this.values.concat(values);
+                    }
+                    // console.log(this.values);
+                    this.renderInsertedValues(values);
+                } else {
+                    var tmp = values.slice(values.length - len, values.length);
+                    // if (this.item && this.item.exceedable === true) {
+                    //   tmp.forEach(function (value) {
+                    //     this.checkExceedingState(value);
+                    //   }, this)
+                    // }
+                    tmp.map(function(v) {
+                        return {
+                            x: new Date(v.x),
+                            y: +v.y,
+                            state: +v.state
+                        };
+                    });
+                    if (this.storeInside) {
+                        this.values = this.values.concat(tmp);
+                    }
+                    this.renderInsertedValues(tmp);
+                    tmp.length = 0;
+                }
+            },
 
-      spliceValues: function(splices) {
-        // var list = this.$.list.items;
+            spliceValues: function(splices) {
+                // var list = this.$.list.items;
 
-        // requestAnimationFrame( function() {
-          var changeRecord = [];
+                // requestAnimationFrame( function() {
+                var changeRecord = [];
 
-          for (var i = 0; i < splices.length; i++) {
-            for (var j = this.values.length - 1; j >= 0; j--) {
-              if (this.values[j].x === splices[i].x)
-                break;
-            }
-            if (j !== -1) {
-              this.values.splice(j, 1);
-              // changeRecord.push( { index: j, removed: [this.values[j]], addedCount: 0, object: this.values, type: 'splice'} );
-            }
-          }
+                for (var i = 0; i < splices.length; i++) {
+                    for (var j = this.values.length - 1; j >= 0; j--) {
+                        if (this.values[j].x === splices[i].x)
+                            break;
+                    }
+                    if (j !== -1) {
+                        this.values.splice(j, 1);
+                        // changeRecord.push( { index: j, removed: [this.values[j]], addedCount: 0, object: this.values, type: 'splice'} );
+                    }
+                }
 
-        // }.bind(this))
-        // this.notifySplices('values', changeRecord);
-      },
+                // }.bind(this))
+                // this.notifySplices('values', changeRecord);
+            },
 
-      renderInsertedValues: function(values) {
-        if (!this.chartElement)
-          this.chartElement = this.containerRoot;
+            renderInsertedValues: function(values) {
+                if (!this.chartElement)
+                    this.chartElement = this.containerRoot;
 
-        if (this.chartElement) {
-          if (this.chartElement._isZoomed === false)
-            this.chartElement.redraw();
-          else
-            this.redraw();
-        }
-      },
+                if (this.chartElement) {
+                    if (this.chartElement._isZoomed === false)
+                        this.chartElement.redraw();
+                    else
+                        this.redraw();
+                }
+            },
 
-      redraw: function() {
-        if (!(this.chartElement && this.chartElement.opened && this.values && this.values.length)) return;
-        this.async( function() {
-          // performance.mark('graph redraw start');
-          var self = this;
-          var data = this.values.filter(this._defined.bind(this)) || [];
-          if (!this.noLine) {
-            this.lineNode
-              .datum(data)
-              .attr('d', this.line);
-          }
+            redraw: function() {
+                if (!(this.chartElement && this.chartElement.opened && this.values && this.values.length)) return;
+                this.async(function() {
+                    // performance.mark('graph redraw start');
+                    var self = this;
+                    var data = this.values.filter(this._defined.bind(this)) || [];
+                    if (!this.noLine) {
+                        this.lineNode
+                            .datum(data)
+                            .attr('d', this.line);
+                    }
+                    var y;
+                    if (this._lowerBoundery) {
+                        y = this.chartElement._y(this.item.threshold.from);
+                        this._lowerBoundery.attr('y', y)
+                            .attr('height', this.chartElement._height - y)
+                            .attr('width', this.chartElement._width);
+                    }
 
-          if (!this.noFill && this.chartElement._height) {
-            // this.area
-            //   .y0(this.chartElement._y(0));
-            this.areaNode
-              .datum(data)
-              .attr('d', this.area);
-          }
+                    if (this._upperBoundery) {
+                        y = this.chartElement._y(this.item.threshold.to);
+                        this._upperBoundery.attr('height', this.chartElement._height - y)
+                            .attr('width', this.chartElement._width);
+                    }
+                    if (!this.noFill && this.chartElement._height) {
+                        // this.area
+                        //   .y0(this.chartElement._y(0));
+                        this.areaNode
+                            .datum(data)
+                            .attr('d', this.area);
+                    }
 
-          if (!this.noDots) {
-            var everyOverlappingDot = (data.length / Math.max(this.chartElement._height, this.chartElement._width) * (this.dotRadius * 3));
+                    if (!this.noDots) {
+                        var everyOverlappingDot = (data.length / Math.max(this.chartElement._height, this.chartElement._width) * (this.dotRadius * 3));
 
-            if (everyOverlappingDot > 1)
-              data = data.filter( function(d, i) {
-                return (d.state !== 0 || i % everyOverlappingDot <= 1);
-              })
-              var dots = this.dots.selectAll('circle')
-                .data(data);
-              // update current dots
-              dots.attr('cx', function(d) {
-                  return this.chartElement._x(d.x)
-                }.bind(this))
-                .attr('cy', function(d) {
-                  return this.chartElement._y(d.y)
-                }.bind(this))
-                .attr('fill', this._calcColor.bind(this));
-              // enter new dots
-              dots.enter()
-                .append('circle')
-                .classed('dot style-scope webvisual-element-graph', true)
-                .attr('r', this.dotRadius)
-                .attr('fill', this._calcColor.bind(this))
-                .attr('cx', function(d) {
-                  return this.chartElement._x(d.x)
-                }.bind(this))
-                .attr('cy', function(d) {
-                  return this.chartElement._y(d.y)
-                }.bind(this))
-                .attr('title', function(d) {
-                  return this.computeDate(d.x) + ' | ' + this.computeValue(d.y);
-                }.bind(this))
-                .on('mouseenter', function(d) {
-                  this.setAttribute('r', self.dotRadius * 1.5);
-                  self.chartElement._showInfo(d);
-                })
-                .on('mouseleave', function(d, i) {
-                  this.setAttribute('r', self.dotRadius);
-                  self.chartElement._hideInfo();
-                })
-                .on('click', function(d) {
-                  var offset = this.dotRadius * 5;
-                  var x = this.chartElement._x(d.x);
-                  var y = this.chartElement._y(d.y);
-                  d3.event.selection = [
-                    [x - offset, y - offset],
-                    [x + offset, y + offset]
-                  ];
-                  this.chartElement.brushed();
+                        if (everyOverlappingDot > 1)
+                            data = data.filter(function(d, i) {
+                                return (d.state !== 0 || i % everyOverlappingDot <= 1);
+                            })
+                        var dots = this.dots.selectAll('circle')
+                            .data(data);
+                        // update current dots
+                        dots.attr('cx', function(d) {
+                                return this.chartElement._x(d.x)
+                            }.bind(this))
+                            .attr('cy', function(d) {
+                                return this.chartElement._y(d.y)
+                            }.bind(this))
+                            .attr('fill', this._calcColor.bind(this));
+                        // enter new dots
+                        dots.enter()
+                            .append('circle')
+                            .classed('dot style-scope webvisual-element-graph', true)
+                            .attr('r', this.dotRadius)
+                            .attr('fill', this._calcColor.bind(this))
+                            .attr('cx', function(d) {
+                                return this.chartElement._x(d.x)
+                            }.bind(this))
+                            .attr('cy', function(d) {
+                                return this.chartElement._y(d.y)
+                            }.bind(this))
+                            .attr('title', function(d) {
+                                return this.computeDate(d.x) + ' | ' + this.computeValue(d.y);
+                            }.bind(this))
+                            .on('mouseenter', function(d) {
+                                this.setAttribute('r', self.dotRadius * 1.5);
+                                self.chartElement._showInfo(d);
+                            })
+                            .on('mouseleave', function(d, i) {
+                                this.setAttribute('r', self.dotRadius);
+                                self.chartElement._hideInfo();
+                            })
+                            .on('click', function(d) {
+                                var offset = this.dotRadius * 5;
+                                var x = this.chartElement._x(d.x);
+                                var y = this.chartElement._y(d.y);
+                                d3.event.selection = [
+                                    [x - offset, y - offset],
+                                    [x + offset, y + offset]
+                                ];
+                                this.chartElement.brushed();
+                            }.bind(this));
+                        //  remove old dots
+                        dots.exit()
+                            .remove();
+                    }
                 }.bind(this));
-              //  remove old dots
-              dots.exit()
-                  .remove();
-          }
-        }.bind(this));
 
-        // performance.mark('graph redraw end');
-        // performance.measure('graph redraw', 'graph redraw start', 'graph redraw end');
-        // TODO(?): update line, animated http://bl.ocks.org/benjchristensen/1148374
-      },
+                // performance.mark('graph redraw end');
+                // performance.measure('graph redraw', 'graph redraw start', 'graph redraw end');
+                // TODO(?): update line, animated http://bl.ocks.org/benjchristensen/1148374
+            },
 
-      _defined: function(d, i, data) {
-        var domainX = this.chartElement._x.domain(),
-            yScale = this.chartElement.yScale;
+            _defined: function(d, i, data) {
+                var domainX = this.chartElement._x.domain(),
+                    yScale = this.chartElement.yScale;
 
-        if (d.y === null || d.y === undefined)
-          return undefined; // NaN and null are displayable
-        else if ((yScale === "ln" || yScale === 'log₁₀') && d.y <= 0)
-          return undefined; // log- and sqrt-scales require larger than 0-Values
-        else if ((d.x >= domainX[0] && d.x <= domainX[1]) || (i > 0 && i + 1 < data.length && (data[i + 1].x > domainX[0] && data[i - 1].x < domainX[1])))
-          return true; // only numbers in x-Domain are shown (and their successor and predecessor) (graph is a function by definition, so y-Domain is not relevant)
-        else
-          return undefined;
-      },
+                if (d.y === null || d.y === undefined)
+                    return undefined; // NaN and null are displayable
+                else if ((yScale === "ln" || yScale === 'log₁₀') && d.y <= 0)
+                    return undefined; // log- and sqrt-scales require larger than 0-Values
+                else if ((d.x >= domainX[0] && d.x <= domainX[1]) || (i > 0 && i + 1 < data.length && (data[i + 1].x > domainX[0] && data[i - 1].x < domainX[1])))
+                    return true; // only numbers in x-Domain are shown (and their successor and predecessor) (graph is a function by definition, so y-Domain is not relevant)
+                else
+                    return undefined;
+            },
 
-      setColor: function(color) {
-        // random color if color is not set
-        WebvisualBehaviors.ColorBehavior.setColor.call(this, color);
-        if (this.chart) {
-          if (this.lineNode && this.lineNode.attr) this.lineNode.attr('stroke', color);
-          if (this.areaNode && this.areaNode.attr) this.lineNode.attr('fill', color);
-          if (this.dots && this.dots.selectAll)
-            this.dots.selectAll('circle.dot')
-                     .attr('stroke', color);
-        }
-      },
+            setColor: function(color) {
+                // random color if color is not set
+                WebvisualBehaviors.ColorBehavior.setColor.call(this, color);
+                if (this.chart) {
+                    if (this.lineNode && this.lineNode.attr) this.lineNode.attr('stroke', color);
+                    if (this.areaNode && this.areaNode.attr) this.lineNode.attr('fill', color);
+                    if (this.dots && this.dots.selectAll)
+                        this.dots.selectAll('circle.dot')
+                        .attr('stroke', color);
+                }
+            },
 
-      _calcColor: function(d) {
-        if (this.item && this.item.exceedable) {
-          switch (d.state) {
-            case 1:
-              return this.customStyle['element-state-exceeds-color'] || '#dd280e';
-              break;
-            case -1:
-              return this.customStyle['element-state-deceeds-color'] || '#f211d5';
-              break;
-            default:
-              return this.customStyle['element-state-inrange-color'] || this.item.color || '#fff';
-          }
-        }
-        return this.item.color || '#fff';
-      },
+            _calcColor: function(d) {
+                if (this.item && this.item.exceedable) {
+                    switch (d.state) {
+                        case 1:
+                            return this.customStyle['element-state-exceeds-color'] || '#dd280e';
+                            break;
+                        case -1:
+                            return this.customStyle['element-state-deceeds-color'] || '#f211d5';
+                            break;
+                        default:
+                            return this.customStyle['element-state-inrange-color'] || this.item.color || '#fff';
+                    }
+                }
+                return this.item.color || '#fff';
+            },
 
-      // checkedChanged: function(checked, old) {
-      //   WebvisualBehaviors.CheckedAndSelectBehavior.checkedChanged.call(this, checked, old);
-      //   // this.noDots = (!checked || (this.chartElement && this.chartElement.noDots))  ? true : false;
-      //   // this.noLine = (!checked || (this.chartElement && this.chartElement.noLines)) ? true : false;
-      //   // this.noFill = (!checked || (this.chartElement && this.chartElement.noAreas)) ? true : false;
-      //   // this._hidden = !checked;
-      // },
+            // checkedChanged: function(checked, old) {
+            //   WebvisualBehaviors.CheckedAndSelectBehavior.checkedChanged.call(this, checked, old);
+            //   // this.noDots = (!checked || (this.chartElement && this.chartElement.noDots))  ? true : false;
+            //   // this.noLine = (!checked || (this.chartElement && this.chartElement.noLines)) ? true : false;
+            //   // this.noFill = (!checked || (this.chartElement && this.chartElement.noAreas)) ? true : false;
+            //   // this._hidden = !checked;
+            // },
 
-      _presentationChanged: function(noDots, noLine, noFill) {
-        if (noDots && this.dots && this.dots.attr) {
-          this.dots.attr('hidden', this.noDots ? true : null);
-          this.debounce('redraw', this.redraw, 16);
-        }
-        if (noLine && this.lineNode && this.lineNode.attr) {
-          this.lineNode.attr('hidden', this.noLine ? true : null);
-          this.debounce('redraw', this.redraw, 16);
-        }
-        if (noFill && this.areaNode && this.areaNode.attr) {
-          this.areaNode.attr('hidden', this.noFill ? true : null);
-          this.debounce('redraw', this.redraw, 16);
-        }
-      },
+            _presentationChanged: function(noDots, noLine, noFill) {
+                if (noDots && this.dots && this.dots.attr) {
+                    this.dots.attr('hidden', this.noDots ? true : null);
+                    this.debounce('redraw', this.redraw, 16);
+                }
+                if (noLine && this.lineNode && this.lineNode.attr) {
+                    this.lineNode.attr('hidden', this.noLine ? true : null);
+                    this.debounce('redraw', this.redraw, 16);
+                }
+                if (noFill && this.areaNode && this.areaNode.attr) {
+                    this.areaNode.attr('hidden', this.noFill ? true : null);
+                    this.debounce('redraw', this.redraw, 16);
+                }
+            },
 
-      _dotRadiusChanged: function(dotRadius) {
-        if (this.dots && this.dots.selectAll) {
-          this.dots.selectAll('circle.dot').attr('r', dotRadius);
-        }
-      },
+            _dotRadiusChanged: function(dotRadius) {
+                if (this.dots && this.dots.selectAll) {
+                    this.dots.selectAll('circle.dot').attr('r', dotRadius);
+                }
+            },
 
-      _interpolationChanged: function(interpolation) {
-        var curve;
-        switch (interpolation) {
-          case 'Basis Spline':
-            curve = d3.curveBasis;
-            break;
-          case 'Monotoner Spline':
-            curve = d3.curveMonotoneX;
-            break;
-          case 'Kubischer Spline':
-            curve = d3.curveNatural;
-            break;
-          case 'Cardinaler Spline':
-            curve = d3.curveCardinal;
-            break;
-          case 'Catmull-Rom-Spline':
-            curve = d3.curveCatmullRom;
-            break;
-          case 'Stufe (mitte)':
-            curve = d3.curveStep;
-            break;
-          case 'Stufe (davor)':
-            curve = d3.curveStepAfter;
-            break;
-          case 'Stufe (danach)':
-            curve = d3.curveStepBefore;
-            break;
-          default:
-            curve = d3.curveLinear;
-            break;
-        }
-        this.line.curve(curve);
-        this.area.curve(curve);
+            _interpolationChanged: function(interpolation) {
+                var curve;
+                switch (interpolation) {
+                    case 'Basis Spline':
+                        curve = d3.curveBasis;
+                        break;
+                    case 'Monotoner Spline':
+                        curve = d3.curveMonotoneX;
+                        break;
+                    case 'Kubischer Spline':
+                        curve = d3.curveNatural;
+                        break;
+                    case 'Cardinaler Spline':
+                        curve = d3.curveCardinal;
+                        break;
+                    case 'Catmull-Rom-Spline':
+                        curve = d3.curveCatmullRom;
+                        break;
+                    case 'Stufe (mitte)':
+                        curve = d3.curveStep;
+                        break;
+                    case 'Stufe (davor)':
+                        curve = d3.curveStepAfter;
+                        break;
+                    case 'Stufe (danach)':
+                        curve = d3.curveStepBefore;
+                        break;
+                    default:
+                        curve = d3.curveLinear;
+                        break;
+                }
+                this.line.curve(curve);
+                this.area.curve(curve);
 
-        if (this.chartElement && this.areaNode)
-          this.redraw();
-      }
-    });
-  </script>
+                if (this.chartElement && this.areaNode)
+                    this.redraw();
+            }
+        });
+    </script>
 
 </dom-module>

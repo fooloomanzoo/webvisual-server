@@ -1,5 +1,6 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
+<link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
 
 <link rel="import" href="behaviors/fullscreen-behavior.html"/>
 <link rel="import" href="behaviors/container-behavior.html"/>
@@ -224,7 +225,6 @@
       </svg>
   	</div>
 
-      <!-- <webvisual-icon-button id="zoombutton" icon="search" on-tap="_startZoomSession"></webvisual-icon-button> -->
     <section id="control">
       <iron-collapse id="subcontrol" opened="[[_showSubControl]]">
         <webvisual-selectbox>
@@ -256,37 +256,7 @@
       <webvisual-icon-button title="settings" icon="tune" checked="{{_showSubControl}}"></webvisual-icon-button>
       <webvisual-icon-button title="fullscreen" icon="[[fullscreenIcon]]" on-tap="toggleFullscreen"></webvisual-icon-button>
     </section>
-		  <!--<webvisual-icon-button id="optionsbutton" icon="juelich:app-inverted"></webvisual-icon-button>
-		  <webvisual-dropdown for="optionsbutton" target-toggle-event="tap" position="right" align="outer-start" offset="10">
-		    <webvisual-radio-button checked="[[!noDots]]" on-change="changeDots">mit Punkten</webvisual-radio-button>
-		    <webvisual-radio-button checked="[[!noLines]]" on-change="changeLines">mit Linien</webvisual-radio-button>
-		    <webvisual-radio-button checked="[[!noAreas]]" on-change="changeAreas">mit Flächen</webvisual-radio-button>
-		  </webvisual-dropdown>
 
-		  <webvisual-icon-button id="ybutton" icon="y"></webvisual-icon-button>
-		  <webvisual-dropdown for="ybutton" target-toggle-event="tap" position="right" align="start" offset="10">
-		    <iron-selector attr-for-selected="scale" selected="{{yScale}}" fallback-selection="linear" toggles>
-		      <webvisual-button scale="linear">linear</webvisual-button>
-		      <webvisual-button scale="√">√</webvisual-button>
-		      <webvisual-button scale="ln">ln</webvisual-button>
-		      <webvisual-button scale="log₁₀">log₁₀</webvisual-button>
-		    </iron-selector>
-		  </webvisual-dropdown>
-
-		  <webvisual-icon-button id="xbutton" icon="x"></webvisual-icon-button>
-		  <webvisual-dropdown for="xbutton" target-toggle-event="tap" position="top" align="end" offset="1">
-		    <iron-selector attr-for-selected="interpolate" selected="{{interpolation}}" fallback-selection="Lineare Verbindung" toggles>
-		      <webvisual-button interpolate="Lineare Verbindung">Lineare Verbindung</webvisual-button>
-		      <webvisual-button interpolate="Basis Spline">Basis Spline</webvisual-button>
-		      <webvisual-button interpolate="Monotoner Spline">Monotoner Spline</webvisual-button>
-		      <webvisual-button interpolate="Kubischer Spline">Kubischer Spline</webvisual-button>
-		      <webvisual-button interpolate="Cardinaler Spline">Cardinaler Spline</webvisual-button>
-		      <webvisual-button interpolate="Catmull-Rom-Spline">Catmull-Rom-Spline</webvisual-button>
-		      <webvisual-button interpolate="Stufe (mitte)">Stufe (mitte)</webvisual-button>
-		      <webvisual-button interpolate="Stufe (davor)">Stufe (davor)</webvisual-button>
-		      <webvisual-button interpolate="Stufe (danach)">Stufe (danach)</webvisual-button>
-		    </iron-selector>
-		  </webvisual-dropdown> -->
     <template is="dom-if" if="[[multi]]" restamp>
       <template is="dom-repeat" items="[[items]]">
         <webvisual-element-graph
@@ -503,8 +473,6 @@
       },
 
       _buildLayout: function() {
-        // performance.mark('build start');
-        // this.assignParentResizable(this.rootElement);
 
         this._svg = d3.select(this.$.svgchart)
           .attr('height', null)
@@ -542,8 +510,7 @@
         this._svg.selectAll('g,line,text,path,rect')
           .classed('style-scope', true)
           .classed('webvisual-element-chart', true);
-        // performance.mark('build end');
-        // performance.measure('build', 'build start', 'build end');
+
         this._sizeChanged();
       },
 
@@ -555,9 +522,6 @@
 
         this._height = bRect.height;
         this._width = bRect.width;
-
-        // this._svg.attr('height', this._height)
-        //          .attr('width', this._width);
 
         this._width = this._width - this._margin.left - this._margin.right;
         this._height = this._height - this._margin.bottom - this._margin.top;
@@ -616,8 +580,7 @@
           .classed('style-scope', true)
           .classed('webvisual-element-chart', true);
         this._focusY.attr('y1', this._height);
-        // performance.mark('size end');
-        // performance.measure('size', 'size start', 'size end');
+
         this.redraw();
       },
 
@@ -727,7 +690,6 @@
           .classed('style-scope', true)
           .classed('webvisual-element-chart', true);
         this._updateInfo();
-        // this._hideInfo();
       },
 
       brushed: function() {
@@ -937,7 +899,7 @@
             domainY[1] = Number.EPSILON;
           }
         }
-        this._buildLayout();
+        // this._buildLayout();
         this._sizeLayout();
         this._x.domain(domainX);
         this._y.domain(domainY).nice(this.yTicks);
