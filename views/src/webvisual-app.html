@@ -110,8 +110,8 @@
         margin-bottom: 1em;
       }
       .drawer-content .webvisual-selectbox,
-      .drawer-content webvisual-button,
-      .drawer-content webvisual-toggle-button {
+      .drawer-content .webvisual-button,
+      .drawer-content .webvisual-toggle-button {
         width: 100%;
         padding: 1.25em 1em;
         box-sizing: border-box;
@@ -230,7 +230,7 @@
 
         </template>
 
-        <template is="dom-if" if="[[!loggedIn]]">
+        <template is="dom-if" if="[[_shouldLogin]]">
           <a href="/login">
             <webvisual-icon-button icon="assignment-ind" class="login-icon"></webvisual-icon-button>
           </a>
@@ -320,7 +320,7 @@
 
           <iron-collapse id="route-collapse">
             <div class="collapse-content">
-              <template is="dom-if" if="[[!loggedIn]]">
+              <template is="dom-if" if="[[_shouldLogin]]">
                 <a href="/login">
                   <div class="webvisual-button" name="login">
                     <iron-icon icon="perm-identity" class="left"></iron-icon>
@@ -483,6 +483,8 @@
           notify: true
         },
 
+        offline: Boolean,
+
         loadComplete: Boolean,
 
         detailHasDrawer: Boolean,
@@ -518,6 +520,10 @@
 
         _shouldRenderGroupingKeys: {
           computed: '_computeShouldRenderGroupingKeys(page, loadComplete)'
+        },
+
+        _shouldLogin: {
+          computed: '_computeShouldLogin(loggedIn, offline)'
         }
       },
 
@@ -629,6 +635,7 @@
         }
 
         if (elements.length) {
+          console.log(elements);
           if (callback) {
             requestAnimationFrame( function() {
               callback(elements);
@@ -778,6 +785,10 @@
               sel.value = groupedKey;
           })
         },1);
+      },
+
+      _computeShouldLogin: function(loggedIn, offline) {
+        return (loggedIn === false && offline === false);
       },
 
       _computeShouldShowHeader: function(page) {

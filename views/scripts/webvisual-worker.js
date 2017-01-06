@@ -10,33 +10,42 @@ var socket
   , options = {}
   , cache = new ClientCache()
   , db = new Map()
-  , mounts= new Set();
+  , mountDB = new IndexedDBHandler('mounts', 'mounts', { autoIncrement : true })
+  , mounts = new Set();
 
 // load Recent Data into cache
-try {
-  var m = localStorage.getItem('mounts');
-  m = JSON.parse(m);
-  for (var i = 0; i < m.length; i++) {
-    mounts.add(m[i]);
-  }
-  mounts.forEach( function(mount) {
-    if (!db.has(mount)) {
-      db.set(mount, new IndexedDBHandler(mount, 'x'));
-    }
-    var idb = db.get(mount);
 
-    idb.keys()
+var initialPromiseUpdate = mountDB.getAllKeys();
+
+initialPromiseUpdate
        .then( function(ret) {
-         cache.append(ret);
-        //  console.log(ret);
-       } )
-       .catch( function(err) {
-        //  console.log(err);
-       });
-  });
-} catch (e) {
-  console.log(e);
-}
+         if (!ret || !ret.mounts) {
+           return;
+         }
+         for (var i = 0; i < ret.mounts.length; i++) {
+           mounts.add(ret.mounts[i]);
+         }
+         mounts.forEach( function(mount) {
+           if (!db.has(mount)) {
+             db.set(mount, new IndexedDBHandler(mount, 'x'));
+           }
+
+           db.get(mount)
+              .getAll()
+              .then( function(ret) {
+                // console.log(ret);
+                self._updateCache( { values: ret } );
+                self._updateClient( { values: ret } );
+              } )
+              .catch( function(err) {
+               //  console.log(err);
+              });
+         });
+       })
+      .catch( function(e) {
+        console.log(e);
+      });
+
 
 self.onconnect = function(e) {
   for (var key in e.data) {
@@ -168,7 +177,6 @@ self._updateData = function(message, type) {
   else if (message.values) { // if message is a single Object
     this._updateCache(message);
     this._updateClient(message);
-    this._updateDatabase(message);
   }
 }
 
@@ -190,18 +198,27 @@ self._updateClient = function(message) {
     // ret[mount].values = message.values[mount];
   }
 
-  self.postMessage(ret)
+  self.postMessage(ret);
+  self._updateDatabase(ret);
 }
 
 self._updateDatabase = function(message) {
 
-  for (var mount in message.values) {
+  for (var mount in message) {
     if (!db.has(mount)) {
       db.set(mount, new IndexedDBHandler(mount, 'x'));
+      mountDB.set(mount);
     }
     var idb = db.get(mount);
 
-    idb.place('x', message.values[mount])
+    idb.delete('x', message[mount].splices)
+       .then( function(ret) {
+        //  console.log(ret);
+       } )
+       .catch( function(err) {
+        //  console.log(err);
+       });
+    idb.place('x', message[mount].values)
        .then( function(ret) {
         //  console.log(ret);
        } )
@@ -212,6 +229,9 @@ self._updateDatabase = function(message) {
 }
 
 self._clearDatabase = function() {
+  if (mountDB) {
+    mountDB.clear();
+  }
   if (db) {
     db.forEach( function(idb) {
       idb.clear()

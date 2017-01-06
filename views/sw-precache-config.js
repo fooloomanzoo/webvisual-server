@@ -43,6 +43,16 @@ module.exports = {
       }
     },
     {
+      urlPattern: /\/socket\.io\/socket\.io\.js/,
+      handler: 'fastest',
+      options: {
+        cache: {
+          maxEntries: 1,
+          name: 'socket.io'
+        }
+      }
+    },
+    {
       urlPattern: /\/fonts\/.*/,
       handler: 'cacheFirst',
       options: {

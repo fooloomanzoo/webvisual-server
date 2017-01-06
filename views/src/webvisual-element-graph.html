@@ -82,22 +82,22 @@
 
             created: function() {
                 this.line = d3.line()
-                    .x(function(d) {
+                    .x( function(d) {
                         return this.chartElement._x(d.x);
                     }.bind(this))
-                    .y(function(d) {
+                    .y( function(d) {
                         return this.chartElement._y(d.y);
                     }.bind(this));
                 this.area = d3.area()
-                    .x(this.line.x.call(this.area))
-                    .y0(function(d) {
-                        if (this.chartElement.yScale === "ln" || this.chartElement.yScale === 'log₁₀') {
+                    .x( this.line.x.call(this.area) )
+                    .y0( function(d) {
+                        if (this.chartElement.yScale === 'ln' || this.chartElement.yScale === 'log₁₀') {
                             return this.chartElement._y(Number.EPSILON);
                         } else {
                             return this.chartElement._y(0)
                         }
                     }.bind(this))
-                    .y1(this.line.y.call(this.area));
+                    .y1( this.line.y.call(this.area) );
             },
 
             attached: function() {
@@ -142,14 +142,14 @@
                         .append('svg:g')
                         .attr('data-name', this.item.mount)
                         .append('svg:path')
-                        .attr("class", "line")
+                        .attr('class', 'line')
                         .attr('hidden', this.noLine ? true : null)
                         .attr('fill', 'none')
                         .attr('stroke', this.item.color || '#fff');
                 }
                 this.lineNode
                     .datum([])
-                    .attr("d", this.line);
+                    .attr('d', this.line);
 
                 // fill area
                 if (this.areaNode) {
@@ -161,53 +161,62 @@
                     this.areaNode = this.chartElement._areas
                         .append('svg:path')
                         .attr('data-name', this.item.mount)
-                        .attr("class", "area")
+                        .attr('class', 'area')
                         .attr('hidden', this.noFill ? true : null)
                         .attr('fill', this.item.color || '#000')
                         .attr('stroke', 'none');
                 }
                 this.areaNode
                     .datum([])
-                    .attr("d", this.area);
+                    .attr('d', this.area);
 
                 // threshold markings
-                if (this.item && this.item.threshold) {
+                if (this.item) {
                     var y;
-                    var lineOuter = this.chartElement._lines
-                        .select('g[data-name="' + this.item.mount + '"]');
-                    if (this.item.threshold.from !== undefined) {
+                    var bounderies = this.chartElement._bounderies;
+                    if ( this.item.threshold && this.item.threshold.from !== undefined ) {
                         if (!this._lowerBoundery) {
                             y = this.chartElement._y(this.item.threshold.from);
-                            this._lowerBoundery = lineOuter.append('rect')
+                            this._lowerBoundery = bounderies.append('rect')
                                 .attr('class', 'lower boundery')
                                 .attr('x', 0)
                                 .attr('y', y)
-                                .attr('height', this.chartElement._height - y)
+                                .attr('height', this.chartElement._height < y ? 0 : this.chartElement._height - y + 1)
                                 .attr('width', this.chartElement._width);
                         }
+                    } else if (this._lowerBoundery) {
+                      node = this._lowerBoundery.node();
+                      if (node && node.parentElement)
+                          node.parentElement.removeChild(node);
+                      this._lowerBoundery = null;
                     }
-                    if (this.item.threshold.to !== undefined) {
+                    if ( this.item.threshold && this.item.threshold.to !== undefined ) {
                         if (!this._upperBoundery) {
                             y = this.chartElement._y(this.item.threshold.to);
-                            this._upperBoundery = lineOuter.append('rect')
+                            this._upperBoundery = bounderies.append('rect')
                                 .attr('class', 'upper boundery')
                                 .attr('x', 0)
                                 .attr('y', 0)
-                                .attr('height', this.chartElement._height - y)
+                                .attr('height', y < 0 ? 0 : 0)
                                 .attr('width', this.chartElement._width);
                         }
+                    } else if (this._upperBoundery) {
+                      node = this._upperBoundery.node();
+                      if (node && node.parentElement)
+                          node.parentElement.removeChild(node);
+                      this._upperBoundery = null;
                     }
                 }
                 // group of dots
                 if (this.dots) {
                     this.dots.attr('mount', this.item.mount)
-                        .attr("hidden", this.noDots ? true : null);
+                        .attr('hidden', this.noDots ? true : null);
                 } else {
                     this.dots = this.chartElement._dots
-                        .append("svg:g")
+                        .append('svg:g')
                         .attr('mount', this.item.mount)
-                        .attr("class", "dots")
-                        .attr("hidden", this.noDots ? true : null);
+                        .attr('class', 'dots')
+                        .attr('hidden', this.noDots ? true : null);
                 }
 
                 this._isAttached = true;
@@ -234,6 +243,18 @@
                     if (node && node.parentElement)
                         node.parentElement.removeChild(node);
                     this.dots = null;
+                }
+                if (this._lowerBoundery && this._lowerBoundery.node) {
+                    node = this._lowerBoundery.node();
+                    if (node && node.parentElement)
+                        node.parentElement.removeChild(node);
+                    this._lowerBoundery = null;
+                }
+                if (this._upperBoundery && this._upperBoundery.node) {
+                    node = this._upperBoundery.node();
+                    if (node && node.parentElement)
+                        node.parentElement.removeChild(node);
+                    this._upperBoundery = null;
                 }
 
                 if (this.chartElement && this.chartElement._graphs)
@@ -317,6 +338,7 @@
 
                 // }.bind(this))
                 // this.notifySplices('values', changeRecord);
+                this.redraw();
             },
 
             renderInsertedValues: function(values) {
@@ -343,17 +365,21 @@
                             .attr('d', this.line);
                     }
                     var y;
-                    if (this._lowerBoundery) {
-                        y = this.chartElement._y(this.item.threshold.from);
-                        this._lowerBoundery.attr('y', y)
-                            .attr('height', this.chartElement._height - y)
-                            .attr('width', this.chartElement._width);
-                    }
+                    if (this.item.threshold) {
+                      if (this._lowerBoundery && this.item.threshold.from !== undefined) {
+                          y = this.chartElement._y(this.item.threshold.from);
+                          this._lowerBoundery
+                              .attr('y', y)
+                              .attr('height', this.chartElement._height < y ? 0 : this.chartElement._height - y + 1)
+                              .attr('width', this.chartElement._width);
+                      }
 
-                    if (this._upperBoundery) {
-                        y = this.chartElement._y(this.item.threshold.to);
-                        this._upperBoundery.attr('height', this.chartElement._height - y)
-                            .attr('width', this.chartElement._width);
+                      if (this._upperBoundery && this.item.threshold.to !== undefined) {
+                          y = this.chartElement._y(this.item.threshold.to);
+                          this._upperBoundery
+                              .attr('height', y < 0 ? 0 : y)
+                              .attr('width', this.chartElement._width);
+                      }
                     }
                     if (!this.noFill && this.chartElement._height) {
                         // this.area
@@ -430,7 +456,7 @@
 
                 if (d.y === null || d.y === undefined)
                     return undefined; // NaN and null are displayable
-                else if ((yScale === "ln" || yScale === 'log₁₀') && d.y <= 0)
+                else if ((yScale === 'ln' || yScale === 'log₁₀') && d.y <= 0)
                     return undefined; // log- and sqrt-scales require larger than 0-Values
                 else if ((d.x >= domainX[0] && d.x <= domainX[1]) || (i > 0 && i + 1 < data.length && (data[i + 1].x > domainX[0] && data[i - 1].x < domainX[1])))
                     return true; // only numbers in x-Domain are shown (and their successor and predecessor) (graph is a function by definition, so y-Domain is not relevant)
@@ -453,12 +479,12 @@
             _calcColor: function(d) {
                 if (this.item && this.item.exceedable) {
                     switch (d.state) {
-                        case 1:
-                            return this.customStyle['element-state-exceeds-color'] || '#dd280e';
-                            break;
-                        case -1:
-                            return this.customStyle['element-state-deceeds-color'] || '#f211d5';
-                            break;
+                        // case 1:
+                        //     return this.customStyle['element-state-exceeds-color'] || '#dd280e';
+                        //     break;
+                        // case -1:
+                        //     return this.customStyle['element-state-deceeds-color'] || '#f211d5';
+                        //     break;
                         default:
                             return this.customStyle['element-state-inrange-color'] || this.item.color || '#fff';
                     }

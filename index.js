@@ -85,6 +85,8 @@ class WebvisualServer {
         passphrase: ''
       }
 
+      let ca = '';
+
       let p = new Promise( (res, rej) => {
         if ( this.config.server
           && this.config.server.ssl
@@ -95,7 +97,10 @@ class WebvisualServer {
           filepaths.cert = path.resolve(this.config.server.ssl.cert);
           filepaths.key = path.resolve(this.config.server.ssl.key);
           filepaths.passphrase = path.resolve(this.config.server.ssl.passphrase);
-          console.log(filepaths);
+
+          if (this.config.server.ssl.ca) {
+            ca = path.resolve(this.config.server.ssl.ca);
+          }
         } else {
           rej( 'Given Filepaths to certificate-files incomplete' );
         }
@@ -120,6 +125,21 @@ class WebvisualServer {
                sslSettings.key = fs.readFileSync(filepaths.key, 'utf8');
                sslSettings.cert = fs.readFileSync(filepaths.cert, 'utf8');
                sslSettings.passphrase = require(filepaths.passphrase).password;
+               fs.stat(ca, function(err, stats) {
+                 if (!err) {
+                   console.log(ca);
+                   try {
+                     // Read files for the certification path
+                     var cert_chain = [];
+                     fs.readdirSync(ca).forEach( (filename) => {
+                       cert_chain.push( fs.readFileSync( path.resolve(ca, filename), "utf-8") );
+                     });
+                     sslSettings.ca = cert_chain;
+                   } catch (err) {
+                     this.emit("error", "Cannot open \"/ssl/cert_chain\" to read Certification chain");
+                   }
+                 }
+               });
                resolve(sslSettings);
              })
              .catch( (err) => {

@@ -25,7 +25,7 @@
 		"clientRequest": {
 			"initial": {
 				"mobile": 300,
-				"stationary": 1000
+				"stationary": 10000
 			},
 			"update": {
 				"interval": 1000

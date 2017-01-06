@@ -155,7 +155,15 @@
         stroke-width: 1.5px;
         stroke-dasharray: 2;
       }
-      .axis, .grid, #plot {
+      rect.boundery {
+        fill: black;
+        stroke: white;
+        fill-opacity: 0.25;
+        mix-blend-mode: overlay;
+        stroke-opacity: 0.25;
+        stroke-width: 1px;
+      }
+      .axis, .grid, #plot, rect.boundery {
         pointer-events: none;
       }
       webvisual-icon-button {
@@ -216,6 +224,7 @@
             <g id="areas"></g>
             <g id="lines"></g>
             <g id="dots"></g>
+            <g id="bounderies"></g>
           </g>
           <text id="info" x="0" y="0" hidden></text>
           <g id="zoom" clip-path="url(#clip)">
@@ -393,6 +402,7 @@
       _lines: Object,
       _areas: Object,
       _dots: Object,
+      _bounderies: Object,
 
       _x: Function,
       _y: Function,
@@ -485,6 +495,7 @@
         this._lines = d3.select(this.$.lines);
         this._areas = d3.select(this.$.areas);
         this._dots = d3.select(this.$.dots);
+        this._bounderies = d3.select(this.$.bounderies);
 
         this._brushBehavior = d3.brush()
           .on('end', this.brushed.bind(this._self));

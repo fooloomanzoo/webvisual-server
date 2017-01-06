@@ -13,7 +13,7 @@
       "cert": "./defaults/ssl/ca.crt",
       "key": "./defaults/ssl/ca.key",
       "passphrase": "./defaults/ssl/ca.pw.json",
-      "ca": [],
+      "ca": "./defaults/ssl/ca",
       "requestCert": true,
       "rejectUnauthorized": false
     }

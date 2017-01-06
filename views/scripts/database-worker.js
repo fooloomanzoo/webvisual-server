@@ -20,11 +20,12 @@ if (!self.Promise) {
 
 
 
-	function IndexedDBHandler(dbName, storeName) {
+	function IndexedDBHandler(dbName, storeName, dbOptions) {
 		this.dbName = dbName;
 		this.storeName = storeName;
+		this.dbOptions = dbOptions;
     this.dbPromise = idb.open(dbName, 1, function (upgradeDB) {
-      upgradeDB.createObjectStore(this.storeName);
+      upgradeDB.createObjectStore(this.storeName, this.dbOptions);
     }.bind(this));
 	}
 
@@ -42,20 +43,31 @@ if (!self.Promise) {
         return tx.complete;
       }.bind(this));
     },
+    add: function(val) {
+      return this.dbPromise.then( function(db) {
+        var tx = db.transaction(this.storeName, 'readwrite');
+        tx.objectStore(this.storeName).add(val);
+        return tx.complete;
+      }.bind(this));
+    },
     place: function(key, values) {
       return this.dbPromise.then( function(db) {
         var tx = db.transaction(this.storeName, 'readwrite');
 
         for (var i = values.length - 1 ; i >=0 ; i--) {
-        tx.objectStore(this.storeName).put(values[i], values[i][key]);
+          tx.objectStore(this.storeName).put(values[i], values[i][key]);
         }
         return tx.complete;
       }.bind(this));
     },
-    delete: function(key) {
+    delete: function(values) {
       return this.dbPromise.then( function(db) {
         var tx = db.transaction(this.storeName, 'readwrite');
-        tx.objectStore(this.storeName).delete(key);
+        for (var i = values.length - 1 ; i >=0 ; i--) {
+          if (values[i][this.storeName] !== undefined) {
+            tx.objectStore(this.storeName).delete(values[i][this.storeName]);
+          }
+        }
         return tx.complete;
       }.bind(this));
     },
@@ -66,7 +78,24 @@ if (!self.Promise) {
         return tx.complete;
       }.bind(this));
     },
-    keys: function() {
+    getAll: function(key) {
+      return this.dbPromise.then( function(db) {
+        var tx = db.transaction(this.storeName);
+        var store = tx.objectStore(this.storeName);
+        var ret = {};
+        ret[this.dbName] = [];
+        var values = [];
+
+        store.getAll().then( function(r) {
+          values = r;
+        })
+        return tx.complete.then( function() {
+          ret[this.dbName] = values;
+          return ret;
+        }.bind(this));
+      }.bind(this));
+    },
+    getAllKeys: function() {
       return this.dbPromise.then( function(db) {
         var tx = db.transaction(this.storeName);
         var keys = [];
@@ -83,7 +112,7 @@ if (!self.Promise) {
         return tx.complete.then( function() {
           var ret = {};
           ret[this.dbName] = keys;
-          return ret; 
+          return ret;
         }.bind(this));
       }.bind(this));
     }
