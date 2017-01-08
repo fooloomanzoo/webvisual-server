@@ -38,6 +38,6 @@
   "database": {
     "port": 6379,
     "type": "redis",
-    "host": "https://localhost"
+    "host": "127.0.0.1"
   }
 }

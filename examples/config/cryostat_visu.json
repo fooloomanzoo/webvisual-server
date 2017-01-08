@@ -5,8 +5,8 @@
 		"connections": {
 			"file": {
 				"mode": "append",
-        "path": "examples/datafile/cryostat_visu.txt",
-				"#path": "//ibn3-vsrv/CryostatVisu$/Lakeshore/teststream.txt",
+        "#path": "examples/datafile/cryostat_visu.txt",
+				"path": "//ibn3-vsrv/CryostatVisu$/Lakeshore/teststream.txt",
 				"format": {
 					"dateFormat": "DD.MM.YYYY hh:mm:ss",
 					"decimalSeparator": ",",
@@ -114,8 +114,8 @@
 		"connections": {
 			"file": {
 				"mode": "append",
-        "path": "examples/datafile/cryostat_visu2.txt",
-				"#path": "//ibn3-vsrv/CryostatVisu$/Tic500/201608091006TIC500.txt",
+        "#path": "examples/datafile/cryostat_visu2.txt",
+				"path": "//ibn3-vsrv/CryostatVisu$/Tic500/201608091006TIC500.txt",
 				"format": {
 					"dateFormat": "DD.MM.YYYY hh:mm:ss",
 					"decimalSeparator": ".",

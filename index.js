@@ -47,9 +47,7 @@ class WebvisualServer {
       process.send( { error: err } );
     });
 
-    this.dataHandler = new DataModule();
-
-    this.dataHandler.setDatabase(this.config.database);
+    this.dataHandler = new DataModule(this.config.database);
 
     this.configFilesHandler = new ConfigFileProcessor();
 
@@ -57,12 +55,9 @@ class WebvisualServer {
       this.dataHandler.setConfiguration(this.configFilesHandler.settings[facility], facility);
       this.router.setConfiguration(this.configFilesHandler.settings[facility], facility); // load Settings to Routen them to requests
     });
-    this.dataHandler.on('error', (err) => {
-      process.send( { error: err } );
-    });
-    this.dataHandler.on('log', (msg) => {
-      process.send( { log: msg } );
-    });
+    this.dataHandler.on('error', (err) => { process.send( { error: err } ); });
+    this.dataHandler.on('info', (msg) => { process.send( { info: msg } ); });
+    this.dataHandler.on('log', (msg) => { process.send( { log: msg } ); });
 
     if (this.config) {
       this.connect(this.config);
