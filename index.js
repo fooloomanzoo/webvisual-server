@@ -15,12 +15,12 @@ const express = require('express')
     , spdy = require('spdy')
     , app = express();
 
-var server;
+let server
+  , config
+  , activeErrorRestartJob;
 
 // Defaults
 const defaults = require('./defaults/config.json');
-
-var config;
 
 if (process.env['WEBVISUALSERVER']) {
   config = JSON.parse(process.env['WEBVISUALSERVER']);
@@ -214,10 +214,21 @@ class WebvisualServer {
   toggle(settings) {
     if (settings)
       this.config = settings;
-    if (this.isRunning)
-      this.disconnect();
-    else
-      this.connect();
+    if (activeErrorRestartJob) {
+      clearTimeout( activeErrorRestartJob );
+      activeErrorRestartJob = null;
+      try {
+        this.disconnect();
+      } catch (e) {
+        process.send( { error: `Error in closing Server\n ${e}` } );
+      }
+    } else {
+      process.send( {error: 'No activeErrorRestartJob'});
+      if (this.isRunning)
+        this.disconnect();
+      else
+        this.connect();
+    }
   }
 };
 
@@ -274,25 +285,41 @@ process.on("message", (arg) => {
 
 process.on('uncaughtException', (err) => {
   console.log('WEBVISUAL SERVER (uncaughtException)', err || '');
-  setTimeout(() => {
+  if (activeErrorRestartJob) {
+    clearTimeout(activeErrorRestartJob);
+    activeErrorRestartJob = null;
+  }
+  activeErrorRestartJob = setTimeout(() => {
     server.reconnect();
   }, 2000)
 });
 
 process.on('ECONNRESET', (err) => {
   console.log('WEBVISUAL SERVER (ECONNRESET)', err || '');
-  setTimeout(() => {
+  if (activeErrorRestartJob) {
+    clearTimeout(activeErrorRestartJob);
+    activeErrorRestartJob = null;
+  }
+  activeErrorRestartJob = setTimeout(() => {
     server.reconnect();
   }, 2000)
 });
 
 process.on('SIGINT', (err) => {
   console.log('WEBVISUAL SERVER (SIGINT)', err || '');
+  if (activeErrorRestartJob) {
+    clearTimeout(activeErrorRestartJob);
+    activeErrorRestartJob = null;
+  }
   server.disconnect();
   process.exit(0);
 });
 
 process.on('exit', (err) => {
   console.log('WEBVISUAL SERVER (EXIT)', err || '');
+  if (activeErrorRestartJob) {
+    clearTimeout(activeErrorRestartJob);
+    activeErrorRestartJob = null;
+  }
   server.disconnect();
 });
