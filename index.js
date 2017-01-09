@@ -19,9 +19,10 @@ let server
   , config
   , activeErrorRestartJob;
 
+process.env.NODE_ENV = 'production';
+
 // Defaults
 const defaults = require('./defaults/config.json');
-
 if (process.env['WEBVISUALSERVER']) {
   config = JSON.parse(process.env['WEBVISUALSERVER']);
 }
