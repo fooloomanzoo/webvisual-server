@@ -15,37 +15,38 @@ var socket
 
 // load Recent Data into cache
 
-var initialPromiseUpdate = mountDB.getAllKeys();
-
-initialPromiseUpdate
-       .then( function(ret) {
-         if (!ret || !ret.mounts) {
-           return;
-         }
-         for (var i = 0; i < ret.mounts.length; i++) {
-           mounts.add(ret.mounts[i]);
-         }
-         mounts.forEach( function(mount) {
-           if (!db.has(mount)) {
-             db.set(mount, new IndexedDBHandler(mount, 'x'));
+if (navivator.onLine !== true) {
+  mountDB.getAllKeys();
+         .then( function(ret) {
+           if (!ret || !ret.mounts) {
+             return;
            }
+           for (var i = 0; i < ret.mounts.length; i++) {
+             mounts.add(ret.mounts[i]);
+           }
+           mounts.forEach( function(mount) {
+             if (!db.has(mount)) {
+               db.set(mount, new IndexedDBHandler(mount, 'x'));
+             }
 
-           db.get(mount)
-              .getAll()
-              .then( function(ret) {
-                // console.log(ret);
-                self._updateCache( { values: ret } );
-                self._updateClient( { values: ret } );
-              } )
-              .catch( function(err) {
-               //  console.log(err);
-              });
-         });
-       })
-      .catch( function(e) {
-        console.log(e);
-      });
-
+             db.get(mount)
+                .getAll()
+                .then( function(ret) {
+                  if (navivator.onLine !== true) {
+                    self._updateCache( { values: ret } );
+                    self._updateClient( { values: ret } );
+                  }
+                } )
+                .catch( function(err) {
+                  if (err)
+                    console.log(err);
+                });
+           });
+         })
+        .catch( function(e) {
+          console.log(e);
+        });
+}
 
 self.onconnect = function(e) {
   for (var key in e.data) {
@@ -113,18 +114,27 @@ self.createSocketConnection = function(opt) {
     });
 
     socket.on('initial', function(message) {
-      // reset cache and clear database on initial data (TODO: improve solution)
-      self._clearDatabase();
-      self._clearCache();
-      // get all mounts and add to mounts-set
-      // ....
-      // save to localStorage
+      // reset cache and clear database on initial data
+      if (navivator.onLine === true) {
+        self._clearDatabase();
+        self._clearCache();
+      }
 
       self._updateData(message, 'initial');
     });
 
     socket.on('update', function(message) {
       self._updateData(message, 'update');
+    });
+
+    socket.on('request', function(message) {
+      if (message && message.messageId && message.values) {
+        self.postMessage({
+          type: 'request',
+          messageId: message.messageId,
+          response: message.values
+        });
+      }
     });
 
     if (opt.socketRoom) {
@@ -167,14 +177,13 @@ self.disconnect = function() {
 }
 
 self._updateData = function(message, type) {
-  if (Array.isArray(message)) // if message is an Array
+  if (Array.isArray(message)) {// if message is an Array
     for (var i = 0; i < message.length; i++) {
-    this._updateCache(message[i]);
-    this._updateClient(message[i], type);
-
+      this._updateCache(message[i]);
+      this._updateClient(message[i], type);
+    }
     // this._updateDatabase(message[i]);
-  }
-  else if (message.values) { // if message is a single Object
+  } else if (message.values) { // if message is a single Object
     this._updateCache(message);
     this._updateClient(message);
   }
@@ -253,7 +262,9 @@ self.request = function(opt) {
         });
       })
       .catch( function(err) {
-        console.warn(err);
+        if (err) {
+          console.warn(err);
+        }
         self.postMessage({
           type: 'request',
           messageId: messageId,
@@ -267,4 +278,15 @@ self.request = function(opt) {
       response: {}
     });
   }
+}
+
+self.requestToServer = function(opt) {
+  socket.emit('request', {
+    room: options.socketRoom,
+    mount: opt.mount,
+    messageId: opt.messageId,
+    from: opt.from,
+    to: opt.to,
+    limit: opt.limit
+  });
 }
