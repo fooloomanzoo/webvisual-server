@@ -15,7 +15,7 @@ var socket
 
 // load Recent Data into cache
 
-if (self.navigator && self.navigator.onLine !== true) {
+// if (self.navigator && self.navigator.onLine !== true) {
   mountDB.getAll()
          .then( function(ret) {
            if (!ret || !ret.mounts) {
@@ -32,10 +32,10 @@ if (self.navigator && self.navigator.onLine !== true) {
              dbMap.get(mount)
                 .getAll()
                 .then( function(ret) {
-                  if (self.navigator && self.navigator.onLine !== true) {
+                  // if (self.navigator && self.navigator.onLine !== true) {
                     self._updateCache( { values: ret } );
                     self._updateClient( { values: ret } );
-                  }
+                  // }
                 } )
                 .catch( function(err) {
                   if (err)
@@ -46,7 +46,7 @@ if (self.navigator && self.navigator.onLine !== true) {
         .catch( function(e) {
           console.log(e);
         });
-}
+// }
 
 self.onconnect = function(e) {
   for (var key in e.data) {
@@ -203,7 +203,8 @@ self._updateClient = function(message) {
     ret.data[mount] = {};
     ret.data[mount].splices = this.cache.get(mount).splices;
     ret.data[mount].values = this.cache.get(mount).heap;
-    // ret[mount].values = message.values[mount];
+    // ret.data[mount].splices = [];
+    // ret.data[mount].values = message.values[mount];
   }
 
   self.postMessage(ret);

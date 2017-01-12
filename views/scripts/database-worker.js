@@ -95,6 +95,33 @@ if (!self.Promise) {
         }.bind(this));
       }.bind(this));
     },
+    get: function(limit, direction) {
+      // direction:
+      //   'next'
+      //   'nextunique'
+      //   'prev'
+      //   'prevunique'
+      return this.dbPromise.then( function(db) {
+        var tx = db.transaction(this.storeName);
+        var values = [];
+        var store = tx.objectStore(this.storeName);
+
+        // openKeyCursor isn't supported by Safari, so we fall back
+        (store.iterateKeyCursor || store.iterateCursor).call(store, null, direction || 'next', function(cursor) {
+          if (!cursor) return;
+          values.push(cursor.value);
+          if (!limit || values.length < limit) {
+            cursor.continue();
+          }
+        });
+
+        return tx.complete.then( function() {
+          var ret = {};
+          ret[this.dbName] = keys;
+          return ret;
+        }.bind(this));
+      }.bind(this));
+    },
     getAllKeys: function() {
       return this.dbPromise.then( function(db) {
         var tx = db.transaction(this.storeName);
@@ -114,6 +141,28 @@ if (!self.Promise) {
           ret[this.dbName] = keys;
           return ret;
         }.bind(this));
+      }.bind(this));
+    },
+    last: function(count) {
+      return this.get(count || 1);
+    },
+    first: function(count) {
+      return this.get(count || 1, 'prev');
+    },
+    range: function() {
+      return new Promise(function(resolve, reject) {
+        var ret = [null, null];
+        this.first()
+            .then( function(f) {
+              ret[0] = f;
+              this.last()
+                  .then( function(l) {
+                    ret[1] = l;
+                    resolve(ret);
+                  })
+                  .catch(reject);
+              }.bind(this))
+            .catch(reject);
       }.bind(this));
     }
   };
