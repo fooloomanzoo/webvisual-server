@@ -19,10 +19,9 @@ let server
   , config
   , activeErrorRestartJob;
 
-process.env.NODE_ENV = 'production';
-
 // Defaults
 const defaults = require('./defaults/config.json');
+
 if (process.env['WEBVISUALSERVER']) {
   config = JSON.parse(process.env['WEBVISUALSERVER']);
 }
@@ -123,6 +122,11 @@ class WebvisualServer {
                sslSettings.key = fs.readFileSync(filepaths.key, 'utf8');
                sslSettings.cert = fs.readFileSync(filepaths.cert, 'utf8');
                sslSettings.passphrase = require(filepaths.passphrase).password;
+
+               sslSettings.rejectUnauthorized = false;
+               sslSettings.requestCert = true;
+               sslSettings.agent = false;
+
                fs.stat(ca, function(err, stats) {
                  if (!err) {
                    try {

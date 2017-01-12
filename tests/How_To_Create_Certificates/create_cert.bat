@@ -8,8 +8,14 @@ set OPENSSL_CONF=openssl.cnf
 rem BE CAREFUL WITH EQUAL SIGN! PLEASE NO SPACES ON BOTH SIDES!! (eg. "var=value")
 
 rem -- Certificate Information --
-set "common_name=localhost"&          rem Domain Name (Address) / Common Name
-set "days=1100"&                      rem Certificate validity duration in days
+set "country=DE"&                         rem Country Name (2 letter code)
+set "state=Nordrhein-Westfalen"&          rem State or Province Name (full name)
+set "city=Juelich"&                       rem Locality Name (eg, city)
+set "company=Forschungszentrum Juelich"&  rem Organization Name (eg, company)
+set "company_unit=ICS-TAE"&               rem Organizational Unit Name (eg, section)
+set "domain=localhost"&                   rem Domain Name (Address)
+set "email=example@example.de"&           rem Email Address
+set "days=1100"&                          rem Certificate validity duration in days
 
 rem Length of passphrase (min 4, max 1024)
 set pass_length=256;
@@ -26,12 +32,12 @@ for /f "delims=" %%a in ('openssl rand -base64 %pass_length%') do set "pass=!pas
 echo { "password": "%pass%" } > %pass_json%
 
 rem Put the Infos together
-set "subj=/CN=%common_name%
+set "subj=/C=%country%/ST=%state%/L=%city%/O=%company%/OU=%company_unit%/CN=%domain%/emailAddress=%email%"
 
 rem ** Create a Certificate **
 
 rem generate a private key for CA
-openssl genrsa -passout pass:%pass% -des3 ^
+openssl genrsa -passout pass:%pass% ^
             -out %output_dir%\ca.key 4096
 
 rem generate the certificate signing request
@@ -40,14 +46,14 @@ openssl req -passin pass:%pass% ^
             -sha256 ^
             -key %output_dir%\ca.key ^
             -subj "%subj%" ^
-            -out %output_dir%\%common_name%_CSR.pem
+            -out %output_dir%\ca.csr
 
 rem Create self-signed public key
 openssl x509 -passin pass:%pass% ^
             -req ^
             -sha256 ^
             -days %days% ^
-            -in %output_dir%\%common_name%_CSR.pem ^
+            -in %output_dir%\ca.csr ^
             -signkey %output_dir%\ca.key ^
             -out %output_dir%\ca.crt
 
