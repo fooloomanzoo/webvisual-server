@@ -9,7 +9,7 @@ if (!self.Promise) {
 var socket
   , options = {}
   , cache = new ClientCache()
-  , dbMap = new Map()
+  , db = new Map()
   , mountDB = new IndexedDBHandler('mounts', 'mounts', { autoIncrement : true })
   , mounts = new Set();
 
@@ -25,11 +25,11 @@ if (navivator.onLine !== true) {
              mounts.add(ret.mounts[i]);
            }
            mounts.forEach( function(mount) {
-             if (!dbMap.has(mount)) {
-               dbMap.set(mount, new IndexedDBHandler(mount, 'x'));
+             if (!db.has(mount)) {
+               db.set(mount, new IndexedDBHandler(mount, 'x'));
              }
 
-             dbMap.get(mount)
+             db.get(mount)
                 .getAll()
                 .then( function(ret) {
                   if (navivator.onLine !== true) {
@@ -214,20 +214,20 @@ self._updateClient = function(message) {
 self._updateDatabase = function(message) {
 
   for (var mount in message) {
-    if (!dbMap.has(mount)) {
-      dbMap.set(mount, new IndexedDBHandler(mount, 'x'));
+    if (!db.has(mount)) {
+      db.set(mount, new IndexedDBHandler(mount, 'x'));
       mountDB.set(mount);
     }
-    var idbMap = dbMap.get(mount);
+    var idb = db.get(mount);
 
-    idbMap.delete('x', message[mount].splices)
+    idb.delete('x', message[mount].splices)
        .then( function(ret) {
         //  console.log(ret);
        } )
        .catch( function(err) {
         //  console.log(err);
        });
-    idbMap.place('x', message[mount].values)
+    idb.place('x', message[mount].values)
        .then( function(ret) {
         //  console.log(ret);
        } )
@@ -241,9 +241,9 @@ self._clearDatabase = function() {
   if (mountDB) {
     mountDB.clear();
   }
-  if (dbMap) {
-    dbMap.forEach( function(idbMap) {
-      idbMap.clear()
+  if (db) {
+    db.forEach( function(idb) {
+      idb.clear()
         .catch( function(err) {
          //  console.log(err);
         });
