@@ -16,7 +16,7 @@ var socket
 // load Recent Data into cache
 
 if (self.navigator && self.navigator.onLine !== true) {
-  mountDB.getAllKeys()
+  mountDB.getAll()
          .then( function(ret) {
            if (!ret || !ret.mounts) {
              return;
