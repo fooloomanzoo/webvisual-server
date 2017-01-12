@@ -91,7 +91,11 @@
                 this.area = d3.area()
                     .x( this.line.x.call(this.area) )
                     .y0( function() {
+                      if (this.chartElement.yScale === 'ln' || this.chartElement.yScale === 'log₁₀') {
                         return this.chartElement._height;
+                      } else {
+                        return this.chartElement._y(0)
+                      }
                     }.bind(this))
                     .y1( this.line.y.call(this.area) );
             },
