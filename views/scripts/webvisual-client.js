@@ -22,10 +22,10 @@ WebvisualClient.prototype = {
           if (e.data && !e.data.messageId) {
             switch (e.data.type) {
               case 'updateNodes':
-                this.updateNodes(e.data);
+                this.updateNodes(e.data.data);
                 break;
               case 'status':
-                this.updateStatus(e.data);
+                this.updateStatus(e.data.status);
                 break;
             }
           }
@@ -67,9 +67,9 @@ WebvisualClient.prototype = {
     this.statusHandler = connector;
   },
 
-  updateStatus: function(data) {
+  updateStatus: function(status) {
     if (this.statusHandler && this.statusHandler.socketStatus !== 'sync-disabled') {
-      this.statusHandler.set('socketStatus', data.status);
+      this.statusHandler.set('socketStatus', status);
     }
   },
 

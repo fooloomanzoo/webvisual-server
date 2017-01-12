@@ -9,14 +9,14 @@ if (!self.Promise) {
 var socket
   , options = {}
   , cache = new ClientCache()
-  , db = new Map()
+  , dbMap = new Map()
   , mountDB = new IndexedDBHandler('mounts', 'mounts', { autoIncrement : true })
   , mounts = new Set();
 
 // load Recent Data into cache
 
-if (navivator.onLine !== true) {
-  mountDB.getAllKeys();
+if (self.navigator && self.navigator.onLine !== true) {
+  mountDB.getAllKeys()
          .then( function(ret) {
            if (!ret || !ret.mounts) {
              return;
@@ -25,14 +25,14 @@ if (navivator.onLine !== true) {
              mounts.add(ret.mounts[i]);
            }
            mounts.forEach( function(mount) {
-             if (!db.has(mount)) {
-               db.set(mount, new IndexedDBHandler(mount, 'x'));
+             if (!dbMap.has(mount)) {
+               dbMap.set(mount, new IndexedDBHandler(mount, 'x'));
              }
 
-             db.get(mount)
+             dbMap.get(mount)
                 .getAll()
                 .then( function(ret) {
-                  if (navivator.onLine !== true) {
+                  if (self.navigator && self.navigator.onLine !== true) {
                     self._updateCache( { values: ret } );
                     self._updateClient( { values: ret } );
                   }
@@ -115,7 +115,7 @@ self.createSocketConnection = function(opt) {
 
     socket.on('initial', function(message) {
       // reset cache and clear database on initial data
-      if (navivator.onLine === true) {
+      if (self.navigator && self.navigator.onLine === true) {
         self._clearDatabase();
         self._clearCache();
       }
@@ -182,7 +182,6 @@ self._updateData = function(message, type) {
       this._updateCache(message[i]);
       this._updateClient(message[i], type);
     }
-    // this._updateDatabase(message[i]);
   } else if (message.values) { // if message is a single Object
     this._updateCache(message);
     this._updateClient(message);
@@ -198,36 +197,36 @@ self._clearCache = function() {
 }
 
 self._updateClient = function(message) {
-  var ret = { type: 'updateNodes' };
+  var ret = { type: 'updateNodes', data: {}};
 
   for (var mount in message.values) {
-    ret[mount] = {};
-    ret[mount].splices = this.cache.get(mount).splices;
-    ret[mount].values = this.cache.get(mount).heap;
+    ret.data[mount] = {};
+    ret.data[mount].splices = this.cache.get(mount).splices;
+    ret.data[mount].values = this.cache.get(mount).heap;
     // ret[mount].values = message.values[mount];
   }
 
   self.postMessage(ret);
-  self._updateDatabase(ret);
+  self._updateDatabase(ret.data);
 }
 
 self._updateDatabase = function(message) {
 
   for (var mount in message) {
-    if (!db.has(mount)) {
-      db.set(mount, new IndexedDBHandler(mount, 'x'));
+    if (!dbMap.has(mount)) {
+      dbMap.set(mount, new IndexedDBHandler(mount, 'x'));
       mountDB.set(mount);
     }
-    var idb = db.get(mount);
+    var idbMap = dbMap.get(mount);
 
-    idb.delete('x', message[mount].splices)
+    idbMap.delete('x', message[mount].splices)
        .then( function(ret) {
         //  console.log(ret);
        } )
        .catch( function(err) {
         //  console.log(err);
        });
-    idb.place('x', message[mount].values)
+    idbMap.place('x', message[mount].values)
        .then( function(ret) {
         //  console.log(ret);
        } )
@@ -241,9 +240,9 @@ self._clearDatabase = function() {
   if (mountDB) {
     mountDB.clear();
   }
-  if (db) {
-    db.forEach( function(idb) {
-      idb.clear()
+  if (dbMap) {
+    dbMap.forEach( function(idbMap) {
+      idbMap.clear()
         .catch( function(err) {
          //  console.log(err);
         });

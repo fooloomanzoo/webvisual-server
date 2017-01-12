@@ -739,7 +739,7 @@
 
                       var domainY = rangeY;
 
-                      // rounding y-domains to the according decimal exponent
+                      // if min, max are equal, add a little space
                       if (domainY[0] !== undefined && domainY[1] !== undefined && domainY[0] === domainY[1]) {
                         domainY[0] -= 0.5;
                         domainY[1] += 0.5;
@@ -757,6 +757,7 @@
                       this._x.domain(domainX);
                       this._y.domain(domainY).nice(this.yTicks);
 
+                      // if domain is on the edge of data, add a little space
                       domainY = this._y.domain();
                       if (domainY[0] === rangeY[0]) {
                         domainY[0] -= (rangeY[1] - rangeY[0]) / this.yTicks;
@@ -888,19 +889,6 @@
 
       changeScale: function(newValue, oldValue) {
         if (oldValue === undefined) return;
-        // if (this._isZoomed === false) {
-        //   Promise.resolve(this.setDomains.call(this))
-        //          .then( function() {
-        //            this._buildLayout();
-        //            this._sizeLayout();
-        //            this._redraw();
-        //          }.bind(this))
-        //          .catch( function(err) {
-        //            console.warn(err);
-        //          });
-        //   return;
-        // }
-        var domainX = this._x.domain();
         var domainY = this._y.domain();
         if (this.yScale === 'ln' || this.yScale === 'log₁₀') {
           if (domainY[0] <= 0) {
@@ -910,12 +898,10 @@
             domainY[1] = Number.EPSILON;
           }
         }
-        // this._buildLayout();
-        this._sizeLayout();
-        this._x.domain(domainX);
-        this._y.domain(domainY).nice(this.yTicks);
         this._hideInfo();
-        this._redraw();
+        this._y = this._createScale(this.yScale);
+        this._y.domain(domainY).nice(this.yTicks);
+        this._sizeLayout();
       },
 
       changeDots: function(e) {

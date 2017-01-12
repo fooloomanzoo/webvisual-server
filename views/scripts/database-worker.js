@@ -36,7 +36,7 @@ if (!self.Promise) {
           .objectStore(this.storeName).get(key);
       }.bind(this));
     },
-    set: function(key, val) {
+    set: function(val, key) {
       return this.dbPromise.then( function(db) {
         var tx = db.transaction(this.storeName, 'readwrite');
         tx.objectStore(this.storeName).put(val, key);

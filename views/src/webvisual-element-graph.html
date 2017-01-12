@@ -90,12 +90,8 @@
                     }.bind(this));
                 this.area = d3.area()
                     .x( this.line.x.call(this.area) )
-                    .y0( function(d) {
-                        if (this.chartElement.yScale === 'ln' || this.chartElement.yScale === 'log₁₀') {
-                            return this.chartElement._y(Number.EPSILON);
-                        } else {
-                            return this.chartElement._y(0)
-                        }
+                    .y0( function() {
+                        return this.chartElement._height;
                     }.bind(this))
                     .y1( this.line.y.call(this.area) );
             },
@@ -180,8 +176,8 @@
                             this._lowerBoundery = bounderies.append('rect')
                                 .attr('class', 'lower boundery')
                                 .attr('x', 0)
-                                .attr('y', y)
-                                .attr('height', this.chartElement._height < y ? 0 : this.chartElement._height - y + 1)
+                                .attr('y', Number.isNaN(y) ? this.chartElement._height : y)
+                                .attr('height', Number.isNaN(y) || this.chartElement._height < y ? 0 : this.chartElement._height - y + 1)
                                 .attr('width', this.chartElement._width);
                         }
                     } else if (this._lowerBoundery) {
@@ -197,7 +193,7 @@
                                 .attr('class', 'upper boundery')
                                 .attr('x', 0)
                                 .attr('y', 0)
-                                .attr('height', y < 0 ? 0 : 0)
+                                .attr('height', Number.isNaN(y) || y < 0 ? 0 : y)
                                 .attr('width', this.chartElement._width);
                         }
                     } else if (this._upperBoundery) {
@@ -369,15 +365,15 @@
                       if (this._lowerBoundery && this.item.threshold.from !== undefined) {
                           y = this.chartElement._y(this.item.threshold.from);
                           this._lowerBoundery
-                              .attr('y', y)
-                              .attr('height', this.chartElement._height < y ? 0 : this.chartElement._height - y + 1)
+                              .attr('y', Number.isNaN(y) ? this.chartElement._height : y)
+                              .attr('height', Number.isNaN(y) || this.chartElement._height < y ? 0 : this.chartElement._height - y + 1)
                               .attr('width', this.chartElement._width);
                       }
 
                       if (this._upperBoundery && this.item.threshold.to !== undefined) {
                           y = this.chartElement._y(this.item.threshold.to);
                           this._upperBoundery
-                              .attr('height', y < 0 ? 0 : y)
+                              .attr('height', Number.isNaN(y) || y < 0 ? 0 : y)
                               .attr('width', this.chartElement._width);
                       }
                     }
@@ -492,13 +488,13 @@
                 return this.item.color || '#fff';
             },
 
-            // checkedChanged: function(checked, old) {
-            //   WebvisualBehaviors.CheckedAndSelectBehavior.checkedChanged.call(this, checked, old);
-            //   // this.noDots = (!checked || (this.chartElement && this.chartElement.noDots))  ? true : false;
-            //   // this.noLine = (!checked || (this.chartElement && this.chartElement.noLines)) ? true : false;
-            //   // this.noFill = (!checked || (this.chartElement && this.chartElement.noAreas)) ? true : false;
-            //   // this._hidden = !checked;
-            // },
+            clearValues: function(force) {
+              WebvisualBehaviors.ElementBehavior.clearValues.call(this, force);
+              if (this.dots) {
+                this.dots.selectAll('circle')
+                        .remove();
+              }
+            },
 
             _presentationChanged: function(noDots, noLine, noFill) {
                 if (noDots && this.dots && this.dots.attr) {
