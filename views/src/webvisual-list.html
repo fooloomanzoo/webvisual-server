@@ -24,11 +24,13 @@
       a > webvisual-element-sign {
         border-top-left-radius: inherit;
         border-bottom-left-radius: inherit;
-        border-right: thin solid var(--grid-border-color);
+        border: thin solid var(--grid-border-color);
       }
       a > webvisual-element-caption {
         border-top-right-radius: inherit;
         border-bottom-right-radius: inherit;
+        border: thin solid var(--grid-border-color);
+        border-left: none;
       }
       :host([plain]) a > :first-child {
         border-right: none;
@@ -39,7 +41,7 @@
         flex-basis: 50%;
       }
       webvisual-element-sign {
-        flex: 1 0;
+        flex: 0.5 0;
         -webkit-flex-basis: 4em;
         flex-basis: 4em;
       }

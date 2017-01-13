@@ -108,6 +108,7 @@
     },
 
     _unlinkElement: function(item) {
+      item = item || this.item || this._olditem;
       if (window.Webvisual && Webvisual.retractElement && item && item.mount) {
         window.Webvisual.retractElement(this, item);
         this._olditem = null;

@@ -2,6 +2,7 @@
   {
     "name": "Berlin",
     "title": "Population of Berlin City Quarters",
+    
     "connections": {
       "file": {
         "mode": "append",
@@ -14,6 +15,10 @@
         },
 				"ignoredFirstLines": 0
       }
+    },
+
+    "database": {
+      "type": "cache"
     },
 
     "svgSource": {

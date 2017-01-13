@@ -108,6 +108,7 @@
 
             detached: function() {
                 this.removeNodes();
+                this.chartElement = null;
             },
 
             addNodes: function() {
@@ -179,6 +180,7 @@
                             y = this.chartElement._y(this.item.threshold.from);
                             this._lowerBoundery = bounderies.append('rect')
                                 .attr('class', 'lower boundery')
+                                .attr('data-name', this.item.mount)
                                 .attr('x', 0)
                                 .attr('y', Number.isNaN(y) ? this.chartElement._height : y)
                                 .attr('height', Number.isNaN(y) || this.chartElement._height < y ? 0 : this.chartElement._height - y + 1)
@@ -195,6 +197,7 @@
                             y = this.chartElement._y(this.item.threshold.to);
                             this._upperBoundery = bounderies.append('rect')
                                 .attr('class', 'upper boundery')
+                                .attr('data-name', this.item.mount)
                                 .attr('x', 0)
                                 .attr('y', 0)
                                 .attr('height', Number.isNaN(y) || y < 0 ? 0 : y)
@@ -354,15 +357,34 @@
             },
 
             redraw: function() {
-                if (!(this.chartElement && this.chartElement.opened && this.values && this.values.length)) return;
+                if (!(this.chartElement && this.chartElement.opened && this.item && this.values && this.values.length)) return;
                 this.async(function() {
                     // performance.mark('graph redraw start');
                     var self = this;
                     var data = this.values.filter(this._defined.bind(this)) || [];
                     if (!this.noLine) {
-                        this.lineNode
+                        if (this.lineNode) {
+                          this.lineNode
+                              .datum(data)
+                              .attr('d', this.line);
+                        } else if (this.item && this.item.mount){
+                          this.addNodes();
+                          return;
+                        } else {
+                          return;
+                        }
+                    }
+                    if (!this.noFill) {
+                      if (this.areaNode) {
+                        this.areaNode
                             .datum(data)
-                            .attr('d', this.line);
+                            .attr('d', this.area);
+                      } else if (this.item && this.item.mount){
+                        this.addNodes();
+                        return;
+                      } else {
+                        return;
+                      }
                     }
                     var y;
                     if (this.item.threshold) {
@@ -380,13 +402,6 @@
                               .attr('height', Number.isNaN(y) || y < 0 ? 0 : y)
                               .attr('width', this.chartElement._width);
                       }
-                    }
-                    if (!this.noFill && this.chartElement._height) {
-                        // this.area
-                        //   .y0(this.chartElement._y(0));
-                        this.areaNode
-                            .datum(data)
-                            .attr('d', this.area);
                     }
 
                     if (!this.noDots) {
