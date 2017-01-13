@@ -12,7 +12,6 @@
 <dom-module id="webvisual-home">
 
   <template>
-
     <style include="shared-styles webvisual-button">
       :host {
         display: -ms-flexbox;
@@ -180,33 +179,32 @@
       </a>
     </template>
 
-    <template is="dom-if" if="[[_shouldRenderBox]]">
-      <div class="box">
+    <div class="box">
+      <template is="dom-if" if="[[_shouldRenderHeader]]">
         <header>
           <h1>{{localize('home', 'title')}}</h1>
         </header>
-        <iron-selector id="selector" selected="{{currentFacility}}" attr-for-selected="item-name" selectable=".facility">
-          <template is="dom-repeat" items="[[facilities]]">
-            <div raised class="webvisual-button item facility" item-name="[[item.name]]" aria-label$="[[item.title]]" tabindex="1">
-              <div>[[item.title]]</div>
+      </template>
+      <iron-selector id="selector" selected="{{currentFacility}}" attr-for-selected="item-name" selectable=".facility">
+        <template is="dom-repeat" items="[[facilities]]">
+          <div raised class="webvisual-button item facility" item-name="[[item.name]]" aria-label$="[[item.title]]" tabindex="1">
+            <div>[[item.title]]</div>
+          </div>
+
+          <iron-collapse opened="{{_computeOpened(item.name, currentFacility)}}">
+            <div class="collapse-content">
+              <template is="dom-repeat" items="[[item.systems]]" as="system">
+                <a href$="/list/[[item.name]]/[[system.name]]" tabindex="-1">
+                  <div raised class="webvisual-button item system" aria-label$="[[system.title]]" tabindex="1">
+                    <div>[[system.title]]</div>
+                  </div>
+                </a>
+              </template>
             </div>
-
-            <iron-collapse opened="{{_computeOpened(item.name, currentFacility)}}">
-              <div class="collapse-content">
-                <template is="dom-repeat" items="[[item.systems]]" as="system">
-                  <a href$="/list/[[item.name]]/[[system.name]]" tabindex="-1">
-                    <div raised class="webvisual-button item system" aria-label$="[[system.title]]" tabindex="1">
-                      <div>[[system.title]]</div>
-                    </div>
-                  </a>
-                </template>
-              </div>
-            </iron-collapse>
-          </template>
-        </iron-selector>
-
-      </div>
-    </template>
+          </iron-collapse>
+        </template>
+      </iron-selector>
+    </div>
 
   </template>
 
@@ -240,7 +238,7 @@
           type: Boolean
         },
 
-        _shouldRenderBox: {
+        _shouldRenderHeader: {
           type: Boolean,
           computed: '_computeShouldRenderBox(facilities)'
         }

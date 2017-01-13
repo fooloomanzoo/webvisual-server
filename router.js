@@ -76,7 +76,7 @@ class Router extends EventEmitter {
     this.app.use(bodyParser.json());
     this.app.use(bodyParser.urlencoded({ extended: true }));
 
-    
+
 
     this.app.use( session( {
       store: new RedisStore( {
@@ -321,6 +321,7 @@ class Router extends EventEmitter {
 const ensureLoggedIn = {
   is: function(req, res, next) {
     if (!req.isAuthenticated || !req.isAuthenticated()) {
+      req.session = req.session || {};
       req.session.returnTo = req.originalUrl || req.url;
       res.status(403).send('Unauthorized');
     } else {

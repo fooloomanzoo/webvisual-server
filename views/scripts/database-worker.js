@@ -5,7 +5,7 @@ if (!self.Promise) {
 }
 
 (function() {
-	'use strict';
+
 	//
 	// IndexedDBHandler
 

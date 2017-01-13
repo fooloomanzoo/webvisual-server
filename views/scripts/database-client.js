@@ -1,5 +1,5 @@
 (function() {
-	'use strict';
+
 	var WORKER_URL = 'scripts/database-worker.js';
 	var DB_NAME = 'database';
 	var DB_STORAGE = 'entries';
