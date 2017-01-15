@@ -1,0 +1,55 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<dom-module id="webvisual-datetime-picker">
+  <template strip-whitespace>
+    <style>
+      :host {
+        display: inline-flex;
+        position: relative;
+      }
+    </style>
+
+    <input id="date" type="date" value="">
+    <input id="time" type="time" value="">
+
+  </template>
+
+  <script>
+
+    Polymer({
+      is: 'webvisual-datetime-picker',
+
+      properties: {
+
+        value: {
+          type: Number,
+          notify: true
+        },
+
+        _date: {
+          type: String,
+          observer: "_dateChanged"
+        },
+
+        _time: {
+          type: String,
+          observer: "_dateChanged"
+        }
+        
+      },
+
+      attached: function() {
+        console.log('nativeDate', this.$.date.type);
+        console.log('nativeTime', this.$.time.type);
+      },
+
+      _valueChanged: function() {
+        this.checked = !this.checked;
+      }
+    });
+  </script>
+</dom-module>
+
+
+
+    (function() {
