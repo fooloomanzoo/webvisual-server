@@ -1,5 +1,7 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 
+<link rel="import" href="webvisual-dropdown.html">
+
 <dom-module id="webvisual-datetime-picker">
   <template strip-whitespace>
     <style>
@@ -9,8 +11,14 @@
       }
     </style>
 
-    <input id="date" type="date" value="">
-    <input id="time" type="time" value="">
+    <input id="date" type="text" disabled$="[[disabled]]" value="{{_date::input}}" data-type="date">
+    <input id="time" type="time" disabled$="[[disabled]]" value="{{_time::input}}" data-type="time">
+
+    <webvisual-dropdown id="dateDropdown" target-toggle-event="tap" for="date" position="top" align="end">
+      <div id="dateContent">
+
+      </div>
+    </webvisual-dropdown>
 
   </template>
 
@@ -26,6 +34,18 @@
           notify: true
         },
 
+        minDate: {
+          type: Number,
+          notify: true,
+          observer: '_minDateChanged'
+        },
+
+        maxDate: {
+          type: Number,
+          notify: true,
+          observer: '_maxDateChanged'
+        },
+
         _date: {
           type: String,
           observer: "_dateChanged"
@@ -33,19 +53,101 @@
 
         _time: {
           type: String,
-          observer: "_dateChanged"
-        }
-        
+          observer: "_timeChanged"
+        },
+
+        disabled: Boolean,
+
+        nativeDateTimeSupport: Boolean
+
       },
 
       attached: function() {
-        console.log('nativeDate', this.$.date.type);
-        console.log('nativeTime', this.$.time.type);
+        if (this.$.date.type !== 'date' || this.$.time.type !== 'time') {
+          this._nativeDateTimeSupport = false;
+          this._buildForNonNative();
+        } else {
+          this._nativeDateTimeSupport = true;
+        }
       },
 
-      _valueChanged: function() {
-        this.checked = !this.checked;
+      _dateChanged: function(date) {
+        if (this._time) {
+          this.value = new Date(date + 'T' + this._time);
+          if (Number.isNaN(+this.value)) {
+            this.value = new Date();
+          } else if (this.minDate && this.minDate > this.value) {
+            this.value = new Date(this.minDate);
+            return;
+          } else if (this.maxDate && this.maxDate > this.value) {
+            this.value = new Date(this.maxDate);
+            return;
+          } else {
+            return;
+          }
+        }
+        this._time = '00:00:00';
+      },
+
+      _minDateChanged: function(minDate) {
+        if (minDate === undefined) {
+          return;
+        }
+        var d = new Date(minDate);
+        if (Number.isNaN(+d)) {
+          this.minDate = undefined;
+        }
+      },
+
+      _maxDateChanged: function(maxDate) {
+        if (maxDate === undefined) {
+          return;
+        }
+        var d = new Date(maxDate);
+        if (Number.isNaN(+d)) {
+          this.maxDate = undefined;
+        }
+      },
+
+      _timeChanged: function(time) {
+        if (this._date) {
+          this.value = new Date(this._date + 'T' + time);
+          if (Number.isNaN(+this.value)) {
+            this.value = new Date();
+          } else if (this.minDate && this.minDate > this.value) {
+            this.value = new Date(this.minDate);
+            return;
+          } else if (this.maxDate && this.maxDate > this.value) {
+            this.value = new Date(this.maxDate);
+            return;
+          } else {
+            return;
+          }
+        }
+        var d = new Date();
+        var m = '' + (d.getMonth() + 1);
+        if (m.lenght !== 2) {
+          m = '0' + m;
+        }
+        this._date = d.getFullYear() + '-' + m + '-' + d.getDate();
+      },
+
+      _loadPolyfill: function(scripts, callback) {
+        // var script = scripts.shift();
+        // return new Promise(function(resolve, reject) {
+        //   var el = document.createElement( 'script' );
+        //   el.src = script;
+        //   el.onload = function(script){
+        //     resolve();
+        //   }
+        //   document.body.appendChild( el );
+        // }.bind(this));
+      },
+
+      _buildForNonNative: function() {
+        var dateP = new DatePicker([this.$.date], {body: this.$.dateContent});
       }
+
     });
   </script>
 </dom-module>

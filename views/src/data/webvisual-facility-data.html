@@ -196,7 +196,7 @@
           var xhr = new XMLHttpRequest();
           xhr.addEventListener('load', function(e) {
             if (e.target.status === 200) {
-              console.log(e.target);
+              console.log(e.target.status, e.target.response);
               resolve();
             } else {
               reject(e.target.status);

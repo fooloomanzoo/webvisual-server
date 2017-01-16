@@ -51,7 +51,7 @@
         box-sizing: border-box;
       }
       #elementTabs {
-        padding-bottom: 0.4em;
+        padding-bottom: 0.3em;
         --tab-vertical-overlay: {
           background-color: rgba(255, 255, 255, 0.15);
           border-left: 3px solid var(--saturated-primary-color, white);
@@ -59,7 +59,15 @@
         }
       }
       #elementTable {
-        padding-top: 0.4em;
+        padding-top: 0.3em;
+        height: calc(50% - 48px);
+      }
+      #dateFrom,
+      #dateTo {
+        height: 24px;
+        width: calc(100% - 48px);
+        position: relative;
+        box-sizing: border-box;
       }
       #elementDrawer {
         padding-top: inherit;
@@ -172,7 +180,8 @@
             </template>
           </webvisual-tabs>
           <webvisual-element-table id="elementTable" full-date item="[[selectedElement]]"></webvisual-element-table>
-          <webvisual-datetime-picker></webvisual-datetime-picker>
+          <webvisual-datetime-picker id="dateFrom"></webvisual-datetime-picker>
+          <webvisual-datetime-picker id="dateTo"></webvisual-datetime-picker>
         </app-drawer>
       </div>
 

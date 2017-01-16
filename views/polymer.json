@@ -20,6 +20,7 @@
     "src/*",
     "!src/demo/*",
     "!src/demo/**/*",
+    "polyfills/*",
     "favicon.ico",
     "bower.json"
   ],
