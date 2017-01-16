@@ -123,7 +123,7 @@
           <iron-icon class="left" icon="perm-identity"></iron-icon>
           <div class="webvisual-input">
             <input id="username" type="text" name="username" placeholder$="{{localize('login', 'username')}}(@fz-juelich.de)" autofocus required tabindex="1"
-            aria-labelledby="usernameLabel loginInfo" autocomplete="username"/>
+            aria-labelledby="usernameLabel loginInfo" autocomplete="on"/>
             <div class="webvisual-md-decorator" error-message="Invalid Username" aria-hidden="true">
               <label id="usernameLabel">{{localize('login', 'username')}}</label>
               <div class="webvisual-underline"></div>
@@ -134,8 +134,8 @@
         <section class="input-box">
           <iron-icon class="left" icon="more-horiz"></iron-icon>
           <div class="webvisual-input">
-            <input id="password" class="input" type="password" name="password" placeholder="{{localize('login', 'password')}}" required tabindex="2" autocomplete="password"
-            aria-labelledby="passwordLabel loginInfo" autocomplete="password" />
+            <input id="password" class="input" type="password" name="password" placeholder="{{localize('login', 'password')}}" required tabindex="2"
+            aria-labelledby="passwordLabel loginInfo" autocomplete="on" />
             <div class="webvisual-md-decorator" error-message="Invalid Password" aria-hidden="true">
               <label id="passwordLabel">{{localize('login', 'password')}}</label>
               <div class="webvisual-underline"></div>
