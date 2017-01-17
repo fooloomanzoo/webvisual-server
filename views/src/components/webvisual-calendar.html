@@ -120,7 +120,7 @@
 
   <script>
     if (window._datetimePickerInstances === undefined) {
-      window._datetimePickerInstances = new Set();
+      window['_datetimePickerInstances'] = new Set();
     }
 
     Polymer({
@@ -163,7 +163,8 @@
           type: Number,
           value: function() {
             var d = new Date();
-            return +(new Date(d.getFullYear(), d.getMonth()));
+            d = +(new Date(d.getFullYear(), d.getMonth()));
+            return d;
           },
           observer: '_rebuild'
         },
@@ -234,15 +235,14 @@
         }
       },
 
-      _getTarget () {
+      _getTarget() {
         var parentNode = Polymer.dom(this).parentNode;
         var ownerRoot = Polymer.dom(this).getOwnerRoot();
         var target;
         if (this.for) {
           target = Polymer.dom(ownerRoot).querySelector('#' + this.for);
         } else {
-          target = parentNode.nodeType == Node.DOCUMENT_FRAGMENT_NODE ?
-              ownerRoot.host : parentNode;
+          target = (parentNode.nodeType == Node.DOCUMENT_FRAGMENT_NODE) ? ownerRoot.host : parentNode;
         }
         return target;
       },
@@ -269,6 +269,12 @@
 
       _numberValueChanged: function(date) {
         var min, max;
+        if (this.minDate) {
+          min = new Date(this.minDate);
+        }
+        if (this.maxDate) {
+          max = new Date(this.maxDate);
+        }
         if (isNaN(date)) {
           if (this.value !== undefined) {
             this.numberValue = +(new Date(this.value));
@@ -276,9 +282,9 @@
             this.value = undefined;
             this.numberValue = undefined;
           }
-        } else if (this.minDate && (min = new Date(this.minDate)) && !isNaN(min) && min > date) {
+        } else if (min !== undefined && !isNaN(min) && min > date) {
           this.value = this._toDateString(min);
-        } else if (this.maxDate && (max = new Date(this.maxDate)) && !isNaN(max) && max < date) {
+        } else if (max !== undefined && !isNaN(max) && max < date) {
           this.value = this._toDateString(max);
         } else {
           this.value = this._toDateString(date);
@@ -317,42 +323,52 @@
       },
 
       _localeChanged: function() {
-        var d = new Date(this.viewDate), wd, year, month;
+        var d = new Date(this.viewDate),
+          wd;
         if (d) {
-          year = d.getFullYear();
-          month = d.getMonth();
-          this.$.viewMonth.textContent = d.toLocaleDateString(this.locale, {month: 'long'});
-          this.$.viewYear.textContent = d.toLocaleDateString(this.locale, {year: 'numeric'});
+          this.$.viewMonth.textContent = d.toLocaleDateString(this.locale, {
+            month: 'long'
+          });
+          this.$.viewYear.textContent = d.toLocaleDateString(this.locale, {
+            year: 'numeric'
+          });
         }
         for (var i = 0; i < 7; i++) {
           d = new Date(0, 0, i);
           wd = (d.getDay() - 1 + 7) % 7;
           if (this.$.dayCaption.children[wd]) {
-            this.$.dayCaption.children[wd].textContent = d.toLocaleDateString(this.locale, {weekday: 'short'});
+            this.$.dayCaption.children[wd].textContent = d.toLocaleDateString(this.locale, {
+              weekday: 'short'
+            });
           }
         }
       },
 
       _rebuild: function() {
-        var d, selectedDay, currentDay, firstDayOfMonth, min, max, year, month;
+        var d;
 
         d = new Date(this.viewDate);
+        this.$.viewMonth.textContent = d.toLocaleDateString(this.locale, {
+          month: 'long'
+        });
+        this.$.viewYear.textContent = d.toLocaleDateString(this.locale, {
+          year: 'numeric'
+        });
+
+        var selectedDay, currentDay, firstDayOfMonth, min, max, year, month;
         year = d.getFullYear();
         month = d.getMonth();
-        this.$.viewMonth.textContent = d.toLocaleDateString(this.locale, {month: 'long'});
-        this.$.viewYear.textContent = d.toLocaleDateString(this.locale, {year: 'numeric'});
-
-        firstDayOfMonth = Math.round((new Date(year, month, 1).getTime())/(24*60*60*1000)) - 1;
-        currentDay = Math.round((new Date().getTime())/(24*60*60*1000)) - firstDayOfMonth;
+        firstDayOfMonth = Math.round((new Date(year, month, 1).getTime()) / (24 * 60 * 60 * 1000)) - 1;
+        currentDay = Math.round((new Date().getTime()) / (24 * 60 * 60 * 1000)) - firstDayOfMonth;
 
         if (this.value !== undefined) {
-          selectedDay = Math.round((new Date(this.value).getTime())/(24*60*60*1000)) - firstDayOfMonth;
+          selectedDay = Math.round((new Date(this.value).getTime()) / (24 * 60 * 60 * 1000)) - firstDayOfMonth;
         }
         if (this.minDate !== undefined) {
-          min = Math.round((new Date(this.minDate).getTime())/(24*60*60*1000)) - firstDayOfMonth;
+          min = Math.round((new Date(this.minDate).getTime()) / (24 * 60 * 60 * 1000)) - firstDayOfMonth;
         }
         if (this.maxDate !== undefined) {
-          max = Math.round((new Date(this.maxDate).getTime())/(24*60*60*1000)) - firstDayOfMonth;
+          max = Math.round((new Date(this.maxDate).getTime()) / (24 * 60 * 60 * 1000)) - firstDayOfMonth;
         }
 
         var prevmonthlength = +new Date(year, month, 0).getDate();
@@ -414,10 +430,10 @@
           return undefined;
         }
         year = d.getFullYear();
-        month = d.getMonth();
+        month = d.getMonth() + 1;
         date = d.getDate();
         var p = '00';
-        month = '' + (month + 1);
+        month = '' + month;
         month = p.substring(0, p.length - month.length) + month;
         p = '00';
         date = '' + date;
@@ -430,8 +446,8 @@
         if (minDate === undefined) {
           return;
         }
-        var d = new Date(minDate);
-        if (isNaN(+d)) {
+        var d = +(new Date(minDate));
+        if (isNaN(d)) {
           this.minDate = undefined;
         }
       },
@@ -440,7 +456,7 @@
         if (maxDate === undefined) {
           return;
         }
-        var d = new Date(maxDate);
+        var d = +(new Date(maxDate));
         if (isNaN(+d)) {
           this.maxDate = undefined;
         }

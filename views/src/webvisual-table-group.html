@@ -19,28 +19,20 @@
         min-height: 100px;
       }
 			#select {
-				flex: 1 0 3em;
         min-width: 3em;
+        max-width: 6em;
+        flex-shrink: 0;
 			}
       #tables {
         position: relative;
         box-sizing: border-box;
         flex: 1 0 auto;
       }
-      webvisual-button {
+      .tabs {
         font-size: 0.75em;
-        opacity: 0.75;
         padding: 0.5em;
         border-radius: 0;
-        mix-blend-mode: exclusion;
-        will-change: opacity;
-        transition: opacity 150ms cubic-bezier(0.6, 0, 0.2, 1);
-      }
-      webvisual-button:hover {
-        opacity: 1;
-      }
-      webvisual-button.iron-selected {
-        background-color: rgba(255,255,255, 0.25);
+        white-space: normal;
       }
       .hidden {
         display: none;
@@ -49,7 +41,7 @@
 
     <webvisual-tabs id="select" selected="{{currentTable}}" fallback-selection="0" vertical>
       <template is="dom-repeat" items="[[items]]">
-        <webvisual-button title="[[item.id]]"><span>[[item.id]]</span></webvisual-button>
+        <div class="webvisual-button tabs" title="[[item.id]]"><div>[[item.id]]</div></div>
       </template>
     </webvisual-tabs>
     <iron-pages id="tables" selected="[[currentTable]]">
