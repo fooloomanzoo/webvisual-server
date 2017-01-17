@@ -500,20 +500,25 @@
       if (sel && sel.length) {
         for (var i = 0; i < sel.length; i++) {
           if (sel[i] && sel[i].color && sel[i].svg && sel[i].svg.selector) {
-            var style; // use elements color as fill-color by creating a CSS rule
+            var style; // Use elements color as fill-color by creating a CSS rule
             if (this.shadowRoot) { // shadowDOM
               style = this.shadowRoot.querySelector('style');
             } else {
               var scopeName; // shadyDOM
               Array.prototype.forEach.call(this.classList, function(cl) {
-                if (cl.indexOf('webvisual-element-svg', 0)) {
+                if (cl.startsWith('webvisual-element-svg')) {
                   scopeName = cl;
                 }
               })
               style = document.querySelector('style[scope="'+scopeName+'"]');
             }
+            // Add to StyleSheet
             if (style && style.sheet && style.sheet.insertRule) {
-              style.sheet.insertRule(sel[i].svg.selector + '.' + this.selectedClass + ' { fill:' + sel[i].color + '!important;}', style.sheet.cssRules.length);
+              var selector = sel[i].svg.selector.split(',');
+              for (var j = 0; j < selector.length; j++) {
+                style.sheet.insertRule(selector[j] + '.' + this.selectedClass + ' {\nfill: ' + sel[i].color + ' !important;\n}', style.sheet.cssRules.length);
+              }
+
             }
           }
         }

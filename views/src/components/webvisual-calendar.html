@@ -1,9 +1,8 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
-<link rel="import" href="../style/tooltip-style.html">
 
 <dom-module id="webvisual-calendar">
   <template strip-whitespace>
-    <style include="tooltip-style">
+    <style>
       :host {
         display: flex;
         flex-direction: column;
@@ -22,12 +21,47 @@
       :host > * {
         position: relative;
       }
-      #top {
+      :host {
+        position: absolute;
+      }
+      :host([position="top"]) {
+        top: 0;
+        right: 0;
+        transform: translateY(-100%);
+      }
+      :host([position="bottom"]) {
+        bottom: 0;
+        left: 0;
+        transform: translateY(100%);
+      }
+      :host([position="left"]) {
+        top: 0;
+        left: 0;
+        transform: translateX(-100%);
+      }
+      :host([position="right"]) {
+        top: 0;
+        right: 0;
+        transform: translateX(100%);
+      }
+      :host([position="center"]) {
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      #top,
+      #bottom {
         font-size: 1em;
         display: inline-flex;
         flex-direction: row;
         align-items: center;
+      }
+      #top {
+        width: 100%;
         justify-content: space-between;
+      }
+      #bottom {
+        justify-content: center;
       }
       #calendar {
         display: table;
@@ -79,6 +113,17 @@
       #viewYear {
         font-weight: bold;
       }
+      input.time {
+        font-size: 0.75em;
+        padding: 0.4em 0.2em;
+        width: 5ch;
+        outline: none;
+        font-family: inherit;
+        text-align: center;
+        border: none;
+        background: var(--calendar-background, #333);
+        color: inherit;
+      }
     </style>
 
     <div id="top">
@@ -87,6 +132,7 @@
       <div id="viewYear"></div>
       <div class="button" on-tap="_nextMonth">></div>
     </div>
+
     <div id="calendar">
       <div id="header">
         <div id="dayCaption" class="week">
@@ -116,6 +162,12 @@
       </div>
     </div>
 
+    <div id="bottom">
+      <input class="time" id="hour" type="number" min="0" max="23" step="1" value="{{hour::input}}" placeholder="00">
+      <input class="time" id="minute" type="number" min="0" max="59" step="1" value="{{minute::input}}" placeholder="00">
+      <input class="time" id="second" type="number" min="0" max="59" step="1" value="{{second::input}}" placeholder="00">
+    </div>
+
   </template>
 
   <script>
@@ -128,25 +180,42 @@
 
       properties: {
 
-        for: {
-          type: String,
-          observer: '_forChanged'
-        },
-
         opened: {
           type: Boolean,
           reflectToAttribute: true
         },
 
-        value: {
+        dateString: {
           type: String,
           notify: true,
-          observer: '_valueChanged'
+          observer: '_dateStringChanged'
         },
 
-        numberValue: {
+        timeString: {
+          type: String,
+          value: '00:00:00',
+          notify: true,
+          observer: '_timeStringChanged'
+        },
+
+        hour: {
+          type: String,
+          notify: true
+        },
+
+        minute: {
+          type: String,
+          notify: true
+        },
+
+        second: {
+          type: String,
+          notify: true
+        },
+
+        value: {
           type: Number,
-          observer: '_numberValueChanged'
+          computed: '_computeValue(dateString, timeString)'
         },
 
         minDate: {
@@ -179,18 +248,16 @@
           type: String,
           value: 'top',
           reflectToAttribute: true
-        },
-
-        align: {
-          type: String,
-          reflectToAttribute: true
         }
-
       },
 
       listeners: {
         'dates.tap': '_select'
       },
+
+      observers: [
+        '_timeChanged(hour, minute, second)'
+      ],
 
       attached: function() {
         _datetimePickerInstances.add(this);
@@ -213,82 +280,74 @@
         }
       },
 
-      _forChanged: function() {
-        this._removeEventListeners(this._target);
-        if (!this.for) {
-          this._target = null;
-          return;
-        }
-        this._target = this._getTarget();
-        this._addEventListeners(this._target);
-      },
-
-      _addEventListeners: function(target) {
-        if (target) {
-          target.addEventListener('tap', this.toggle.bind(this), false);
-        }
-      },
-
-      _removeEventListeners: function(target) {
-        if (target) {
-          target.removeEventListener('tap', this.toggle.bind(this), false);
-        }
-      },
-
-      _getTarget() {
-        var parentNode = Polymer.dom(this).parentNode;
-        var ownerRoot = Polymer.dom(this).getOwnerRoot();
-        var target;
-        if (this.for) {
-          target = Polymer.dom(ownerRoot).querySelector('#' + this.for);
-        } else {
-          target = (parentNode.nodeType == Node.DOCUMENT_FRAGMENT_NODE) ? ownerRoot.host : parentNode;
-        }
-        return target;
-      },
-
-      _valueChanged: function(d) {
+      _dateStringChanged: function(d) {
         if (d === undefined) {
           return;
         }
         var date = new Date(d);
         if (isNaN(date)) {
-          if (this.numberValue !== undefined) {
-            this.value = this._toDateString(this.numberValue);
+          if (this.value !== undefined) {
+            this.dateString = this._toDateString(this.value);
           } else {
-            this.value = undefined;
-            this.numberValue = undefined;
+            this.dateString = this._toDateString(+(new Date()));;
           }
         } else {
-          this.numberValue = +date;
-          var d = new Date(this.viewDate);
           this.viewDate = +(new Date(date.getFullYear(), date.getMonth()));
           this._rebuild();
         }
       },
 
-      _numberValueChanged: function(date) {
-        var min, max;
-        if (this.minDate) {
-          min = new Date(this.minDate);
+      _timeChanged: function(hours, minutes, seconds) {
+        hours = hours || '';
+        minutes = minutes || '';
+        seconds = seconds || '';
+        var time = '';
+        var p = '00'
+        var s = '' + hours;
+        time = p.substring(0, p.length - s.length) + s + ':';
+        var s = '' + minutes;
+        time += p.substring(0, p.length - s.length) + s + ':';
+        var s = '' + seconds;
+        time += p.substring(0, p.length - s.length) + s;
+        this.timeString = time;
+      },
+
+      _timeStringChanged: function(v) {
+        if (v === undefined) {
+          return;
         }
-        if (this.maxDate) {
-          max = new Date(this.maxDate);
+        v = v.split(':');
+        var a;
+        a = parseInt(v[0] || 0);
+        if (isNaN(a) || a < 0 || a > 23) {
+          this.hour = '00';
+          return;
+        } else if (a !== this.hour) {
+          this.hour = a;
         }
-        if (isNaN(date)) {
-          if (this.value !== undefined) {
-            this.numberValue = +(new Date(this.value));
-          } else {
-            this.value = undefined;
-            this.numberValue = undefined;
-          }
-        } else if (min !== undefined && !isNaN(min) && min > date) {
-          this.value = this._toDateString(min);
-        } else if (max !== undefined && !isNaN(max) && max < date) {
-          this.value = this._toDateString(max);
-        } else {
-          this.value = this._toDateString(date);
+        a = parseInt(v[1] || 0);
+        if (isNaN(a) || a < 0 || a > 59) {
+          this.minute = '00';
+          return;
+        } else if (a !== this.minute) {
+          this.minute = a;
         }
+        a = parseInt(v[2] || 0);
+        if (isNaN(a) || a < 0 || a > 59) {
+          this.second = '00';
+          return;
+        } else if (a !== this.second) {
+          this.second = a;
+        }
+      },
+
+      _computeValue: function(date, time) {
+        var d = new Date();
+        var t = time.split(':');
+        d.setHours(t[0]);
+        d.setMinutes(t[1]);
+        d.setSeconds(t[2]);
+        return +d || null;
       },
 
       _prevMonth: function() {
@@ -314,7 +373,7 @@
                 this._prevSelected.classList.remove('selected');
               }
               path[i].classList.add('selected');
-              this.value = path[i].dataset.date;
+              this.dateString = path[i].dataset.date;
               this._prevSelected = path[i];
               break;
             }
@@ -361,8 +420,8 @@
         firstDayOfMonth = Math.round((new Date(year, month, 1).getTime()) / (24 * 60 * 60 * 1000)) - 1;
         currentDay = Math.round((new Date().getTime()) / (24 * 60 * 60 * 1000)) - firstDayOfMonth;
 
-        if (this.value !== undefined) {
-          selectedDay = Math.round((new Date(this.value).getTime()) / (24 * 60 * 60 * 1000)) - firstDayOfMonth;
+        if (this.dateString !== undefined) {
+          selectedDay = Math.round((new Date(this.dateString).getTime()) / (24 * 60 * 60 * 1000)) - firstDayOfMonth;
         }
         if (this.minDate !== undefined) {
           min = Math.round((new Date(this.minDate).getTime()) / (24 * 60 * 60 * 1000)) - firstDayOfMonth;

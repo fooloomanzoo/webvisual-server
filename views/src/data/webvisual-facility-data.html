@@ -173,21 +173,25 @@
 
       _fetchFacilityList: function(urlPrefix) {
         return new Promise( function(resolve, reject) {
-          var xhr = new XMLHttpRequest();
-          xhr.addEventListener('load', function(e) {
-            if ( e.target.status >= 400 ) {
+          try {
+            var xhr = new XMLHttpRequest();
+            xhr.addEventListener('load', function(e) {
+              if ( e.target.status >= 400 ) {
+                reject(e.target.status);
+              }
+              else {
+                resolve( JSON.parse(e.target.responseText) );
+              }
+            });
+            xhr.addEventListener('error', function(e) {
               reject(e.target.status);
-            }
-            else {
-              resolve( JSON.parse(e.target.responseText) );
-            }
-          });
-          xhr.addEventListener('error', function(e) {
-            reject(e.target.status);
-          });
-          xhr.open('GET', (urlPrefix || '') + 'facilities.json');
-          xhr.withCredentials = true;
-          xhr.send();
+            });
+            xhr.open('GET', (urlPrefix || '') + 'facilities.json');
+            xhr.withCredentials = true;
+            xhr.send();
+          } catch (err) {
+            reject(err);
+          }
         })
       },
 

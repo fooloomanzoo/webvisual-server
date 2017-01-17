@@ -1,8 +1,5 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 
-<link rel="import" href="webvisual-timer.html">
-<link rel="import" href="webvisual-calendar.html">
-
 <dom-module id="webvisual-datetime-picker">
   <template strip-whitespace>
     <style>
@@ -15,10 +12,11 @@
         position: relative;
         box-sizing: border-box;
         height: 100%;
-        padding: 0.5em;
+        padding: 0.4em 0.2em;
         box-sizing: border-box;
         font-family: inherit;
-        font-size: 0.8em;
+        font-size: 0.75em;
+        text-align: center;
       }
       #date {
         width: 50%;
@@ -29,12 +27,11 @@
     </style>
 
     <input id="date" type="date" disabled$="[[disabled]]" min="[[minDate]]" max="[[maxDate]]" autocomplete="off" value="{{_date::input}}" pattern="([0-9]{4})-([0]\d|1[0-2])-([012]\d|3[0-1])">
-    <input id="time" type="time" disabled$="[[disabled]]" autocomplete="off" value="{{_time::input}}" pattern="([01]\d|2[0-3]):(?:[0-5]\d):(?:[0-5]\d)">
+    <input id="time" type="time" disabled$="[[disabled]]" autocomplete="off" value="{{_time::input}}" pattern="([01]\d|2[0-3]):(?:[0-5]\d):(?:[0-5]\d)" step="1">
 
-    <!-- <template is="dom-if" if="[[!_nativeDateTimeSupport]]"> -->
-      <webvisual-calendar for="date" value="{{_date}}"  min-date="[[minDate]]" max-date="[[maxDate]]"></webvisual-calendar>
-      <webvisual-timer for="time" position="left" align="end" value="{{_time}}"></webvisual-timer>
-    <!-- </template> -->
+    <template is="dom-if" if="[[!_nativeDateTimeSupport]]">
+      <webvisual-calendar id="calendar" value="{{value}}" date-string="{{_date}}" time-string="{{_time}}" min-date="[[minDate]]" max-date="[[maxDate]]"></webvisual-calendar>
+    </template>
   </template>
 
   <script>
@@ -46,29 +43,19 @@
 
         value: {
           type: Number,
-          notify: true
-        },
-
-        minDate: {
-          type: String,
           notify: true,
-          observer: '_minDateChanged'
+          observer: '_valueChanged'
         },
 
-        maxDate: {
-          type: String,
-          notify: true,
-          observer: '_maxDateChanged'
-        },
+        minDate: String,
 
-        _date: {
-          type: String,
-          observer: "_dateChanged"
-        },
+        maxDate: String,
+
+        _date: String,
 
         _time: {
           type: String,
-          observer: "_timeChanged"
+          value: '00:00:00'
         },
 
         disabled: Boolean,
@@ -80,86 +67,34 @@
       attached: function() {
         if (this.$.date.type !== 'date' || this.$.time.type !== 'time') {
           this._nativeDateTimeSupport = false;
-          this._buildForNonNative();
+          this.importHref(
+            this.resolveUrl('webvisual-calendar.html'),
+            function() {
+              this._addEventListeners();
+            }, null, true);
         } else {
           this._nativeDateTimeSupport = true;
         }
       },
 
-      _dateChanged: function(date) {
-        if (this._time) {
-          this.value = new Date(date + 'T' + this._time);
-          if (Number.isNaN(+this.value)) {
-            this.value = new Date();
-          } else if (this.minDate && this.minDate > this.value) {
-            this.value = new Date(this.minDate);
-            return;
-          } else if (this.maxDate && this.maxDate > this.value) {
-            this.value = new Date(this.maxDate);
-            return;
-          } else {
-            return;
-          }
+      detached: function() {
+        if (this.$.date.type !== 'date' || this.$.time.type !== 'time') {
+          this._removeEventListeners();
         }
       },
 
-      _minDateChanged: function(minDate) {
-        if (minDate === undefined) {
-          return;
-        }
-        var d = new Date(minDate);
-        if (Number.isNaN(+d)) {
-          this.minDate = undefined;
-        }
+      _addEventListeners: function(target) {
+        this.async( function() {
+          var calendar = this.$$('#calendar');
+          this.$.date.addEventListener('tap', calendar.toggle.bind(calendar), false);
+          this.$.time.addEventListener('tap', calendar.toggle.bind(calendar), false);
+        }.bind(this));
       },
 
-      _maxDateChanged: function(maxDate) {
-        if (maxDate === undefined) {
-          return;
-        }
-        var d = new Date(maxDate);
-        if (Number.isNaN(+d)) {
-          this.maxDate = undefined;
-        }
-      },
-
-      _timeChanged: function(time) {
-        if (this._date) {
-          this.value = new Date(this._date + 'T' + time);
-          if (Number.isNaN(+this.value)) {
-            this.value = new Date();
-          } else if (this.minDate && this.minDate > this.value) {
-            this.value = new Date(this.minDate);
-            return;
-          } else if (this.maxDate && this.maxDate > this.value) {
-            this.value = new Date(this.maxDate);
-            return;
-          } else {
-            return;
-          }
-        }
-        var d = new Date();
-        var m = '' + (d.getMonth() + 1);
-        if (m.lenght !== 2) {
-          m = '0' + m;
-        }
-        this._date = d.getFullYear() + '-' + m + '-' + d.getDate();
-      },
-
-      _loadPolyfill: function(scripts, callback) {
-        // var script = scripts.shift();
-        // return new Promise(function(resolve, reject) {
-        //   var el = document.createElement( 'script' );
-        //   el.src = script;
-        //   el.onload = function(script){
-        //     resolve();
-        //   }
-        //   document.body.appendChild( el );
-        // }.bind(this));
-      },
-
-      _buildForNonNative: function() {
-        // var dateP = new DatePicker([this.$.date], {body: this.$.dateContent});
+      _removeEventListeners: function(target) {
+        var calendar = this.$$('#calendar');
+        this.$.date.removeEventListener('tap', calendar.toggle.bind(calendar), false);
+        this.$.time.removeEventListener('tap', calendar.toggle.bind(calendar), false);
       }
 
     });

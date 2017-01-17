@@ -255,6 +255,7 @@
       },
 
       _computeShouldRenderBox: function(facilities) {
+        this.loggedIn = (facilities && facilities.length > 0) ? this.loggedIn : false;
         return facilities && facilities.length > 0;
       }
     });

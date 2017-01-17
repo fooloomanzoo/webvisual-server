@@ -77,6 +77,15 @@
     };
   }
 
+  // String.startsWith
+
+  if (!String.prototype.startsWith) {
+    String.prototype.startsWith = function(searchString, position) {
+      position = position || 0;
+      return this.indexOf(searchString, position) === position;
+    };
+  }
+
   // Number.isNaN
   Number.isNaN = Number.isNaN || function(value) {
     return typeof value === "number" && isNaN(value);
