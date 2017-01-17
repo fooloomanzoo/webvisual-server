@@ -3,7 +3,7 @@ importScripts('/scripts/cache.js');
 importScripts('/scripts/database-worker.js');
 
 if (!self.Promise) {
-  importScripts('/scripts/promise.js');
+  importScripts('/polyfills/promise.js');
 }
 
 var socket

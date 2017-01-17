@@ -1,7 +1,7 @@
 
 importScripts('/scripts/idb.js');
 if (!self.Promise) {
-  importScripts('/scripts/promise.js');
+  importScripts('/polyfills/promise.js');
 }
 
 (function() {

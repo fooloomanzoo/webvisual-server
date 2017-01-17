@@ -1,6 +1,7 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 
-<link rel="import" href="webvisual-dropdown.html">
+<link rel="import" href="webvisual-timer.html">
+<link rel="import" href="webvisual-calendar.html">
 
 <dom-module id="webvisual-datetime-picker">
   <template strip-whitespace>
@@ -9,17 +10,31 @@
         display: inline-flex;
         position: relative;
       }
+      #date,
+      #time {
+        position: relative;
+        box-sizing: border-box;
+        height: 100%;
+        padding: 0.5em;
+        box-sizing: border-box;
+        font-family: inherit;
+        font-size: 0.8em;
+      }
+      #date {
+        width: 50%;
+      }
+      #time {
+        width: 50%;
+      }
     </style>
 
-    <input id="date" type="text" disabled$="[[disabled]]" value="{{_date::input}}" data-type="date">
-    <input id="time" type="time" disabled$="[[disabled]]" value="{{_time::input}}" data-type="time">
+    <input id="date" type="date" disabled$="[[disabled]]" min="[[minDate]]" max="[[maxDate]]" autocomplete="off" value="{{_date::input}}" pattern="([0-9]{4})-([0]\d|1[0-2])-([012]\d|3[0-1])">
+    <input id="time" type="time" disabled$="[[disabled]]" autocomplete="off" value="{{_time::input}}" pattern="([01]\d|2[0-3]):(?:[0-5]\d):(?:[0-5]\d)">
 
-    <webvisual-dropdown id="dateDropdown" target-toggle-event="tap" for="date" position="top" align="end">
-      <div id="dateContent">
-
-      </div>
-    </webvisual-dropdown>
-
+    <!-- <template is="dom-if" if="[[!_nativeDateTimeSupport]]"> -->
+      <webvisual-calendar for="date" value="{{_date}}"  min-date="[[minDate]]" max-date="[[maxDate]]"></webvisual-calendar>
+      <webvisual-timer for="time" position="left" align="end" value="{{_time}}"></webvisual-timer>
+    <!-- </template> -->
   </template>
 
   <script>
@@ -35,13 +50,13 @@
         },
 
         minDate: {
-          type: Number,
+          type: String,
           notify: true,
           observer: '_minDateChanged'
         },
 
         maxDate: {
-          type: Number,
+          type: String,
           notify: true,
           observer: '_maxDateChanged'
         },
@@ -58,7 +73,7 @@
 
         disabled: Boolean,
 
-        nativeDateTimeSupport: Boolean
+        _nativeDateTimeSupport: Boolean
 
       },
 
@@ -86,7 +101,6 @@
             return;
           }
         }
-        this._time = '00:00:00';
       },
 
       _minDateChanged: function(minDate) {
@@ -145,7 +159,7 @@
       },
 
       _buildForNonNative: function() {
-        var dateP = new DatePicker([this.$.date], {body: this.$.dateContent});
+        // var dateP = new DatePicker([this.$.date], {body: this.$.dateContent});
       }
 
     });
