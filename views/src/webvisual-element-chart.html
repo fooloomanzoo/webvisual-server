@@ -844,15 +844,15 @@
           .classed('webvisual-element-chart', true);
       },
 
-      openLegend: function() {
-        var graphs = [];
-        this._graphs.forEach(
-          function(g) {
-            graphs.push({type: 'webvisual-element-checkbox', checked: g.checked, item: g.item})
-          });
-        // console.log(graphs);
-        this.fire('open-settings', { trigger: this, title: 'chart', settings: [ {title: 'graphs', entries: graphs} ]} );
-      },
+      // openLegend: function() {
+      //   var graphs = [];
+      //   this._graphs.forEach(
+      //     function(g) {
+      //       graphs.push({type: 'webvisual-element-checkbox', checked: g.checked, item: g.item})
+      //     });
+      //   // console.log(graphs);
+      //   this.fire('open-settings', { trigger: this, title: 'chart', settings: [ {title: 'graphs', entries: graphs} ]} );
+      // },
 
       toggleMenu: function() {
         if (this.$.menu.hasAttribute('hidden')) {

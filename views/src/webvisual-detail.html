@@ -180,8 +180,8 @@
             </template>
           </webvisual-tabs>
           <webvisual-element-table id="elementTable" full-date item="[[selectedElement]]"></webvisual-element-table>
-          <webvisual-datetime-picker id="dateFrom"></webvisual-datetime-picker>
-          <webvisual-datetime-picker id="dateTo"></webvisual-datetime-picker>
+          <webvisual-datetime-picker id="dateFrom" date-string="{{minDate}}" max-date="[[maxDate]]"></webvisual-datetime-picker>
+          <webvisual-datetime-picker id="dateTo" date-string="{{maxDate}}" min-date="[[minDate]]"></webvisual-datetime-picker>
         </app-drawer>
       </div>
 
@@ -240,7 +240,11 @@
           type: Boolean,
           notify: true,
           computed: '_computeShowToggleIcon(showControlAsDrawer, visible)'
-        }
+        },
+
+        minDate: String,
+
+        maxDate: String
       },
 
       listeners: {

@@ -182,7 +182,8 @@
 
         opened: {
           type: Boolean,
-          reflectToAttribute: true
+          reflectToAttribute: true,
+          observer: '_openedChanged'
         },
 
         dateString: {
@@ -279,6 +280,10 @@
           }
           this.opened = true;
         }
+      },
+
+      _openedChanged: function() {
+        this._rebuild();
       },
 
       _dateStringChanged: function(d) {

@@ -51,11 +51,15 @@
 
         maxDate: String,
 
-        dateString: String,
+        dateString: {
+          type: String,
+          notify: true
+        },
 
         timeString: {
           type: String,
-          value: '00:00:00'
+          value: '00:00:00',
+          notify: true
         },
 
         position: String,
@@ -86,15 +90,15 @@
       _addEventListeners: function(target) {
         this.async( function() {
           var calendar = this.$$('#calendar');
-          this.$.date.addEventListener('tap', calendar.toggle.bind(calendar), false);
-          this.$.time.addEventListener('tap', calendar.toggle.bind(calendar), false);
+          this.$.date.addEventListener('click', calendar.toggle.bind(calendar), false);
+          this.$.time.addEventListener('click', calendar.toggle.bind(calendar), false);
         }.bind(this));
       },
 
       _removeEventListeners: function(target) {
         var calendar = this.$$('#calendar');
-        this.$.date.removeEventListener('tap', calendar.toggle.bind(calendar), false);
-        this.$.time.removeEventListener('tap', calendar.toggle.bind(calendar), false);
+        this.$.date.removeEventListener('click', calendar.toggle.bind(calendar), false);
+        this.$.time.removeEventListener('click', calendar.toggle.bind(calendar), false);
       },
 
       _computeValue: function(date, time) {

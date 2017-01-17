@@ -534,9 +534,9 @@
         '_resetElements(facilitySystem)'
       ],
 
-      listeners: {
-        'open-settings': '_onOpenSettings'
-      },
+      // listeners: {
+      //   'open-settings': '_onOpenSettings'
+      // },
 
       created: function() {
         // window.performance && performance.mark && performance.mark('webvisual-app.created');
@@ -707,23 +707,23 @@
       },
 
       // elements can open a settings-dialog
-      _onOpenSettings: function(e) {
-        this._openSettings(e.detail);
-      },
+      // _onOpenSettings: function(e) {
+      //   this._openSettings(e.detail);
+      // },
 
       // settings-dialog for given set of settings
-      _openSettings: function(detail) {
-        this.debounce('open-settings', function() {
-          if (!this._settingsDialog) {
-            this._settingsDialog = document.createElement('webvisual-settings-dialog');
-            Polymer.dom(this.root).appendChild(this._settingsDialog);
-          }
-          this._settingsDialog.set('trigger', detail.trigger);
-          this._settingsDialog.set('title', detail.title);
-          this._settingsDialog.set('settings', detail.settings);
-          this._settingsDialog.open();
-        }, 100);
-      },
+      // _openSettings: function(detail) {
+      //   this.debounce('open-settings', function() {
+      //     if (!this._settingsDialog) {
+      //       this._settingsDialog = document.createElement('webvisual-settings-dialog');
+      //       Polymer.dom(this.root).appendChild(this._settingsDialog);
+      //     }
+      //     this._settingsDialog.set('trigger', detail.trigger);
+      //     this._settingsDialog.set('title', detail.title);
+      //     this._settingsDialog.set('settings', detail.settings);
+      //     this._settingsDialog.open();
+      //   }, 100);
+      // },
 
       _loadPresettings: function() {
         var settings = JSON.parse(localStorage.getItem('settings'));
