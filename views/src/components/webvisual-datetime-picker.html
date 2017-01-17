@@ -30,7 +30,7 @@
     <input id="time" type="time" disabled$="[[disabled]]" autocomplete="off" value="{{timeString::input}}" pattern="([01]\d|2[0-3]):(?:[0-5]\d):(?:[0-5]\d)" step="1">
 
     <template is="dom-if" if="[[!_nativeDateTimeSupport]]">
-      <webvisual-calendar id="calendar" value="{{value}}" date-string="{{dateString}}" time-string="{{timeString}}" min-date="[[minDate]]" max-date="[[maxDate]]"></webvisual-calendar>
+      <webvisual-calendar id="calendar" date-string="{{dateString}}" time-string="{{timeString}}" min-date="[[minDate]]" max-date="[[maxDate]]" position="[[position]]"></webvisual-calendar>
     </template>
   </template>
 
@@ -44,7 +44,7 @@
         value: {
           type: Number,
           notify: true,
-          observer: '_valueChanged'
+          computed: '_computeValue(dateString, timeString)'
         },
 
         minDate: String,
@@ -57,6 +57,8 @@
           type: String,
           value: '00:00:00'
         },
+
+        position: String,
 
         _nativeDateTimeSupport: Boolean
 
@@ -93,7 +95,19 @@
         var calendar = this.$$('#calendar');
         this.$.date.removeEventListener('tap', calendar.toggle.bind(calendar), false);
         this.$.time.removeEventListener('tap', calendar.toggle.bind(calendar), false);
-      }
+      },
+
+      _computeValue: function(date, time) {
+        if (date === undefined || time === undefined) {
+          return null;
+        }
+        var d = new Date();
+        var t = time.split(':');
+        d.setHours(t[0] || 0);
+        d.setMinutes(t[1] || 0);
+        d.setSeconds(t[2] || 0);
+        return +d || null;
+      },
 
     });
   </script>

@@ -215,6 +215,7 @@
 
         value: {
           type: Number,
+          notify: true,
           computed: '_computeValue(dateString, timeString)'
         },
 
@@ -342,11 +343,14 @@
       },
 
       _computeValue: function(date, time) {
+        if (date === undefined || time === undefined) {
+          return null;
+        }
         var d = new Date();
         var t = time.split(':');
-        d.setHours(t[0]);
-        d.setMinutes(t[1]);
-        d.setSeconds(t[2]);
+        d.setHours(t[0] || 0);
+        d.setMinutes(t[1] || 0);
+        d.setSeconds(t[2] || 0);
         return +d || null;
       },
 
