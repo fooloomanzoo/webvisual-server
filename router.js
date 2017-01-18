@@ -68,28 +68,30 @@ class Router extends EventEmitter {
     this.passport = require('passport');
     this.settings = {};
     this.configuration = {};
-
-    // this.app.use(morgan('combined'));
+    
+    // TODO: use session manager to auth socket.io client
+    // http://mono.software/2014/08/25/Sharing-sessions-between-SocketIO-and-Express-using-Redis/
+    // http://stackoverflow.com/questions/25532692/how-to-share-sessions-with-socket-io-1-x-and-express-4-x
 
     // Parser
     this.app.use(cookieParser());
     this.app.use(bodyParser.json());
     this.app.use(bodyParser.urlencoded({ extended: true }));
 
-
-
-    this.app.use( session( {
+    this.sessionMiddleWare = session( {
       store: new RedisStore( {
         host: 'localhost',
         port: 6379
       } ),
-      maxAge: 24*3600*365,
+      maxAge: 24*3600*1000*180,
       secret: 'String(Math.random().toString(16).slice(2)',
       cachControl: 'no-cache',
       resave: true,
       saveUninitialized: false,
       cookie: { secure: true }
-    } ));
+    } );
+
+    this.app.use( this.sessionMiddleWare );
 
     // Prevent Clickjacking
     this.app.use(xFrameOptions());
