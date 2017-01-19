@@ -3,8 +3,6 @@
 <link rel="import" href="../bower_components/app-route/app-route.html"/>
 <link rel="import" href="../bower_components/app-layout/app-drawer/app-drawer.html">
 
-<link rel="import" href="../bower_components/datetime-picker/datetime-picker.html">
-
 <link rel="import" href="data/webvisual-svg-data.html"/>
 
 <link rel="import" href="components/webvisual-tabs.html"/>
@@ -16,12 +14,10 @@
 <link rel="import" href="webvisual-element-chart.html"/>
 
 <link rel="import" href="style/shared-styles.html">
-<link rel="import" href="style/page-layout.html">
-<link rel="import" href="style/webvisual-button.html">
 
 <dom-module id="webvisual-detail">
   <template strip-whitespace>
-    <style include="shared-styles page-layout webvisual-button">
+    <style include="shared-styles">
       :host {
         padding-top: inherit;
         position: absolute;
@@ -61,14 +57,7 @@
       }
       #elementTable {
         padding-top: 0.3em;
-        height: calc(50% - 4em);
-      }
-      #dateFrom,
-      #dateTo {
-        height: 2em;
-        /*width: calc(100% - 48px);*/
-        position: relative;
-        box-sizing: border-box;
+        height: 50%;
       }
       #elementDrawer {
         padding-top: inherit;
@@ -83,7 +72,6 @@
         };
       }
       #chart {
-        padding-bottom: 2.5em;
         isolation: isolate;
       }
       #svg {
@@ -105,6 +93,25 @@
         flex: auto;
         --caption-background: transparent;
         --caption-color: currentColor;
+      }
+      #requestMoreDetailButton {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        right: 0;
+        box-sizing: border-box;
+        opacity: 0.25;
+        pointer-events: all;
+        padding: 8px;
+        width: 32px;
+        height: 100%;
+        fill: var(--primary-text-color);
+        will-change: opacity;
+        transition: opacity 150ms cubic-bezier(0.6, 0, 0.2, 1);
+      }
+      #requestMoreDetailButton:hover {
+        background-color: rgba(255, 255, 255, 0.5);
+        opacity: 1;
       }
       @media (max-width: 600px) {
         #elementTabs {
@@ -169,9 +176,14 @@
         </template>
 
         <app-drawer id="elementDrawer" opened="[[_ensureOpened(showControlAsDrawer)]]" swipe-open persistent="[[!showControlAsDrawer]]" align="right">
+
           <webvisual-tabs id="elementTabs" vertical selected="{{route.path}}" attr-for-selected="item-mount" selected-attribute="checked">
+            <svg id="requestMoreDetailButton" slot="overlay-addon" on-tap="requestMoreDetail" viewBox="0 0 24 24">
+              <g><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></g>
+            </svg>
+
             <template is="dom-repeat" items="[[_getListItems(elements)]]">
-              <webvisual-element-checkbox class="checkbox"
+              <webvisual-element-checkbox class="checkbox" slot="tab"
                 item="[[item]]"
                 item-mount="/[[item.mount]]"
                 selectable>
@@ -180,9 +192,8 @@
               </webvisual-element-checkbox>
             </template>
           </webvisual-tabs>
+
           <webvisual-element-table id="elementTable" full-date item="[[selectedElement]]"></webvisual-element-table>
-          <datetime-picker id="dateFrom" date-string="{{minDate}}" max-date="[[maxDate]]"></datetime-picker>
-          <datetime-picker id="dateTo" date-string="{{maxDate}}" min-date="[[minDate]]"></datetime-picker>
         </app-drawer>
       </div>
 
@@ -227,8 +238,7 @@
         visible: Boolean,
 
         _withSvg: {
-          type: Boolean,
-          computed: '_calculateWithSvg(selectedElement)'
+          type: Boolean
         },
 
         showControlAsDrawer: {
@@ -243,14 +253,28 @@
           computed: '_computeShowToggleIcon(showControlAsDrawer, visible)'
         },
 
-        minDate: String,
+        _minDate: String,
 
-        maxDate: String
+        _maxDate: String,
+
+        range: {
+          type: Object,
+          value: function() {
+            return {
+              from: +(new Date()),
+              to: +(new Date())
+            };
+          }
+        }
       },
 
       listeners: {
         'exceeding': '_setExceeding'
       },
+
+      observers: [
+        '_selectedElementChanged(selectedElement)'
+      ],
 
       _setExceeding: function(e) {
         if (e && e.detail && e.detail.item) {
@@ -300,16 +324,16 @@
         return svgSrcPaths[src] || {};
       },
 
-      _calculateWithSvg: function(selectedElement) {
+      _selectedElementChanged: function(selectedElement) {
         // notify the chart to resize
-        var ret = Boolean(selectedElement && selectedElement.svg && selectedElement.svg.path)
-        if (ret !== this._withSvg) {
+        var _withSvg = Boolean(selectedElement && selectedElement.svg && selectedElement.svg.path)
+        if (_withSvg !== this._withSvg) {
+          this._withSvg = _withSvg;
           var chart;
           if (chart = this.$$('#chart')) {
             this.debounce('chart-resize', chart.notifyResize.bind(chart));
           }
         }
-        return ret;
       },
 
       _ensureOpened: function(showControlAsDrawer) {
@@ -325,6 +349,11 @@
         if (drawer) {
           drawer.toggle();
         }
+      },
+
+      requestMoreDetail: function(e) {
+        e.stopPropagation();
+        this.fire('detail-request', { item: this.selectedElement })
       }
     });
   </script>

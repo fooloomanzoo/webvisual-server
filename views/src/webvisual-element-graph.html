@@ -182,8 +182,8 @@
                                 .attr('class', 'lower boundery')
                                 .attr('data-name', this.item.mount)
                                 .attr('x', 0)
-                                .attr('y', Number.isNaN(y) ? this.chartElement._height : y)
-                                .attr('height', Number.isNaN(y) || this.chartElement._height < y ? 0 : this.chartElement._height - y + 1)
+                                .attr('y', !isFinite(y) ? this.chartElement._height : y)
+                                .attr('height', !isFinite(y) || this.chartElement._height < y ? 0 : this.chartElement._height - y + 1)
                                 .attr('width', this.chartElement._width);
                         }
                     } else if (this._lowerBoundery) {
@@ -200,7 +200,7 @@
                                 .attr('data-name', this.item.mount)
                                 .attr('x', 0)
                                 .attr('y', 0)
-                                .attr('height', Number.isNaN(y) || y < 0 ? 0 : y)
+                                .attr('height', !isFinite(y) || y < 0 ? 0 : y)
                                 .attr('width', this.chartElement._width);
                         }
                     } else if (this._upperBoundery) {
@@ -391,15 +391,15 @@
                       if (this._lowerBoundery && this.item.threshold.from !== undefined) {
                           y = this.chartElement._y(this.item.threshold.from);
                           this._lowerBoundery
-                              .attr('y', Number.isNaN(y) ? this.chartElement._height : y)
-                              .attr('height', Number.isNaN(y) || this.chartElement._height < y ? 0 : this.chartElement._height - y + 1)
+                              .attr('y', !isFinite(y) ? this.chartElement._height : y)
+                              .attr('height', !isFinite(y) || this.chartElement._height < y ? 0 : this.chartElement._height - y + 1)
                               .attr('width', this.chartElement._width);
                       }
 
                       if (this._upperBoundery && this.item.threshold.to !== undefined) {
                           y = this.chartElement._y(this.item.threshold.to);
                           this._upperBoundery
-                              .attr('height', Number.isNaN(y) || y < 0 ? 0 : y)
+                              .attr('height', !isFinite(y) || y < 0 ? 0 : y)
                               .attr('width', this.chartElement._width);
                       }
                     }
@@ -469,12 +469,14 @@
                 var domainX = this.chartElement._x.domain(),
                     yScale = this.chartElement.yScale;
 
-                if (d.y === null || d.y === undefined)
-                    return undefined; // NaN and null are displayable
+                if (!isFinite(d.y))
+                    return undefined;
                 else if ((yScale === 'ln' || yScale === 'log₁₀') && d.y <= 0)
                     return undefined; // log- and sqrt-scales require larger than 0-Values
                 else if ((d.x >= domainX[0] && d.x <= domainX[1]) || i === 0 || (i === data.length - 1) || (i > 0 && i + 1 < data.length && (data[i + 1].x > domainX[0] && data[i - 1].x < domainX[1])))
                     return true; // only numbers in x-Domain are shown (and their successor and predecessor) (graph is a function by definition, so y-Domain is not relevant)
+                else if (d.y === null)
+                    return true; // null is displayable
                 else
                     return undefined;
             },

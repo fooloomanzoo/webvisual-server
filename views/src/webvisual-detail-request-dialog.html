@@ -1,0 +1,114 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<link rel="import" href="../bower_components/paper-dialog-behavior/paper-dialog-behavior.html">
+<link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
+
+<link rel="import" href="style/webvisual-dialog-styles.html">
+
+<link rel="import" href="style/webvisual-button.html">
+
+<link rel="import" href="components/webvisual-icon-button.html"/>
+
+<link rel="import" href="webvisual-element-caption.html"/>
+<link rel="import" href="webvisual-element-chart.html"/>
+
+<link rel="import" href="../bower_components/datetime-picker/datetime-picker.html">
+
+<dom-module id="webvisual-detail-request-dialog">
+  <template>
+    <style include="webvisual-dialog-styles webvisual-button">
+      :host {
+        height: 100%;
+        width: 100%;
+        --caption-background: transparent;
+      }
+      webvisual-element-caption {
+        align-items: baseline;
+      }
+      datetime-picker {
+        --datetime-picker-input: {
+          padding: 0;
+          width: 50%;
+          text-align: center;
+          border: none;
+          outline: none;
+          border-bottom: thin solid currentColor;
+        }
+      }
+      #chart {
+        color: inherit;
+      }
+      #bottom {
+        font-size: 0.9em;
+      }
+      .webvisual-button {
+        flex: 0;
+      }
+      #exitButton {
+        position: absolute;
+        right: 0;
+        top: 0;
+        margin: 0.5em;
+      }
+    </style>
+
+    <div id="title">
+      <webvisual-element-caption keys="[[item.keys]]"></webvisual-element-caption>
+    </div>
+
+    <webvisual-icon-button id="exitButton" icon="close" on-tap="close"></webvisual-icon-button>
+
+    <div id="content">
+      <webvisual-element-chart id="chart" opened="[[opened]]" item="[[item]]"></webvisual-element-chart>
+    </div>
+
+    <section id="bottom">
+      <span>From: </span>
+      <datetime-picker id="dateFrom" value="{{range.from}}" date-string="{{_minDate}}" max-date="[[_maxDate]]"></datetime-picker>
+      <span>To: </span>
+      <datetime-picker id="dateTo" value="{{range.to}}" date-string="{{_maxDate}}" min-date="[[_minDate]]"></datetime-picker>
+      <div class="webvisual-button" on-tap="requestFromSocket">
+        <paper-ripple></paper-ripple>
+        <iron-icon class="left" icon="juelich:logo"></iron-icon>
+        <span>Request</span>
+      </div>
+    </section>
+  </template>
+
+</dom-module>
+
+<script>
+(function() {
+  Polymer({
+    is: 'webvisual-detail-request-dialog',
+
+    behaviors: [
+      Polymer.PaperDialogBehavior
+    ],
+
+    properties: {
+
+      item: {
+        type: Object,
+        value: function() {
+          return {};
+        }
+      },
+
+      opened: {
+        type: Boolean,
+        reflectToAttribute: true
+      },
+
+      fromDate: Number,
+
+      toDate: Number
+
+    },
+
+    requestFromSocket: function() {
+
+    }
+  });
+})();
+</script>

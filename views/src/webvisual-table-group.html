@@ -41,7 +41,7 @@
 
     <webvisual-tabs id="select" selected="{{currentTable}}" fallback-selection="0" vertical>
       <template is="dom-repeat" items="[[items]]">
-        <div class="webvisual-button tabs" title="[[item.id]]"><div>[[item.id]]</div></div>
+        <div class="webvisual-button tabs" slot="tab" title="[[item.id]]"><div>[[item.id]]</div></div>
       </template>
     </webvisual-tabs>
     <iron-pages id="tables" selected="[[currentTable]]">

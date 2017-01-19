@@ -11,7 +11,6 @@
 <link rel="import" href="../bower_components/iron-collapse/iron-collapse.html"/>
 
 <link rel="import" href="behaviors/localize-behavior.html"/>
-<link rel="import" href="behaviors/container-behavior.html"/>
 
 <link rel="import" href="webvisual-login.html"/>
 <link rel="import" href="webvisual-home.html"/>
@@ -80,7 +79,6 @@
       app-toolbar {
         font-size: 16px;
       }
-
       app-drawer {
         z-index: 2;
       }
@@ -115,6 +113,7 @@
         width: 100%;
         padding: 1.25em 1em;
         box-sizing: border-box;
+        text-align: center;
       }
       .drawer-content iron-collapse > .collapse-content {
         padding: 0.5em 1em;
@@ -241,13 +240,13 @@
         <webvisual-tabs id="tabs" sticky="[[_shouldShowTabs]]" hidden$="[[!_shouldShowTabs]]"
           selected="{{page}}"
           attr-for-selected="name">
-          <div class="webvisual-button" name="list">
+          <div class="webvisual-button" slot="tab" name="list">
             <a href="/list/[[facilitySystem]]">{{localize('list', 'name')}}</a>
           </div>
-          <div class="webvisual-button" name="groups">
+          <div class="webvisual-button" slot="tab" name="groups">
             <a href="/groups/[[facilitySystem]]">{{localize('groups', 'name')}}</a>
           </div>
-          <div class="webvisual-button" name="detail">
+          <div class="webvisual-button" slot="tab" name="detail">
             <a href="/detail/[[facilitySystem]]">{{localize('detail', 'name')}}</a>
           </div>
         </webvisual-tabs>
@@ -284,25 +283,6 @@
         elements="[[elements]]"
         show-toggle-icon="{{detailHasDrawer}}"></webvisual-detail>
     </iron-pages>
-
-    <!-- EXCEEDING -->
-    <!-- <template is="dom-if" if="[[isExceeding]]">
-      <app-drawer id="alarmDrawer" opened="{{alarmDrawerOpened}}" align="right" swipe-open tabindex="0">
-        <app-toolbar class="header">
-          <webvisual-icon-button icon="warning" on-tap="_toggleAlarmDrawer"></webvisual-icon-button>
-          <div>Alarme</div>
-        </app-toolbar>
-
-        <webvisual-swipeable-container id="exceedingElementsList"
-           is-exceeding="{{isExceeding}}"
-           notify-parent="{{!noExceedNotify}}"
-           no-select-notify
-           no-auto-removal-exceeding-elements>
-        </webvisual-swipeable-container>
-
-        <section style="padding: 0em 0.75em 0.75em 0.75em; float: right;"><a href="#" on-click="_clearExceedingElementsFromList">Liste leeren</a></section>
-      </app-drawer>
-    </template> -->
 
     <!-- SIDEMENU -->
     <template is="dom-if" if="[[_shouldRenderDrawer]]">
@@ -527,6 +507,10 @@
         }
       },
 
+      listeners: {
+        'detail-request': '_openDetailRequestDialog'
+      },
+
       observers: [
         '_routePageChanged(routeData.page)',
         '_subrouteChanged(subroute)',
@@ -534,13 +518,7 @@
         '_resetElements(facilitySystem)'
       ],
 
-      // listeners: {
-      //   'open-settings': '_onOpenSettings'
-      // },
-
       created: function() {
-        // window.performance && performance.mark && performance.mark('webvisual-app.created');
-        // Custom elements polyfill safe way to indicate an element has been upgraded.
         this.removeAttribute('unresolved');
       },
 
@@ -603,10 +581,6 @@
         if (!facilitySystem) {
           return;
         }
-        // if (!this._oldfacilitySystem || this._oldfacilitySystem === facilitySystem) {
-        //   this._oldfacilitySystem = facilitySystem;
-        //   return;
-        // }
 
         if (!selector) {
           selector = '[element]'
@@ -706,24 +680,17 @@
         this.alarmDrawerOpened = !this.alarmDrawerOpened;
       },
 
-      // elements can open a settings-dialog
-      // _onOpenSettings: function(e) {
-      //   this._openSettings(e.detail);
-      // },
-
-      // settings-dialog for given set of settings
-      // _openSettings: function(detail) {
-      //   this.debounce('open-settings', function() {
-      //     if (!this._settingsDialog) {
-      //       this._settingsDialog = document.createElement('webvisual-settings-dialog');
-      //       Polymer.dom(this.root).appendChild(this._settingsDialog);
-      //     }
-      //     this._settingsDialog.set('trigger', detail.trigger);
-      //     this._settingsDialog.set('title', detail.title);
-      //     this._settingsDialog.set('settings', detail.settings);
-      //     this._settingsDialog.open();
-      //   }, 100);
-      // },
+      // detail-requests
+      _openDetailRequestDialog: function(e, detail) {
+        this.debounce('open-detail-dialog', function() {
+          if (!this._detailRequestDialog) {
+            this._detailRequestDialog = document.createElement('webvisual-detail-request-dialog');
+            Polymer.dom(this.root).appendChild(this._detailRequestDialog);
+          }
+          this._detailRequestDialog.set('item', detail.item);
+          this._detailRequestDialog.open();
+        });
+      },
 
       _loadPresettings: function() {
         var settings = JSON.parse(localStorage.getItem('settings'));
@@ -839,354 +806,7 @@
           }
         }
       }
-
     });
 
-    //   behaviors: [
-    //     Polymer.IronA11yKeysBehavior,
-    //     Polymer.IronResizableBehavior,
-    //     Polymer.NeonSharedElementAnimatableBehavior
-    //   ],
-    //
-    //   properties: {
-    //
-    //     reproductionContainer: {
-    //       type: String,
-    //       value: 'toolbarFooter'
-    //     },
-    //
-    //     animatable: {
-    //       type: Boolean,
-    //       reflectToAttribute: true
-    //     },
-    //
-    //     repeatedAttributes: {
-    //       type: Array,
-    //       value: function() {
-    //         return ['opened', 'expanded']
-    //       }
-    //     },
-    //
-    //     attributeAnimations: {
-    //       type: Object,
-    //       value: function() {
-    //         return {
-    //           'opened': {
-    //             'exit': {
-    //               name: 'fade-out-animation',
-    //               timing: {
-    //                 duration: 250
-    //               }
-    //             }
-    //           }
-    //         };
-    //       }
-    //     },
-    //
-    //     isExceeding: {
-    //       type: Boolean,
-    //       value: false,
-    //       observer: '_handleExceeding'
-    //     },
-    //
-    //     nativeNotification: {
-    //       type: Boolean,
-    //       value: false,
-    //       observer: 'requestNotificationPermission'
-    //     }
-    //   },
-    //
-    //   listeners: {
-    //     'neon-animation-finish': '_onNeonAnimationFinish'
-    //   },
-    //
-    //   keyBindings: {
-    //      'left': 'previousPanel', // same as 'space:keydown'
-    //      'right': 'nextPanel',
-    //      'down': 'contractToolbar',
-    //      'up': 'expandToolbar',
-    //      'esc': 'backToSelectPage'
-    //    },
-    //
-    //   attached: function() {
-    //     Polymer.dom(this.$.groupingKeysSystemSelector)
-    //            .observeNodes(function(info) {
-    //              for (var i in info.addedNodes)
-    //               if (info.addedNodes[i].nodeName === "IRON-SELECTOR")
-    //                 info.addedNodes[i].addEventListener("iron-select", function(e) {
-    //                   this.regroup(e.currentTarget.selected);
-    //                 }.bind(this));
-    //            }.bind(this));
-    //   },
-    //
-    //   getAnimatableNodes: function() {
-    //     return this.getEffectiveChildNodes
-    //                  .call(this.$.toolbarFooter)
-    //                  .filter(function(el) {
-    //                    return (el.nodeType === Node.ELEMENT_NODE);
-    //                  });
-    //   },
-    //
-    //   // Toolbar Actions
-    //   openedChanged: function() {
-    //     if (this.opened || this.forceOpened) {
-    //       this.opened = true;
-    //       this.$.toolbarFooter.setAttribute('opened', true);
-    //     }
-    //   },
-    //   forceOpenedChanged: function() {
-    //     if (this.opened || this.forceOpened) {
-    //       if (this.opened === false) {
-    //         this.opened = true;
-    //       }
-    //     }
-    //   },
-    //   toolbarExpandToggle: function() {
-    //     if (this.opened || this.forceOpened) {
-    //       if (this.expanded) {
-    //         this.contractToolbar();
-    //       } else {
-    //         this.expandToolbar();
-    //       }
-    //     }
-    //   },
-    //   contractToolbar: function() {
-    //     this.expanded = false;
-    //   },
-    //   expandToolbar: function() {
-    //     if (this.opened || this.forceOpened) {
-    //       this.expanded = true
-    //     } else {
-    //       this.opened = true;
-    //     }
-    //   },
-    //   closeToolbar: function(newSystem, oldSystem) {
-    //     this.clearSelectedElements();
-    //     this.opened = false;
-    //   },
-    //   _onNeonAnimationFinish: function() {
-    //     if (this.opened === false) {
-    //       if (this.$.toolbarFooter.hasAttribute('opened')) {
-    //         this.$.toolbarFooter.removeAttribute('opened');
-    //       }
-    //     }
-    //     this.notifyResize();route
-    //   },
-    //
-    //   previousPanel: function() {
-    //     this.$.panelSelector.selectPrevious();
-    //   },
-    //
-    //   nextPanel: function() {
-    //     this.$.panelSelector.selectNext();
-    //   },
-    //
-    //   _computeOpened: function(opened, forceOpened) {
-    //     return opened || forceOpened;
-    //   },
-    //   _computeExpandIcon: function() {
-    //     if (this.expanded)
-    //       return 'expand-less';
-    //     else
-    //       return 'expand-more';
-    //   },
-    //
-    //   _handleExceeding: function(value) {
-    //     if(value && !(this.$.alarmPanel.classList.contains("alarm-panel-opened"))) {
-    //       this.openAlarmPanel();
-    //       this.debounce('alarm-notification', this.createAlarmNotification, 750);
-    //     }
-    //     else if (this.$.exceedingElementsList.exceedingElements.length === 0) {
-    //       this.debounce('close-alarm-panel', this.closeAlarmPanel, 1000);
-    //     }
-    //   },
-    //   // app Control
-    //   backToSelectPage: function() {
-    //     this.clearSelectedElements();
-    //     this.fire("clear-selected-elements");
-    //     this.closeDrawer();
-    //     this.closeToolbar();
-    //     PageSelector.select("0");
-    //   },
-    //   backToIndex: function() {
-    //     window.location.pathname = '/index';
-    //   },
-    //   // Panel Control
-    //   _systemChanged: function(newSystem, oldSystem) {
-    //     // this._selectPanel(newSystem, oldSystem);
-    //     this.clearSelectedElements();
-    //     this.fire("clear-selected-elements");
-    //   },
-    //   _selectPanel: function(newSystem, oldSystem) {
-    //     var newpanel = this.queryEffectiveChildren.call(this.$.panelSelector,'[system=' + newSystem + ']'),
-    //         newebvisualelector = this.queryEffectiveChildren.call(this.$.groupingKeysSystemSelector,'[system=' + newSystem + ']');
-    //     var oldpanel = this.queryEffectiveChildren.call(this.$.panelSelector,'[system=' + oldSystem + ']'),
-    //         oldselector = this.queryEffectiveChildren.call(this.$.groupingKeysSystemSelector,'[system=' + oldSystem + ']');
-    //
-    //     if (newebvisualelector && newpanel) {
-    //       newebvisualelector.style.display = '';
-    //       newebvisualelector.classList.add("foreground");
-    //       newpanel.style.display = '';
-    //       newpanel.classList.add("foreground");
-    //     }
-    //
-    //     if (this.animatable) {
-    //       if (oldpanel) {
-    //         oldpanel.addEventListener("transitionend", function(e) {
-    //           if (newpanel)
-    //             newpanel.classList.add("selected");
-    //           oldpanel.classList.remove("foreground");
-    //           oldpanel.removeEventListener(e.type, arguments.callee);
-    //         });
-    //         oldpanel.classList.remove("selected");
-    //         if (oldselector)
-    //           oldselector.classList.remove("foreground");
-    //       }
-    //       else if (newpanel) {
-    //         newpanel.classList.add("selected");
-    //       }
-    //     }
-    //     else {
-    //       if (newpanel)
-    //         newpanel.classList.add("selected");
-    //       if (oldpanel) {
-    //         oldpanel.classList.remove("foreground");
-    //         oldpanel.classList.remove("selected");
-    //         if (oldselector)
-    //           oldselector.classList.remove("foreground");
-    //       }
-    //     }
-    //   },
-    //   // Grouping Options
-    //   regroup: function(key) {
-    //     var system = this.system;
-    //     var panel = this.queryEffectiveChildren('.panel[system="'+system+'"]');
-    //     if (panel)
-    //       panel.groupedKey = key;
-    //   },
-    //
-    //   _clearExceedingElementsFromList: function() {
-    //     this.$.exceedingElementsList.clearExceedingElements();
-    //     this.closeAlarmPanel();
-    //   },
-    //
-    //   requestNotificationPermission: function() {
-    //     // Notifications
-    //     if (!("Notification" in window)) {
-    //       console.warn("This browebvisualer does not support desktop notification");
-    //     }
-    //     //  ask the user for permission
-    //     else if (this.notification && Notification.permission !== 'denied') {
-    //       Notification.requestPermission(function (permission) {
-    //         // If the user accepts, let's create a notification
-    //         if (permission === "granted") {
-    //           var notification = new Notification("Notifikationen aktiv", {icon: '../../img/icons/webicon.png', body: '', tag: ''});
-    //         }
-    //       });
-    //     }
-    //   },
-    //
-    //   createAlarmNotification: function() {
-    //     if (Notification.permission !== 'denied') {
-    //       var count = this.exceedingElements.length;
-    //       var msg = '';
-    //
-    //       var notification = new Notification(count + ' Elemente im Alarmzustand',
-    //         { icon: '../../img/icons/warning.png',
-    //           body: msg,
-    //           tag: msg });
-    //     }
-    //   },
-    //
-    //   toggleTheme: function(){
-    //     var elems = document.querySelectorAll('*');
-    //     if(this.dark === true) {
-    //       for (i = 0; i < elems.length; ++i) {
-    //         elems[i].removeAttribute("dark");
-    //       }
-    //       this.set("dark", false);
-    //     }
-    //     else {
-    //       for (i = 0; i < elems.length; ++i) {
-    //         elems[i].setAttribute("dark", '');
-    //       }
-    //       this.set("dark", true);
-    //     }
-    //     this.updateStyles();
-    //   },
-    //   toggleWindowDecoration: function(){
-    //     var elems = document.querySelectorAll('webvisual-groupcard');
-    //     for (i = 0; i < elems.length; ++i) {
-    //       elems[i].toggleAttribute("without-window");
-    //     }
-    //   },
-    //   toggleWindowHeader: function(){
-    //     var elems = document.querySelectorAll('webvisual-groupcard');
-    //     for (i = 0; i < elems.length; ++i) {
-    //       elems[i].toggleAttribute("hide-header");
-    //     }
-    //   },
-    //   toggleDateView: function(){
-    //     var elems = document.querySelectorAll('[updatable]');
-    //     for (i = 0; i < elems.length; ++i) {
-    //       elems[i].toggleAttribute("show-date");
-    //     }
-    //   },
-    //   toggleCollapse: function(e){
-    //     var button = e.currentTarget;
-    //     if (!button.hasAttribute('collapse-id')) {
-    //       return;
-    //     }
-    //     var id = button.getAttribute('collapse-id');
-    //     var collapse = Polymer.dom(this.root).querySelector('section.collapse.'+id);
-    //     var iconbutton = Polymer.dom(button).querySelector('iron-icon.right');
-    //     if (collapse) {
-    //       if (collapse.hasAttribute('opened')) {
-    //         collapse.removeAttribute('opened')
-    //       } else {
-    //         collapse.setAttribute('opened', '');
-    //       }
-    //       if (iconbutton) {
-    //         if (iconbutton.icon === 'arrow-drop-down')
-    //           iconbutton.set('icon','arrow-drop-up');
-    //         else
-    //           iconbutton.set('icon','arrow-drop-down');
-    //       }
-    //     }
-    //   },
-    //   // Panel Control
-    //   openAlarmPanel: function() {
-    //     this.$.alarmPanel.classList.add("alarm-panel-opened");
-    //   },
-    //   closeAlarmPanel: function() {
-    //     this.$.alarmPanel.classList.remove("alarm-panel-opened");
-    //   },
-    //   toggleAlarmPanel: function() {
-    //     this.$.alarmPanel.classList.toggle("alarm-panel-opened");
-    //   },
-    //   toggleDrawer: function(){
-    //     this.$.drawerPanel.classList.toggle("drawer-opened");
-    //     this.$.backdrop.classList.toggle("backdrop-opened");
-    //   },
-    //   closeDrawer: function(){
-    //     this.$.drawerPanel.classList.remove("drawer-opened");
-    //     this.$.backdrop.classList.remove("backdrop-opened");
-    //   },
-    //   toggleTabs: function(){
-    //     this.$.systemsTabs.classList.toggle("tabs-opened");
-		// 		this.fire('resize');
-    //   },
-    //   closeTabs: function(){
-    //     this.$.systemsTabs.classList.remove("tabs-opened");
-		// 		this.fire('resize');
-    //   },
-    //   activeChanged: function() {
-    //     var preconf = JSON.parse(localStorage.getItem(window.Name));
-    //     if (this.active === true && preconf && preconf.selectedSystems) {
-    //       this.$.panelSelector.select(preconf.selectedSystems[0]);
-    //     }
-    //     this.notifyResize();
-    //   }
-    // });
   </script>
 </dom-module>

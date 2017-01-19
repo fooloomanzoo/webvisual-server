@@ -70,6 +70,7 @@
             this._lastTarget.classList.add('overlay-static-above');
           }
           this.style.display = 'none';
+          this.fire('overlay-transition-end');
         }
       },
 

@@ -42,7 +42,7 @@
         -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
       }
 
-      :host ::content > * {
+      :host ::slotted(*) > * {
         -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
       }
 
@@ -50,7 +50,12 @@
         @apply(--tab-overlay);
       }
 
-      :host ::content .overlay-static-above::before {
+      #addon {
+        position: absolute;
+        pointer-events: none;
+      }
+
+      :host ::slotted(.overlay-static-above)::before {
         pointer-events: none;
         content: "";
         display: block;
@@ -71,15 +76,19 @@
         @apply(--tab-vertical-overlay);
       }
 
-      :host([vertical]) ::content .overlay-static-above::before {
+      :host([vertical]) ::slotted(.overlay-static-above)::before {
         @apply(--tab-vertical-overlay);
       }
 
     </style>
     <nav id="container" on-track="_onscroll" on-wheel="_onwheel">
       <webvisual-tabs-overlay id="overlay"></webvisual-tabs-overlay>
-      <content></content>
+      <slot name="tab"></slot>
+      <div id="addon">
+        <slot name="overlay-addon"></slot>
+      </div>
     </nav>
+
   </template>
   <script>
     Polymer({
@@ -98,16 +107,37 @@
         Polymer.IronSelectableBehavior
       ],
 
+      listeners: {
+        'overlay-transition-end': '_onTransitionend',
+      },
+
       observers: [
         '_onSelectedItemChanged(selectedItem)'
       ],
 
       _onSelectedItemChanged: function(selectedItem) {
+        if (!this.overlay) {
+          this.overlay = this.$.overlay;
+        }
+
         if (selectedItem === undefined) return;
 
-        this.$.overlay.target = selectedItem;
+        this.overlay.target = selectedItem;
 
         selectedItem.scrollIntoViewIfNeeded(true);
+      },
+
+      _onTransitionend: function() {
+        if (!this.overlay) {
+          this.overlay = this.$.overlay;
+        }
+        if (!this.addon) {
+          this.addon = this.$.addon;
+        }
+        this.addon.style.cssText = 'top: ' + this.overlay.style.top + ';' +
+                                   'right: ' + this.overlay.style.right + ';' +
+                                   'bottom: ' + this.overlay.style.bottom + ';' +
+                                   'left: ' + this.overlay.style.left + ';';
       },
 
       _onwheel: function (e) {

@@ -19,21 +19,22 @@
         display: block;
         width: 100%;
         height: 100%;
+        box-sizing: border-box;
         position: relative;
         font-family: inherit;
         color: white;
         letter-spacing: normal !important;
         user-select: none !important;
-        padding-bottom: 2em;
+        isolation: isolate;
       }
-      :host[fullscreen],
       :host([fullscreen]) {
         background-color: var(--fullscreen-background-color);
         max-height: 100% !important;
         max-width: 100% !important;
         height: 100% !important;
         width: 100% !important;
-        padding: 3em !important;
+        padding: 0 !important;
+        margin: 0 !important;
       }
       :host(:-webkit-full-screen) {
         background-color: var(--fullscreen-background-color);
@@ -41,8 +42,13 @@
       #svgContainer {
         border-radius: inherit;
         display: block;
-        width: 100%;
+        box-sizing: border-box;
+        /*width: 100%;*/
         height: 100%;
+        padding-bottom: 2.5em;
+      }
+      :host([fullscreen]) > #svgContainer {
+        padding: 1em 3em 3em 1em !important;
       }
       #svgchart {
         overflow: hidden;
@@ -107,7 +113,7 @@
         cursor: pointer;
         pointer-events: all;
         transform-origin: center;
-        stroke: #252525;
+        stroke: currentColor;
         stroke-width: 0.5px;
         stroke-opacity: 1;
         @apply(--chart-dot);
@@ -123,7 +129,7 @@
       #zoom .overlay.active {
         pointer-events: all;
         fill-opacity: 0.25;
-        fill: #ab0c0c;
+        fill: #4D0CAB;
         cursor: zoom-in;
         stroke: #1f1f1f;
         stroke-opacity: 0.3;
@@ -133,7 +139,7 @@
         mix-blend-mode: hard-light;
         fill: none;
         pointer-events: none;
-        stroke: white;
+        stroke: currentColor;
         stroke-opacity: 0.5;
         stroke-width: 1.5px;
         stroke-dasharray: 2;
@@ -151,10 +157,10 @@
       }
       webvisual-icon-button {
         border-radius: 0%;
-        mix-blend-mode: exclusion;
         opacity: 0.5;
         will-change: opacity;
         transition: opacity 150ms ease;
+        mix-blend-mode: exclusion;
       }
       webvisual-icon-button:hover {
         opacity: 1;
@@ -171,7 +177,7 @@
         justify-content: center;
         position: absolute;
         bottom: 0;
-        right: 4px;
+        right: 8px;
       }
       #subcontrol {
         display: flex;
@@ -934,6 +940,7 @@
       },
 
       _refresh: function() {
+        this._buildLayout();
         if (!this._graphs.size) return;
         this._graphs.forEach(
           function(g) {

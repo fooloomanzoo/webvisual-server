@@ -139,8 +139,6 @@
       }
 
       #headerContent > * {
-        height: 100%;
-        width: 100%;
         overflow: hidden;
       }
 
@@ -181,9 +179,20 @@
       [hidden] {
         display: none !important;
       }
-      webvisual-table-group[opened],
-      webvisual-element-chart[opened] {
+      webvisual-element-svg {
+        height: 100%;
+        width: 100%;
+      }
+      webvisual-table-group[opened] {
         padding: 3em 0 2.5em 0;
+        height: 100%;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      webvisual-element-chart[opened] {
+        height: calc(100% - 3em);
+        width: 100%;
+        margin-top: 3em;
         box-sizing: border-box;
       }
     </style>
