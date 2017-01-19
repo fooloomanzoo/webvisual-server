@@ -260,7 +260,8 @@
         <webvisual-element-graph
           item="[[item]]"
           interpolation="[[interpolation]]"
-          store-inside>
+          store-inside
+          no-link="[[noLink]]">
         </webvisual-element-graph>
       </template>
     </template>
@@ -269,7 +270,8 @@
       <webvisual-element-graph
         item="[[item]]"
         interpolation="[[interpolation]]"
-        store-inside>
+        store-inside
+        no-link="[[noLink]]">
       </webvisual-element-graph>
     </template>
 
@@ -350,6 +352,10 @@
         noAreas: {
           type: Boolean,
           value: false
+        },
+
+        noLink: {
+          type: Boolean
         },
 
         item: Object,

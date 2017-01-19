@@ -59,7 +59,7 @@
     <webvisual-icon-button id="exitButton" icon="close" on-tap="close"></webvisual-icon-button>
 
     <div id="content">
-      <webvisual-element-chart id="chart" opened="[[opened]]" item="[[item]]"></webvisual-element-chart>
+      <webvisual-element-chart id="chart" opened="[[opened]]" item="[[item]]" no-link></webvisual-element-chart>
     </div>
 
     <section id="bottom">
@@ -106,8 +106,16 @@
 
     },
 
+    listeners: {
+      'iron-overlay-closed': 'reset'
+    },
+
     requestFromSocket: function() {
 
+    },
+
+    reset: function(e) {
+      console.log(e);
     }
   });
 })();
