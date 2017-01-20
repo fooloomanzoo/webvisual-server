@@ -45,7 +45,7 @@
 
                 viewLength: {
                     type: Number,
-                    value: -1
+                    value: Number.POSITIVE_INFINITY
                 },
 
                 storeInside: {
@@ -290,7 +290,7 @@
                     // }
                     values.map(function(v) {
                         return {
-                            x: new Date(v.x),
+                            x: +v.x,
                             y: +v.y,
                             state: +v.state
                         };

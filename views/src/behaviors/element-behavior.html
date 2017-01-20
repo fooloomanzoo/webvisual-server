@@ -96,7 +96,7 @@
         window.Webvisual.assignElement(this);
       }
 
-      this.requestLastValue(this.viewLength, 0)
+      this.requestLastValue(null, null, this.viewLength)
           .then( function(values) {
             this.insertValues(values);
           }.bind(this))
@@ -133,6 +133,8 @@
       }
 
       var len = len || this.viewLength;
+
+      // len = (len && isFinite(len) && len <= values.length) ? len : ( (this.viewLength && isFinite(this.viewLength) && this.viewLength <= values.length) ? this.viewLength : values.length );
 
       if (!this._initialized)
         this._initialized = true;
@@ -196,7 +198,7 @@
       }
     },
 
-    requestLastValue: function(len, attempts) {
+    requestLastValue: function(start, end, len) {
       this._messageCount++;
       var self = this;
       len = len || this.viewLength || 1;
@@ -216,9 +218,6 @@
       if (window.Webvisual) {
         return new Promise(function(resolve, reject) {
 
-          if (!this.webworker) {
-            reject('No webworker in webvisual-client active');
-          }
 
           this.webworker.addEventListener('message', function onMessage(e) {
             if (e.data
@@ -247,6 +246,56 @@
           }
         }.bind(this));
       }
+      // this._messageCount++;
+      // var self = this;
+      // len = len || this.viewLength || 1;
+      // var messageId = 'requestLastValue' + this.uniqueid + '#' + this._messageCount;
+      // var req = {
+      //   request: {
+      //     messageId: messageId,
+      //     func: 'requestLast',
+      //     arg: {
+      //       mounts: [this.item.mount],
+      //       length: len || 1
+      //     }
+      //   }
+      // };
+      //
+      // var uniqueid = this.uniqueid;
+      // if (window.Webvisual) {
+      //   return new Promise(function(resolve, reject) {
+      //
+      //     if (!this.webworker) {
+      //       reject('No webworker in webvisual-client active');
+      //     }
+      //
+      //     this.webworker.addEventListener('message', function onMessage(e) {
+      //       if (e.data
+      //        && e.data.messageId
+      //        && e.data.messageId === messageId) {
+      //          this.webworker.removeEventListener('message', onMessage, false );
+      //          if (self.item && e.data.response && e.data.response[self.item.mount]) {
+      //            resolve(e.data.response[self.item.mount]);
+      //          } else if (attempts) {
+      //           //  console.log(self.item.mount + ': ' + attempts + '  ' + JSON.stringify(e.data.response));
+      //            resolve(self.requestLastValue(len, --attempts));
+      //          } else {
+      //            reject(self.nodeName + ': no values received')
+      //          }
+      //        }
+      //     }.bind(this), false );
+      //
+      //     this.webworker.postMessage( req );
+      //   }.bind(window.Webvisual))
+      // } else {
+      //   return new Promise( function(resolve, reject) {
+      //     if (this.values)
+      //       resolve(this.values.slice(this.values.length - len, this.values.length))
+      //     else {
+      //       reject();
+      //     }
+      //   }.bind(this));
+      // }
     },
 
     requestRange: function(key, attempts) {

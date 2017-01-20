@@ -5,6 +5,9 @@ function WebvisualClient() {
   this.locationHost = '';
   this.socketName = '';
   this.socketRoom = '';
+
+  this.messageId = 0;
+  this.messageMap = new Map();
 }
 
 WebvisualClient.prototype = {
@@ -19,14 +22,22 @@ WebvisualClient.prototype = {
         this.webworker = new Worker('/scripts/webvisual-worker.js');
 
         this.webworker.onmessage = function(e) {
-          if (e.data && !e.data.messageId) {
-            switch (e.data.type) {
-              case 'updateNodes':
-                this.updateNodes(e.data.data);
-                break;
-              case 'status':
-                this.updateStatus(e.data.status);
-                break;
+          if (e.data) {
+            if (e.data.messageId) {
+              var res = this.messageMap.get(e.data.messageId);
+              if (res) {
+                this.messageMap.delete(e.data.messageId);
+                res(e.data);
+              }
+            } else {
+              switch (e.data.type) {
+                case 'updateNodes':
+                  this.updateNodes(e.data.data);
+                  break;
+                case 'status':
+                  this.updateStatus(e.data.status);
+                  break;
+              }
             }
           }
         }.bind(this)
@@ -65,6 +76,13 @@ WebvisualClient.prototype = {
 
   assignStatusNotifications: function(connector) {
     this.statusHandler = connector;
+  },
+
+  request: function(req, res) {
+    this.messageId++;
+    this.messageMap.add(this.messageId, res);
+    req.messageId = this.messageId;
+    this.webworker.postMessage(req);
   },
 
   updateStatus: function(status) {

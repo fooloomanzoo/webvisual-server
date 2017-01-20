@@ -70,6 +70,22 @@ self.onmessage = function(e) {
       self[key](e.data[key]);
     }
   }
+  switch (e.data.target) {
+    case 'socket':
+
+      break;
+    case 'database':
+
+      break;
+    case 'cache':
+
+      break;
+    case 'server':
+
+      break;
+    default:
+
+  }
 }
 
 self.createSocketConnection = function(opt) {
