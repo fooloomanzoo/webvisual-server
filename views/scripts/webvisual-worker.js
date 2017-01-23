@@ -188,7 +188,31 @@ self.onmessage = function(e) {
       break;
     case 'database':
       if (DatabaseStore[e.data.operation]) {
-        DatabaseStore[e.data.operation](e.data.args);
+        DatabaseStore[e.data.operation](e.data.args)
+          .then( function(res) {
+            console.log(res);
+            self.postMessage({
+              type: 'request',
+              messageId: e.data.messageId,
+              response: res
+            });
+          })
+          .catch( function(err) {
+            if (err) {
+              console.warn(err);
+            }
+            self.postMessage({
+              type: 'request',
+              messageId: e.data.messageId,
+              response: {}
+            });
+          });
+      } else { // return, to remove EventListener
+        self.postMessage({
+          type: 'request',
+          messageId: e.data.messageId,
+          response: {}
+        });
       }
       break;
     case 'cache':
