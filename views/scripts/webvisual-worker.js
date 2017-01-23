@@ -1,6 +1,6 @@
 importScripts('/socket.io/socket.io.js');
 importScripts('/scripts/cache.js');
-importScripts('/scripts/database-worker.js');
+importScripts('/scripts/database.js');
 
 if (!self.Promise) {
   importScripts('/polyfills/promise.js');
@@ -88,109 +88,121 @@ self.onmessage = function(e) {
   }
 }
 
-self.createSocketConnection = function(opt) {
-  if (!socket) {
-    options.locationHost = opt.locationHost || options.locationHost;
-    options.socketName = opt.socketName || options.socketName;
+self.Socket = function () {
+  this.socket = null;
+  this.locationHost = '';
+  this.socketName = '';
+  this.socketRoom = '';
+  this.mobile = false;
+}
 
-    if (!options.locationHost || !options.socketName) {
+self.Socket.prototype = {
+
+  connect: function(opt) {
+    if (!socket) {
+      this.locationHost = opt.locationHost || this.locationHost;
+      this.socketName = opt.socketName || this.socketName;
+
+      if (!this.locationHost || !this.socketName) {
+        return;
+      }
+      socket = io.connect(this.locationHost + '/' + this.socketName, {
+        multiplex: false
+      });
+
+      socket.on('connect', function() {
+        console.info('clientSocket connected to: ' + this.locationHost);
+        self.postMessage( {
+          type: 'status',
+          status: 'connected'
+        })
+      });
+      socket.on('disconnect', function() {
+        console.warn('clientSocket disconnected to: ' + this.locationHost);
+        self.postMessage( {
+          type: 'status',
+          status: 'disconnected'
+        })
+      });
+      socket.on('reconnect', function() {
+        console.info('clientSocket reconnected to: ' + this.locationHost);
+        self.postMessage( {
+          type: 'status',
+          status: 'connected'
+        })
+      });
+      socket.on('error', function(err) {
+        console.error('clientSocket error: ', err);
+        self.postMessage( {
+          type: 'status',
+          status: 'sync-problem'
+        })
+      });
+
+      socket.on('initial', function(message) {
+        // reset cache and clear database on initial data
+        // if (self.navigator && self.navigator.onLine === true) {
+        //   self._clearDatabase();
+        //   self._clearCache();
+        // }
+
+        self._updateData(message, 'initial');
+      });
+
+      socket.on('update', function(message) {
+        self._updateData(message, 'update');
+      });
+
+      socket.on('request', function(message) {
+        if (message && message.messageId && message.values) {
+          self.postMessage({
+            type: 'request',
+            messageId: message.messageId,
+            response: message.values
+          });
+        }
+      });
+
+      if (opt.socketRoom) {
+        this.socketRoom = opt.socketRoom;
+        this.setup(options)
+      }
+      else if (this.socketRoom) {
+        this.setup(options)
+      }
+    }
+  },
+
+  setup: function(opt) {
+    if (!this.socket) {
+      this.connect(opt);
       return;
     }
-    socket = io.connect(options.locationHost + '/' + options.socketName, {
-      multiplex: false
-    });
-
-    socket.on('connect', function() {
-      console.info('clientSocket connected to: ' + options.locationHost);
-      self.postMessage( {
-        type: 'status',
-        status: 'connected'
-      })
-    });
-    socket.on('disconnect', function() {
-      console.warn('clientSocket disconnected to: ' + options.locationHost);
-      self.postMessage( {
-        type: 'status',
-        status: 'disconnected'
-      })
-    });
-    socket.on('reconnect', function() {
-      console.info('clientSocket reconnected to: ' + options.locationHost);
-      self.postMessage( {
-        type: 'status',
-        status: 'connected'
-      })
-    });
-    socket.on('error', function(err) {
-      console.error('clientSocket error: ', err);
-      self.postMessage( {
-        type: 'status',
-        status: 'sync-problem'
-      })
-    });
-
-    socket.on('initial', function(message) {
-      // reset cache and clear database on initial data
-      if (self.navigator && self.navigator.onLine === true) {
-        self._clearDatabase();
-        self._clearCache();
+    if (this.socket && opt.socketRoom) {
+      var facility = opt.socketRoom.split('/')[0],
+        system = opt.socketRoom.split('/')[1];
+      if (!facility || !system) {
+        return;
       }
 
-      self._updateData(message, 'initial');
-    });
+      this.socketRoom = opt.socketRoom;
+      this.mobile = opt.mobile || false;
 
-    socket.on('update', function(message) {
-      self._updateData(message, 'update');
-    });
-
-    socket.on('request', function(message) {
-      if (message && message.messageId && message.values) {
-        self.postMessage({
-          type: 'request',
-          messageId: message.messageId,
-          response: message.values
-        });
-      }
-    });
-
-    if (opt.socketRoom) {
-      options.socketRoom = opt.socketRoom;
-      self.setupConnection(options)
+      this.socket.emit('setup', {
+        room: this.socketRoom,
+        mobile: this.mobile
+      });
     }
-    else if (options.socketRoom) {
-      self.setupConnection(options)
+  },
+
+  disconnect: function() {
+    if (this.socket && this.socket.disconnect) {
+      this.socket.disconnect();
+      this.socket = null;
     }
   }
-}
+};
 
-self.setupConnection = function(opt) {
-  if (!socket) {
-    self.createSocketConnection(opt);
-  }
-  if (socket && opt.socketRoom) {
-    var facility = opt.socketRoom.split('/')[0],
-      system = opt.socketRoom.split('/')[1];
-    if (!facility || !system) {
-      return;
-    }
-
-    options.socketRoom = opt.socketRoom;
-    options.mobile = opt.mobile || false;
-
-    // Webvisual._initialized = false;
-    socket.emit('setup', {
-      room: options.socketRoom,
-      mobile: options.mobile
-    });
-  }
-}
-
-self.disconnect = function() {
-  if (socket && socket.disconnect) {
-    socket.disconnect();
-    socket = null;
-  }
-}
 
 self._updateData = function(message, type) {
   if (Array.isArray(message)) {// if message is an Array
