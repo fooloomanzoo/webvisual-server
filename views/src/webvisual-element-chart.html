@@ -951,15 +951,20 @@
         this._graphs.forEach(
           function(g) {
             g.clearValues(true);
-            g.requestLastValue(this.viewLength, 3)
-              .then( function(values) {
-                this.insertValues(values);
-              }.bind(g))
-              .catch( function(err) {
-                if (err) {
-                  console.log(err);
-                }
-              }.bind(this) );
+            g.requestValues(null, null, this.viewLength)
+                .then( function(data) {
+                  for (var mount in data) {
+                    if (mount === this.item.mount) {
+                      this.insertValues(data[mount]);
+                      break;
+                    }
+                  }
+                }.bind(g))
+                .catch( function(err) {
+                  if (err) {
+                    console.log(err);
+                  }
+                }.bind(this) );
           }.bind(this));
         this._isZoomed = false;
         this.redraw();

@@ -3,7 +3,7 @@
   'use strict';
 
   // Matches polyfill
-  if (!Element.prototype.matches) {
+  if (!self && !Element.prototype.matches) {
       Element.prototype.matches =
           Element.prototype.matchesSelector ||
           Element.prototype.mozMatchesSelector ||
@@ -49,7 +49,7 @@
   }
 
   // scrollIntoViewIfNeeded
-  if (!Element.prototype.scrollIntoViewIfNeeded) {
+  if (!self && !Element.prototype.scrollIntoViewIfNeeded) {
     Element.prototype.scrollIntoViewIfNeeded = function (centerIfNeeded) {
       centerIfNeeded = arguments.length === 0 ? true : !!centerIfNeeded;
 

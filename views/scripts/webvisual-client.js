@@ -7,7 +7,7 @@ function WebvisualClient() {
   this.socketRoom = '';
 
   this.messageId = 0;
-  this.messageMap = new Map();
+  this.messageMap = {};
 }
 
 WebvisualClient.prototype = {
@@ -24,15 +24,16 @@ WebvisualClient.prototype = {
         this.webworker.onmessage = function(e) {
           if (e.data) {
             if (e.data.messageId) {
-              var res = this.messageMap.get(e.data.messageId);
-              if (res) {
-                this.messageMap.delete(e.data.messageId);
-                res(e.data);
+              var resolve = this.messageMap[e.data.messageId];
+              if (resolve) {
+                // this.messageMap.delete(e.data.messageId);
+                delete this.messageMap[e.data.messageId];
+                resolve(e.data.response);
               }
             } else {
               switch (e.data.type) {
                 case 'updateNodes':
-                  this.updateNodes(e.data.data);
+                  this.updateNodes(e.data.values, e.data.splices);
                   break;
                 case 'status':
                   this.updateStatus(e.data.status);
@@ -43,7 +44,9 @@ WebvisualClient.prototype = {
         }.bind(this)
       }
       this.webworker.postMessage({
-        createSocketConnection: {
+        target: 'socket',
+        operation: 'connect',
+        args: {
           locationHost: this.locationHost,
           socketName: this.socketName
         }
@@ -59,10 +62,13 @@ WebvisualClient.prototype = {
         return;
 
       this.webworker.postMessage({
-        setupConnection: {
+        target: 'socket',
+        operation: 'setup',
+        args: {
           socketRoom: this.socketRoom,
           mobile: this.mobile
-        }});
+        }
+      });
     }
   },
 
@@ -78,9 +84,9 @@ WebvisualClient.prototype = {
     this.statusHandler = connector;
   },
 
-  request: function(req, res) {
+  request: function(req, resolve) {
     this.messageId++;
-    this.messageMap.add(this.messageId, res);
+    this.messageMap[this.messageId] = resolve;
     req.messageId = this.messageId;
     this.webworker.postMessage(req);
   },
@@ -120,20 +126,20 @@ WebvisualClient.prototype = {
       .delete(node);
   },
 
-  updateNodes: function(message) {
-    if (!message || message.hasOwnProperty('messageId')) return;
+  updateNodes: function(values, splices) {
 
     // requestAnimationFrame( function() {
-      for (var mount in message) {
+      for (var mount in values) {
 
         if (this.nodes.has(mount)) {
           this.nodes.get(mount).forEach(function(node) {
-            node.spliceValues(message[mount].splices);
-            node.insertValues(message[mount].values);
+            node.spliceValues(splices[mount]);
+            node.insertValues(values[mount]);
           });
         }
 
-        delete message[mount];
+        delete values[mount];
+        delete splices[mount];
       }
     // }.bind(this));
 

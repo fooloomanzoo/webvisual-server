@@ -7,79 +7,84 @@ if (!self.Promise) {
 
 (function() {
 
-  function Store(type, options) {
+  function Store(type, indexKey, options) {
     // Set Options
+    this.type = type;
+    this.indexKey = indexKey;
     this.options = options;
-    this.store = new Map();
-    switch (type) {
-      case 'database':
-        this.StoreKey = Database;
-        break;
-      case 'database':
-        this.StoreKey = Cache;
-        break;
-    }
+    this._store = new Map();
   }
 
   Store.prototype = {
 
     has: function(mount) {
-        return this.store.has(mount);
+        return this._store.has(mount);
     },
 
     get: function(mount) {
-        return this.store.get(mount);
+        return this._store.get(mount);
     },
 
     add: function(mount) {
-      if (!this.store.has(mount)) {
-        this.store.set(mount, new this.StoreKey(this.options));
+      if (!this._store.has(mount)) {
+        var obj = new Object();
+        this._store.set(mount, this._newStoreKey(mount));
       }
     },
 
-    delete: function(mount) {
-        if (this[mount])
-            delete this[mount];
-        if (!this.store.has(mount))
-            return;
-        this.store.get(mount).clear();
-        this.store.delete(mount);
+    _newStoreKey: function(mount) {
+      switch (this.type) {
+        case 'database':
+          return new ClientDatabase(mount, this.indexKey, this.options);
+          break;
+        case 'cache':
+          return new ClientCache(mount, this.indexKey, this.options);
+          break;
+      }
     },
 
     clear: function() {
-        this.store.forEach( function(el, key) {
+        this._store.forEach( function(el, key) {
             el.clear();
         })
-        this.store.clear();
+        this._store.clear();
     },
 
     place: function(data) {
         for (var mount in data) {
-            if (!this.store.has(mount)) {
-                // console.log(mount, data[mount].length);
-                this.store.set(mount, new this.StoreKey(this.options));
+            this.add(mount);
+            try {
+              this._store.get(mount).set(data[mount]);
+            } catch (e) {
+              console.log(mount, e);
             }
-            this.store.get(mount).put(data[mount]);
         }
     },
 
-    request: function(opt) {
-        var mounts = opt.mounts,
-            start = opt.start,
-            end = opt.end,
-            len = opt.length,
-            ret = {};
+    delete: function(data) {
+        for (var mount in data) {
+            this.add(mount);
+            try {
+              this._store.get(mount).delete(data[mount]);
+            } catch (e) {
+              console.log(mount, e);
+            }
+        }
+    },
+
+    request: function(args) {
+        var ret = {};
 
         return new Promise( function(resolve, reject) {
-            if (mounts === undefined || !Array.isArray(mounts)) {
-                this.store.forEach(function(el, key) {
-                    ret[v] = el.request(start, end, len);
+            if (args.mounts === undefined || !Array.isArray(args.mounts)) {
+                this._store.forEach(function(el, key) {
+                    ret[v] = el.get(args.start, args.end, args.length);
                 })
             } else {
-                for (var i in mounts) {
-                    if (this.store.has(mounts[i])) {
-                        ret[mounts[i]] = this.store.get(mounts[i])
-                            .request(start, end, len);
+                for (var i = 0; i < args.mounts.length; i++) {
+                    if (this._store.has(args.mounts[i])) {
+                        ret[args.mounts[i]] = this._store.get(args.mounts[i])
+                            .get(args.start, args.end, args.length);
                     }
                 }
             }
@@ -101,27 +106,27 @@ if (!self.Promise) {
     },
 
     range: function(opts) {
-        return new Promise( function(resolve, reject) {
-            resolve([this.first(opts), this.last(opts)]);
-        }.bind(this));
-    },
-
-    rangedValues: function(opts) {
-        return new Promise( function(resolve, reject) {
-            resolve([this.min(opts), this.max(opts)]);
-        }.bind(this));
+      if (opts.key) {
+          return new Promise( function(resolve, reject) {
+              resolve([this.min(opts), this.max(opts)]);
+          }.bind(this));
+      } else {
+          return new Promise( function(resolve, reject) {
+              resolve([this.first(opts), this.last(opts)]);
+          }.bind(this));
+      }
     },
 
     _operation: function(func, compareFn, key, mounts) {
         var ret = [];
         if (Array.isArray(mounts)) {
           for (var i = 0; i < mounts.length; i++) {
-              if (this.store.has(mounts[i])) {
-                  ret.push(this.store.get(mounts[i])[func](key));
+              if (this._store.has(mounts[i])) {
+                  ret.push(this._store.get(mounts[i])[func](key));
               }
           }
         } else {
-          this.store.forEach( function(v, e) {
+          this._store.forEach( function(v, e) {
               e[func](key).then( function(res) {
                   ret.push(res);
               });

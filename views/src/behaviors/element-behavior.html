@@ -96,9 +96,14 @@
         window.Webvisual.assignElement(this);
       }
 
-      this.requestLastValue(null, null, this.viewLength)
-          .then( function(values) {
-            this.insertValues(values);
+      this.requestValues(null, null, this.viewLength)
+          .then( function(data) {
+            for (var mount in data) {
+              if (mount === this.item.mount) {
+                this.insertValues(data[mount]);
+                break;
+              }
+            }
           }.bind(this))
           .catch( function(err) {
             // if (err) {
@@ -198,45 +203,42 @@
       }
     },
 
-    requestLastValue: function(start, end, len) {
-      this._messageCount++;
+    requestValues: function(start, end, len) {
       var self = this;
       len = len || this.viewLength || 1;
-      var messageId = 'requestLastValue' + this.uniqueid + '#' + this._messageCount;
       var req = {
-        request: {
-          messageId: messageId,
-          func: 'requestLast',
-          arg: {
-            mounts: [this.item.mount],
-            length: len || 1
-          }
+        target: 'cache',
+        operation: 'request',
+        args: {
+          mounts: [this.item.mount],
+          start: null,
+          end: null,
+          length: len || 1
         }
       };
 
-      var uniqueid = this.uniqueid;
       if (window.Webvisual) {
         return new Promise(function(resolve, reject) {
 
 
-          this.webworker.addEventListener('message', function onMessage(e) {
-            if (e.data
-             && e.data.messageId
-             && e.data.messageId === messageId) {
-               this.webworker.removeEventListener('message', onMessage, false );
-               if (self.item && e.data.response && e.data.response[self.item.mount]) {
-                 resolve(e.data.response[self.item.mount]);
-               } else if (attempts) {
-                //  console.log(self.item.mount + ': ' + attempts + '  ' + JSON.stringify(e.data.response));
-                 resolve(self.requestLastValue(len, --attempts));
-               } else {
-                 reject(self.nodeName + ': no values received')
-               }
-             }
-          }.bind(this), false );
+          // this.webworker.addEventListener('message', function onMessage(e) {
+          //   if (e.data
+          //    && e.data.messageId
+          //    && e.data.messageId === messageId) {
+          //      this.webworker.removeEventListener('message', onMessage, false );
+          //      if (self.item && e.data.response && e.data.response[self.item.mount]) {
+          //        resolve(e.data.response[self.item.mount]);
+          //      } else if (attempts) {
+          //       //  console.log(self.item.mount + ': ' + attempts + '  ' + JSON.stringify(e.data.response));
+          //        resolve(self.requestValues(len, --attempts));
+          //      } else {
+          //        reject(self.nodeName + ': no values received')
+          //      }
+          //    }
+          // }.bind(this), false );
 
-          this.webworker.postMessage( req );
-        }.bind(window.Webvisual))
+          window.Webvisual.request( req, resolve );
+        })
       } else {
         return new Promise( function(resolve, reject) {
           if (this.values)
@@ -249,7 +251,7 @@
       // this._messageCount++;
       // var self = this;
       // len = len || this.viewLength || 1;
-      // var messageId = 'requestLastValue' + this.uniqueid + '#' + this._messageCount;
+      // var messageId = 'requestValues' + this.uniqueid + '#' + this._messageCount;
       // var req = {
       //   request: {
       //     messageId: messageId,
@@ -278,7 +280,7 @@
       //            resolve(e.data.response[self.item.mount]);
       //          } else if (attempts) {
       //           //  console.log(self.item.mount + ': ' + attempts + '  ' + JSON.stringify(e.data.response));
-      //            resolve(self.requestLastValue(len, --attempts));
+      //            resolve(self.requestValues(len, --attempts));
       //          } else {
       //            reject(self.nodeName + ': no values received')
       //          }

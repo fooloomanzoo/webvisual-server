@@ -1,94 +1,101 @@
 (function() {
 
-    var defaults = {
-        size: 1800, // Length of each DataRow (by mount in values)
-        indexKey: 'x'
-    };
-
-    function Cache(options) {
-      this.maxCount = options.maxCount || 1800;
-      this.indexKey = options.indexKey || 'x';
-      this.withHeap = options.withHeap || false;
+    function ClientCache(mount, indexKey, options) {
+      this.mount = mount;
+      this.indexKey = indexKey || 'x';
+      this.maxCount = options && options.maxCount ? options.maxCount : 1800;
+      this.values = [];
+      this._splices = [];
+      Object.defineProperty(this, "splices", {
+          get: function() {
+              return this._splices.splice(0, this._splices.length);
+          },
+          enumerable: false,
+          configurable: true
+      });
+      this._heap = [];
+      Object.defineProperty(this, "heap", {
+          get: function() {
+              return this._heap.splice(0, this._heap.length);
+          },
+          enumerable: false,
+          configurable: true
+      });
     }
 
-    Cache.prototype = {
+    ClientCache.prototype = {
 
-        setAsArray: function() {
-            this._cache = Array.prototype;
-            Object.defineProperty(this, "values", {
-                get: function() {
-                    return this._cache;
-                },
-                set: function(data) {
-                    this.append(data);
-                },
-                enumerable: false,
-                configurable: true
-            });
-            this._splices = Array.prototype;
-            Object.defineProperty(this, "splices", {
-                get: function() {
-                    return this._splices.splice(0, this._splices.length);
-                },
-                enumerable: false,
-                configurable: true
-            });
-            this._heap = Array.prototype;
-            Object.defineProperty(this, "heap", {
-                get: function() {
-                    return this._heap.splice(0, this._heap.length);
-                },
-                enumerable: false,
-                configurable: true
-            });
+        clear: function() {
+            this._splices.length = 0; // clear arrays
+            this._heap.length = 0;
+            this.values.length = 0;
         },
 
-        setAsBuffer: function() {
-            switch (this.type) {
-                case 'Float64':
-                    break;
+        get: function(start, end, len) {
+            if (Number.isFinite(start) && Number.isFinite(end) ) {
+                for (var startIndex = this.values.length - 1; startIndex >= 0; startIndex--){
+                    if (this.values[startIndex][this.indexKey] >= start) {
+                        break;
+                    }
+                }
+                for (var endIndex = 0; endIndex < this.values.length; endIndex++){
+                    if (this.values[endIndex][this.indexKey] <= end) {
+                        break;
+                    }
+                }
+                if (Number.isFinite(len) && endIndex - startIndex > len) {
+                  startIndex = endIndex - len;
+                }
+                return this.values.slice(startIndex, endIndex);
+            } else {
+                var startIndex = (Number.isFinite(len) && len >= 0 && len < this.values.length) ? this.values.length - len - 1 : 0;
+                return this.values.slice(startIndex);
             }
         },
 
-        clear: function() {
-            this._splices.length = 0; // clear array
-            this._heap.length = 0;
-            this._cache.length = 0;
-        },
-
-        requestLast: function(len) {
-            var start = (len >= 0 && len < this._cache.length) ? this._cache.length - len - 1 : 0;
-            return this._cache.slice(start);
+        set: function(data) {
+            if (data.length > this.maxCount)
+                data = data.slice(data.length - this.maxCount, data.length);
+            this._heap = this._heap.concat(data);
+            if (this.values.length === 0)
+                this.values = data;
+            else
+                this.values = this.values.concat(data);
+            if (this.values.length > this.maxCount)
+                this._splices = this._splices.concat(this.values.splice(0, this.values.length - this.maxCount));
+            this.values.sort(this.compareFn(this.indexKey));
         },
 
         range: function(key) {
+          return new Promise(function(resolve, reject) {
             if (key === undefined)
-                return [this.first, this.last];
+                resolve([this.first(), this.last()]);
             else
-                return [this.first[key], this.last[key]];
+                resolve([this.min(key), this.max(key)]);
+          }.bind(this));
         },
 
-        last: function(key) {
-            return this._cache[this._cache.length - 1][key];
+        last: function() {
+            return this.values[this.values.length - 1][this.indexKey];
         },
 
         first: function(key) {
-            return this._cache[0][key];
+            return this.values[0][this.indexKey];
         },
 
         max: function(key) { // inspired by d3.array
             var i = -1,
                 a,
                 b;
-            var n = this._cache.length;
+            var n = this.values.length;
 
             while (++i < n)
-                if ((b = this._cache[i][key]) !== null && b >= b) {
+                if ((b = this.values[i][key]) !== null && b >= b) {
                     a = b;
                     break;
                 }
             while (++i < n)
-                if ((b = this._cache[i][key]) !== null && a < b) {
+                if ((b = this.values[i][key]) !== null && a < b) {
                     a = b;
                 }
 
@@ -99,15 +106,15 @@
             var i = -1,
                 a,
                 b;
-            var n = this._cache.length;
+            var n = this.values.length;
 
             while (++i < n)
-                if ((b = this._cache[i][key]) !== null && b >= b) {
+                if ((b = this.values[i][key]) !== null && b >= b) {
                     a = b;
                     break;
                 }
             while (++i < n)
-                if ((b = this._cache[i][key]) !== null && a > b) a = b;
+                if ((b = this.values[i][key]) !== null && a > b) a = b;
 
             return a;
         },
@@ -117,31 +124,9 @@
             return function(a, b) {
                 return (a[key] < b[key]) ? -1 * order : (a[key] > b[key]) ? 1 * order : 0;
             }
-        },
-
-        append: function(data, noHeap) {
-            var len = data.length;
-            if (len > this.size)
-                data = data.slice(len - this.size, len);
-            if (!noHeap)
-                this._heap = this._heap.concat(data);
-            if (this._cache.length === 0)
-                this._cache = data;
-            else
-                this._cache = this._cache.concat(data);
-            if (this._cache.length > this.size)
-                this._splices = this._splices.concat(this._cache.splice(0, this._cache.length - this.size));
-            if (this.primary)
-                this._cache.sort(this.compareFn(this.primary));
-        },
-
-        splices: function() {
-
-        },
-
-        heap: function() {
-          
         }
     }
-
+    if (self) {
+    	self.ClientCache = ClientCache;
+    }
 })();
