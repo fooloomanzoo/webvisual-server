@@ -18,6 +18,11 @@
       "rejectUnauthorized": false
     }
   },
+  "database": {
+    "port": 6379,
+    "type": "redis",
+    "host": "localhost"
+  },
   "userConfigFiles": [
     {
       "name": "Cryostat",
@@ -34,10 +39,5 @@
       "title": "Test",
       "path": "./examples/config/test.json"
     }
-  ],
-  "database": {
-    "port": 6379,
-    "type": "redis",
-    "host": "127.0.0.1"
-  }
+  ]
 }

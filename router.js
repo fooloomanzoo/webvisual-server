@@ -68,7 +68,7 @@ class Router extends EventEmitter {
     this.passport = require('passport');
     this.settings = {};
     this.configuration = {};
-    
+
     // TODO: use session manager to auth socket.io client
     // http://mono.software/2014/08/25/Sharing-sessions-between-SocketIO-and-Express-using-Redis/
     // http://stackoverflow.com/questions/25532692/how-to-share-sessions-with-socket-io-1-x-and-express-4-x
@@ -83,12 +83,14 @@ class Router extends EventEmitter {
         host: 'localhost',
         port: 6379
       } ),
-      maxAge: 24*3600*1000*180,
       secret: 'String(Math.random().toString(16).slice(2)',
-      cachControl: 'no-cache',
       resave: true,
-      saveUninitialized: false,
-      cookie: { secure: true }
+      rolling: true,
+      saveUninitialized: true,
+      cookie: {
+        secure: true,
+        maxAge: 24*3600*1000*180
+      }
     } );
 
     this.app.use( this.sessionMiddleWare );
@@ -145,7 +147,7 @@ class Router extends EventEmitter {
         : this.passport.authenticate('dummy'),
       (req, res) => {
         // console.log('returnTo', path.resolve(process.cwd(), 'public', req.session.returnTo));
-        res.redirect('/');
+        res.redirect(req.session.returnTo || '/');
         // res.status(200).send('Logged In');
 
       });
@@ -324,7 +326,7 @@ const ensureLoggedIn = {
   is: function(req, res, next) {
     if (!req.isAuthenticated || !req.isAuthenticated()) {
       req.session = req.session || {};
-      req.session.returnTo = req.originalUrl || req.url;
+      req.session.returnTo = (req.url && !req.url.startsWith('/auth') && !req.url.startsWith('/data') && !req.url.startsWith('/images')) ? req.url : '/';
       res.status(403).send('Unauthorized');
     } else {
       next();

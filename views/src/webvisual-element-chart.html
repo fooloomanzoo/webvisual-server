@@ -103,6 +103,9 @@
       }
       #graphs .area {
         fill-opacity: 0.3;
+        stroke: black;
+        stroke-opacity: 0.5;
+        stroke-width: 1px;
         @apply(--chart-area);
       }
       #graphs .line {
@@ -113,8 +116,8 @@
         cursor: pointer;
         pointer-events: all;
         transform-origin: center;
-        stroke: currentColor;
-        stroke-width: 0.5px;
+        stroke: black;
+        stroke-width: 0.75px;
         stroke-opacity: 1;
         @apply(--chart-dot);
       }
@@ -344,12 +347,12 @@
           value: false
         },
 
-        noLines: {
+        noLine: {
           type: Boolean,
-          value: false
+          value: true
         },
 
-        noAreas: {
+        noArea: {
           type: Boolean,
           value: false
         },
@@ -899,32 +902,32 @@
         this._sizeLayout();
       },
 
-      changeDots: function(e) {
-        this.noDots = !e.target.checked;
-        if (!this._graphs.size) return;
-        this._graphs.forEach(
-          function(g) {
-            g.set('noDots', !e.target.checked)
-          });
-      },
-
-      changeLines: function(e) {
-        this.noLines = !e.target.checked;
-        if (!this._graphs.size) return;
-        this._graphs.forEach(
-          function(g) {
-            g.set('noLine', !e.target.checked)
-          });
-      },
-
-      changeAreas: function(e) {
-        this.noAreas = !e.target.checked;
-        if (!this._graphs.size) return;
-        this._graphs.forEach(
-          function(g) {
-            g.set('noFill', !e.target.checked)
-          });
-      },
+      // changeDots: function(e) {
+      //   this.noDots = !e.target.checked;
+      //   if (!this._graphs.size) return;
+      //   this._graphs.forEach(
+      //     function(g) {
+      //       g.set('noDots', !e.target.checked)
+      //     });
+      // },
+      //
+      // changeLines: function(e) {
+      //   this.noLines = !e.target.checked;
+      //   if (!this._graphs.size) return;
+      //   this._graphs.forEach(
+      //     function(g) {
+      //       g.set('noLine', !e.target.checked)
+      //     });
+      // },
+      //
+      // changeAreas: function(e) {
+      //   this.noAreas = !e.target.checked;
+      //   if (!this._graphs.size) return;
+      //   this._graphs.forEach(
+      //     function(g) {
+      //       g.set('noFill', !e.target.checked)
+      //     });
+      // },
 
       _startZoomSession: function() {
         if (this._zoomOverlay.classed('active')) {
