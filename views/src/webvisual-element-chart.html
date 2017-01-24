@@ -109,7 +109,8 @@
         @apply(--chart-area);
       }
       #graphs .line {
-        stroke-width: 1.5px;
+        stroke-width: 1px;
+        stroke-opacity: 0.5;
         @apply(--chart-line);
       }
       #graphs .dot {
@@ -143,7 +144,7 @@
         fill: none;
         pointer-events: none;
         stroke: currentColor;
-        stroke-opacity: 0.5;
+        stroke-opacity: 0.75;
         stroke-width: 1.5px;
         stroke-dasharray: 2;
       }
@@ -349,7 +350,7 @@
 
         noLine: {
           type: Boolean,
-          value: true
+          value: false
         },
 
         noArea: {
