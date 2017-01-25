@@ -70,6 +70,10 @@
       g#chart text {
         font-size: 0.55em;
       }
+      g#brush .selection {
+        stroke: currentColor;
+        stroke-opacity: 0.7;
+      }
       rect#plot {
         fill: var(--chart-plot-background, #fff);
         stroke: currentColor;
@@ -98,28 +102,17 @@
       .axis {
         font-family: inherit;
       }
-      #graphs .area, #graphs .line {
-        pointer-events: none;
-      }
       #graphs .area {
+        pointer-events: none;
         fill-opacity: 0.3;
-        stroke: black;
-        stroke-opacity: 0.5;
-        stroke-width: 1px;
+        stroke-opacity: 0.75;
         @apply(--chart-area);
-      }
-      #graphs .line {
-        stroke-width: 1px;
-        stroke-opacity: 0.5;
-        @apply(--chart-line);
       }
       #graphs .dot {
         cursor: pointer;
         pointer-events: all;
         transform-origin: center;
-        stroke: black;
-        stroke-width: 0.75px;
-        stroke-opacity: 1;
+        stroke-opacity: 0.75;
         @apply(--chart-dot);
       }
       #zoom {
@@ -148,15 +141,14 @@
         stroke-width: 1.5px;
         stroke-dasharray: 2;
       }
-      rect.boundery {
-        fill: black;
-        stroke: white;
-        fill-opacity: 0.25;
-        mix-blend-mode: overlay;
-        stroke-opacity: 0.25;
+      .boundery {
+        fill: #B40D35;
+        stroke: #E113EE;
+        fill-opacity: 0.75;
+        stroke-opacity: 0.5;
         stroke-width: 1px;
       }
-      .axis, .grid, #plot, rect.boundery {
+      .axis, .grid, #plot, .boundery {
         pointer-events: none;
       }
       webvisual-icon-button {
@@ -204,20 +196,19 @@
             <rect x="0" y="0"></rect>
           </clipPath>
           <rect id="plot" clip-path="url(#clip)"></rect>
-          <g id="xAxis" class="axis"></g>
-          <g id="yAxis" class="axis"></g>
           <g id="xGrid" class="grid" clip-path="url(#clip)"></g>
           <g id="yGrid" class="grid" clip-path="url(#clip)"></g>
-          <g id="brush" clip-path="url(#clip)"></g>
+          <g id="graphs" clip-path="url(#clip)">
+            <g id="areas"></g>
+            <g id="bounderies"></g>
+            <g id="brush"></g>
+            <g id="dots"></g>
+          </g>
+          <g id="xAxis" class="axis"></g>
+          <g id="yAxis" class="axis"></g>
           <g id="focus" clip-path="url(#clip)" hidden>
             <line id="focusX" class="focus line x" x1="0"></line>
             <line id="focusY" class="focus line y"></line>
-          </g>
-          <g id="graphs" clip-path="url(#clip)">
-            <g id="areas"></g>
-            <g id="lines"></g>
-            <g id="dots"></g>
-            <g id="bounderies"></g>
           </g>
           <text id="info" x="0" y="0" hidden></text>
           <g id="zoom" clip-path="url(#clip)">
@@ -398,7 +389,6 @@
       _focusX: Object,
       _focusY: Object,
       _zoomOverlay: Object,
-      _lines: Object,
       _areas: Object,
       _dots: Object,
       _bounderies: Object,
@@ -491,7 +481,6 @@
 
         this._chart = d3.select(this.$.chart);
 
-        this._lines = d3.select(this.$.lines);
         this._areas = d3.select(this.$.areas);
         this._dots = d3.select(this.$.dots);
         this._bounderies = d3.select(this.$.bounderies);
