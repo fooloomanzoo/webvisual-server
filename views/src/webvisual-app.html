@@ -641,6 +641,8 @@
             Polymer.dom(this.root).appendChild(this._detailRequestDialog);
           }
           this._detailRequestDialog.set('item', detail.item);
+          this._detailRequestDialog.set('language', this.language);
+          this._detailRequestDialog.set('languageResources', this.languageResources);
           this._detailRequestDialog.open();
         });
       },

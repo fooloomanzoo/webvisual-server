@@ -17,7 +17,8 @@
       "name": "Liste"
     },
 		"detail": {
-      "name": "Details"
+      "name": "Details",
+      "query": "Abfrage"
     },
 		"settings": "Einstellungen",
 		"view": "Ansicht",
@@ -62,7 +63,8 @@
 			"name": "List"
 		},
 		"detail": {
-			"name": "Details"
+			"name": "Details",
+      "query": "Query"
 		},
 		"settings": "Settings",
 		"view": "View",
@@ -107,7 +109,8 @@
 			"name": "Liste"
 		},
 		"detail": {
-			"name": "Details"
+			"name": "Details",
+      "query": "Interrogation"
 		},
 		"settings": "Paramètres",
 		"view": "Affichage",
@@ -152,7 +155,8 @@
 			"name": "Lista"
 		},
 		"detail": {
-			"name": "Detalle"
+			"name": "Detalle",
+      "query": "Consulta"
 		},
 		"settings": "Configuración",
 		"view": "Punto de Vista",
@@ -197,7 +201,8 @@
 			"name": "Serie"
 		},
 		"detail": {
-			"name": "Dettagli"
+			"name": "Dettagli",
+      "query": "Interrogazione"
 		},
 		"settings": "Impostazione",
 		"view": "Veduta",
@@ -242,7 +247,8 @@
 			"name": "пе́речень"
 		},
 		"detail": {
-			"name": "дета́ль"
+			"name": "дета́ль",
+      "query": "запрос"
 		},
 		"settings": "Настройка",
 		"view": "взгляд",
@@ -287,7 +293,8 @@
 			"name": "目录"
 		},
 		"detail": {
-			"name": "細部"
+			"name": "細部",
+      "query": "询问"
 		},
 		"settings": "构型",
 		"view": "图示",

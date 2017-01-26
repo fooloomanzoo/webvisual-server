@@ -23,12 +23,12 @@ WebvisualClient.prototype = {
 
         this.webworker.onmessage = function(e) {
           if (e.data) {
+            // console.log(e.data);
             if (e.data.messageId) {
               var resolve = this.messageMap[e.data.messageId];
               if (resolve) {
                 // this.messageMap.delete(e.data.messageId);
                 delete this.messageMap[e.data.messageId];
-                // console.log(e.data);
                 resolve(e.data.response);
               }
             } else {
@@ -92,7 +92,8 @@ WebvisualClient.prototype = {
   request: function(req, resolve) {
     this.messageId++;
     this.messageMap[this.messageId] = resolve;
-    req.messageId = this.messageId;
+    req.args = req.args || {};
+    req.args.messageId = this.messageId;
     this.webworker.postMessage(req);
   },
 

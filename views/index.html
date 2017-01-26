@@ -95,11 +95,6 @@
       src: url('/fonts/FiraSans-Regular.woff2') format('woff2'),
            url('/fonts/FiraSans-Regular.ttf') format('truetype');
     }
-    @font-face {
-      font-family: 'FiraSans-Medium';
-      src: url('/fonts/FiraSans-Medium.woff2') format('woff2'),
-           url('/fonts/FiraSans-Medium.ttf') format('truetype');
-    }
 
     html {
       background: #005B82;
@@ -111,7 +106,7 @@
       justify-content: center;
       align-items: center;
       margin: 0;
-      font-family: 'FiraSans-Regular', 'FiraSans-Medium', sans-serif;
+      font-family: 'FiraSans-Regular', sans-serif;
       font-weight: normal;
       font-size: calc(0.75em + 0.5vmin);
       line-height: calc(1em + 0.5vmin);
@@ -128,39 +123,104 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      font-size: 1.5em;
-      letter-spacing: 0.3em;
-      color: #fff;
       top: 0;
       left: 0;
       right: 0;
       bottom: 0;
     }
-    webvisual-app[unresolved] * {
+    webvisual-app[unresolved] > * {
       margin-bottom: 1.5em;
     }
-    /*#modal {
-      position: absolute;
-    	left: 50%;
-      top: 50%;
-      transform: translate(-50%,-50%);
+
+    .circle {
+      transform-origin: center center;
+      transform: scale(0);
+      stroke: #1ED146;
+      fill: #1ED146;
+      stroke-width: 0.25px;
     }
-    #modal > * {
-      position: relative;
-    }*/
+
+    webvisual-app[unresolved] .circle:nth-child(1) { animation: drop 4s ease-in-out 2000ms infinite, color 16s ease-in-out 2000ms infinite; }
+    webvisual-app[unresolved] .circle:nth-child(2) { animation: drop 4s ease-in-out 2250ms infinite, color 16s ease-in-out 2250ms infinite; }
+    webvisual-app[unresolved] .circle:nth-child(3) { animation: drop 4s ease-in-out 2450ms infinite, color 16s ease-in-out 2450ms infinite; }
+    webvisual-app[unresolved] .circle:nth-child(4) { animation: drop 4s ease-in-out 2600ms infinite, color 16s ease-in-out 2600ms infinite; }
+    webvisual-app[unresolved] .circle:nth-child(5) { animation: drop 4s ease-in-out 2700ms infinite, color 16s ease-in-out 2700ms infinite; }
+    webvisual-app[unresolved] .circle:nth-child(6) { animation: drop 4s ease-in-out 2750ms infinite, color 16s ease-in-out 2750ms infinite; }
+
+    webvisual-app:not([unresolved]) > * {
+      display: none;
+    }
+    @keyframes drop {
+    	0% {
+    		transform: scale(0);
+        fill-opacity: 0.3;
+        stroke-opacity: 0.4;
+    	}
+    	68% {
+    		transform: scale(1);
+        fill-opacity: 0.25;
+        stroke-opacity: 0;
+    	}
+    	100% {
+        fill-opacity: 0;
+        transform: scale(1);
+        stroke-opacity: 0;
+    	}
+    }
+    @keyframes color {
+    	0% {
+        stroke: #1ED146;
+        fill: #1ED146;
+    	}
+    	25% {
+        stroke: #1ED146;
+        fill: #1ED146;
+    	}
+    	26% {
+        stroke: #D17F1E;
+        fill: #D17F1E;
+    	}
+    	50% {
+        stroke: #D17F1E;
+        fill: #D17F1E;
+    	}
+    	51% {
+        stroke: #D11E34;
+        fill: #D11E34;
+    	}
+    	75% {
+        stroke: #D11E34;
+        fill: #D11E34;
+    	}
+    	76% {
+        stroke: #1ED1CC;
+        fill: #1ED1CC;
+    	}
+    	100% {
+        stroke: #1ED1CC;
+        fill: #1ED1CC;
+    	}
+    }
   </style>
 
 </head>
 <body>
 
   <webvisual-app unresolved>
-    <header>WEBVISUAL</header>
-    <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 18 21" height="128" width="128" fill="#fff">
-      <path
-         d="m 7.9210071,9.6186 c 0.00247,0 0.069517,-0.1271 0.1238027,-0.2191 C 8.4858763,8.6535 11.162848,2.016 11.818367,0.453 10.931859,0.1606 9.9845675,0 8.9998427,0 4.0292496,0 0,4.0296 0,9.0004 0,9.8201 0.11180425,10.6132 0.31703415,11.3676 0.88207947,10.9999 4.326143,8.6165 4.331304,8.6333 4.8828771,10.6646 6.7408919,11.7121 7.9210134,9.6186 Z M 15.877984,3.1983 C 15.20168,4.798 12.925902,10.1648 12.315732,11.3725 11.11385,13.5587 9.1934613,15.5984 6.5917182,15.7155 3.5379728,15.8529 1.9207658,14.6872 1.0502452,13.2192 2.562154,16.0633 5.5546275,18 8.9998427,18 13.970672,18 18,13.9704 18,9.0004 18,6.7887 17.200507,4.7651 15.877984,3.1983"></path>
+    <header style="color:#fff;font-size: 1.5em;letter-spacing: 0.3em;">WEBVISUAL</header>
+    <svg xmlns="http://www.w3.org/2000/svg" id="svg2" width="128" height="128" viewBox="0 0 18 18" version="1.1">
+      <g>
+        <circle class="circle" r="9" cy="9" cx="9"/>
+        <circle class="circle" r="9" cy="9" cx="9"/>
+        <circle class="circle" r="9" cy="9" cx="9"/>
+        <circle class="circle" r="9" cy="9" cx="9"/>
+        <circle class="circle" r="9" cy="9" cx="9"/>
+        <circle class="circle" r="9" cy="9" cx="9"/>
+      </g>
+      <path id="logo"
+         d="m 7.921007,9.6185999 c 0.00246,0 0.069517,-0.1271011 0.1238027,-0.2191016 C 8.4858762,8.6535007 11.162847,2.016 11.818367,0.45299994 10.931859,0.16060007 9.9845674,1.3411045e-7 8.9998426,1.3411045e-7 4.0292495,1.3411045e-7 0,4.0296008 0,9.0004025 0,9.8200982 0.11180425,10.613197 0.31703414,11.367597 0.88207947,10.999897 4.326143,8.6165011 4.3313039,8.6333003 4.8828769,10.664597 6.7408919,11.712097 7.9210133,9.6185999 Z M 15.877983,3.1983005 C 15.20168,4.7980011 12.925902,10.164797 12.315732,11.372497 11.113851,13.558698 9.1934612,15.598399 6.5917182,15.715499 3.5379727,15.852899 1.9207658,14.687199 1.0502453,13.219198 2.562154,16.0633 5.5546274,18 8.9998426,18 13.970672,18 18,13.970398 18,9.0004025 18,6.7887033 17.200507,4.7651011 15.877983,3.1983005" style="fill:#fff;"/>
     </svg>
   </webvisual-app>
-  <!-- <div id="modal"></div> -->
 
 </body>
 </html>

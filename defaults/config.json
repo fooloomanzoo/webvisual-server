@@ -35,8 +35,8 @@
       "path": "./examples/config/HNF_GDS.json"
     },
     {
-      "name": "Test",
-      "title": "Test",
+      "name": "Demo",
+      "title": "Demo",
       "path": "./examples/config/test.json"
     }
   ]

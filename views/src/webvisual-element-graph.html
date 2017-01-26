@@ -392,9 +392,20 @@
                               .remove();
                       }
                     }
+                    // hide line if there are too many data-points
+                    data = data.filter(this._defined.bind(this));
+                    // console.log(data.length, this.lineWidth, this.chartElement._width, data.length / this.lineWidth);
+                    // if (data.length * (this.lineWidth) > this.chartElement._width) {
+                    //   this.lineWidth = this.chartElement._width / data.length;
+                    //   console.log(this.lineWidth);
+                    //   // this.areaNode.attr('stroke', 'none');
+                    //   data = [];
+                    // } else {
+                    //   this.areaNode.attr('stroke', this.bounderyAreaGradientNode ? ('url(#boundery-area-' + this.item.mount + ')') : '#000');
+                    //   this.lineWidth = 0.5;
+                    // }
 
                     if (!this.noDots) {
-                        data = data.filter(this._defined.bind(this));
                         var everyOverlappingDot = (data.length / Math.max(this.chartElement._height, this.chartElement._width) * (this.dotRadius * 3));
 
                         if (everyOverlappingDot > 1)

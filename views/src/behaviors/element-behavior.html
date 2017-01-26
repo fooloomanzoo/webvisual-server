@@ -206,22 +206,20 @@
     },
 
     requestValues: function(start, end, len) {
-      var self = this;
       len = len || this.viewLength || 1;
       var req = {
         target: 'cache',
         operation: 'request',
         args: {
           mounts: [this.item.mount],
-          start: null,
-          end: null,
+          from: null,
+          to: null,
           length: len || 1
         }
       };
 
       if (window.Webvisual) {
         return new Promise(function(resolve, reject) {
-
           window.Webvisual.request( req, resolve );
         })
       } else {
@@ -253,7 +251,7 @@
                } else if (attempts) {
                  resolve(this.requestRange(key, attempts--));
                } else {
-                 reject(self.item + ': no range received')
+                 reject(this.item + ': no range received')
                }
              }
           }.bind(this));

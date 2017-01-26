@@ -120,15 +120,15 @@ self.IOSocket.prototype = {
     }
   },
 
-  request: function(opt) {
-    // socket.emit('request', {
-    //   room: options.socketRoom,
-    //   mount: opt.mount,
-    //   messageId: opt.messageId,
-    //   from: opt.from,
-    //   to: opt.to,
-    //   limit: opt.limit
-    // });
+  request: function(args) {
+    this.socket.emit('request', {
+      room: this.socketRoom,
+      mounts: args.mounts,
+      messageId: args.messageId,
+      from: args.from,
+      to: args.to,
+      limit: args.limit
+    });
   }
 };
 
@@ -175,11 +175,6 @@ self.onoffline = function() {
 }
 
 self.onmessage = function(e) {
-  // for (var key in e.data) {
-  //   if (self[key]) {
-  //     self[key](e.data[key]);
-  //   }
-  // }
   switch (e.data.target) {
     case 'socket':
       if (Socket[e.data.operation]) {
@@ -193,7 +188,7 @@ self.onmessage = function(e) {
             console.log(res);
             self.postMessage({
               type: 'request',
-              messageId: e.data.messageId,
+              messageId: e.data.args.messageId,
               response: res
             });
           })
@@ -203,14 +198,14 @@ self.onmessage = function(e) {
             }
             self.postMessage({
               type: 'request',
-              messageId: e.data.messageId,
+              messageId: e.data.args.messageId,
               response: {}
             });
           });
       } else { // return, to remove EventListener
         self.postMessage({
           type: 'request',
-          messageId: e.data.messageId,
+          messageId: e.data.args.messageId,
           response: {}
         });
       }
@@ -221,7 +216,7 @@ self.onmessage = function(e) {
           .then( function(res) {
             self.postMessage({
               type: 'request',
-              messageId: e.data.messageId,
+              messageId: e.data.args.messageId,
               response: res
             });
           })
@@ -231,14 +226,14 @@ self.onmessage = function(e) {
             }
             self.postMessage({
               type: 'request',
-              messageId: e.data.messageId,
+              messageId: e.data.args.messageId,
               response: {}
             });
           });
       } else { // return, to remove EventListener
         self.postMessage({
           type: 'request',
-          messageId: e.data.messageId,
+          messageId: e.data.args.messageId,
           response: {}
         });
       }
@@ -287,33 +282,4 @@ self._updateDatabase = function(data) {
 
 self._clearDatabase = function() {
   DatabaseStore.clear();
-}
-
-self.request = function(opt) {
-  // if (opt.func && opt.messageId && cache[opt.func]) {
-  //   cache[opt.func](opt.arg)
-  //     .then( function(res) {
-  //       self.postMessage({
-  //         type: 'request',
-  //         messageId: opt.messageId,
-  //         response: res
-  //       });
-  //     })
-  //     .catch( function(err) {
-  //       if (err) {
-  //         console.warn(err);
-  //       }
-  //       self.postMessage({
-  //         type: 'request',
-  //         messageId: messageId,
-  //         response: {}
-  //       });
-  //     });
-  // } else { // return, to remove EventListener
-  //   self.postMessage({
-  //     type: 'request',
-  //     messageId: messageId,
-  //     response: {}
-  //   });
-  // }
 }

@@ -326,7 +326,8 @@ const ensureLoggedIn = {
   is: function(req, res, next) {
     if (!req.isAuthenticated || !req.isAuthenticated()) {
       req.session = req.session || {};
-      req.session.returnTo = (req.url && !req.url.startsWith('/login') && !req.url.startsWith('/auth') && !req.url.startsWith('/data') && !req.url.startsWith('/images')) ? req.url : '/';
+      console.log(req.url, req.originalUrl);
+      req.session.returnTo = (req.originalUrl && !req.originalUrl.match(/.*\..*/) && !req.originalUrl.match(/.*auth.*/)) ? req.originalUrl : '/';
       res.status(403).send('Unauthorized');
     } else {
       next();

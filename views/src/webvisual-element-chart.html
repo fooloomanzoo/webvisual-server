@@ -219,7 +219,7 @@
   	</div>
 
     <section id="control">
-      <iron-collapse id="subcontrol" opened="[[_showSubControl]]">
+      <iron-collapse id="subcontrol" opened="[[showControl]]">
         <webvisual-selectbox>
           <select value="{{interpolation::input}}">
             <option value="Lineare Verbindung">Lineare Verbindung</option>
@@ -246,7 +246,7 @@
           <webvisual-icon-button title="refresh" icon="refresh" on-tap="_refresh"></webvisual-icon-button>
         </section>
       </iron-collapse>
-      <webvisual-icon-button title="settings" icon="tune" checked="{{_showSubControl}}"></webvisual-icon-button>
+      <webvisual-icon-button title="settings" icon="tune" checked="{{showControl}}"></webvisual-icon-button>
       <webvisual-icon-button title="fullscreen" icon="[[fullscreenIcon]]" on-tap="toggleFullscreen"></webvisual-icon-button>
     </section>
 
@@ -328,6 +328,22 @@
           observer: 'changeScale'
         },
 
+        domainX: {
+          type: Array,
+          value: function() {
+            return [null, null];
+          },
+          notify: true
+        },
+
+        domainY: {
+          type: Array,
+          value: function() {
+            return [null, null];
+          },
+          notify: true
+        },
+
         interpolation: {
           type: String,
           value: 'Lineare Verbindung',
@@ -362,7 +378,7 @@
           value: false
         },
 
-        _showSubControl: {
+        showControl: {
           type: Boolean,
           value: false
         },
@@ -743,6 +759,7 @@
                       }
 
                       this._x.domain(domainX);
+                      this.set('domainX', domainX);
                       this._y.domain(domainY).nice(this.yTicks);
 
                       // if domain is on the edge of data, add a little space
@@ -754,6 +771,7 @@
                         domainY[1] += (rangeY[1] - rangeY[0]) / this.yTicks;
                       }
                       this._y.domain(domainY);
+                      this.set('domainY', domainY);
                       resolve();
 
                     }.bind(this))
@@ -765,6 +783,20 @@
                 reject(err);
               });
         }.bind(this));
+      },
+
+      insertValues: function(data) {
+        this._graphs.forEach( function(g) {
+          if (g.item && g.item.mount && data[g.item.mount])
+            g.insertValues(data[g.item.mount]);
+        });
+      },
+
+      clearValues: function() {
+        this._graphs.forEach( function(g) {
+          if (g.item && g.item.mount)
+            g.clearValues();
+        });
       },
 
       requestRange: function(key) {
@@ -889,6 +921,7 @@
         this._hideInfo();
         this._y = this._createScale(this.yScale);
         this._y.domain(domainY).nice(this.yTicks);
+        this.set('domainY', domainY);
         this._sizeLayout();
       },
 

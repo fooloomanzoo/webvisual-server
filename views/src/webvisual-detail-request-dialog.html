@@ -3,8 +3,9 @@
 <link rel="import" href="../bower_components/paper-dialog-behavior/paper-dialog-behavior.html">
 <link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
 
-<link rel="import" href="style/webvisual-dialog-styles.html">
+<link rel="import" href="behaviors/localize-behavior.html">
 
+<link rel="import" href="style/webvisual-dialog-styles.html">
 <link rel="import" href="style/webvisual-button.html">
 
 <link rel="import" href="components/webvisual-icon-button.html"/>
@@ -28,8 +29,6 @@
       }
       datetime-picker {
         --datetime-picker-input: {
-          padding: 0.5em 0.1em;
-          width: 50%;
           text-align: center;
           border: none;
           outline: none;
@@ -40,10 +39,20 @@
         color: inherit;
       }
       #bottom {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: flex-start;
         font-size: 0.9em;
+        padding: 0;
+        margin-bottom: 1em;
       }
       .webvisual-button {
         flex: 0;
+      }
+      .icon {
+        color: currentColor;
+        fill: currentColor;
       }
       #exitButton {
         position: absolute;
@@ -51,16 +60,37 @@
         top: 0;
         margin: 0.5em;
       }
-      #dates {
-        display: flex;
-        flex-direction: row;
+      #bottom > * {
+        align-self: stretch;
+        margin: 0.25em !important;
+        height: 2.5em;
+      }
+      .date {
+        display: inline-flex;
         align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
+        align-content: center;
+        justify-content: flex-start;
       }
-      #dates > * {
+      .date > * {
         margin: 0 0.25em;
+        height: 100%;
       }
+      .webvisual-button {
+        padding: 0.5em 1.5em;
+      }
+      #spinner {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        margin: 0.5em;
+        box-sizing: border-box;
+        height: 40px;
+        width: 40px;
+      }
+      [hidden] {
+        display: none;
+      }
+
     </style>
 
     <div id="title">
@@ -70,23 +100,42 @@
     <webvisual-icon-button id="exitButton" icon="close" on-tap="close"></webvisual-icon-button>
 
     <div id="content">
-      <webvisual-element-chart id="chart" opened="[[opened]]" item="[[item]]" no-link></webvisual-element-chart>
+      <webvisual-element-chart id="chart" opened="[[opened]]" item="[[item]]" no-link show-control domain-x="{{domainX}}"></webvisual-element-chart>
     </div>
 
     <section id="bottom">
-      <div id="dates">
-        <span>From: </span>
-        <datetime-picker id="dateFrom" value="{{fromDate}}" date-string="{{_minDate}}" max-date="[[_maxDate]]"></datetime-picker>
-        <span>To: </span>
-        <datetime-picker id="dateTo" value="{{toDate}}" date-string="{{_maxDate}}" min-date="[[_minDate]]"></datetime-picker>
-      </div>
+
+        <div class="date">
+          <iron-icon class="icon" icon="first-page"></iron-icon>
+          <datetime-picker id="dateFrom" value="{{fromDate}}" date-string="{{_minDate}}" max-date="[[_maxDate]]" locales="[[language]]"></datetime-picker>
+        </div>
+        <div class="date">
+          <iron-icon class="icon" icon="last-page"></iron-icon>
+          <datetime-picker id="dateTo" value="{{toDate}}" date-string="{{_maxDate}}" min-date="[[_minDate]]" locales="[[language]]"></datetime-picker>
+        </div>
+
 
       <div class="webvisual-button" on-tap="requestFromSocket">
         <paper-ripple></paper-ripple>
-        <iron-icon class="left" icon="juelich:logo"></iron-icon>
-        <span>Request</span>
+        <iron-icon class="left icon" icon="date-range"></iron-icon>
+        <span>{{localize('detail', 'query')}}</span>
       </div>
+
     </section>
+
+    <svg id="spinner" hidden$="[[!isLoading]]" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+      viewBox="0 0 100 100" enable-background="new 0 0 0 0" xml:space="preserve">
+        <path fill="#fff" d="M73,50c0-12.7-10.3-23-23-23S27,37.3,27,50 M30.9,50c0-10.5,8.5-19.1,19.1-19.1S69.1,39.5,69.1,50">
+          <animateTransform
+             attributeName="transform"
+             attributeType="XML"
+             type="rotate"
+             dur="1s"
+             from="0 50 50"
+             to="360 50 50"
+             repeatCount="indefinite" />
+      </path>
+    </svg>
   </template>
 
 </dom-module>
@@ -97,7 +146,8 @@
     is: 'webvisual-detail-request-dialog',
 
     behaviors: [
-      Polymer.PaperDialogBehavior
+      Polymer.PaperDialogBehavior,
+      WebvisualBehaviors.LocalizeBehavior
     ],
 
     properties: {
@@ -114,6 +164,11 @@
         reflectToAttribute: true
       },
 
+      isLoading: {
+        type: Boolean,
+        value: false
+      },
+
       fromDate: {
         type: Number,
         value: +(new Date() - 3600000)
@@ -124,6 +179,11 @@
         value: +(new Date())
       },
 
+      domainX: {
+        type: Array,
+        observer: '_domainXChanged'
+      }
+
     },
 
     listeners: {
@@ -131,7 +191,35 @@
     },
 
     requestFromSocket: function() {
+      var req = {
+        target: 'socket',
+        operation: 'request',
+        args: {
+          mounts: [this.item.mount],
+          from: this.fromDate,
+          to: this.toDate
+        }
+      };
 
+      Promise.resolve(new Promise(function(resolve, reject) {
+                        this.isLoading = true;
+                        window.Webvisual.request( req, resolve );
+                      }.bind(this)))
+             .then( function(res) {
+               this.isLoading = false;
+               this.$.chart.clearValues(res);
+               this.$.chart.insertValues(res);
+             }.bind(this))
+             .catch( function(err) {
+               console.log(err);
+             });
+    },
+
+    _domainXChanged: function() {
+      if (this.domainX && Number.isFinite(this.domainX[0]) && Number.isFinite(this.domainX[1])) {
+        this.set('fromDate', this.domainX[0]);
+        this.set('toDate', this.domainX[1]);
+      }
     },
 
     reset: function(e) {
