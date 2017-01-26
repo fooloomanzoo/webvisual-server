@@ -332,20 +332,28 @@
                         var l_color = this.customStyle['element-state-deceeds-color'] || '#F20C0C';
 
                         if (this.item.threshold.from !== undefined) {
-                          y = ((1 - (this.chartElement._y(this.item.threshold.from) + this.lineWidth) / this.chartElement._height) * 100) + '%';
-                          b_area.push({o: y, c: l_color})
-                          b_area.push({o: y, c: '#000'})
-                          y = ((1 - (this.chartElement._y(this.item.threshold.from) + 2 * (this.dotRadius + this.lineWidth * 2))/ this.chartElement._height) * 100) + '%';
-                          b_dots.push({o: y, c: l_color})
-                          b_dots.push({o: y, c: '#000'})
+                          y = ((1 - (this.chartElement._y(this.item.threshold.from) + this.lineWidth * 1.25) / this.chartElement._height) * 100);
+                          if (Number.isFinite(y)) {
+                            b_area.push({o: y + '%', c: l_color});
+                            b_area.push({o: y + '%', c: '#000'});
+                          }
+                          y = ((1 - (this.chartElement._y(this.item.threshold.from) + 1.5 * (this.dotRadius))/ this.chartElement._height) * 100);
+                          if (Number.isFinite(y)) {
+                            b_dots.push({o: y + '%', c: l_color});
+                            b_dots.push({o: y + '%', c: '#000'});
+                          }
                         }
                         if (this.item.threshold.to !== undefined) {
-                          y = ((1 - (this.chartElement._y(this.item.threshold.to) - this.lineWidth) / this.chartElement._height) * 100) + '%';
-                          b_area.push({o: y, c: '#000'})
-                          b_area.push({o: y, c: u_color})
-                          y = ((1 - (this.chartElement._y(this.item.threshold.to) - 2 * (this.dotRadius + this.lineWidth * 2))/ this.chartElement._height) * 100) + '%';
-                          b_dots.push({o: y, c: '#000'})
-                          b_dots.push({o: y, c: u_color})
+                          y = ((1 - (this.chartElement._y(this.item.threshold.to) - this.lineWidth * 1.25) / this.chartElement._height) * 100);
+                          if (Number.isFinite(y)) {
+                            b_area.push({o: y + '%', c: '#000'});
+                            b_area.push({o: y + '%', c: u_color});
+                          }
+                          y = ((1 - (this.chartElement._y(this.item.threshold.to) - 1.5 * (this.dotRadius))/ this.chartElement._height) * 100);
+                          if (Number.isFinite(y)) {
+                            b_dots.push({o: y + '%', c: '#000'});
+                            b_dots.push({o: y + '%', c: u_color});
+                          }
                         }
                         // for area
                         var gradients = this.bounderyAreaGradientNode
@@ -402,13 +410,13 @@
                             .attr('cy', function(d) {
                                 return this.chartElement._y(d.y)
                             }.bind(this))
-                            .attr('fill', this.item.color || '#fff');
+                            .attr('fill', this._calcDotColor.bind(this));
                         // enter new dots
                         dots.enter()
                             .append('circle')
                             .classed('dot style-scope webvisual-element-graph', true)
                             .attr('r', this.dotRadius)
-                            .attr('fill', this.item.color || '#fff')
+                            .attr('fill', this._calcDotColor.bind(this))
                             .attr('cx', function(d) {
                                 return this.chartElement._x(d.x)
                             }.bind(this))
@@ -482,6 +490,13 @@
                 this.dots.selectAll('circle')
                         .remove();
               }
+            },
+
+            _calcDotColor: function(d) {
+              if (!d.state) {
+                return this.item.color || '#fff';
+              }
+              return '#fff';
             },
 
             _presentationChanged: function(noDots, noLine, noFill) {

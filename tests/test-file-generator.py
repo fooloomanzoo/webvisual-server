@@ -9,7 +9,7 @@ low = -22
 high = 22
 prec = 1
 rowlenght = 25
-initialLineLength = 50
+initialLineLength = 250
 valueseperator = ';'
 interval = 2
 

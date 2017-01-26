@@ -82,6 +82,7 @@ if (!self.Promise) {
                 })
             } else {
                 for (var i = 0; i < args.mounts.length; i++) {
+                    ret[args.mounts[i]] = [];
                     if (this._store.has(args.mounts[i])) {
                         ret[args.mounts[i]] = this._store.get(args.mounts[i])
                             .get(args.start, args.end, args.length);

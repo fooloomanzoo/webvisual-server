@@ -4,8 +4,6 @@
 <link rel="import" href="behaviors/checked-and-select-behavior.html"/>
 <link rel="import" href="behaviors/element-behavior.html"/>
 
-<link rel="import" href="components/webvisual-dropdown.html"/>
-<link rel="import" href="webvisual-element-sign.html"/>
 <link rel="import" href="./style/webvisual-element-styles.html"/>
 
 <dom-module id="webvisual-element-checkbox">
@@ -72,7 +70,6 @@
         border-style: solid;
         border-top: none;
         border-left: none;
-        mix-blend-mode: hard-light;
         border-right-width: calc(2/15 * var(--calculated-box-size));
         border-bottom-width: calc(2/15 * var(--calculated-box-size));
         border-color: var(--box-arrow-color, white);
@@ -87,13 +84,17 @@
       #boxContainer[state="0"] #box {
         background-color: var(--element-state-inrange-color, var(--element-color));
       }
-      #boxContainer[state="1"] #box,
-      #boxContainer[state="1"] #arrow {
+      :host([checked]) #boxContainer[state="1"] #box {
         border-color: var(--element-state-exceeds-color);
       }
-      #boxContainer[state="-1"] #box,
-      #boxContainer[state="-1"] #arrow {
+      :host([checked]) #boxContainer[state="-1"] #box {
         border-color: var(--element-state-deceeds-color);
+      }
+      :host(:not([checked])) #boxContainer[state="1"] #box {
+        background-color: var(--element-state-exceeds-color);
+      }
+      :host(:not([checked])) #boxContainer[state="-1"] #box {
+        background-color: var(--element-state-deceeds-color);
       }
 
       #boxContainer #ripple {
@@ -186,7 +187,7 @@
 
     <slot></slot>
 
-    <template is="dom-if" if="[[dropdownValue]]">
+    <template is="dom-if" if="[[_dropdownValue]]">
       <webvisual-dropdown id="dropdown"
         hiding-event="tap"
         position="bottom"
@@ -229,7 +230,9 @@
 
         showDate: Boolean,
 
-        dropdownValue: Boolean
+        dropdownValue: Boolean,
+
+        _dropdownValue: Boolean
 
       },
 
@@ -250,11 +253,18 @@
 
           if (this.item.exceedable) {
             this.checkExceedingState(value);
-            if (!this.hasAttribute('state') || this.state != value.state) {
+            if (this.state != value.state) {
               this.setAttribute('state', value.state);
             }
           }
+        } else {
+          this.setAttribute('state', null);
         }
+      },
+
+      renderClearing: function() {
+        this._initialized = false;
+        this.setAttribute('state', null);
       },
 
       attached: function() {
@@ -280,9 +290,20 @@
           this.$.boxContainer.removeEventListener('mouseenter', this._openDropdown, false);
           this.$.boxContainer.removeEventListener('mouseleave', this._closeDropdown, false);
           this._dropdown = null;
+          this._dropdownValue = false;
         } else {
-          this.$.boxContainer.addEventListener('mouseenter', this._openDropdown.bind(this), false);
-          this.$.boxContainer.addEventListener('mouseleave', this._closeDropdown.bind(this), false);
+          this.importHref(
+            this.resolveUrl('components/webvisual-dropdown.html'),
+            function() {
+              this._dropdownValue = true;
+              this.importHref(
+                this.resolveUrl('webvisual-sign.html'),
+                function() {
+                  this.$.boxContainer.addEventListener('mouseenter', this._openDropdown, false);
+                  this.$.boxContainer.addEventListener('mouseleave', this._closeDropdown, false);
+                  this._dropdown = null;
+                }.bind(this), null, true);
+            }.bind(this), null, true);
         }
       },
 

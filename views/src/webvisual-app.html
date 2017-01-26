@@ -514,8 +514,7 @@
       observers: [
         '_routePageChanged(routeData.page)',
         '_subrouteChanged(subroute)',
-        '_setInitialGroupedKey(_shouldRenderGroupingKeys)',
-        '_resetElements(facilitySystem)'
+        '_setInitialGroupedKey(_shouldRenderGroupingKeys)'
       ],
 
       created: function() {
@@ -574,52 +573,6 @@
         } else {
           this.$.socketHandler.socketStatus = 'sync-disabled';
           this.$.socketHandler.disconnect();
-        }
-      },
-
-      _resetElements: function(facilitySystem, selector, callback) {
-        if (!facilitySystem) {
-          return;
-        }
-
-        if (!selector) {
-          selector = '[element]'
-        }
-
-        var elements = [];
-
-        function findAllElements(nodes) {
-          for (var i = 0, el; el = nodes[i]; ++i) {
-
-            if (el.matches(selector)) {
-              elements.push(el);
-            }
-            // If the element has shadow DOM, dig deeper.
-            if (el.shadowRoot) {
-              findAllElements(el.shadowRoot.querySelectorAll('*'));
-            }
-          }
-        }
-
-        if (this.shadowRoot) {
-          findAllElements(document.querySelectorAll('*'));
-        } else {
-          elements = document.querySelectorAll(selector)
-        }
-
-        if (elements.length) {
-          if (callback) {
-            requestAnimationFrame( function() {
-              callback(elements);
-            });
-          } else {
-            requestAnimationFrame( function() {
-              Array.prototype.forEach.call(elements,
-                function(el) {
-                  el.clearValues(true);
-                });;
-            });
-          }
         }
       },
 

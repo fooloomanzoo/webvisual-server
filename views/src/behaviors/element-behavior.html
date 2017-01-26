@@ -45,7 +45,9 @@
       noLink: {
         type: Boolean,
         value: false
-      }
+      },
+
+      _initialized: Boolean
 
     },
 
@@ -55,7 +57,7 @@
     observers: [
       '_exceedingChanged(isExceeding)',
       '_hasExceededChanged(hasExceeded)',
-      '_linkElement(item.mount, uniqueid, noLink)'
+      '_linkElement(item, noLink)'
     ],
 
     hostAttributes: {
@@ -81,20 +83,26 @@
       this.clearValues();
     },
 
-    _linkElement: function(mount, uniqueid, noLink) {
-      if (this._olditem) {
-        this._unlinkElement(this._olditem);
-      }
-      if (!(mount && uniqueid && !noLink)) {
+    _linkElement: function(item, noLink) {
+      if (!(item && item.mount && !noLink)) {
         return;
       }
-      this._olditem = this.item;
-      if (this._initialized) {
-        this.clearValues();
+      if (this._olditem) {
+        if (item.mount === this._olditem.mount) {
+          return;
+        }
+        this._unlinkElement(this._olditem);
       }
-      if (window.Webvisual && window.Webvisual.assignElement && this.item && this.item.mount) {
+
+      if (window.Webvisual && window.Webvisual.assignElement) {
         window.Webvisual.assignElement(this);
       }
+
+      this._olditem = item;
+      this.async( function() {
+        this.clearValues();
+        this.resetState();
+      }.bind(this))
 
       this.requestValues(null, null, this.viewLength)
           .then( function(data) {
@@ -193,14 +201,8 @@
     },
 
     clearValues: function(force) {
-      if (this._initialized || force) {
-        if (this.selected) {
-          this.selected = false;
-        }
-        this.values = [];
-        this.notifyPath('values');
-        this.resetState();
-      }
+      this.values = [];
+      this.notifyPath('values');
     },
 
     requestValues: function(start, end, len) {
@@ -341,13 +343,11 @@
     _hasExceededChanged: function() {},
 
     resetState: function() {
-      this.isExceeding = false;
-      this.hasExceeded = false;
-      if (this.checked) {
-        this.checked = false;
-      }
       if (this.resetColor)
         this.resetColor();
+      this.isExceeding = false;
+      this.hasExceeded = false;
+      this._initialized = false;
       this.renderClearing();
     }
   };

@@ -28,7 +28,7 @@
       }
       datetime-picker {
         --datetime-picker-input: {
-          padding: 0;
+          padding: 0.5em 0.1em;
           width: 50%;
           text-align: center;
           border: none;
@@ -51,6 +51,16 @@
         top: 0;
         margin: 0.5em;
       }
+      #dates {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+      }
+      #dates > * {
+        margin: 0 0.25em;
+      }
     </style>
 
     <div id="title">
@@ -64,10 +74,13 @@
     </div>
 
     <section id="bottom">
-      <span>From: </span>
-      <datetime-picker id="dateFrom" value="{{range.from}}" date-string="{{_minDate}}" max-date="[[_maxDate]]"></datetime-picker>
-      <span>To: </span>
-      <datetime-picker id="dateTo" value="{{range.to}}" date-string="{{_maxDate}}" min-date="[[_minDate]]"></datetime-picker>
+      <div id="dates">
+        <span>From: </span>
+        <datetime-picker id="dateFrom" value="{{fromDate}}" date-string="{{_minDate}}" max-date="[[_maxDate]]"></datetime-picker>
+        <span>To: </span>
+        <datetime-picker id="dateTo" value="{{toDate}}" date-string="{{_maxDate}}" min-date="[[_minDate]]"></datetime-picker>
+      </div>
+
       <div class="webvisual-button" on-tap="requestFromSocket">
         <paper-ripple></paper-ripple>
         <iron-icon class="left" icon="juelich:logo"></iron-icon>
@@ -101,9 +114,15 @@
         reflectToAttribute: true
       },
 
-      fromDate: Number,
+      fromDate: {
+        type: Number,
+        value: +(new Date() - 3600000)
+      },
 
-      toDate: Number
+      toDate: {
+        type: Number,
+        value: +(new Date())
+      },
 
     },
 

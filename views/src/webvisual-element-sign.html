@@ -248,6 +248,8 @@
             }
 
           }.bind(this));
+        } else {
+          this.renderClearing();
         }
       },
 
@@ -256,9 +258,13 @@
       },
 
       renderClearing: function(values) {
-        this.$.valueSection.removeAttribute('title');
-        this.$.dateSection.removeAttribute('title');
-        this.removeAttribute('state');
+        if (!this._initialized) {
+          this.hasExceeded = false;
+          this.isExceeding = false;
+        }
+        this.$.value.textContent = '';
+        this.$.dateSection.textContent = '';
+        this.setAttribute('state', null);
       },
 
       _requestExceedingDetails: function(e) {

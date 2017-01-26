@@ -63,20 +63,20 @@ self.IOSocket.prototype = {
         //   self._clearDatabase();
         //   self._clearCache();
         // }
-
+        this.initialized = true;
         self._updateData(message, 'initial');
-      });
+      }.bind(this));
 
       this.socket.on('update', function(message) {
         self._updateData(message, 'update');
       });
 
       this.socket.on('request', function(message) {
-        if (message && message.messageId && message.values) {
+        if (message && message.messageId) {
           self.postMessage({
             type: 'request',
             messageId: message.messageId,
-            response: message.values
+            response: message.values || []
           });
         }
       });
@@ -146,15 +146,15 @@ mountDB.getAll()
            return;
          }
          ret.mounts.forEach( function(mount) {
-           DatabaseStore.add(ret.mounts[i]);
+           DatabaseStore.add(mount);
 
            dbMap.get(mount)
               .getAll()
               .then( function(ret) {
-                // if (self.navigator && self.navigator.onLine !== true) {
+                if (Socket && !Socket.initialized) {
                   self._updateCache( { values: ret } );
                   self._updateClient( { values: ret } );
-                // }
+                }
               } )
               .catch( function(err) {
                 if (err)
@@ -246,15 +246,15 @@ self.onmessage = function(e) {
   }
 }
 
-self._updateData = function(message) {
+self._updateData = function(message, type) {
   if (Array.isArray(message)) {// if message is an Array
     for (var i = 0; i < message.length; i++) {
       this._updateCache(message[i]);
-      this._updateClient(message[i]);
+      this._updateClient(message[i], type);
     }
   } else if (message.values) { // if message is a single Object
     this._updateCache(message);
-    this._updateClient(message);
+    this._updateClient(message, type);
   }
 }
 
@@ -262,8 +262,8 @@ self._updateCache = function(message) {
   CacheStore.place(message.values);
 }
 
-self._updateClient = function(message) {
-  var ret = { type: 'updateNodes', values: {}, splices: {}};
+self._updateClient = function(message, type) {
+  var ret = { type: type || 'update', values: {}, splices: {}};
 
   for (var mount in message.values) {
     ret.splices[mount] = CacheStore.get(mount).splices;

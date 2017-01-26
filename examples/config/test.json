@@ -18,8 +18,10 @@
     },
 
     "database": {
-      "type": "cache"
+      "type": "cache",
+      "maxCount": 30
     },
+
     "svgSource": {
       "origin": "",
       "paths": {
@@ -237,6 +239,11 @@
       }
     },
 
+    "database": {
+      "type": "cache",
+      "maxCount": 30
+    },
+
     "svgSource": {
       "origin": "",
       "paths": {
@@ -448,6 +455,13 @@
         },
 				"ignoredFirstLines": 0
       }
+    },
+
+    "database": {
+      "type": "redis",
+      "host": "localhost",
+      "port": 6379,
+      "maxCount": 200
     },
 
     "svgSource": {

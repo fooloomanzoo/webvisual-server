@@ -15,19 +15,19 @@
 
     setColor: function(color) {
       // random color if color is not set
-      if (color) {
-        this.updateStyles({'--element-color': color});
-        if (this.item && !this.item.isIndicatorLamp ) {
-          this.updateStyles({'--element-state-inrange-color': color});
+      if (color !== undefined) {
+        this.updateStyles({'--element-color': color || null});
+        if (!this.item.isIndicatorLamp ) {
+          this.updateStyles({'--element-state-inrange-color': color || null});
+        } else {
+          this.updateStyles({'--element-state-inrange-color': null});
         }
-        this.updateStyles();
       }
+      this.updateStyles();
     },
 
     resetColor: function() {
-      this.updateStyles({'--element-color': ''});
-      this.updateStyles({'--element-state-inrange-color': ''});
-      this.updateStyles();
+      this.setColor( this.item ? this.item.color || '' : '' );
     }
   };
 </script>

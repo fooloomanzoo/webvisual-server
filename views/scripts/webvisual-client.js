@@ -28,12 +28,16 @@ WebvisualClient.prototype = {
               if (resolve) {
                 // this.messageMap.delete(e.data.messageId);
                 delete this.messageMap[e.data.messageId];
-                console.log(e.data);
+                // console.log(e.data);
                 resolve(e.data.response);
               }
             } else {
               switch (e.data.type) {
-                case 'updateNodes':
+                case 'initial':
+                  this.resetNodes();
+                  this.updateNodes(e.data.values, e.data.splices);
+                  break;
+                case 'update':
                   this.updateNodes(e.data.values, e.data.splices);
                   break;
                 case 'status':
@@ -180,6 +184,14 @@ WebvisualClient.prototype = {
     //   if (Object.keys(message).length > 0)
     //     requestAnimationFrame(processMessage);
     // };
+  },
+
+  resetNodes: function() {
+    this.nodes.forEach( function(set) {
+      set.forEach(function(node) {
+        // node.resetState();
+      });
+    })
   },
 
   _testMobile: function() {

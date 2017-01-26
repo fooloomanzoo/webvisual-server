@@ -137,18 +137,20 @@
       ],
 
 			insertValues: function(values) {
-				if (!values || !values.length) return;
-
-        this.async( function() {
-  				if (!this._initialized) {
-  					this.set('values', values.reverse());
-  					this._initialized = true;
-  				} else {
-  					for (var i = 0; i < values.length; i++) {
-  						this.unshift('values', values[i]);
-  					}
-  				}
-        }.bind(this));
+				if (values && values.length) {
+					this.async( function() {
+						if (!this._initialized) {
+							this.set('values', values.reverse());
+							this._initialized = true;
+						} else {
+							for (var i = 0; i < values.length; i++) {
+								this.unshift('values', values[i]);
+							}
+						}
+					}.bind(this));
+				} else if (!this._initialized) {
+					this.renderClearing();
+				}
 			},
 
 			spliceValues: function(splices) {
@@ -173,7 +175,7 @@
 
 			},
 
-      clearValues: function() {
+      renderClearing: function() {
         this.$.list.set('items', []);
       },
 
