@@ -406,11 +406,11 @@
                     // }
 
                     if (!this.noDots) {
-                        var everyOverlappingDot = (data.length / Math.max(this.chartElement._height, this.chartElement._width) * (this.dotRadius * 3));
+                        var everyOverlappingDot = (data.length / Math.max(this.chartElement._height, this.chartElement._width) * (this.dotRadius * 2));
 
                         if (everyOverlappingDot > 1)
                             data = data.filter(function(d, i) {
-                                return (d.state !== 0 || i % everyOverlappingDot <= 1);
+                                return (i % everyOverlappingDot <= 1);
                             })
                         var dots = this.dots.selectAll('circle')
                             .data(data);
