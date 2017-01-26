@@ -148,7 +148,7 @@ mountDB.getAll()
          ret.mounts.forEach( function(mount) {
            DatabaseStore.add(mount);
 
-           dbMap.get(mount)
+           DatabaseStore.get(mount)
               .getAll()
               .then( function(ret) {
                 if (Socket && !Socket.initialized) {
