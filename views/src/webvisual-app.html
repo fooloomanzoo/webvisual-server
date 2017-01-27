@@ -7,18 +7,12 @@
 <link rel="import" href="../bower_components/app-route/app-route.html"/>
 
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html"/>
-<link rel="import" href="../bower_components/iron-selector/iron-selector.html"/>
-<link rel="import" href="../bower_components/iron-collapse/iron-collapse.html"/>
 
 <link rel="import" href="behaviors/localize-behavior.html"/>
 
 <link rel="import" href="webvisual-login.html"/>
 <link rel="import" href="webvisual-home.html"/>
 
-<link rel="import" href="webvisual-logo.html"/>
-<link rel="import" href="components/webvisual-icon-button.html"/>
-
-<link rel="import" href="data/webvisual-element-socket-data.html"/>
 <link rel="import" href="data/webvisual-facility-data.html"/>
 
 <link rel="import" href="style/shared-styles.html">
@@ -562,7 +556,9 @@
               this.resolveUrl('webvisual-' + page + '.html'),
               function() {
                 this._pageLoaded(Boolean(oldPage));
-              }, null, true);
+              }, function() {
+                this.page = 'home'; // Fallback
+              }, true);
           }
         }
       },
@@ -637,13 +633,22 @@
       _openDetailRequestDialog: function(e, detail) {
         this.debounce('open-detail-dialog', function() {
           if (!this._detailRequestDialog) {
-            this._detailRequestDialog = document.createElement('webvisual-detail-request-dialog');
-            Polymer.dom(this.root).appendChild(this._detailRequestDialog);
+            this.importHref(
+              this.resolveUrl('webvisual-detail-request-dialog.html'),
+              function() {
+                this._detailRequestDialog = document.createElement('webvisual-detail-request-dialog');
+                Polymer.dom(this.root).appendChild(this._detailRequestDialog);
+                this._detailRequestDialog.set('item', detail.item);
+                this._detailRequestDialog.set('language', this.language);
+                this._detailRequestDialog.set('languageResources', this.languageResources);
+                this._detailRequestDialog.open();
+              }, null, true);
+          } else {
+            this._detailRequestDialog.set('item', detail.item);
+            this._detailRequestDialog.set('language', this.language);
+            this._detailRequestDialog.set('languageResources', this.languageResources);
+            this._detailRequestDialog.open();
           }
-          this._detailRequestDialog.set('item', detail.item);
-          this._detailRequestDialog.set('language', this.language);
-          this._detailRequestDialog.set('languageResources', this.languageResources);
-          this._detailRequestDialog.open();
         });
       },
 

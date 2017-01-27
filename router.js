@@ -153,7 +153,7 @@ class Router extends EventEmitter {
       });
 
     // Auth Test
-    this.app.use('/auth', authNeeded ? ensureLoggedIn.is : ensureLoggedIn.not );
+    this.app.use('/auth', authNeeded ? ensureLoggedIn.isRequired : ensureLoggedIn.notRequired );
     this.app.use('/auth', (req, res) => {
       res.sendStatus(200);
     } );
@@ -165,10 +165,10 @@ class Router extends EventEmitter {
     } );
 
     // Secured Data
-    this.app.use('/data', authNeeded ? ensureLoggedIn.is : ensureLoggedIn.not );
+    this.app.use('/data', authNeeded ? ensureLoggedIn.isRequired : ensureLoggedIn.notRequired );
     this.app.use('/data', this.staticDataMiddleware );
 
-    this.app.use('/images', authNeeded ? ensureLoggedIn.is : ensureLoggedIn.not );
+    this.app.use('/images', authNeeded ? ensureLoggedIn.isRequired : ensureLoggedIn.notRequired );
     this.app.use('/images', this.staticImageMiddleware );
 
     // Public Data
@@ -323,17 +323,18 @@ class Router extends EventEmitter {
 }
 
 const ensureLoggedIn = {
-  is: function(req, res, next) {
+  isRequired: function(req, res, next) {
     if (!req.isAuthenticated || !req.isAuthenticated()) {
       req.session = req.session || {};
-      console.log(req.url, req.originalUrl);
-      req.session.returnTo = (req.originalUrl && !req.originalUrl.match(/.*\..*/) && !req.originalUrl.match(/.*auth.*/)) ? req.originalUrl : '/';
+      if (req.originalUrl && !req.originalUrl.match(/.*\..*/) && !req.originalUrl.match(/.*auth.*/)) {
+        req.session.returnTo = req.originalUrl;
+      }
       res.status(403).send('Unauthorized');
     } else {
       next();
     }
   },
-  not: function(req, res, next) {
+  notRequired: function(req, res, next) {
     next();
   }
 }

@@ -5,7 +5,7 @@
   "main": "build.js",
   "scripts": {
     "watch": "node index.js watch",
-    "build": "node index.js",
+    "generate": "node index.js",
     "postinstall": "bower update && node index.js"
   },
   "author": "fooloomanzoo",

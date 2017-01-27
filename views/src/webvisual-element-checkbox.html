@@ -287,8 +287,8 @@
 
       _setDropdown: function(hasDropdown, old) {
         if (!hasDropdown) {
-          this.$.boxContainer.removeEventListener('mouseenter', this._openDropdown, false);
-          this.$.boxContainer.removeEventListener('mouseleave', this._closeDropdown, false);
+          this.$.boxContainer.removeEventListener('mouseenter', this._openDropdown, {passive: true});
+          this.$.boxContainer.removeEventListener('mouseleave', this._closeDropdown, {passive: true});
           this._dropdown = null;
           this._dropdownValue = false;
         } else {
@@ -299,8 +299,8 @@
               this.importHref(
                 this.resolveUrl('webvisual-sign.html'),
                 function() {
-                  this.$.boxContainer.addEventListener('mouseenter', this._openDropdown, false);
-                  this.$.boxContainer.addEventListener('mouseleave', this._closeDropdown, false);
+                  this.$.boxContainer.addEventListener('mouseenter', this._openDropdown, {passive: true});
+                  this.$.boxContainer.addEventListener('mouseleave', this._closeDropdown, {passive: true});
                   this._dropdown = null;
                 }.bind(this), null, true);
             }.bind(this), null, true);

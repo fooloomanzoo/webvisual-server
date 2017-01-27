@@ -34,7 +34,7 @@
       ::content > * {
         border-radius: 0;
         border-width: 0;
-        
+
       }
     </style>
 
@@ -132,11 +132,11 @@
           return;
 
         if (targetToggleEvent)
-          this._target.addEventListener(targetToggleEvent, this.toggle.bind(this), false);
+          this._target.addEventListener(targetToggleEvent, this.toggle.bind(this), {passive: true});
         if (targetOpenEvent)
-          this._target.addEventListener(targetOpenEvent, this.open.bind(this), false);
+          this._target.addEventListener(targetOpenEvent, this.open.bind(this), {passive: true});
         if (targetCloseEvent)
-          this._target.addEventListener(targetCloseEvent, this.close.bind(this), false);
+          this._target.addEventListener(targetCloseEvent, this.close.bind(this), {passive: true});
       },
 
       _removeTargetEventListeners: function(targetOpenEvent, targetCloseEvent, targetToggleEvent) {
@@ -145,11 +145,11 @@
         }
 
         if (targetOpenEvent)
-          this._target.removeEventListener(this._target, targetOpenEvent, this.toggle, false);
+          this._target.removeEventListener(this._target, targetOpenEvent, this.toggle, {passive: true});
         if (targetToggleEvent)
-          this._target.removeEventListener(this._target, targetToggleEvent, this.open, false);
+          this._target.removeEventListener(this._target, targetToggleEvent, this.open, {passive: true});
         if (targetCloseEvent)
-          this._target.removeEventListener(this._target, targetCloseEvent, this.close, false);
+          this._target.removeEventListener(this._target, targetCloseEvent, this.close, {passive: true});
       },
 
       _addHidingEventListener: function(hidingEvent) {

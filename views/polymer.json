@@ -7,6 +7,7 @@
     "src/webvisual-list.html",
     "src/webvisual-groups.html",
     "src/webvisual-detail.html",
+    "src/webvisual-detail-request-dialog.html",
     "src/lazy-resources.html"
   ],
   "sources": [
@@ -21,13 +22,13 @@
     "!src/demo/*",
     "!src/demo/**/*",
     "polyfills/*",
-    "favicon.ico",
+    "bower_components/datetime-picker/calendar-element.html",
     "bower.json"
   ],
   "extraDependencies": [
     "manifest.json",
+    "src/behaviors/localize-behavior.html",
     "bower_components/webcomponentsjs/webcomponents-lite.min.js",
-    "bower_components/datetime-picker/calendar-element.html",
     "service-worker-add-on.js"
   ]
 }

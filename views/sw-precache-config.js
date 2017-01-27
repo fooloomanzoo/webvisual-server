@@ -15,7 +15,7 @@ module.exports = {
    '/manifest.json',
    '/scripts/*',
    '/socket.io/socket.io.js',
-   '/fonts/*',
+   '/fonts/*.woff2',
    '/icons/*'
   ],
   verbose: true,

@@ -8,6 +8,7 @@
   <title>Webvisual</title>
 
   <meta name="description" content="Visualising Measurement Data">
+  <link rel="icon" href="/icons/favicon.ico">
 
   <!-- See https://goo.gl/OOhYW5 -->
   <link rel="manifest" href="/manifest.json">
@@ -15,16 +16,14 @@
   <!-- See https://goo.gl/qRE0vM -->
   <meta name="theme-color" content="#005B82">
 
-  <link rel="icon" type="image/png" sizes="32x32" href="/icons/web-icon-32.png" >
-
   <!-- Add to homescreen for Chrome on Android. Fallback for manifest.json -->
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="application-name" content="My App">
+  <meta name="application-name" content="Webvisual">
 
   <!-- Add to homescreen for Safari on iOS -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="My App">
+  <meta name="apple-mobile-web-app-title" content="Webvisual">
 
   <!-- Homescreen icons -->
   <link rel="apple-touch-icon" href="/icons/app-icon-48.png">
@@ -140,12 +139,15 @@
       stroke-width: 0.5px;
     }
 
-    webvisual-app[unresolved] .circle:nth-child(1) { animation: drop 4s ease-in-out 2000ms infinite, color 16s ease-in-out 2000ms infinite; }
-    webvisual-app[unresolved] .circle:nth-child(2) { animation: drop 4s ease-in-out 2250ms infinite, color 16s ease-in-out 2250ms infinite; }
-    webvisual-app[unresolved] .circle:nth-child(3) { animation: drop 4s ease-in-out 2450ms infinite, color 16s ease-in-out 2450ms infinite; }
-    webvisual-app[unresolved] .circle:nth-child(4) { animation: drop 4s ease-in-out 2600ms infinite, color 16s ease-in-out 2600ms infinite; }
-    webvisual-app[unresolved] .circle:nth-child(5) { animation: drop 4s ease-in-out 2700ms infinite, color 16s ease-in-out 2700ms infinite; }
-    webvisual-app[unresolved] .circle:nth-child(6) { animation: drop 4s ease-in-out 2750ms infinite, color 16s ease-in-out 2750ms infinite; }
+    webvisual-app[unresolved] .circle {
+      will-change: transform, fill-opacity, stroke-opacity;
+    }
+    webvisual-app[unresolved] .circle:nth-child(1) { animation: drop 4s cubic-bezier(0.6, 0, 0.3, 1) 2000ms infinite, color 16s cubic-bezier(0.6, 0, 0.3, 1) 2000ms infinite; }
+    webvisual-app[unresolved] .circle:nth-child(2) { animation: drop 4s cubic-bezier(0.6, 0, 0.3, 1) 2250ms infinite, color 16s cubic-bezier(0.6, 0, 0.3, 1) 2250ms infinite; }
+    webvisual-app[unresolved] .circle:nth-child(3) { animation: drop 4s cubic-bezier(0.6, 0, 0.3, 1) 2450ms infinite, color 16s cubic-bezier(0.6, 0, 0.3, 1) 2450ms infinite; }
+    webvisual-app[unresolved] .circle:nth-child(4) { animation: drop 4s cubic-bezier(0.6, 0, 0.3, 1) 2600ms infinite, color 16s cubic-bezier(0.6, 0, 0.3, 1) 2600ms infinite; }
+    webvisual-app[unresolved] .circle:nth-child(5) { animation: drop 4s cubic-bezier(0.6, 0, 0.3, 1) 2700ms infinite, color 16s cubic-bezier(0.6, 0, 0.3, 1) 2700ms infinite; }
+    webvisual-app[unresolved] .circle:nth-child(6) { animation: drop 4s cubic-bezier(0.6, 0, 0.3, 1) 2750ms infinite, color 16s cubic-bezier(0.6, 0, 0.3, 1) 2750ms infinite; }
 
     webvisual-app:not([unresolved]) > * {
       display: none;

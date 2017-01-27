@@ -32,6 +32,9 @@ let project
   , config
   , clean;
 
+const bundleMode = process.argv[3] || 'unbundled';
+console.log(process.argv);
+
 // The source task will split all of your source files into one
 // big ReadableStream. Source files are those in src/** as well as anything
 // added to the sourceGlobs property of polymer.json.
@@ -46,7 +49,10 @@ function source() {
     .pipe(gulpif(/\.css$/, new streamOptimizer.CSSOptimizeStream(config.optimizeOptions.css)))
     .pipe(gulpif(/\.html$/, new streamOptimizer.HTMLOptimizeStream(config.optimizeOptions.html)))
     .pipe(gulpif('**/*.{png,gif,jpg,svg}', images.minify()))
-    .pipe(project.rejoin()); // Call rejoin when you're finished
+    .pipe(project.rejoin()) // Call rejoin when you're finished
+    .on('error', err => {
+      console.log(task, err);
+    });
 }
 
 // The dependencies task will split all of your bower_components files into one
@@ -58,7 +64,10 @@ function dependencies() {
     .pipe(gulpif(/\.js$/, new streamOptimizer.JSOptimizeStream(config.optimizeOptions.js)))
     .pipe(gulpif(/\.css$/, new streamOptimizer.CSSOptimizeStream(config.optimizeOptions.css)))
     .pipe(gulpif(/\.html$/, new streamOptimizer.HTMLOptimizeStream(config.optimizeOptions.html)))
-    .pipe(project.rejoin());
+    .pipe(project.rejoin())
+    .on('error', err => {
+      console.log(task, err);
+    });
 }
 
 function runSerial(tasks) {
@@ -78,9 +87,9 @@ function build() {
     build: {
       keep: '../public/data/',
       rootDirectory: '',
-      bundledDirectory: 'bundled',
       unbundledDirectory: '../public',
-      bundleType: 'unbundled'
+      bundledDirectory: '../public',
+      bundleType: process.argv[3] || 'unbundled'
     },
     // Path to your service worker, relative to the build root directory
     serviceWorkerPath: 'service-worker.js',
@@ -109,8 +118,10 @@ function build() {
   clean = require('./lib/clean')( [
       path.resolve(config.build.unbundledDirectory) + '/**'
     , '!' + path.resolve(config.build.unbundledDirectory)
+    , '!' + path.resolve(config.build.bundledDirectory)
     , '!' + path.resolve(config.build.keep) + '/**'
   ] );
+  console.log(config.build);
   project = new projectGenerator(config);
   Promise.resolve()
         .then( () => {
