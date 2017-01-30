@@ -18,13 +18,13 @@
         -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
 
         --tab-overlay: {
-          background-color: rgba(255, 255, 255, 0.15);
+          background-color: rgba(255, 255, 255, 0.25);
           border-left: none;
           border-bottom: 2px solid var(--highlight-color, var(--primary-color));
         }
 
         --tab-vertical-overlay: {
-          background-color: rgba(255, 255, 255, 0.15);
+          background-color: rgba(255, 255, 255, 0.25);
           border-left: 2px solid var(--highlight-color, var(--primary-color));
           border-bottom: none;
         }
@@ -42,12 +42,12 @@
         -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
       }
 
-      :host ::slotted(*) > * {
-        -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
-      }
-
       #overlay {
         @apply(--tab-overlay);
+      }
+
+      :host([vertical]) #overlay {
+        @apply(--tab-vertical-overlay);
       }
 
       #addon {
@@ -55,34 +55,14 @@
         pointer-events: none;
       }
 
-      :host ::slotted(.overlay-static-above)::before {
-        pointer-events: none;
-        content: "";
-        display: block;
-        position: absolute;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
-        @apply(--tab-overlay);
-      }
-
       :host([vertical]) #container {
         flex-direction: column;
         width: 100%;
       }
 
-      :host([vertical]) #overlay {
-        @apply(--tab-vertical-overlay);
-      }
-
-      :host([vertical]) ::slotted(.overlay-static-above)::before {
-        @apply(--tab-vertical-overlay);
-      }
-
     </style>
     <nav id="container" on-track="_onscroll" on-wheel="_onwheel">
-      <webvisual-tabs-overlay id="overlay"></webvisual-tabs-overlay>
+      <webvisual-tabs-overlay id="overlay" vertical="[[vertical]]"></webvisual-tabs-overlay>
       <slot name="tab"></slot>
       <div id="addon">
         <slot name="overlay-addon"></slot>
@@ -98,6 +78,7 @@
 
         vertical: {
           type: Boolean,
+          value: false,
           reflectToAttribute: true
         }
 

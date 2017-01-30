@@ -1,22 +1,5 @@
-
 (function() {
   'use strict';
-
-  // Matches polyfill
-  if (!self && !Element.prototype.matches) {
-      Element.prototype.matches =
-          Element.prototype.matchesSelector ||
-          Element.prototype.mozMatchesSelector ||
-          Element.prototype.msMatchesSelector ||
-          Element.prototype.oMatchesSelector ||
-          Element.prototype.webkitMatchesSelector ||
-          function(s) {
-              var matches = (this.document || this.ownerDocument).querySelectorAll(s),
-                  i = matches.length;
-              while (--i >= 0 && matches.item(i) !== this) {}
-              return i > -1;
-          };
-  }
 
   // findIndex polyfill
   if (!Array.prototype.findIndex) {
@@ -49,7 +32,7 @@
   }
 
   // scrollIntoViewIfNeeded
-  if (!self && !Element.prototype.scrollIntoViewIfNeeded) {
+  if (!(typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope) && !Element.prototype.scrollIntoViewIfNeeded) {
     Element.prototype.scrollIntoViewIfNeeded = function (centerIfNeeded) {
       centerIfNeeded = arguments.length === 0 ? true : !!centerIfNeeded;
 

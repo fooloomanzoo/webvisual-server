@@ -1,25 +1,27 @@
 <link rel="import" href="../bower_components/polymer/polymer.html"/>
+<script src="../polyfills/polyfills.js" type="text/javascript"></script>
+
+<link rel="import" href="behaviors/localize-behavior.html"/>
 
 <link rel="import" href="../bower_components/app-layout/app-header/app-header.html"/>
 <link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html"/>
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html"/>
 
 <link rel="import" href="../bower_components/app-route/app-location.html"/>
 <link rel="import" href="../bower_components/app-route/app-route.html"/>
 
-<link rel="import" href="../bower_components/iron-pages/iron-pages.html"/>
-
-<link rel="import" href="behaviors/localize-behavior.html"/>
-
 <link rel="import" href="webvisual-login.html"/>
 <link rel="import" href="webvisual-home.html"/>
 
-<link rel="import" href="data/webvisual-facility-data.html"/>
 <link rel="import" href="webvisual-logo.html"/>
+<link rel="import" href="components/webvisual-icon-button.html"/>
 
 <link rel="import" href="style/shared-styles.html">
 <link rel="import" href="style/webvisual-selectbox.html">
 <link rel="import" href="style/webvisual-button.html">
 <link rel="import" href="style/webvisual-app-style.html">
+
+<link rel="import" href="data/webvisual-facility-data.html"/>
 
 <dom-module id="webvisual-app">
 
@@ -517,6 +519,7 @@
       },
 
       ready: function() {
+        this.removeAttribute('unresolved');
         // listen for online/offline
         Polymer.RenderStatus.afterNextRender(this, function() {
           this.listen(window, 'online', '_notifyNetworkStatus');

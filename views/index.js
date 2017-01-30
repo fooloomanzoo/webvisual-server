@@ -1,166 +1,45 @@
-/**
- * @license
- * modification of polyer build example
- *
- *  DESCRIPTION:
- *  This Script can automatic create the necessary web application for the WEBVISUALSERVER including an service worker
- *  and optimize its configLoader
- *
- *  TODO: add babel functionality to make it more compatible between browsers
- *
- *  OPTIONS:
- *    (node index build)
- *        build the app once
- *
- *    (node index) watch
- *        build the app and on every change (it waits 5000ms) and the build the app again
- */
-
+const del = require('del');
 const path = require('path');
-const gulpif = require('gulp-if');
-const chokidar = require('chokidar');
+const copy = require('ncp').ncp;
+const fork = require('child_process').fork;
 
-// Got problems? Try logging 'em
-const logging = require('plylog');
-logging.setVerbose();
+const buildDir = path.resolve(__dirname, 'build', 'bundled');
+const publicDir = path.resolve(__dirname, '../public');
+const imageDir = path.resolve(__dirname, '../public/data');
+const dataDir = path.resolve(__dirname, '../public/images');
 
-const projectGenerator = require('./lib/project');
-const streamOptimizer = require('./lib/streamoptimizer');
-const images = require('./lib/images.js');
-
-let project
-  , config
-  , clean;
-
-const bundleMode = process.argv[3] || 'unbundled';
-console.log(process.argv);
-
-// The source task will split all of your source files into one
-// big ReadableStream. Source files are those in src/** as well as anything
-// added to the sourceGlobs property of polymer.json.
-// Because most HTML Imports contain inline CSS and JS, those inline resources
-// will be split out into temporary files. You can use gulpif to filter files
-// out of the stream and run them through specific tasks. An example is provided
-// which filters all images and runs them through imagemin
-function source() {
-  return project.splitSource()
-    // Add your own build tasks here!
-    .pipe(gulpif(/\.js$/, new streamOptimizer.JSOptimizeStream(config.optimizeOptions.js)))
-    .pipe(gulpif(/\.css$/, new streamOptimizer.CSSOptimizeStream(config.optimizeOptions.css)))
-    .pipe(gulpif(/\.html$/, new streamOptimizer.HTMLOptimizeStream(config.optimizeOptions.html)))
-    .pipe(gulpif('**/*.{png,gif,jpg,svg}', images.minify()))
-    .pipe(project.rejoin()) // Call rejoin when you're finished
-    .on('error', err => {
-      console.log(task, err);
-    });
-}
-
-// The dependencies task will split all of your bower_components files into one
-// big ReadableStream
-// You probably don't need to do anything to your dependencies but it's here in
-// case you need it :)
-function dependencies() {
-  return project.splitDependencies()
-    .pipe(gulpif(/\.js$/, new streamOptimizer.JSOptimizeStream(config.optimizeOptions.js)))
-    .pipe(gulpif(/\.css$/, new streamOptimizer.CSSOptimizeStream(config.optimizeOptions.css)))
-    .pipe(gulpif(/\.html$/, new streamOptimizer.HTMLOptimizeStream(config.optimizeOptions.html)))
-    .pipe(project.rejoin())
-    .on('error', err => {
-      console.log(task, err);
-    });
-}
-
-function runSerial(tasks) {
-  var result = Promise.resolve();
-  tasks.forEach(task => {
-    result = result.then( () => task() )
-                   .catch( err => {
-                     console.log(task, err);
-                   });
-  });
-  return result;
-}
-
-function build() {
-  config = {
-    polymerJsonPath: path.join(process.cwd(), 'polymer.json'),
-    build: {
-      keep: '../public/data/',
-      rootDirectory: '',
-      unbundledDirectory: '../public',
-      bundledDirectory: '../public',
-      bundleType: process.argv[3] || 'unbundled'
-    },
-    // Path to your service worker, relative to the build root directory
-    serviceWorkerPath: 'service-worker.js',
-    // Service Worker precache options based on
-    // https://github.com/GoogleChrome/sw-precache#options-parameter
-    swPrecacheConfig: require('./sw-precache-config.js'),
-    optimizeOptions: {
-      html: {
-        removeComments: true,
-        collapseWhitespace: true,
-        conservativeCollapse: true,
-        collapseInlineTagWhitespace: true
-      },
-      css: {
-        stripWhitespace: true
-      },
-      js: {
-        minify: true
-      }
-    }
-  };
-
-  // Add your own custom gulp tasks to the gulp-tasks directory
-  // A few sample tasks are provided for you
-  // A task should return either a WriteableStream or a Promise
-  clean = require('./lib/clean')( [
-      path.resolve(config.build.unbundledDirectory) + '/**'
-    , '!' + path.resolve(config.build.unbundledDirectory)
-    , '!' + path.resolve(config.build.bundledDirectory)
-    , '!' + path.resolve(config.build.keep) + '/**'
-  ] );
-  console.log(config.build);
-  project = new projectGenerator(config);
-  Promise.resolve()
-        .then( () => {
-          return clean();
-        })
-        .then( () => {
-          return project.merge(source, dependencies);
-        })
-        .then( () => {
-          return project.serviceWorker();
-        })
-        .then( () => {
-          console.log(' ---- BUILD DONE ----');
-        })
-        .catch( err => {
-          console.log(err);
-        });
+function run() {
+  let argv = process.argv.slice(2);
+  if (argv.length === 0) {
+    argv.push('build')
   }
+  let polymerBuild = fork( __dirname + '/node_modules/polymer-cli/bin/polymer.js', argv, { cwd: __dirname } );
 
-function watch() {
-  console.log(' ---- START WATCHING ' + __dirname + ' ----');
-  var activeTimeout;
-  var watcher = chokidar.watch(__dirname, {
-                  ignored: /[\/\\]\./,
-                  persistent: true
-                });
-  watcher.on('change', path => {
-    console.log(' ---- FILES CHANGED ----');
-    if (activeTimeout)
-      clearTimeout(activeTimeout);
-    activeTimeout = setTimeout( build, 5000);
-  });
+  polymerBuild.on('error', (arguments) => {
+    console.log('error',arguments);
+  })
+
+  polymerBuild.on('close', (arguments) => {
+    let clearPaths = [];
+    clearPaths.push(publicDir + '/**');
+    clearPaths.push('!' + publicDir);
+    clearPaths.push('!' + imageDir + '/**');
+    clearPaths.push('!' + dataDir + '/**');
+
+    del(clearPaths, {force: true})
+      .then(() => {
+        console.log('Copying Built Project Files To Public Folder');
+        copy(buildDir, publicDir, function (err) {
+          if (err) {
+            return console.error('Error Copying Project Files', err);
+          }
+          console.log('Done!');
+        });
+      })
+      .catch((err) => {
+        console.log('Error clearing Public Paths', err);
+      })
+  })
 }
 
-switch (process.argv[2]) {
-  case 'watch':
-    build()
-    watch()
-    break;
-  default:
-    build()
-}
+run();

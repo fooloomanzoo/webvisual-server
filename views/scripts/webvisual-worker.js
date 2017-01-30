@@ -1,6 +1,19 @@
-importScripts('/socket.io/socket.io.js');
-importScripts('/polyfills/polyfills.js');
-importScripts('/scripts/store.js');
+try {
+  importScripts('/socket.io/socket.io.js');
+} catch (e) {
+  console.log(e);
+}
+try {
+  importScripts('/polyfills/polyfills.js');
+} catch (e) {
+  console.log(e);
+}
+try {
+  importScripts('/scripts/store.js');
+} catch (e) {
+  console.log(e);
+}
+
 
 if (!self.Promise) {
   importScripts('/polyfills/promise.js');

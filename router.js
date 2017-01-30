@@ -304,11 +304,13 @@ class Router extends EventEmitter {
         }
       }
 
-      facilities.push( {
-        name: this.configuration[facility]._name,
-        title: this.configuration[facility]._title,
-        systems: tmp
-      });
+      if (tmp && tmp.length > 0) {
+        facilities.push( {
+          name: this.configuration[facility]._name,
+          title: this.configuration[facility]._title,
+          systems: tmp
+        });
+      }
     }
 
     // create required main overview

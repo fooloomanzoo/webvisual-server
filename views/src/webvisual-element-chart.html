@@ -482,9 +482,7 @@
 
       _sizeChanged: function() {
         // only resize if opened attribute is set
-        if (this.opened) {
-          this.debounce('resize', this._sizeLayout);
-        }
+        this.debounce('resize', this._sizeLayout);
       },
 
       _buildLayout: function() {
@@ -526,13 +524,12 @@
           .classed('style-scope', true)
           .classed('webvisual-element-chart', true);
 
-        this._sizeChanged();
+        this.debounce('resize', this._sizeLayout);
       },
 
       _sizeLayout: function() {
-        // performance.mark('size start');
         var bRect = this.$.svgchart.getBoundingClientRect();
-
+        
         if (bRect.height === 0 || bRect.width === 0) return;
 
         this._height = bRect.height;

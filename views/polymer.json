@@ -20,5 +20,19 @@
   ],
   "extraDependencies": [
     "bower_components/webcomponentsjs/webcomponents-lite.min.js"
+  ],
+  "sourceGlobs": [
+    "src/**/*",
+    "scripts/**/*",
+    "polyfills/**/*",
+    "fonts/**/*",
+    "icons/**/*",
+    "bower.json",
+    "manifest.json",
+    "locales.json",
+    "app.yaml"
+  ],
+  "includeDependencies": [
+    "bower_components/webcomponentsjs/webcomponents-lite.min.js"
   ]
 }
