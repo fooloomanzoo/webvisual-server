@@ -5,9 +5,6 @@ module.exports = {
     '..\\public': '',
     '../public': ''
   },
-  importScripts: [
-    '/service-worker-add-on.js'
-  ],
   staticFileGlobs: [
    '/index.html',
    '/bower_components/webcomponentsjs/webcomponents-lite.min.js',

@@ -14,6 +14,7 @@
 <link rel="import" href="webvisual-home.html"/>
 
 <link rel="import" href="data/webvisual-facility-data.html"/>
+<link rel="import" href="webvisual-logo.html"/>
 
 <link rel="import" href="style/shared-styles.html">
 <link rel="import" href="style/webvisual-selectbox.html">
@@ -631,24 +632,15 @@
 
       // detail-requests
       _openDetailRequestDialog: function(e, detail) {
-        this.debounce('open-detail-dialog', function() {
+        this.async( function() {
           if (!this._detailRequestDialog) {
-            this.importHref(
-              this.resolveUrl('webvisual-detail-request-dialog.html'),
-              function() {
-                this._detailRequestDialog = document.createElement('webvisual-detail-request-dialog');
-                Polymer.dom(this.root).appendChild(this._detailRequestDialog);
-                this._detailRequestDialog.set('item', detail.item);
-                this._detailRequestDialog.set('language', this.language);
-                this._detailRequestDialog.set('languageResources', this.languageResources);
-                this._detailRequestDialog.open();
-              }, null, true);
-          } else {
-            this._detailRequestDialog.set('item', detail.item);
-            this._detailRequestDialog.set('language', this.language);
-            this._detailRequestDialog.set('languageResources', this.languageResources);
-            this._detailRequestDialog.open();
+            this._detailRequestDialog = document.createElement('webvisual-detail-request-dialog');
+            Polymer.dom(this.root).appendChild(this._detailRequestDialog);
           }
+          this._detailRequestDialog.set('item', detail.item);
+          this._detailRequestDialog.set('language', this.language);
+          this._detailRequestDialog.set('languageResources', this.languageResources);
+          this._detailRequestDialog.open();
         });
       },
 

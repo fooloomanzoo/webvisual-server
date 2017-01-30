@@ -2,33 +2,23 @@
   "entrypoint": "index.html",
   "shell": "src/webvisual-app.html",
   "fragments": [
-    "src/webvisual-login.html",
-    "src/webvisual-home.html",
     "src/webvisual-list.html",
     "src/webvisual-groups.html",
     "src/webvisual-detail.html",
-    "src/webvisual-detail-request-dialog.html",
     "src/lazy-resources.html"
   ],
   "sources": [
-    "app.yaml",
-    "locales.json",
-    "fonts/*",
-    "icons/*",
-    "scripts/*",
-    "src/behaviors/*",
     "src/**/*",
-    "src/*",
-    "!src/demo/*",
-    "!src/demo/**/*",
-    "polyfills/*",
-    "bower_components/datetime-picker/calendar-element.html",
-    "bower.json"
+    "scripts/**/*",
+    "polyfills/**/*",
+    "fonts/**/*",
+    "icons/**/*",
+    "bower.json",
+    "manifest.json",
+    "locales.json",
+    "app.yaml"
   ],
   "extraDependencies": [
-    "manifest.json",
-    "src/behaviors/localize-behavior.html",
-    "bower_components/webcomponentsjs/webcomponents-lite.min.js",
-    "service-worker-add-on.js"
+    "bower_components/webcomponentsjs/webcomponents-lite.min.js"
   ]
 }
