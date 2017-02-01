@@ -232,6 +232,7 @@ class Router extends EventEmitter {
         tmp.push( {
           name: opt[system]._name,
           title: opt[system]._title,
+          view: opt[system]._view,
           items: opt[system].items,
         } );
 

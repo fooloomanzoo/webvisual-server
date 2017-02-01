@@ -16,13 +16,12 @@
       }
     },
 
+    "initialView": "groups",
+
 		"clientRequest": {
 			"initial": {
 				"mobile": 300,
 				"stationary": 1000
-			},
-			"update": {
-				"interval": 1000
 			}
 		},
 
@@ -801,7 +800,7 @@
       },
 
       "groupingKeys": ["kind", "room", "property", "roomNr", "system", "alarmlevel"],
-      "preferedGroupingKey": "roomNr",
+      "preferedGroupingKey": "room",
 
       "exclusiveGroups": {
         "roomNr": {

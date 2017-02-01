@@ -36,9 +36,6 @@
       "initial": {
         "mobile": 300,
         "stationary": 1000
-      },
-      "update": {
-        "interval": 1000
       }
     },
 
@@ -257,9 +254,6 @@
       "initial": {
         "mobile": 300,
         "stationary": 1000
-      },
-      "update": {
-        "interval": 1000
       }
     },
 
@@ -461,7 +455,7 @@
       "type": "redis",
       "host": "localhost",
       "port": 6379,
-      "maxCount": 200
+      "maxCount": 500000
     },
 
     "svgSource": {
@@ -477,9 +471,6 @@
       "initial": {
         "mobile": 300,
         "stationary": 1000
-      },
-      "update": {
-        "interval": 1000
       }
     },
 

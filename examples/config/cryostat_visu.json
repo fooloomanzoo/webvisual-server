@@ -17,6 +17,8 @@
 			}
 		},
 
+		"initialView": "detail",
+
     "svgSource": {
       "origin": "",
       "paths": {}
@@ -126,15 +128,14 @@
 			}
 		},
 
+		"initialView": "detail",
+
     "svgPathOrigin": "",
 
 		"clientRequest": {
 			"initial": {
 				"mobile": 300,
 				"stationary": 1000
-			},
-			"update": {
-				"interval": 1000
 			}
 		},
 

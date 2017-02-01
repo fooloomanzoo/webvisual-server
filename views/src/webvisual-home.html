@@ -98,7 +98,7 @@
         text-decoration: none;
       }
       .item.facility {
-        margin: 1.5em;
+        margin: 24px;
         border-radius: 16px;
         border: thin solid var(--highlight-color);
       }
@@ -133,7 +133,7 @@
         -ms-flex-direction: column;
         -webkit-flex-direction: column;
         flex-direction: column;
-        margin: 0 5em;
+        margin: 0 60px;
       }
       a:link,
       a:visited {
@@ -153,7 +153,7 @@
         border-radius: 12px;
         border: thin solid currentColor;
         transition: opacity 300ms cubic-bezier(0.6,0,0.3,1);
-        padding: 0 1em;
+        padding: 0 16px;
         display: inline-flex;
         flex-direction: row;
         justify-content: center;
@@ -187,15 +187,15 @@
       </template>
       <iron-selector id="selector" selected="{{currentFacility}}" attr-for-selected="item-name" selectable=".facility">
         <template is="dom-repeat" items="[[facilities]]">
-          <div raised class="webvisual-button item facility" item-name="[[item.name]]" aria-label$="[[item.title]]" tabindex="1">
+          <div raised class="webvisual-button item facility" item-name="[[item.name]]" title$="[[item.title]]" tabindex="1">
             <div>[[item.title]]</div>
           </div>
 
           <iron-collapse opened="{{_computeOpened(item.name, currentFacility)}}">
             <div class="collapse-content">
               <template is="dom-repeat" items="[[item.systems]]" as="system">
-                <a href$="/list/[[item.name]]/[[system.name]]" tabindex="-1">
-                  <div raised class="webvisual-button item system" aria-label$="[[system.title]]" tabindex="1">
+                <a href$="[[_computeHref(system.view, item.name, system.name)]]" tabindex="-1">
+                  <div raised class="webvisual-button item system" title$="[[system.title]]" tabindex="1">
                     <div>[[system.title]]</div>
                   </div>
                 </a>
@@ -248,6 +248,10 @@
         if (visible) {
           this.fire('change-page', { title: 'Home' });
         }
+      },
+
+      _computeHref: function(view, facility, system) {
+        return '/' + (view || 'list') + '/' + facility + '/' + system;
       },
 
       _computeOpened: function(name, selected) {
