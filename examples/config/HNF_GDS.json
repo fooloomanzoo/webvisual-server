@@ -63,10 +63,6 @@
             "path": ""
           },
           "isIndicatorLamp": false,
-          "threshold": {
-            "from": 0,
-            "to": 10000000
-          },
           "unit": "₍₂₎"
         }, {
           "id": "DI0-1",

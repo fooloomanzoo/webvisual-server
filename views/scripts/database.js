@@ -47,7 +47,13 @@ if (!self.Promise) {
           ret[this.mount] = values;
           return ret;
         }.bind(this));
-      }.bind(this));
+      }.bind(this))
+      .catch( function(err) {
+        console.log(err);
+        var ret = {};
+        ret[this.mount] = [];
+        return ret;
+      });
     },
 
     set: function(data) {
@@ -58,7 +64,11 @@ if (!self.Promise) {
           tx.objectStore(this.indexKey).put(data[i], data[i][this.indexKey]);
         }
         return tx.complete;
-      }.bind(this));
+      }.bind(this))
+      .catch( function(err) {
+        console.log(err);
+        return {};
+      });
     },
 
     last: function(start, stop, count) {
@@ -95,7 +105,11 @@ if (!self.Promise) {
           }
         }
         return tx.complete;
-      }.bind(this));
+      }.bind(this))
+      .catch( function(err) {
+        console.log(err);
+        return {};
+      });
     },
 
     clear: function() {
@@ -103,7 +117,11 @@ if (!self.Promise) {
         var tx = db.transaction(this.indexKey, 'readwrite');
         tx.objectStore(this.indexKey).clear();
         return tx.complete;
-      }.bind(this));
+      }.bind(this))
+      .catch( function(err) {
+        console.log(err);
+        return {};
+      });
     },
 
     getAll: function(key) {
@@ -121,7 +139,13 @@ if (!self.Promise) {
           ret[this.mount] = values;
           return ret;
         }.bind(this));
-      }.bind(this));
+      }.bind(this))
+      .catch( function(err) {
+        console.log(err);
+        var ret = {};
+        ret[this.mount] = [];
+        return ret;
+      });
     },
 
     getAllKeys: function() {
@@ -143,7 +167,13 @@ if (!self.Promise) {
           ret[this.mount] = keys;
           return ret;
         }.bind(this));
-      }.bind(this));
+      }.bind(this))
+      .catch( function(err) {
+        console.log(err);
+        var ret = {};
+        ret[this.mount] = [];
+        return ret;
+      });
     }
   };
 

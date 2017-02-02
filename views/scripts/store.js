@@ -130,6 +130,9 @@ if (!self.Promise) {
           this._store.forEach( function(v, e) {
               e[func](key).then( function(res) {
                   ret.push(res);
+              })
+              .catch( function(err) {
+                console.log(err);
               });
           })
         }

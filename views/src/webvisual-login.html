@@ -193,34 +193,37 @@
         if (navigator.credentials) {
           // Actual Credential Management API call to get credential object
           return navigator.credentials.get({
-            password: true,
-            unmediated: unmediated
-          }).then(function(cred) {
-            // If credential object is available
-            if (cred) {
-              console.log('auto sign-in performed');
+              password: true,
+              unmediated: unmediated
+            }).then(function(cred) {
+              // If credential object is available
+              if (cred) {
+                console.log('auto sign-in performed');
 
-              switch (cred.type) {
-                case 'password':
-                  // Change form `id` name to `username`
-                  cred.idName = 'username';
-                  // Include CSRF token in the credential object
-                  var csrf_token = new FormData();
-                  csrf_token.append('csrf_token',
-                    this.$.csrf_token.value);
-                  // `.additionalData` accepts `FormData`
-                  // You can include CSRF token etc.
-                  cred.additionalData = csrf_token;
-                  // Return Promise from `pwSignIn`
-                  return this.pwSignIn(cred);
+                switch (cred.type) {
+                  case 'password':
+                    // Change form `id` name to `username`
+                    cred.idName = 'username';
+                    // Include CSRF token in the credential object
+                    var csrf_token = new FormData();
+                    csrf_token.append('csrf_token',
+                      this.$.csrf_token.value);
+                    // `.additionalData` accepts `FormData`
+                    // You can include CSRF token etc.
+                    cred.additionalData = csrf_token;
+                    // Return Promise from `pwSignIn`
+                    return this.pwSignIn(cred);
+                }
+              } else {
+                console.log('auto sign-in not performed');
+
+                // Resolve if credential object is not available
+                return Promise.resolve();
               }
-            } else {
-              console.log('auto sign-in not performed');
-
-              // Resolve if credential object is not available
-              return Promise.resolve();
-            }
-          }.bind(this));
+            }.bind(this))
+            .catch(function(err) {
+              console.log(err);
+            });
         } else {
           // Resolve if Credential Management API is not available
           return Promise.resolve();
@@ -236,18 +239,21 @@
       _authenticateWithServer: function(url, form) {
 
         return fetch(url, {
-          method: 'POST',
-          // `credentials:'include'` is required to include cookies on `fetch`
-          credentials: 'include',
-          body: form
-        }).then(function(res) {
-          // Convert JSON string to an object
-          if (res.status === 200) {
-            return res.json();
-          } else {
-            return Promise.reject();
-          }
-        }).then(this.signedIn);
+            method: 'POST',
+            // `credentials:'include'` is required to include cookies on `fetch`
+            credentials: 'include',
+            body: form
+          }).then(function(res) {
+            // Convert JSON string to an object
+            if (res.status === 200) {
+              return res.json();
+            } else {
+              return Promise.reject();
+            }
+          }).then(this.signedIn)
+          .catch(function(err) {
+            console.log(err);
+          });
       },
 
       /**
@@ -277,8 +283,7 @@
               navigator.credentials.store(cred);
 
               this.dispatchEvent(new CustomEvent('announce', {
-                detail: this.localize ? this.localize('notification', 'loggedIn', true) :
-                  'You are signed in'
+                detail: this.localize ? this.localize('notification', 'loggedIn', true) : 'You are signed in'
               }), {
                 bubbles: true
               });
@@ -287,20 +292,21 @@
               // message event to notice user that 'Authentication failed'.
 
               this.dispatchEvent(new CustomEvent('announce', {
-                detail: this.localize ? this.localize('notification', 'loggedIn', false) :
-                  'You are not signed in'
+                detail: this.localize ? this.localize('notification', 'loggedIn', false) : 'You are not signed in'
               }), {
                 bubbles: true
               });
-            }.bind(this));
+            }.bind(this))
+            .catch(function(err) {
+              console.log(err);
+            });
         } else {
           this._authenticateWithServer(this.authUrl, new FormData(signinForm))
             .then(function() {
               this.loggedIn = true;
 
               this.dispatchEvent(new CustomEvent('announce', {
-                detail: this.localize ? this.localize('notification', 'loggedIn', true) :
-                  'You are signed in'
+                detail: this.localize ? this.localize('notification', 'loggedIn', true) : 'You are signed in'
               }), {
                 bubbles: true
               });
@@ -308,12 +314,14 @@
               this.loggedIn = false;
 
               this.dispatchEvent(new CustomEvent('announce', {
-                detail: this.localize ? this.localize('notification', 'loggedIn', false) :
-                  'You are not signed in'
+                detail: this.localize ? this.localize('notification', 'loggedIn', false) : 'You are not signed in'
               }), {
                 bubbles: true
               });
-            }.bind(this));
+            }.bind(this))
+            .catch(function(err) {
+              console.log(err);
+            });
         }
       },
 
@@ -325,17 +333,22 @@
       pwSignIn: function(cred) {
         // POST-ing credential object will be converted to FormData object
         return fetch('/auth', {
-          method: 'POST',
-          // Include the credential object as `credentials`
-          credentials: cred
-        }).then(function(res) {
-          // Convert JSON string to an object
-          if (res.status === 200) {
-            return res.json();
-          } else {
-            return Promise.reject();
-          }
-        }).then(this.signedIn);
+            method: 'POST',
+            // Include the credential object as `credentials`
+            credentials: cred
+          })
+          .then(function(res) {
+            // Convert JSON string to an object
+            if (res.status === 200) {
+              return res.json();
+            } else {
+              return Promise.reject();
+            }
+          })
+          .then(this.signedIn)
+          .catch(function(err) {
+            console.log(err);
+          });
       },
 
       /**
@@ -371,20 +384,20 @@
               // this.$.dialog.open();
               this.focus();
             }
-          }, function() {
+          }.bind(this), function() {
             // this.$.dialog.open();
             this.focus();
             // When rejected, authentication was performed but failed.
             this.dispatchEvent(new CustomEvent('announce', {
-              detail: this.localize ? this.localize('notification', 'loggedIn', false) :
-                'You are not signed in'
+              detail: this.localize ? this.localize('notification', 'loggedIn', false) : 'You are not signed in'
             }), {
               bubbles: true
             });
+          }.bind(this))
+          .catch(function(err) {
+            console.log(err);
           });
       }
-
-
     });
   </script>
 
