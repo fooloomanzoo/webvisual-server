@@ -390,16 +390,12 @@
                 this.async(function() {
                     // performance.mark('graph redraw start');
                     var self = this;
-                    var data = (this.values || []).filter(this._defined.bind(this));
+                    var data = this.values || [];
                     if (!this.noFill) {
                       if (this.areaNode && this.areaNode.node) {
                         this.areaNode
-                            .transition(d3.transition().duration(1000))
-                            .attrTween('d', function (d) {
-                              var previous = d3.select(this).attr('d');
-                              var current = self.area(data);
-                              return d3.interpolatePath(previous, current);
-                            });
+                            .datum(data)
+                            .attr('d', this.area);
                       } else if (this.item && this.item.mount){
                         this.addNodes();
                         return;
@@ -410,7 +406,7 @@
                     if (!this.noLine) {
                       if (this.lineNode && this.lineNode.node) {
                         this.lineNode
-                            .transition(d3.transition().duration(1000))
+                            .transition(d3.transition().duration(100))
                             .attrTween('d', function (d) {
                               var previous = d3.select(this).attr('d');
                               var current = self.line(data);
