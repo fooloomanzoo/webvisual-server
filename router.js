@@ -81,7 +81,8 @@ class Router extends EventEmitter {
     this.sessionMiddleWare = session( {
       store: new RedisStore( {
         host: 'localhost',
-        port: 6379
+        port: 6379,
+        db: 1
       } ),
       secret: 'String(Math.random().toString(16).slice(2)',
       resave: true,
