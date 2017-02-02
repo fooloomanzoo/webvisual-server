@@ -452,10 +452,10 @@
     },
 
     "database": {
-      "type": "redis",
+      "type": "cache",
       "host": "localhost",
       "port": 6379,
-      "maxCount": 500000
+      "maxCount": 1000
     },
 
     "svgSource": {

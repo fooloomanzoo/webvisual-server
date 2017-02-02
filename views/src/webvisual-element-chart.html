@@ -103,17 +103,13 @@
         font-family: inherit;
       }
       #graphs .area {
-        pointer-events: none;
         fill-opacity: 0.3;
-        stroke-opacity: 0.5;
         @apply(--chart-area);
       }
-      #graphs .dot {
+      #graphs .line {
         cursor: pointer;
-        pointer-events: all;
-        transform-origin: center;
-        stroke-opacity: 0.9;
-        @apply(--chart-dot);
+        stroke-opacity: 0.7;
+        @apply(--chart-line);
       }
       #zoom {
         mix-blend-mode: hard-light;
@@ -132,23 +128,22 @@
         stroke-opacity: 0.3;
         stroke-width: 1px;
       }
-      #focus .focus.line {
+      #focus .focus.line,
+      #focus .focus.dot {
         mix-blend-mode: hard-light;
-        fill: none;
-        pointer-events: none;
         stroke: currentColor;
-        stroke-opacity: 0.75;
+        stroke-opacity: 0.5;
         stroke-width: 1.5px;
+      }
+      #focus .focus.line {
         stroke-dasharray: 2;
       }
-      .boundery {
-        fill: #B40D35;
-        stroke: #E113EE;
-        fill-opacity: 0.75;
-        stroke-opacity: 0.5;
-        stroke-width: 1px;
+      #focus .focus.dot {
+        fill-opacity: 0.9;
+        mix-blendmode: exclusion;
+        cursor: pointer;
       }
-      .axis, .grid, #plot, .boundery {
+      .axis, .grid, #plot {
         pointer-events: none;
       }
       webvisual-icon-button {
@@ -200,16 +195,17 @@
           <g id="yGrid" class="grid" clip-path="url(#clip)"></g>
           <g id="graphs" clip-path="url(#clip)">
             <g id="areas"></g>
-            <g id="bounderies"></g>
             <g id="brush"></g>
-            <g id="dots"></g>
+            <g id="lines"></g>
+            <g id="bounderies"></g>
           </g>
-          <g id="xAxis" class="axis"></g>
-          <g id="yAxis" class="axis"></g>
           <g id="focus" clip-path="url(#clip)" hidden>
             <line id="focusX" class="focus line x" x1="0"></line>
             <line id="focusY" class="focus line y"></line>
+            <circle id="focusDot" class="focus dot"></circle>
           </g>
+          <g id="xAxis" class="axis"></g>
+          <g id="yAxis" class="axis"></g>
           <text id="info" x="0" y="0" hidden></text>
           <g id="zoom" clip-path="url(#clip)">
             <rect class="overlay" x="0.5" y="0.5"></rect>
@@ -402,8 +398,10 @@
       _chart: Object,
       _svg: Object,
       _info: Object,
+      _focus: Object,
       _focusX: Object,
       _focusY: Object,
+      _focusDot: Object,
       _zoomOverlay: Object,
       _areas: Object,
       _dots: Object,
@@ -477,7 +475,10 @@
 
       attached: function() {
         this._buildLayout();
-        // this._sizeChanged();
+        this.async( function() {
+          this._sizeChanged();
+          console.log('attached');
+        })
       },
 
       _sizeChanged: function() {
@@ -496,7 +497,7 @@
         this._chart = d3.select(this.$.chart);
 
         this._areas = d3.select(this.$.areas);
-        this._dots = d3.select(this.$.dots);
+        this._lines = d3.select(this.$.lines);
         this._bounderies = d3.select(this.$.bounderies);
 
         this._brushBehavior = d3.brush()
@@ -505,8 +506,28 @@
 
         this._info = d3.select(this.$.info);
         this._focus = d3.select(this.$.focus);
-        this._focusX = this._focus.select('#focusX');
-        this._focusY = this._focus.select('#focusY');
+        this._focusX = d3.select(this.$.focusX);
+        this._focusY = d3.select(this.$.focusY);
+        this._focusDot = d3.select(this.$.focusDot);
+        this._focusDot
+          .on('mouseenter', function() {
+              this.cancelDebouncer('hideinfo');
+          }.bind(this))
+          .on('mouseleave', function(d, i) {
+              this._hideInfo();
+          }.bind(this))
+          .on('click', function(d) {
+              var offsetX = (this._x(this._x.domain()[1]) - this._x(this._x.domain()[0]))/4
+                , offsetY = (this._y(this._y.domain()[0]) - this._y(this._y.domain()[1]))/4
+                , x = this._x(+this._info.x)
+                , y = this._y(+this._info.y) || 0;
+              d3.event.selection = [
+                  [x - offsetX, y - offsetY],
+                  [x + offsetX, y + offsetY]
+              ];
+              this.brushed();
+          }.bind(this));
+
         this._zoomOverlay = d3.select(this.$.zoom).select('rect.overlay')
           .on('click', function(d) {
             var offset = Math.floor(Math.min(this._height, this._width) / 5);
@@ -529,7 +550,7 @@
 
       _sizeLayout: function() {
         var bRect = this.$.svgchart.getBoundingClientRect();
-        
+
         if (bRect.height === 0 || bRect.width === 0) return;
 
         this._height = bRect.height;
@@ -824,7 +845,7 @@
         }.bind(this) );
       },
 
-      _showInfo: function(d) {
+      _moveInfo: function(d) {
         this.cancelDebouncer('hideinfo');
         var x = this.timeFormatRange.call(this, d.x, this._x.domain(), this._width);
         this._info.text(x + ' , ' + d.y);
@@ -833,6 +854,11 @@
         this._info.attr('hidden', null);
         this._focus.attr('hidden', null);
         this._updateInfo();
+      },
+
+      _showInfo: function() {
+        this.cancelDebouncer('hideinfo');
+        this._focus.attr('hidden', null);
       },
 
       _hideInfo: function() {
@@ -857,22 +883,25 @@
         // console.log(bbox, this._width, this._height);
         var x = this._x(+this._info.x),
           y = this._y(+this._info.y) || 0;
-        this._info
+        this._info.transition(50)
           .attr('x', (x + 4 + bbox.width > this._width ? (x - 4 - bbox.width < 0 ? 0 : x - 4 - bbox.width) : x + 4))
           .attr('y', (y > bbox.height + 4 ? y - 4 : bbox.height));
-        this._focusX
+        this._focusX.transition(50)
           .attr('x2', x)
           .attr('y2', y)
           .attr('y1', y);
-        this._focusY
+        this._focusY.transition(50)
           .attr('y2', y)
           .attr('x2', x)
           .attr('x1', x);
+        this._focusDot.transition(50)
+          .attr('cy', y)
+          .attr('cx', x);
 
         this._xAxis.tickValues([this._info.x]);
         this._yAxis.tickValues([this._info.y]);
-        this._chart.select('#xAxis').call(this._xAxis);
-        this._chart.select('#yAxis').call(this._yAxis);
+        this._chart.transition(50).select('#xAxis').call(this._xAxis);
+        this._chart.transition(50).select('#yAxis').call(this._yAxis);
         this._svg.selectAll('g,line,text,path,rect')
           .classed('style-scope', true)
           .classed('webvisual-element-chart', true);
