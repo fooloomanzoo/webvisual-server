@@ -515,13 +515,16 @@
       ],
 
       ready: function() {
-        this.removeAttribute('unresolved');
         // listen for online/offline
         Polymer.RenderStatus.afterNextRender(this, function() {
           this.listen(window, 'online', '_notifyNetworkStatus');
           this.listen(window, 'offline', '_notifyNetworkStatus');
         });
         this._loadPresettings();
+      },
+
+      attached: function() {
+        this.removeAttribute('unresolved');
       },
 
       _routePageChanged: function(route) {
