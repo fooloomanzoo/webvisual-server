@@ -131,6 +131,7 @@
     }
 
     .circle {
+      display: none;
       transform-origin: center center;
       transform: scale(0);
       stroke: #1ED146;
@@ -139,14 +140,15 @@
     }
 
     webvisual-app[unresolved] .circle {
+      display: inherit;
       will-change: transform, fill-opacity, stroke-opacity;
     }
-    webvisual-app[unresolved] .circle:nth-child(1) { animation: drop 4s cubic-bezier(0.6, 0, 0.3, 1) 2000ms infinite, color 16s cubic-bezier(0.6, 0, 0.3, 1) 2000ms infinite; }
-    webvisual-app[unresolved] .circle:nth-child(2) { animation: drop 4s cubic-bezier(0.6, 0, 0.3, 1) 2250ms infinite, color 16s cubic-bezier(0.6, 0, 0.3, 1) 2250ms infinite; }
-    webvisual-app[unresolved] .circle:nth-child(3) { animation: drop 4s cubic-bezier(0.6, 0, 0.3, 1) 2450ms infinite, color 16s cubic-bezier(0.6, 0, 0.3, 1) 2450ms infinite; }
-    webvisual-app[unresolved] .circle:nth-child(4) { animation: drop 4s cubic-bezier(0.6, 0, 0.3, 1) 2600ms infinite, color 16s cubic-bezier(0.6, 0, 0.3, 1) 2600ms infinite; }
-    webvisual-app[unresolved] .circle:nth-child(5) { animation: drop 4s cubic-bezier(0.6, 0, 0.3, 1) 2700ms infinite, color 16s cubic-bezier(0.6, 0, 0.3, 1) 2700ms infinite; }
-    webvisual-app[unresolved] .circle:nth-child(6) { animation: drop 4s cubic-bezier(0.6, 0, 0.3, 1) 2750ms infinite, color 16s cubic-bezier(0.6, 0, 0.3, 1) 2750ms infinite; }
+    webvisual-app[unresolved] .circle:nth-of-type(1) { animation: drop 4s cubic-bezier(0.6, 0, 0.3, 1) 2000ms infinite, color 16s cubic-bezier(0.6, 0, 0.3, 1) 2000ms infinite; }
+    webvisual-app[unresolved] .circle:nth-of-type(2) { animation: drop 4s cubic-bezier(0.6, 0, 0.3, 1) 2250ms infinite, color 16s cubic-bezier(0.6, 0, 0.3, 1) 2250ms infinite; }
+    webvisual-app[unresolved] .circle:nth-of-type(3) { animation: drop 4s cubic-bezier(0.6, 0, 0.3, 1) 2450ms infinite, color 16s cubic-bezier(0.6, 0, 0.3, 1) 2450ms infinite; }
+    webvisual-app[unresolved] .circle:nth-of-type(4) { animation: drop 4s cubic-bezier(0.6, 0, 0.3, 1) 2600ms infinite, color 16s cubic-bezier(0.6, 0, 0.3, 1) 2600ms infinite; }
+    webvisual-app[unresolved] .circle:nth-of-type(5) { animation: drop 4s cubic-bezier(0.6, 0, 0.3, 1) 2700ms infinite, color 16s cubic-bezier(0.6, 0, 0.3, 1) 2700ms infinite; }
+    webvisual-app[unresolved] .circle:nth-of-type(6) { animation: drop 4s cubic-bezier(0.6, 0, 0.3, 1) 2750ms infinite, color 16s cubic-bezier(0.6, 0, 0.3, 1) 2750ms infinite; }
 
     webvisual-app:not([unresolved]) .unresolved-placeholder {
       display: none;
@@ -154,7 +156,7 @@
     @keyframes drop {
     	0% {
     		transform: scale(0);
-        fill-opacity: 0.3;
+        fill-opacity: 0.4;
         stroke-opacity: 0.4;
     	}
     	68% {

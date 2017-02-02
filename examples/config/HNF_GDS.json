@@ -776,8 +776,8 @@
         "id": "id",
         "keys": {
           "kind": "",
-          "roomNr": "",
-          "room": "",
+          "roomNr": "Diverse",
+          "room": "Diverse",
           "property": "",
           "unit": "",
           "system": "intern",
