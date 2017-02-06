@@ -206,6 +206,11 @@
     },
 
     requestValues: function(start, end, len) {
+      if (!(this.item && this.item.mount)) {
+        return new Promise(function(resolve, reject) {
+          reject();
+        })
+      }
       len = len || this.viewLength || 1;
       var req = {
         target: 'cache',

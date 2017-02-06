@@ -99,9 +99,7 @@
                     .y1( function(d) {
                         return this.chartElement._y(d.y);
                     }.bind(this));
-                this.line = d3.line()
-                    .x( this.area.x.call(this.line) )
-                    .y( this.area.y1.call(this.line) );
+
                 this.bisectDate = d3.bisector(function(d) { return d.x; }).left;
             },
 
@@ -143,102 +141,21 @@
                 if (this.areaNode && this.areaNode.node) {
                     this.areaNode
                         .attr('data-name', this.item.mount)
-                        .attr('fill', this.noFill ? null : (this.item.color || '#000'));
+                        .attr('fill', this.noFill ? null : (this.item.color || '#000'))
+                        .attr('stroke', this.noLine ? null : this.item.color || '#000')
+                        .attr('stroke-width', this.lineWidth);
                 } else {
                     this.areaNode = this.chartElement._areas
                         .append('svg:path')
                         .attr('data-name', this.item.mount)
                         .attr('class', 'area')
-                        .attr('fill', this.noFill ? null : (this.item.color || '#000'));
+                        .attr('fill', this.noFill ? null : (this.item.color || '#000'))
+                        .attr('stroke', this.noLine ? null : this.item.color || '#000')
+                        .attr('stroke-width', this.lineWidth);
                 }
                 this.areaNode
                     .datum([])
-                    .attr('d', this.area)
-                    .on('mouseenter', function() {
-                        // this.setAttribute('r', self.dotRadius * 1.5);
-                        this.chartElement._showInfo();
-                    }.bind(this))
-                    .on('mouseleave', function(d, i) {
-                        // this.setAttribute('r', self.dotRadius);
-                        this.chartElement._hideInfo();
-                    }.bind(this))
-                    .on('mousemove', function() {
-                        // this.setAttribute('r', self.dotRadius * 1.5);
-                        var x0 = this.chartElement._x.invert(d3.mouse(this.chartElement._lines.node())[0]),
-                          i = this.bisectDate(this.values, x0, 1),
-                          d0 = this.values[i - 1],
-                          d1 = this.values[i],
-                          d = x0 - d0.x < d1.x - x0 ? d0 : d1,
-                          fill = this.item.color || '#fff';
-                        if (this.threshold) {
-                          switch (d.state) {
-                            case 1:
-                              fill = this.customStyle['element-state-exceeds-color'] || '#F20C0C';
-                              break;
-                            case -1:
-                              fill = this.customStyle['element-state-deceeds-color'] || '#F20C0C';
-                              break;
-                          }
-                        }
-                        this.chartElement._focusDot
-                                         .attr('fill', fill)
-                                         .attr('r', this.dotRadius);
-                        this.chartElement._moveInfo(d);
-                    }.bind(this));
-
-                // fill area
-                if (this.lineNode && this.lineNode.node) {
-                    this.lineNode
-                        .attr('data-name', this.item.mount)
-                        .attr('fill', 'none')
-                        .attr('stroke', this.noLine ? null : this.item.color || '#000')
-                        .attr('stroke-width', this.lineWidth);
-                } else {
-                    this.lineNode = this.chartElement._lines
-                        .append('svg:path')
-                        .attr('data-name', this.item.mount)
-                        .attr('class', 'line')
-                        .attr('fill', 'none')
-                        .attr('stroke', this.noLine ? null : this.item.color || '#000')
-                        .attr('stroke-width', this.lineWidth);
-                }
-
-                this.lineNode
-                    .datum([])
-                    .attr('d', this.line)
-                    .on('mouseenter', function() {
-                        // this.setAttribute('r', self.dotRadius * 1.5);
-                        this.lineNode.transition(15).attr('stroke-opacity', 1);
-                        this.chartElement._showInfo();
-                    }.bind(this))
-                    .on('mouseleave', function(d, i) {
-                        // this.setAttribute('r', self.dotRadius);
-                        this.lineNode.transition(15).attr('stroke-opacity', null);
-                        this.chartElement._hideInfo();
-                    }.bind(this))
-                    .on('mousemove', function() {
-                        // this.setAttribute('r', self.dotRadius * 1.5);
-                        var x0 = this.chartElement._x.invert(d3.mouse(this.chartElement._lines.node())[0]),
-                          i = this.bisectDate(this.values, x0, 1),
-                          d0 = this.values[i - 1],
-                          d1 = this.values[i],
-                          d = x0 - d0.x > d1.x - x0 ? d1 : d0,
-                          fill = this.item.color || '#fff';
-                        if (this.threshold) {
-                          switch (d.state) {
-                            case 1:
-                              fill = this.customStyle['element-state-exceeds-color'] || '#F20C0C';
-                              break;
-                            case -1:
-                              fill = this.customStyle['element-state-deceeds-color'] || '#F20C0C';
-                              break;
-                          }
-                        }
-                        this.chartElement._focusDot
-                                         .attr('fill', fill)
-                                         .attr('r', this.dotRadius);
-                        this.chartElement._moveInfo(d);
-                    }.bind(this));
+                    .attr('d', this.area);
 
                 // threshold markings
                 var y, node;
@@ -249,7 +166,7 @@
                       .attr('gradientUnits', 'userSpaceOnUse')
                       .attr('x1', 0).attr('y1', this.chartElement._height)
                       .attr('x2', 0).attr('y2', 0);
-                  this.lineNode.attr('stroke', 'url(#boundery-line-' + this.item.mount + ')');
+                  this.areaNode.attr('stroke', 'url(#boundery-line-' + this.item.mount + ')');
                 } else {
                   if (this.bounderyLineGradientNode && this.bounderyLineGradientNode.node) {
                     node = this.bounderyLineGradientNode.node();
@@ -259,16 +176,16 @@
                   }
                 }
                 // group of dots
-                // if (this.dots && this.dots.node) {
-                //     this.dots.attr('mount', this.item.mount)
-                //         .attr('hidden', this.noDots ? true : null);
-                // } else {
-                //     this.dots = this.chartElement._dots
-                //         .append('svg:g')
-                //         .attr('mount', this.item.mount)
-                //         .attr('class', 'dots')
-                //         .attr('hidden', this.noDots ? true : null);
-                // }
+                if (this.dots && this.dots.node) {
+                    this.dots.attr('mount', this.item.mount)
+                        .attr('hidden', this.noDots ? true : null);
+                } else {
+                    this.dots = this.chartElement._dots
+                        .append('svg:g')
+                        .attr('mount', this.item.mount)
+                        .attr('class', 'dots')
+                        .attr('hidden', this.noDots ? true : null);
+                }
 
                 this._isAttached = true;
                 this.chartElement.redraw();
@@ -282,18 +199,12 @@
                         node.parentElement.removeChild(node);
                     this.areaNode = null;
                 }
-                if (this.lineNode && this.lineNode.node) {
-                    node = this.lineNode.node();
+                if (this.dots && this.dots.node) {
+                    node = this.dots.node();
                     if (node && node.parentElement)
                         node.parentElement.removeChild(node);
-                    this.lineNode = null;
+                    this.dots = null;
                 }
-                // if (this.dots && this.dots.node) {
-                //     node = this.dots.node();
-                //     if (node && node.parentElement)
-                //         node.parentElement.removeChild(node);
-                //     this.dots = null;
-                // }
                 if (this.bounderyLineGradientNode && this.bounderyLineGradientNode.node) {
                   node = this.bounderyLineGradientNode.node();
                   if (node && node.parentElement)
@@ -403,22 +314,7 @@
                         return;
                       }
                     }
-                    if (!this.noLine) {
-                      if (this.lineNode && this.lineNode.node) {
-                        this.lineNode
-                            .transition(d3.transition().duration(100))
-                            .attrTween('d', function (d) {
-                              var previous = d3.select(this).attr('d');
-                              var current = self.line(data);
-                              return d3.interpolatePath(previous, current);
-                            });
-                      } else if (this.item && this.item.mount){
-                        this.addNodes();
-                        return;
-                      } else {
-                        return;
-                      }
-                    }
+
                     var y;
                     if (this.item.threshold) {
                       if (this.bounderyLineGradientNode && this.bounderyLineGradientNode.node) {
@@ -460,74 +356,40 @@
                               .remove();
                       }
                     }
-                    // hide line if there are too many data-points
-                    data = data.filter(this._defined.bind(this));
-                    // console.log(data.length, this.lineWidth, this.chartElement._width, data.length / this.lineWidth);
-                    // if (data.length * (this.lineWidth) > this.chartElement._width) {
-                    //   this.lineWidth = this.chartElement._width / data.length;
-                    //   console.log(this.lineWidth);
-                    //   // this.areaNode.attr('stroke', 'none');
-                    //   data = [];
-                    // } else {
-                    //   this.areaNode.attr('stroke', this.bounderyLineGradientNode ? ('url(#boundery-line-' + this.item.mount + ')') : '#000');
-                    //   this.lineWidth = 0.5;
-                    // }
 
                     // if (!this.noDots) {
-                    //     var everyOverlappingDot = (data.length / Math.max(this.chartElement._height, this.chartElement._width) * (this.dotRadius * 2));
+                    //   // hide line if there are too many data-points
+                    //   data = data.filter(this._defined.bind(this));
+                    //   // console.log(data.length, this.lineWidth, this.chartElement._width, data.length / this.lineWidth);
+                    //   if (data.length * this.dotRadius * 4 > this.chartElement._width) {
+                    //     data = [];
+                    //   }
                     //
-                    //     if (everyOverlappingDot > 1)
-                    //         data = data.filter(function(d, i) {
-                    //             return (i % everyOverlappingDot <= 1);
-                    //         })
-                    //     var dots = this.dots.selectAll('circle')
-                    //         .data(data);
-                    //     // update current dots
-                    //     dots.attr('cx', function(d) {
-                    //             return this.chartElement._x(d.x)
-                    //         }.bind(this))
-                    //         .attr('cy', function(d) {
-                    //             return this.chartElement._y(d.y)
-                    //         }.bind(this))
-                    //         .attr('fill', this._calcDotColor.bind(this));
-                    //     // enter new dots
-                    //     dots.enter()
-                    //         .append('circle')
-                    //         .classed('dot style-scope webvisual-element-graph', true)
-                    //         .attr('r', this.dotRadius)
-                    //         .attr('fill', this._calcDotColor.bind(this))
-                    //         .attr('cx', function(d) {
-                    //             return this.chartElement._x(d.x)
-                    //         }.bind(this))
-                    //         .attr('cy', function(d) {
-                    //             return this.chartElement._y(d.y)
-                    //         }.bind(this))
-                    //         .attr('stroke', this.bounderyLineGradientNode ? 'url(#boundery-dots-' + this.item.mount + ')' : '#000')
-                    //         .attr('stroke-width', this.lineWidth * 2)
-                    //         .attr('title', function(d) {
-                    //             return this.computeDate(d.x) + ' | ' + this.computeValue(d.y);
-                    //         }.bind(this))
-                    //         .on('mouseenter', function(d) {
-                    //             this.setAttribute('r', self.dotRadius * 1.5);
-                    //             self.chartElement._showInfo(d);
-                    //         })
-                    //         .on('mouseleave', function(d, i) {
-                    //             this.setAttribute('r', self.dotRadius);
-                    //             self.chartElement._hideInfo();
-                    //         })
-                    //         .on('click', function(d) {
-                    //             var offset = this.dotRadius * 5;
-                    //             var x = this.chartElement._x(d.x);
-                    //             var y = this.chartElement._y(d.y);
-                    //             d3.event.selection = [
-                    //                 [x - offset, y - offset],
-                    //                 [x + offset, y + offset]
-                    //             ];
-                    //             this.chartElement.brushed();
-                    //         }.bind(this));
-                    //     //  remove old dots
-                    //     dots.exit()
-                    //         .remove();
+                    //   var dots = this.dots.selectAll('circle')
+                    //       .data(data);
+                    //   // update current dots
+                    //   dots.attr('cx', function(d) {
+                    //           return this.chartElement._x(d.x)
+                    //       }.bind(this))
+                    //       .attr('cy', function(d) {
+                    //           return this.chartElement._y(d.y)
+                    //       }.bind(this));
+                    //   // enter new dots
+                    //   dots.enter()
+                    //       .append('circle')
+                    //       .classed('dot style-scope webvisual-element-graph', true)
+                    //       .attr('r', this.dotRadius)
+                    //       .attr('cx', function(d) {
+                    //           return this.chartElement._x(d.x)
+                    //       }.bind(this))
+                    //       .attr('cy', function(d) {
+                    //           return this.chartElement._y(d.y)
+                    //       }.bind(this))
+                    //       .attr('fill', this._getStrokeColor.bind(this))
+                    //       .attr('stroke', this._getStrokeColor.bind(this));
+                    //   //  remove old dots
+                    //   dots.exit()
+                    //       .remove();
                     // }
                 }.bind(this));
 
@@ -557,9 +419,6 @@
                 WebvisualBehaviors.ColorBehavior.setColor.call(this, color);
                 if (this.chart) {
                     if (this.areaNode && this.areaNode.attr) this.areaNode.attr('fill', color);
-                    // if (this.dots && this.dots.selectAll)
-                    //     this.dots.selectAll('circle.dot')
-                    //     .attr('stroke', color);
                 }
             },
 
@@ -571,11 +430,16 @@
               // }
             },
 
-            _calcDotColor: function(d) {
-              if (!d.state) {
-                return this.item.color || '#fff';
+            _getStrokeColor: function(d) {
+              if (this.item.threshold) {
+                switch (d.state) {
+                  case 1:
+                    return this.customStyle['element-state-exceeds-color'] || '#F20C0C';
+                  case -1:
+                    return this.customStyle['element-state-deceeds-color'] || '#F20C0C';
+                }
               }
-              return '#fff';
+              return this.item.color || '#fff';
             },
 
             _presentationChanged: function(noDots, noLine, noFill) {
@@ -591,9 +455,9 @@
             },
 
             _dotRadiusChanged: function(dotRadius) {
-                // if (this.dots && this.dots.selectAll) {
-                //     this.dots.selectAll('circle.dot').attr('r', dotRadius);
-                // }
+                if (this.dots && this.dots.selectAll) {
+                    this.dots.selectAll('circle.dot').attr('r', dotRadius);
+                }
             },
 
             _lineWidthChanged: function(lineWidth) {

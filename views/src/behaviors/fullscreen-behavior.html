@@ -104,6 +104,9 @@
           document.body.style.overflow = '';
           this.parent.classList.remove('fullscreen');
         }
+        if (this.notifyResize) {
+          this.notifyResize();
+        }
       }.bind(this));
     },
 

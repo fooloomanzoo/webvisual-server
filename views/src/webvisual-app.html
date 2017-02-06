@@ -7,6 +7,7 @@
 <link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html"/>
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html"/>
 <link rel="import" href="../bower_components/paper-ripple/paper-ripple.html"/>
+<link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
 
 <link rel="import" href="../bower_components/app-route/app-location.html"/>
 <link rel="import" href="../bower_components/app-route/app-route.html"/>
@@ -219,23 +220,24 @@
         </template>
       </app-toolbar>
 
-      <webvisual-tabs id="tabs" sticky hidden$="[[!_shouldShowTabs]]"
-        selected="{{page}}"
-        attr-for-selected="name">
-        <div class="webvisual-button" slot="tab" name="list">
-          <paper-ripple id="ripple" recenters></paper-ripple>
-          <a href="/list/[[facilitySystem]]">{{localize('list', 'name')}}</a>
-        </div>
-        <div class="webvisual-button" slot="tab" name="groups">
-          <paper-ripple id="ripple" recenters></paper-ripple>
-          <a href="/groups/[[facilitySystem]]">{{localize('groups', 'name')}}</a>
-        </div>
-        <div class="webvisual-button" slot="tab" name="detail">
-          <paper-ripple id="ripple" recenters></paper-ripple>
-          <a href="/detail/[[facilitySystem]]">{{localize('detail', 'name')}}</a>
-        </div>
-      </webvisual-tabs>
-
+      <iron-collapse sticky opened="[[_shouldShowTabs]]">
+        <webvisual-tabs id="tabs"
+          selected="{{page}}"
+          attr-for-selected="name">
+          <div class="webvisual-button tab" name="list">
+            <paper-ripple id="ripple" recenters></paper-ripple>
+            <a href="/list/[[facilitySystem]]">{{localize('list', 'name')}}</a>
+          </div>
+          <div class="webvisual-button tab" name="groups">
+            <paper-ripple id="ripple" recenters></paper-ripple>
+            <a href="/groups/[[facilitySystem]]">{{localize('groups', 'name')}}</a>
+          </div>
+          <div class="webvisual-button tab" name="detail">
+            <paper-ripple id="ripple" recenters></paper-ripple>
+            <a href="/detail/[[facilitySystem]]">{{localize('detail', 'name')}}</a>
+          </div>
+        </webvisual-tabs>
+      </iron-collapse>
     </app-header>
 
     <iron-pages id="pageselector" role="main" selected="[[page]]" attr-for-selected="name" selected-attribute="visible" fallback-selection="home">
@@ -393,6 +395,7 @@
       is: 'webvisual-app',
 
       behaviors: [
+        Polymer.IronResizableBehavior,
         WebvisualBehaviors.LocalizeBehavior
       ],
 
@@ -466,16 +469,16 @@
           reflectToAttribute: true
         },
 
+        _shouldShowTabs: {
+          type: Boolean
+        },
+
         _socketStatusIcon: {
           computed: '_computeStatusIcon(socketStatus)'
         },
 
         _isContentPage: {
           computed: '_computeIsContentPage(page)'
-        },
-
-        _shouldShowTabs: {
-          computed: '_computeShouldShowTabs(_isContentPage, showTabs)'
         },
 
         _shouldRenderDrawer: {
@@ -498,7 +501,8 @@
       observers: [
         '_routePageChanged(routeData.page)',
         '_subrouteChanged(subroute)',
-        '_setInitialGroupedKey(_shouldRenderGroupingKeys)'
+        '_setInitialGroupedKey(_shouldRenderGroupingKeys)',
+        '_showTabsChanged(showTabs, _isContentPage, loadComplete)'
       ],
 
       ready: function() {
@@ -546,6 +550,13 @@
               this.resolveUrl('webvisual-' + page + '.html'),
               function() {
                 this._pageLoaded(Boolean(oldPage));
+                var item;
+                console.log( this.$.pageselector.selectedItem);
+                if ((item = this.$.pageselector.selectedItem).assignParentResizable) {
+                  console.log(item);
+                  item.assignParentResizable(this);
+                }
+                this._debouncedHideTabs();
               }, function() {
                 this.page = 'home'; // Fallback
               }, true);
@@ -682,16 +693,24 @@
         },1);
       },
 
+      _showTabsChanged: function(isContentPage, loadComplete, showTabs) {
+        this._shouldShowTabs = (isContentPage && loadComplete && showTabs);
+        this._debouncedHideTabs();
+      },
+
+      _debouncedHideTabs: function() {
+        this.debounce('hide-tabs', function() {
+          this.showTabs = false;
+          this.async(this.notifyResize, 500);
+        }, 15000);
+      },
+
       _computeShouldLogin: function(loggedIn, offline) {
         return (loggedIn === false && offline === false);
       },
 
       _computeIsContentPage: function(page) {
         return (page !== 'home' && page !== 'login');
-      },
-
-      _computeShouldShowTabs: function(isContentPage, showTabs) {
-        return isContentPage && showTabs;
       },
 
       _computeShouldRenderDrawer: function(isContentPage, loadComplete) {
