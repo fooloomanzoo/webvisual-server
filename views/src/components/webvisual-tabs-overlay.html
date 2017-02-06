@@ -5,7 +5,7 @@
     <style>
       :host {
         position: absolute;
-        /*display: none;*/
+        display: none;
         pointer-events: none;
         opacity: 0;
         top: 0;
@@ -26,12 +26,12 @@
          */
         target: {
           type: Object,
-          observer: '_targetChanged',
+          observer: '_targetChanged'
         }
       },
 
       listeners: {
-        'transitionend': '_onTransitionend',
+        'transitionend': '_onTransitionend'
       },
 
       created: function() {
@@ -42,7 +42,7 @@
       _targetChanged: function(newTarget, oldTarget) {
         if (!this._transitionsInFlight.length) {
           if (this._lastTarget) {
-            this._lastTarget.classList.remove('overlay-static-above');
+            this._lastTarget.classList.remove('overlay-above');
           }
           this.style.display = 'block';
           this._move(oldTarget, newTarget);
@@ -67,9 +67,9 @@
           this._lastTarget = this.target;
         } else {
           if (this._lastTarget) {
-            this._lastTarget.classList.add('overlay-static-above');
+            this._lastTarget.classList.add('overlay-above');
           }
-          // this.style.display = 'none';
+          this.style.display = 'none';
           this.fire('overlay-transition-end');
         }
       },
@@ -160,7 +160,7 @@
           this.style.left = left + 'px';
           this.style.opacity = String(toOpacity);
         }, 1);
-      },
+      }
     });
   </script>
 </dom-module>

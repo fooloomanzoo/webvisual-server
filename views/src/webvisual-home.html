@@ -1,6 +1,7 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
 <link rel="import" href="../bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
 
 <link rel="import" href="behaviors/localize-behavior.html">
 
@@ -188,6 +189,7 @@
       <iron-selector id="selector" selected="{{currentFacility}}" attr-for-selected="item-name" selectable=".facility">
         <template is="dom-repeat" items="[[facilities]]">
           <div raised class="webvisual-button item facility" item-name="[[item.name]]" title$="[[item.title]]" tabindex="1">
+            <paper-ripple id="ripple" recenters></paper-ripple>
             <div>[[item.title]]</div>
           </div>
 
@@ -196,6 +198,7 @@
               <template is="dom-repeat" items="[[item.systems]]" as="system">
                 <a href$="[[_computeHref(system.view, item.name, system.name)]]" tabindex="-1">
                   <div raised class="webvisual-button item system" title$="[[system.title]]" tabindex="1">
+                    <paper-ripple id="ripple" recenters></paper-ripple>
                     <div>[[system.title]]</div>
                   </div>
                 </a>

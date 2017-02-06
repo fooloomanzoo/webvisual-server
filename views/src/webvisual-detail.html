@@ -72,12 +72,14 @@
       }
       .checkbox {
         flex-shrink: 0;
-        color: var(--bright-text-color);
-      }
-      .checkbox[checked] {
-        flex-shrink: 0;
-        color: var(--primary-text-color);
-        background: transparent;
+        --checkbox-unchecked: {
+          background: transparent;
+          color: var(--primary-text-color);
+        }
+        --checkbox-checked: {
+          background: transparent;
+          color: var(--primary-text-color);
+        }
       }
       .caption {
         flex: auto;
@@ -165,7 +167,7 @@
             item="[[selectedElement]]"
             exceeding="[[exceeding]]"></webvisual-element-svg>
         </template>
-        
+
         <template is="dom-if" if="[[visible]]">
           <app-drawer id="elementDrawer" opened="[[_ensureOpened(showControlAsDrawer)]]" swipe-open persistent="[[!showControlAsDrawer]]" align="right">
 

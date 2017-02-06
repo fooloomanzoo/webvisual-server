@@ -59,11 +59,65 @@
         flex-direction: column;
         width: 100%;
       }
-
+      ::slotted(.overlay-above):before {
+        position: absolute;
+        content: "";
+        pointer-events: none;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        @apply(--tab-overlay);
+      }
+      :host([vertical]) ::slotted(.overlay-above):before {
+        @apply(--tab-vertical-overlay);
+      }
+      #selectionBar {
+        position: absolute;
+        height: var(--tabs-selection-bar-width, 2px);
+        width: auto;
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: var(--tabs-selection-bar-color, --primary-color);
+          -webkit-transform: scale(0);
+        transform: scale(0);
+          -webkit-transform-origin: left center;
+        transform-origin: left center;
+          transition: -webkit-transform;
+        transition: transform;
+      }
+      :host([oppose]) #selectionBar {
+        top: 0;
+        bottom: auto;
+      }
+      :host([vertical]) #selectionBar {
+        position: absolute;
+        height: auto;
+        width: var(--tabs-selection-bar-width, 2px);
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: auto;
+      }
+      :host([vertical][oppose]) #selectionBar {
+        right: 0;
+        left: auto;
+      }
+      #selectionBar.expand {
+        transition-duration: 0.15s;
+        transition-timing-function: cubic-bezier(0.4, 0.0, 1, 1);
+      }
+      #selectionBar.contract {
+        transition-duration: 0.18s;
+        transition-timing-function: cubic-bezier(0.0, 0.0, 0.2, 1);
+      }
     </style>
     <nav id="container" on-track="_onscroll" on-wheel="_onwheel">
-      <webvisual-tabs-overlay id="overlay" vertical="[[vertical]]"></webvisual-tabs-overlay>
+      <webvisual-tabs-overlay id="overlay" vertical="[[vertical]]" ontransitionend="_onTransitionend"></webvisual-tabs-overlay>
       <slot name="tab"></slot>
+      <div id="selectionBar"></div>
       <div id="addon">
         <slot name="overlay-addon"></slot>
       </div>
@@ -75,8 +129,18 @@
       is: 'webvisual-tabs',
 
       properties: {
-
+        /**
+         * If true, the tabs are vertically aligned.
+         */
         vertical: {
+          type: Boolean,
+          value: false,
+          reflectToAttribute: true
+        },
+        /**
+         * If true, the tabs are aligned to bottom (the selection bar appears at the top).
+         */
+        oppose: {
           type: Boolean,
           value: false,
           reflectToAttribute: true
@@ -87,10 +151,6 @@
       behaviors: [
         Polymer.IronSelectableBehavior
       ],
-
-      listeners: {
-        'overlay-transition-end': '_onTransitionend',
-      },
 
       observers: [
         '_onSelectedItemChanged(selectedItem)'
@@ -107,17 +167,15 @@
         selectedItem.scrollIntoViewIfNeeded(true);
       },
 
-      _onTransitionend: function() {
-        if (!this.overlay) {
-          this.overlay = this.$.overlay;
+      _targetChanged: function(newTarget, oldTarget) {
+        if (!this._transitionsInFlight.length) {
+          if (this._lastTarget) {
+            this._lastTarget.classList.remove('overlay-static-above');
+          }
+          this.style.display = 'block';
+          this._move(oldTarget, newTarget);
+          this._lastTarget = this.target;
         }
-        if (!this.addon) {
-          this.addon = this.$.addon;
-        }
-        this.addon.style.cssText = 'top: ' + this.overlay.style.top + ';' +
-                                   'right: ' + this.overlay.style.right + ';' +
-                                   'bottom: ' + this.overlay.style.bottom + ';' +
-                                   'left: ' + this.overlay.style.left + ';';
       },
 
       _onwheel: function (e) {

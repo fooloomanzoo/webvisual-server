@@ -115,15 +115,15 @@
       }
 
       :host {
-        background-color: var(--checkbox-background, transparent);
+        @apply(--checkbox-unchecked);
       }
 
       :host([checked]) {
-        background-color: var(--checkbox-checked-background, rgba(255, 255, 255, 0.9));
+        @apply(--checkbox-checked);
       }
 
       :host(:focus) {
-        outline: 1px var(--bright-primary-color);
+        outline: 1px solid var(--bright-primary-color);
       }
 
       /* box checked animations */

@@ -6,9 +6,11 @@
 <link rel="import" href="../bower_components/app-layout/app-header/app-header.html"/>
 <link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html"/>
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html"/>
+<link rel="import" href="../bower_components/paper-ripple/paper-ripple.html"/>
 
 <link rel="import" href="../bower_components/app-route/app-location.html"/>
 <link rel="import" href="../bower_components/app-route/app-route.html"/>
+<link rel="import" href="../bower_components/app-layout/app-scroll-effects/effects/waterfall.html"/>
 
 <link rel="import" href="webvisual-login.html"/>
 <link rel="import" href="webvisual-home.html"/>
@@ -40,24 +42,8 @@
         left: 0;
         right: 0;
         z-index: 1;
-        @apply(--app-header);
-      }
-      app-header::before {
-        position: absolute;
-        content: '';
-        top: 0;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        opacity: 0;
-        transition: opacity 1s cubic-bezier(0.6, 0, 0.1, 1);
-        @apply(--app-header-before);
-      }
-      app-header[threshold-triggered]::before {
-        opacity: 1;
-      }
-      app-header[threshold-triggered] {
         color: var(--bright-text-color);
+        @apply(--app-header);
       }
       app-header > * {
         z-index: auto;
@@ -198,14 +184,14 @@
       logged-in="[[loggedIn]]"
       lazy-connect="[[loadComplete]]"></webvisual-element-socket-data>
 
-    <app-header role="home" id="header" hidden$="[[!_shouldShowHeader]]" threshold="100" reveals>
+    <app-header role="home" id="header" hidden$="[[!_isContentPage]]" condenses reveals effects="waterfall">
 
       <app-toolbar>
         <webvisual-icon-button icon="menu" class="menu-icon" title="menu" on-tap="_toggleDrawer"></webvisual-icon-button>
 
         <webvisual-logo id="logo" href="/home" main-title title$6="[[localize('home', 'name')]]"></webvisual-logo>
 
-        <template is="dom-if" if="[[_shouldRenderControlButtons]]">
+        <template is="dom-if" if="[[_isContentPage]]">
 
           <template is="dom-if" if="[[_shouldRenderGroupingKeys]]">
             <div class="webvisual-selectbox toolbar grouping" title="grouping keys">
@@ -233,21 +219,22 @@
         </template>
       </app-toolbar>
 
-      <template is="dom-if" if="[[_shouldRenderTabs]]">
-        <webvisual-tabs id="tabs" sticky="[[_shouldShowTabs]]" hidden$="[[!_shouldShowTabs]]"
-          selected="{{page}}"
-          attr-for-selected="name">
-          <div class="webvisual-button" slot="tab" name="list">
-            <a href="/list/[[facilitySystem]]">{{localize('list', 'name')}}</a>
-          </div>
-          <div class="webvisual-button" slot="tab" name="groups">
-            <a href="/groups/[[facilitySystem]]">{{localize('groups', 'name')}}</a>
-          </div>
-          <div class="webvisual-button" slot="tab" name="detail">
-            <a href="/detail/[[facilitySystem]]">{{localize('detail', 'name')}}</a>
-          </div>
-        </webvisual-tabs>
-      </template>
+      <webvisual-tabs id="tabs" sticky hidden$="[[!_shouldShowTabs]]"
+        selected="{{page}}"
+        attr-for-selected="name">
+        <div class="webvisual-button" slot="tab" name="list">
+          <paper-ripple id="ripple" recenters></paper-ripple>
+          <a href="/list/[[facilitySystem]]">{{localize('list', 'name')}}</a>
+        </div>
+        <div class="webvisual-button" slot="tab" name="groups">
+          <paper-ripple id="ripple" recenters></paper-ripple>
+          <a href="/groups/[[facilitySystem]]">{{localize('groups', 'name')}}</a>
+        </div>
+        <div class="webvisual-button" slot="tab" name="detail">
+          <paper-ripple id="ripple" recenters></paper-ripple>
+          <a href="/detail/[[facilitySystem]]">{{localize('detail', 'name')}}</a>
+        </div>
+      </webvisual-tabs>
 
     </app-header>
 
@@ -290,6 +277,7 @@
 
         <div class="drawer-content">
           <div class="webvisual-button" for="route-collapse" on-tap="_toggleCollapse">
+            <paper-ripple id="ripple" recenters></paper-ripple>
             <iron-icon icon="more-vert" class="left"></iron-icon>
             <span>{{localize('view')}}</span>
             <iron-icon icon="expand-more" class="right"></iron-icon>
@@ -300,6 +288,7 @@
               <template is="dom-if" if="[[_shouldLogin]]">
                 <a href="/login">
                   <div class="webvisual-button" name="login">
+                    <paper-ripple id="ripple" recenters></paper-ripple>
                     <iron-icon icon="perm-identity" class="left"></iron-icon>
                     {{localize('login', 'name')}}
                   </div>
@@ -307,24 +296,28 @@
               </template>
               <a href="/home">
                 <div class="webvisual-button" name="home">
+                  <paper-ripple id="ripple" recenters></paper-ripple>
                   <iron-icon icon="exit-to-app" class="left"></iron-icon>
                   {{localize('home', 'name')}}
                 </div>
               </a>
               <a href="/list/[[facilitySystem]]">
                 <div class="webvisual-button" name="list">
+                  <paper-ripple id="ripple" recenters></paper-ripple>
                   <iron-icon icon="list" class="left"></iron-icon>
                   {{localize('list', 'name')}}
                 </div>
               </a>
               <a href="/groups/[[facilitySystem]]">
                 <div class="webvisual-button" name="groups">
+                  <paper-ripple id="ripple" recenters></paper-ripple>
                   <iron-icon icon="grid-on" class="left"></iron-icon>
                   {{localize('groups', 'name')}}
                 </div>
               </a>
               <a href="/detail/[[facilitySystem]]">
                 <div class="webvisual-button" name="detail">
+                  <paper-ripple id="ripple" recenters></paper-ripple>
                   <iron-icon icon="chrome-reader-mode" class="left"></iron-icon>
                   {{localize('detail', 'name')}}
                 </div>
@@ -335,6 +328,7 @@
           <div class="spacer"></div>
 
           <div class="webvisual-button" for="layout-collapse" on-tap="_toggleCollapse">
+            <paper-ripple id="ripple" recenters></paper-ripple>
             <iron-icon icon="settings" class="left"></iron-icon>
             <span>{{localize('layout')}}</span>
             <iron-icon icon="expand-more" class="right"></iron-icon>
@@ -468,6 +462,7 @@
 
         showTabs: {
           type: Boolean,
+          value: true,
           reflectToAttribute: true
         },
 
@@ -475,24 +470,16 @@
           computed: '_computeStatusIcon(socketStatus)'
         },
 
-        _shouldShowHeader: {
-          computed: '_computeShouldShowHeader(page)'
-        },
-
-        _shouldRenderControlButtons: {
-          computed: '_computeShouldRenderControlButtons(page)'
+        _isContentPage: {
+          computed: '_computeIsContentPage(page)'
         },
 
         _shouldShowTabs: {
-          computed: '_computeShouldShowTabs(page, showTabs)'
-        },
-
-        _shouldRenderTabs: {
-          computed: '_computeShouldRenderTabs(_shouldShowTabs, loadComplete)'
+          computed: '_computeShouldShowTabs(_isContentPage, showTabs)'
         },
 
         _shouldRenderDrawer: {
-          computed: '_computeShouldRenderDrawer(page, loadComplete)'
+          computed: '_computeShouldRenderDrawer(_isContentPage, loadComplete)'
         },
 
         _shouldRenderGroupingKeys: {
@@ -699,32 +686,20 @@
         return (loggedIn === false && offline === false);
       },
 
-      _computeShouldShowHeader: function(page) {
+      _computeIsContentPage: function(page) {
         return (page !== 'home' && page !== 'login');
       },
 
-      _computeShouldRenderLowerToolbar: function(page, opened) {
-        return (page === 'list') && opened;
+      _computeShouldShowTabs: function(isContentPage, showTabs) {
+        return isContentPage && showTabs;
       },
 
-      _computeShouldRenderControlButtons: function(page) {
-        return (page !== 'home' && page !== 'login');
+      _computeShouldRenderDrawer: function(isContentPage, loadComplete) {
+        return isContentPage && loadComplete;
       },
 
-      _computeShouldShowTabs: function(page, showTabs) {
-        return (page !== 'home' && page !== 'login') && showTabs;
-      },
-
-      _computeShouldRenderTabs: function(_shouldShowTabs, loadComplete) {
-        return _shouldShowTabs && loadComplete;
-      },
-
-      _computeShouldRenderDrawer: function(page, loadComplete) {
-        return (page !== 'home' && page !== 'login') && loadComplete;
-      },
-
-      _computeShouldRenderGroupingKeys: function(page, loadComplete) {
-        return page === 'groups' && loadComplete;
+      _computeShouldRenderGroupingKeys: function(page) {
+        return page === 'groups';
       },
 
       _computeStatusIcon: function(status) {
