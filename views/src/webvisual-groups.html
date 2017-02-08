@@ -9,7 +9,7 @@
 <link rel="import" href="webvisual-groupcard.html"/>
 
 <dom-module id="webvisual-groups">
-  <template>
+  <template strip-whitespace>
     <style include="shared-styles page-layout">
       :host(:not([plain])) .grid.sign li > * {
         border-radius: 12px;
@@ -66,9 +66,6 @@
           flex-basis: 33%;
           max-width: 33%;
         }
-      }
-      .grid:not(.sign) > li:hover {
-        resize: none;
       }
 
     </style>

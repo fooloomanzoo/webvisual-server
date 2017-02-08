@@ -28,7 +28,7 @@
 
 <dom-module id="webvisual-app">
 
-  <template>
+  <template strip-whitespace>
 
     <style include="shared-styles webvisual-selectbox webvisual-button webvisual-app-style">
       :host {
@@ -533,6 +533,7 @@
         }
         var names = subroute.path.split('/')
                             .filter(function (str) { return str !== ''; });
+
         if (names.length >= 2) {
           this.facilitySystem = names[0] + '/' + names[1];
           document.title = this.facilitySystem + ' - Webvisual';
@@ -551,9 +552,7 @@
               function() {
                 this._pageLoaded(Boolean(oldPage));
                 var item;
-                console.log( this.$.pageselector.selectedItem);
                 if ((item = this.$.pageselector.selectedItem).assignParentResizable) {
-                  console.log(item);
                   item.assignParentResizable(this);
                 }
                 this._debouncedHideTabs();

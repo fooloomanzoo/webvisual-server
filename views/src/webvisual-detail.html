@@ -79,12 +79,10 @@
       .checkbox {
         flex-shrink: 0;
         --checkbox-unchecked: {
-          border: none !important;
           background: transparent;
-          color: var(--primary-text-color);
+          color: var(--bright-text-color);
         }
         --checkbox-checked: {
-          border: none !important;
           background: transparent;
           color: var(--primary-text-color);
         }
@@ -312,30 +310,35 @@
       },
 
       _getCurrentElement: function(elements, mount, visible) {
-        this.async( function() {
-          if (!visible) {
-            return;
+        if (!(visible && elements && elements.length && mount && mount !== this._recentElementMount)) {
+          return;
+        }
+        requestAnimationFrame( function() {
+          if (mount.startsWith('/')) {
+            mount = mount.substring(1); // cut off leading '/'
           }
-          this.debounce('resize', this.notifyResize);
-          if (!elements || !elements.length || !mount) {
-            this.set('selectedElement', null);
-            return;
-          }
-          mount = mount.substring(1); // cut off leading '/'
           for (var i = 0; i < elements.length; i++) {
             if (elements[i].mount && elements[i].mount === mount) {
+              this.cancelDebouncer('initial-element');
+              this._recentElementMount = elements[i].mount;
               this.set('selectedElement', elements[i]);
+              if (this.route.path !== '/' + mount) {
+                this.set('route.path', '/' + elements[0].mount);
+                this.debounce('resize', this.notifyResize);
+              }
               this._checkWithSvg(elements[i]);
+              this.debounce('resize', this.notifyResize);
               return;
             }
           }
-          if (elements.length && elements[0].mount) {
-            this.set('route.path', '/' + elements[0].mount);
-          } else {
-            this.set('selectedElement', null);
-          }
-          return;
-        })
+          this.debounce('initial-element', this._setInitialElement.bind(this), 250);
+        }.bind(this))
+      },
+
+      _setInitialElement: function() {
+        if (this.elements && this.elements.length) {
+          this.set('route.path', '/' + this.elements[0].mount);
+        }
       },
 
       _checkWithSvg: function(selectedElement) {

@@ -23,7 +23,7 @@ const EventEmitter = require('events').EventEmitter
     , path = require('path')
     , mkdirp = require('mkdirp')
 
-// Routing
+    // Routing
     , xFrameOptions = require('x-frame-options')
     , cookieSession = require('cookie-session')
     , bodyParser = require('body-parser')
@@ -32,8 +32,9 @@ const EventEmitter = require('events').EventEmitter
     , session = require('express-session')
     , serveStatic = require('serve-static')
 
-// Session Store
-    , RedisStore = require('connect-redis')(session);
+    // Session Store
+    , RedisStore = require('connect-redis')(session)
+    , socketioRedis = require('passport-socketio-redis');
 
 function resolvePath() {
   let p = process.cwd();
@@ -48,7 +49,7 @@ function resolvePath() {
 
 class Router extends EventEmitter {
 
-  constructor(server, mode) {
+  constructor(app, mode) {
     super();
 
     switch (mode) {
@@ -63,31 +64,37 @@ class Router extends EventEmitter {
     this.staticDataMiddleware = serveStatic( resolvePath( this.dir.data ), { index: false });
     this.staticImageMiddleware = serveStatic( resolvePath( this.dir.img ), { index: false });
 
-    this.app = server;
+    this.app = app;
 
     this.passport = require('passport');
     this.settings = {};
     this.configuration = {};
+
+    this.sessionSecret = this.settings.sessionSecret || 'String(Math.random().toString(16).slice(2)';
 
     // TODO: use session manager to auth socket.io client
     // http://mono.software/2014/08/25/Sharing-sessions-between-SocketIO-and-Express-using-Redis/
     // http://stackoverflow.com/questions/25532692/how-to-share-sessions-with-socket-io-1-x-and-express-4-x
 
     // Parser
-    this.app.use(cookieParser());
+    this.cookieParser = require('cookie-parser')(this.sessionSecret);
+    this.app.use(this.cookieParser);
     this.app.use(bodyParser.json());
     this.app.use(bodyParser.urlencoded({ extended: true }));
 
+    this.sessionStore = new RedisStore( {
+      host: 'localhost',
+      port: 6379,
+      db: 1
+    } );
+
     this.sessionMiddleWare = session( {
-      store: new RedisStore( {
-        host: 'localhost',
-        port: 6379,
-        db: 1
-      } ),
-      secret: 'String(Math.random().toString(16).slice(2)',
+      store: this.sessionStore,
+      key: 'sess-id',
+      secret: this.sessionSecret,
       resave: true,
       rolling: true,
-      saveUninitialized: true,
+      saveUninitialized: false,
       cookie: {
         secure: true,
         maxAge: 24*3600*1000*180
@@ -117,12 +124,12 @@ class Router extends EventEmitter {
     });
   }
 
-  setSettings(options) {
+  setSettings(options, server) {
     if (options === undefined)
       this.emit('error', 'Empty Configuration passed to Router');
     for (let key in options) {
-      if (key == 'server')
-        this.setServer(options.server);
+      if (key == 'server' && server)
+        this.setServer(options.server, server);
       else if (key == 'userConfigFiles')
         this.setUserConfig(options.userConfigFiles);
       else {
@@ -131,15 +138,46 @@ class Router extends EventEmitter {
     }
   }
 
-  setServer(opt) {
+  setServer(opt, server) {
     this.settings.server = opt;
+    // Optional Auth
+    let authNeeded = this.settings.server.auth.required;
 
     // Auth Methods
     require('./auth/activedirectory.js')(this.passport, this.settings.server.auth.ldap); // register custom ldap-passport-stategy
     require('./auth/dummy.js')(this.passport); // register dummy-stategy
 
-    // Optional Auth
-    let authNeeded = this.settings.server.auth.required;
+    this.io = require('socket.io')(server);
+
+    this.io.use( (socket, next) => {
+      this.cookieParser(socket.handshake, {}, (err) => {
+        // if (err) {
+        //   console.log('error in parsing cookie');
+        //   return next(err);
+        // }
+        // if (!socket.handshake.signedCookies) {
+        //   console.log('no secureCookies|signedCookies found');
+        //   return next(new Error('no secureCookies found'));
+        // }
+        if (!err && socket.handshake.signedCookies) {
+          this.sessionStore.get(socket.handshake.signedCookies['sess-id'], (err, session) => {
+            socket.session = session;
+            // if (!err && !session) {
+            //   err = new Error('Session not found');
+            // }
+            // if (err) {
+            //   console.log('Failed connection to socket.io:', err);
+            // }
+            if (session || !authNeeded) {
+              // console.log('Successful connection to socket.io', session);
+              next();
+            }
+          });
+        } else {
+          next(false);
+        }
+      });
+    });
 
     // Signin
     this.app.post('/login',
@@ -179,7 +217,6 @@ class Router extends EventEmitter {
     this.app.get('*', (req, res) => {
       res.sendFile( resolvePath( this.dir.dist, 'index.html') );
     });
-
   }
 
   setUserConfig(userConfigFiles) {
@@ -197,14 +234,14 @@ class Router extends EventEmitter {
     this.configuration[facility] = opt;
 
     // workaround, to catch all emidiate changes
-    if (this._activeWriteJob)
-      clearTimeout( this._activeWriteJob );
-    this._activeWriteJob = setTimeout(() => {
+    // if (this._activeWriteJob)
+    //   clearTimeout( this._activeWriteJob );
+    // this._activeWriteJob = setTimeout(() => {
       this.createStaticContent();
       // setTimeout(() => {
       //   this.createWebApp();
       // }, 250)
-    }, 250);
+    // }, 250);
   }
 
   // createWebApp() {

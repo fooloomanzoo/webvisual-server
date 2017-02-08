@@ -12,7 +12,7 @@
     "app-layout": "polymerelements/app-layout",
     "app-route": "polymerelements/app-route",
     "neon-animation": "PolymerElements/neon-animation",
-    "polymer": "Polymer/polymer#1.7.1",
+    "polymer": "Polymer/polymer#1.8.0",
     "d3": "*",
     "datetime-picker": "fooloomanzoo/datetime-picker"
   }

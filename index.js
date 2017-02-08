@@ -36,28 +36,11 @@ class WebvisualServer {
 
     this.config = settings;
 
-    var mode = process.argv[2] || config.mode;
+    this.mode = process.argv[2] || config.mode;
 
-    if (mode) {
-      process.send( { log: `started in ${mode} mode`} );
+    if (this.mode) {
+      process.send( { log: `started in ${this.mode} mode`} );
     }
-
-    this.router = new Router(app, mode);
-    this.router.on('error', (err) => {
-      process.send( { error: err } );
-    });
-
-    this.dataHandler = new DataModule(this.config.database);
-
-    this.configFilesHandler = new ConfigFileProcessor();
-
-    this.configFilesHandler.on('changed', (facility) => {
-      this.dataHandler.setConfiguration(this.configFilesHandler.settings[facility], facility);
-      this.router.setConfiguration(this.configFilesHandler.settings[facility], facility); // load Settings to Routen them to requests
-    });
-    this.dataHandler.on('error', (err) => { process.send( { error: err } ); });
-    this.dataHandler.on('info', (msg) => { process.send( { info: msg } ); });
-    this.dataHandler.on('log', (msg) => { process.send( { log: msg } ); });
 
     if (this.config) {
       this.connect(this.config);
@@ -68,8 +51,6 @@ class WebvisualServer {
     return new Promise((resolve, reject) => {
       if (this.isRunning)
         this.disconnect();
-
-      this.router.setSettings(settings || this.config);
 
       // ensuring (with defaults) that a ssl encrypting (by self-signed key-pairs)
       // is available for the http2 server
@@ -166,7 +147,6 @@ class WebvisualServer {
       process.send( { info: 'WEBVISUAL SERVER is starting' } );
       this.createServerSettings(this.config)
         .then((sslSettings) => {
-          this.configFilesHandler.watch(this.config.userConfigFiles);
           if (this.http2Server)
             this.http2Server.close();
           this.http2Server = spdy.createServer(sslSettings, app);
@@ -183,7 +163,26 @@ class WebvisualServer {
             .once('listening', () => {
               process.send( { log: `HTTP2 Server is listening on port ${this.config.server.port}` } );
             });
-          this.dataHandler.setServer(this.http2Server);
+
+          this.router = new Router(app, this.mode);
+          this.router.on('error', (err) => {
+            process.send( { error: err } );
+          });
+          this.router.setSettings(this.config, this.http2Server);
+
+          this.dataHandler = new DataModule(this.config.database);
+          this.dataHandler.on('error', (err) => { process.send( { error: err } ); });
+          this.dataHandler.on('info', (msg) => { process.send( { info: msg } ); });
+          this.dataHandler.on('log', (msg) => { process.send( { log: msg } ); });
+
+          this.configFilesHandler = new ConfigFileProcessor();
+          this.configFilesHandler.on('changed', (facility) => {
+            this.dataHandler.setConfiguration(this.configFilesHandler.settings[facility], facility);
+            this.router.setConfiguration(this.configFilesHandler.settings[facility], facility); // load Settings to Routen them to requests
+          });
+          this.configFilesHandler.watch(this.config.userConfigFiles);
+
+          this.dataHandler.setServer(this.router.io);
           this.http2Server.listen(this.config.server.port || process.env.port || 443);
           this.isRunning = true;
           process.send( { event: 'server-start' } );
@@ -192,7 +191,7 @@ class WebvisualServer {
           this.router.createStaticContent();
         })
         .catch( (err) => {
-          process.send( { error: `in SSL Configuration \n ${err}` } );
+          process.send( { error: `in Server Configuration \n ${err}` } );
         });
     }
   }

@@ -1,6 +1,5 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/iron-selector/iron-selectable.html">
-<link rel="import" href="../../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
 
 <dom-module id="webvisual-tabs">
   <template strip-whitespace>
@@ -52,7 +51,6 @@
         bottom: 0;
         left: 0;
         transition-property: top, right, bottom, left, opacity;
-        will-change: top, right, bottom, left, opacity;
         @apply(--tab-overlay);
       }
 
@@ -60,19 +58,16 @@
         @apply(--tab-vertical-overlay);
       }
 
-      #addon {
-        position: absolute;
-        pointer-events: none;
+      ::content .overlay-addon {
+        transition: opacity 300ms cubic-bezier(0.6, 0, 0.2, 1);
       }
 
       :host([vertical]) #container {
         flex-direction: column;
         width: 100%;
       }
-      ::content * {
-        box-sizing: border-box;
-      }
-      ::content .overlay-above::before {
+
+      ::content .tab.overlay-above::before {
         position: absolute;
         content: "";
         pointer-events: none;
@@ -82,17 +77,16 @@
         left: 0;
         @apply(--tab-overlay);
       }
-      :host([vertical]) ::content .overlay-above::before {
+      :host([vertical]) ::content .tab.overlay-above::before {
         @apply(--tab-vertical-overlay);
       }
 
     </style>
+
+    <content select=".overlay-addon"></content>
     <nav id="container" on-track="_onscroll" on-wheel="_onwheel">
       <div id="overlay" vertical="[[vertical]]" on-transitionend="_onTransitionend"></div>
       <content select=".tab"></content>
-      <div id="addon">
-        <content select=".overlay-addon"></content>
-      </div>
     </nav>
 
   </template>
@@ -113,7 +107,6 @@
       },
 
       behaviors: [
-        Polymer.IronResizableBehavior,
         Polymer.IronSelectableBehavior
       ],
 
@@ -122,14 +115,17 @@
         this._transitionsInFlight = [];
       },
 
+      listeners: {
+        'transitionend': '_onTransitionend'
+      },
+
       observers: [
         '_onSelectedItemChanged(selectedItem)'
       ],
 
       _onSelectedItemChanged: function(selectedItem) {
         if (selectedItem === undefined) return;
-        
-        this._lastTarget = this.target;
+
         this.target = selectedItem;
         this._targetChanged(selectedItem, this._lastTarget);
       },
@@ -186,61 +182,59 @@
       },
 
       _targetChanged: function(newTarget, oldTarget) {
-        if (!this._transitionsInFlight.length) {
-          if (this.oldTarget) {
-            oldTarget.classList.remove('overlay-above');
-          }
-          if (this._lastTarget) {
-            this._lastTarget.classList.remove('overlay-above');
-          }
-          this.$.overlay.style.display = 'block';
-          newTarget.scrollIntoViewIfNeeded(true);
-          this._move(oldTarget, newTarget);
-          this._lastTarget = this.target;
+        if (this._transitionsInFlight.length) {
+          this._moveComplete();
         }
+        if (oldTarget) {
+          oldTarget.classList.remove('overlay-above');
+        }
+        this.$.overlay.style.willChange = 'top, right, bottom, left, opacity';
+        this.$.overlay.style.display = 'block';
+        if (!this._addon) {
+          this._addon = this.queryEffectiveChildren('.overlay-addon')
+        }
+        this._move(oldTarget, newTarget);
+        this._lastTarget = newTarget;
       },
 
       _moveComplete: function() {
         if (this._lastTarget !== this.target) {
           this._move(this._lastTarget, this.target);
-          this._lastTarget = this.target;
         } else {
-          // this.async(function () {
-            if (this._lastTarget) {
-              this._lastTarget.classList.add('overlay-above');
-            }
+          requestAnimationFrame( function () {
+            this._lastTarget = this.target;
+            this._lastTarget.classList.add('overlay-above');
             this.$.overlay.style.display = 'none';
-            if (!this.addon) {
-              this.addon = this.$.addon;
+            this.$.overlay.style.willChange = '';
+            if (this._addon) {
+              Polymer.dom(this.target).appendChild(this._addon);
+              this._addon.style.opacity = '';
             }
-            this.addon.style.cssText = 'top: ' + this.$.overlay.style.top + ';' +
-                                       'right: ' + this.$.overlay.style.right + ';' +
-                                       'bottom: ' + this.$.overlay.style.bottom + ';' +
-                                       'left: ' + this.$.overlay.style.left + ';';
-          // }.bind(this));
+          }.bind(this));
         }
       },
 
       _move: function(oldTarget, newTarget) {
-        this.async(function () {
+        requestAnimationFrame(function () {
+          if (this._addon && oldTarget) {
+            this._addon.style.opacity = '0';
+          }
           var from = oldTarget || newTarget;
           var to = newTarget || oldTarget;
           if (!from && !to) return;
 
+          to.scrollIntoViewIfNeeded(true);
+
           var fromOpacity = oldTarget ? 1 : 0;
           var toOpacity = newTarget ? 1 : 0;
 
-          // Polymer.dom.flush();
-          var thisRect = this.getBoundingClientRect();
+          Polymer.dom.flush();
           var thisStyle = window.getComputedStyle(this);
-          var fromRect = from.getBoundingClientRect();
-          var toRect = to.getBoundingClientRect();
 
-          if (toRect.top === 0 && toRect.right === 0 &&
-              toRect.bottom === 0 && toRect.left === 0 &&
-              toRect.width === 0 && toRect.height === 0) {
+          if (to.offsetWidth === 0 && to.offsetHeight === 0) {
             this.$.overlay.style.transitionProperty = 'none';
             this.$.overlay.style.opacity = toOpacity;
+            this.$.overlay.style.willChange = '';
             this._transitionsInFlight = [];
             this.async(this._moveComplete);
             return;
@@ -248,10 +242,10 @@
             this.$.overlay.style.transitionProperty = '';
           }
 
-          var top = parseFloat(thisStyle.top || '0') + (fromRect.top - thisRect.top);
-          var right = parseFloat(thisStyle.right || '0') - (fromRect.right - thisRect.right);
-          var bottom = parseFloat(thisStyle.bottom || '0') - (fromRect.bottom - thisRect.bottom);
-          var left = parseFloat(thisStyle.left || '0') + (fromRect.left - thisRect.left);
+          var top = parseFloat(thisStyle.top || '0') + (from.offsetTop);
+          var right = parseFloat(thisStyle.right || '0') + (this.$.container.offsetWidth - from.offsetLeft - from.offsetWidth);
+          var bottom = parseFloat(thisStyle.bottom || '0') + (this.$.container.offsetHeight - from.offsetTop - from.offsetHeight);
+          var left = parseFloat(thisStyle.left || '0') + (from.offsetLeft);
 
           this.$.overlay.style.transitionDuration = '0s';
           this.$.overlay.style.transitionDelay = '0s';
@@ -263,25 +257,25 @@
             this.$.overlay.style.opacity = String(fromOpacity)
           ];
 
-          top += toRect.top - fromRect.top;
-          right -= toRect.right - fromRect.right;
-          bottom -= toRect.bottom - fromRect.bottom;
-          left += toRect.left - fromRect.left;
+          top = parseFloat(thisStyle.top || '0') + to.offsetTop;
+          right = parseFloat(thisStyle.right || '0') + this.$.container.offsetWidth - to.offsetLeft - to.offsetWidth;
+          bottom = parseFloat(thisStyle.bottom || '0') + this.$.container.offsetHeight - to.offsetTop - to.offsetHeight;
+          left = parseFloat(thisStyle.left || '0') + to.offsetLeft;
 
-          var durations = [0.2, 0.2, 0.2, 0.2, 0.2];
+          var durations = [0.3, 0.3, 0.3, 0.3, 0.3];
           var delays = [0, 0, 0, 0, 0];
           // Delay left / right transitions if element is left / right of the target.
-          if (fromRect.left < toRect.left && fromRect.right < toRect.right) {
-            delays[3] = 0.1;
-          } else if (fromRect.left > toRect.left && fromRect.right > toRect.right) {
-            delays[1] = 0.1;
+          if (from.offsetLeft < to.offsetLeft) {
+            delays[3] = 0.15;
+          } else if (from.offsetLeft > to.offsetLeft) {
+            delays[1] = 0.15;
           }
 
           // Delay top / bottom transitions if element is above / below the target.
-          if (fromRect.top < toRect.top && fromRect.bottom < toRect.bottom) {
-            delays[0] = 0.1;
-          } else if (fromRect.top > toRect.top && fromRect.bottom > toRect.bottom) {
-            delays[2] = 0.1;
+          if (from.offsetTop < to.offsetTop) {
+            delays[0] = 0.15;
+          } else if (from.offsetTop > to.offsetTop) {
+            delays[2] = 0.15;
           }
 
           var endValues = [
@@ -299,7 +293,7 @@
             this._transitionsInFlight.push(names[i]);
           }
 
-          this.async(function() {
+          requestAnimationFrame(function() {
             this.$.overlay.style.transitionDuration = durations.map(function(x) { return x + 's'; }).join(', ');
             this.$.overlay.style.transitionDelay = delays.map(function(x) { return x + 's'; }).join(', ');
             this.$.overlay.style.top = top + 'px';
@@ -307,8 +301,8 @@
             this.$.overlay.style.bottom = bottom + 'px';
             this.$.overlay.style.left = left + 'px';
             this.$.overlay.style.opacity = String(toOpacity);
-          });
-        }.bind(this), 1);
+          }.bind(this));
+        }.bind(this));
       }
     });
   </script>
