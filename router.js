@@ -89,7 +89,7 @@ class Router extends EventEmitter {
 
     this.sessionMiddleWare = session( {
       store: this.sessionStore,
-      key: 'sess-id',
+      key: 'connect.sid',
       secret: this.sessionSecret,
       resave: true,
       rolling: true,
@@ -159,7 +159,7 @@ class Router extends EventEmitter {
         //   return next(new Error('no secureCookies found'));
         // }
         if (!err && socket.handshake.signedCookies) {
-          this.sessionStore.get(socket.handshake.signedCookies['sess-id'], (err, session) => {
+          this.sessionStore.get(socket.handshake.signedCookies['connect.sid'], (err, session) => {
             socket.session = session;
             // if (!err && !session) {
             //   err = new Error('Session not found');
