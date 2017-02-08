@@ -33,8 +33,7 @@ const EventEmitter = require('events').EventEmitter
     , serveStatic = require('serve-static')
 
     // Session Store
-    , RedisStore = require('connect-redis')(session)
-    , socketioRedis = require('passport-socketio-redis');
+    , RedisStore = require('connect-redis')(session);
 
 function resolvePath() {
   let p = process.cwd();
