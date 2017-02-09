@@ -748,8 +748,8 @@
           });
         }
 
-        this._chart.transition(50).select('#xAxis').call(this._xAxis);
-        this._chart.transition(50).select('#yAxis').call(this._yAxis);
+        this._chart.select('#xAxis').call(this._xAxis);
+        this._chart.select('#yAxis').call(this._yAxis);
         this._chart.transition(50).select('#xGrid').call(this._xGrid);
         this._chart.transition(50).select('#yGrid').call(this._yGrid);
 
