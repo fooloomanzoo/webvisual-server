@@ -46,10 +46,10 @@
         display: none;
         pointer-events: none;
         opacity: 0;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
+        /*top: 0;
+        right: 0;*/
+        /*bottom: 0;
+        left: 0;*/
         transition-property: top, right, bottom, left, opacity;
         @apply(--tab-overlay);
       }
@@ -188,8 +188,6 @@
         if (oldTarget) {
           oldTarget.classList.remove('overlay-above');
         }
-        this.$.overlay.style.willChange = 'top, right, bottom, left, opacity';
-        this.$.overlay.style.display = 'block';
         if (!this._addon) {
           this._addon = this.queryEffectiveChildren('.overlay-addon')
         }
@@ -216,6 +214,8 @@
 
       _move: function(oldTarget, newTarget) {
         requestAnimationFrame(function () {
+          this.$.overlay.style.willChange = 'top, right, bottom, left, opacity';
+          this.$.overlay.style.display = 'block';
           if (this._addon && oldTarget) {
             this._addon.style.opacity = '0';
           }

@@ -17,6 +17,11 @@
 			}
 		},
 
+    "database": {
+      "type": "redis",
+      "maxCount": 300000
+    },
+
 		"initialView": "detail",
 
     "svgSource": {
@@ -124,6 +129,11 @@
 				"ignoredFirstLines": 3
 			}
 		},
+
+    "database": {
+      "type": "redis",
+      "maxCount": 300000
+    },
 
 		"initialView": "detail",
 

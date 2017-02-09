@@ -66,7 +66,7 @@
       app-drawer {
         z-index: 2;
       }
-      app-drawer > .drawer-content {
+      app-drawer .drawer-content {
         display: block;
         height: calc(100% - 128px);
         padding: 0 16px;
@@ -74,7 +74,7 @@
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
       }
-      app-drawer > app-toolbar {
+      app-drawer app-toolbar {
         width: calc(100% - 32px);
         margin: 0;
         padding: 0 16px;
@@ -82,10 +82,10 @@
         align-items: center;
         @apply(--app-drawer-header);
       }
-      app-drawer > .top {
+      app-drawer .top {
         justify-content: flex-start;
       }
-      app-drawer > .bottom {
+      app-drawer .bottom {
         justify-content: flex-end;
       }
       app-drawer .spacer {
@@ -153,6 +153,7 @@
         background-position: 6px center;
         background-size: 18px 18px;
         height: 64px;
+        min-width: 96px;
         padding: 0;
         margin: 0 8px;
       }
@@ -190,17 +191,13 @@
       <app-toolbar>
         <webvisual-icon-button icon="menu" class="menu-icon" title="menu" on-tap="_toggleDrawer"></webvisual-icon-button>
 
-        <webvisual-logo id="logo" href="/home" main-title title$6="[[localize('home', 'name')]]"></webvisual-logo>
+        <webvisual-logo id="logo" href="/home" main-title title$="[[localize('home', 'name')]]"></webvisual-logo>
 
         <template is="dom-if" if="[[_isContentPage]]">
 
           <template is="dom-if" if="[[_shouldRenderGroupingKeys]]">
             <div class="webvisual-selectbox toolbar grouping" title="grouping keys">
-              <select value="{{groupedKey::input}}">
-                <template is="dom-repeat" items="[[groupingKeys]]">
-                  <option value="[[item]]">[[item]]</option>
-                </template>
-              </select>
+              <select value="{{groupedKey::change}}"></select>
             </div>
           </template>
 
@@ -355,7 +352,7 @@
             <iron-icon icon="language"></iron-icon>
             <span>{{localize('language')}}</span>
 
-            <select value="{{language::input}}">
+            <select value="{{language::change}}">
               <option value="de">deutsch</option>
               <option value="en">english</option>
               <option value="fr">français</option>
@@ -370,14 +367,7 @@
             <div class="webvisual-selectbox grouping">
               <iron-icon icon="filter-list"></iron-icon>
               <span>{{localize('groupedKey')}}</span>
-
-              <select value="{{groupedKey::input}}">
-
-                <template is="dom-repeat" items="[[groupingKeys]]">
-                  <option value="[[item]]">[[item]]</option>
-                </template>
-
-              </select>
+              <select value="{{groupedKey::change}}"></select>
             </div>
           </template>
         </div>
@@ -413,7 +403,15 @@
 
         elements: Array,
 
-        groupingKeys: Array,
+        groupingKeys: {
+          type: Array,
+          notify: true
+        },
+
+        groupedKey: {
+          type: String,
+          notify: true
+        },
 
         language: {
           type: String,
@@ -446,11 +444,6 @@
         facilitySystem: String,
 
         socketStatus: String,
-
-        groupedKey: {
-          type: String,
-          notify: true
-        },
 
         loggedIn: {
           type: Boolean,
@@ -486,7 +479,7 @@
         },
 
         _shouldRenderGroupingKeys: {
-          computed: '_computeShouldRenderGroupingKeys(page, loadComplete)'
+          computed: '_computeShouldRenderGroupingKeys(page, loadComplete, groupingKeys)'
         },
 
         _shouldLogin: {
@@ -501,7 +494,7 @@
       observers: [
         '_routePageChanged(routeData.page)',
         '_subrouteChanged(subroute)',
-        '_setInitialGroupedKey(_shouldRenderGroupingKeys)',
+        '_setGroupingSelectBoxes(_shouldRenderGroupingKeys)',
         '_showTabsChanged(showTabs, _isContentPage, loadComplete)'
       ],
 
@@ -678,16 +671,27 @@
         this.debounce('update-styles', this.updateStyles);
       },
 
-      _setInitialGroupedKey: function() {
+      _setGroupingSelectBoxes: function() {
         // Hack: initial binding to native select value property is not bound
         this.async(function() {
           var groupedKey = this.groupedKey;
           var groupingSelectors = Polymer.dom(this.root).querySelectorAll('.webvisual-selectbox.grouping');
+          var groupingKeys = this.groupingKeys;
 
           Array.prototype.forEach.call(groupingSelectors, function(el) {
             var sel = el.querySelector('select');
-            if (sel)
+            if (sel) {
+              while (sel.hasChildNodes()) {
+                sel.removeChild(sel.lastChild);
+              }
+              groupingKeys.forEach(function (item) {
+                var option = document.createElement('option');
+                option.textContent = item;
+                option.value = item;
+                sel.appendChild(option);
+              });
               sel.value = groupedKey;
+            }
           })
         },1);
       },
@@ -716,8 +720,8 @@
         return isContentPage && loadComplete;
       },
 
-      _computeShouldRenderGroupingKeys: function(page) {
-        return page === 'groups';
+      _computeShouldRenderGroupingKeys: function(page, loadComplete, groupingKeys) {
+        return page === 'groups' && loadComplete && groupingKeys && groupingKeys.length;
       },
 
       _computeStatusIcon: function(status) {

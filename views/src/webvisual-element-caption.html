@@ -21,7 +21,6 @@
         align-self: stretch;
       }
       .captions {
-        align-self: baseline;
         position: relative;
         -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
         padding: 0;
@@ -55,9 +54,11 @@
       }
       :host(:not([vertical])) .captions {
         margin-left: 0.35em;
+        align-self: baseline;
       }
       :host([vertical]) .captions {
         width: 100%;
+        align-self: flex-start;;
       }
       [hidden] {
         display: none !important;

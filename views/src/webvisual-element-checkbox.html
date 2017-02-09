@@ -253,12 +253,12 @@
 
           if (this.item.exceedable) {
             this.checkExceedingState(value);
-            if (this.state != value.state) {
+            if (!this.hasAttribute('state') || this.state !== value.state) {
               this.setAttribute('state', value.state);
             }
           }
         } else {
-          this.setAttribute('state', null);
+          this.renderClearing();
         }
       },
 

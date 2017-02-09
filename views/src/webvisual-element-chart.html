@@ -110,14 +110,12 @@
         stroke-opacity: 0.7;
         @apply(--chart-line);
       }
-      #focus .focus.line,
-      .dot {
-        mix-blend-mode: hard-light;
+      #focus > * {
+        stroke: currentColor;
         stroke-opacity: 0.5;
         stroke-width: 1.5px;
       }
       #focus .focus.line {
-        stroke: currentColor;
         pointer-events: none;
         stroke-dasharray: 2;
       }
@@ -145,7 +143,7 @@
       }
       #control {
         position: absolute;
-        bottom: 0;
+        bottom: 4px;
         right: 4px;
       }
       .webvisual-selectbox,
@@ -203,7 +201,7 @@
     <section id="control">
       <iron-collapse id="controlcontent" opened="[[showControl]]">
         <div class="webvisual-selectbox">
-          <select value="{{interpolation::input}}">
+          <select value="{{interpolation::change}}">
             <option value="Lineare Verbindung">Lineare Verbindung</option>
             <option value="Basis Spline">Basis Spline</option>
             <option value="Kubischer Spline">Kubischer Spline</option>
@@ -215,7 +213,7 @@
           </select>
         </div>
         <div class="webvisual-selectbox">
-          <select value="{{yScale::input}}">
+          <select value="{{yScale::change}}">
             <option value="linear">linear</option>
             <option value="√">√</option>
             <option value="ln">ln</option>
@@ -494,9 +492,7 @@
           .on('mouseenter', function() {
               this.cancelDebouncer('hideinfo');
           }.bind(this))
-          .on('mouseleave', function(d, i) {
-              this._hideInfo();
-          }.bind(this))
+          .on('mouseleave', this._hideInfo.bind(this))
           .on('click', function(d) {
               var offsetX = (this._x(this._x.domain()[1]) - this._x(this._x.domain()[0]))/4
                 , offsetY = (this._y(this._y.domain()[0]) - this._y(this._y.domain()[1]))/4
@@ -513,70 +509,65 @@
           .on('end', this.brushed.bind(this._self));
         this._brush = d3.select(this.$.brush);
         this._brush
-          .on('mouseenter', function() {
-              this._showInfo();
-          }.bind(this))
-          .on('mouseleave', function(d, i) {
-              this._hideInfo();
-          }.bind(this))
+          .on('mouseenter', this._showInfo.bind(this))
+          .on('mouseleave touchend touchstart', this._hideInfo.bind(this))
           .on('mousemove', function() {
             // this.setAttribute('r', self.dotRadius * 1.5);
             var mx = d3.mouse(this._chart.node())[0],
                 my = d3.mouse(this._chart.node())[1],
                 x0 = this._x.invert(mx);
-            var closestGraph, closestPoint, closestDistance;
-            this._graphs.forEach(
-              function(g) {
-                if (g.values && g.values.length) {
-                  var i = g.bisectDate(g.values, x0, 1);
+            requestAnimationFrame( function() {
+              var closestGraph, closestPoint, closestDistance;
+              this._graphs.forEach(
+                function(g) {
+                  if (g.values && g.values.length) {
+                    var i = g.bisectDate(g.values, x0, 1);
 
-                  if (i < 0) {
-                    i = 1;
-                  } else if (i >= g.values.length) {
-                    i = g.values.length - 1;
+                    if (i < 0) {
+                      i = 1;
+                    } else if (i >= g.values.length) {
+                      i = g.values.length - 1;
+                    }
+                    var d0 = g.values[i - 1],
+                      d1 = g.values[i];
+                    if (d0 && d1) {
+                      var dd0 = Math.pow(mx - this._x(d0.x), 2) + Math.pow(my - this._y(d0.y), 2),
+                        dd1 = Math.pow(mx - this._x(d1.x), 2) + Math.pow(my - this._y(d1.y), 2),
+                        currentMin, currentClosest;
+                      if (dd0 < dd1) {
+                        currentMin = dd0;
+                        currentClosest = d0;
+                      } else {
+                        currentMin = dd1;
+                        currentClosest = d1;
+                      }
+                      if (closestDistance === undefined || currentMin < closestDistance) {
+                        closestDistance = currentMin;
+                        closestPoint = currentClosest;
+                        closestGraph = g;
+                      }
+                    }
                   }
-                  var d0 = g.values[i - 1],
-                    d1 = g.values[i];
-                  if (d0 && d1) {
-                    var dd0 = Math.pow(mx - this._x(d0.x), 2) + Math.pow(my - this._y(d0.y), 2),
-                      dd1 = Math.pow(mx - this._x(d1.x), 2) + Math.pow(my - this._y(d1.y), 2),
-                      currentMin, currentClosest;
-                    if (dd0 < dd1) {
-                      currentMin = dd0;
-                      currentClosest = d0;
-                    } else {
-                      currentMin = dd1;
-                      currentClosest = d1;
-                    }
-                    if (closestDistance === undefined || currentMin < closestDistance) {
-                      closestDistance = currentMin;
-                      closestPoint = currentClosest;
-                      closestGraph = g;
-                    }
+                }.bind(this));
+              if (closestPoint) {
+                var fill = '#000';
+                if (closestGraph.item.threshold) {
+                  switch (closestPoint.state) {
+                    case 1:
+                      fill = closestGraph.customStyle['element-state-exceeds-color'] || '#F20C0C';
+                      break;
+                    case -1:
+                      fill = closestGraph.customStyle['element-state-deceeds-color'] || '#F20C0C';
+                      break;
                   }
                 }
-              }.bind(this));
-            if (closestPoint) {
-              var fill = closestGraph.item.color || '#fff';
-              if (closestGraph.item.threshold) {
-                switch (closestPoint.state) {
-                  case 1:
-                    fill = closestGraph.customStyle['element-state-exceeds-color'] || '#F20C0C';
-                    break;
-                  case -1:
-                    fill = closestGraph.customStyle['element-state-deceeds-color'] || '#F20C0C';
-                    break;
-                }
+                this._focusDot.attr('fill', fill)
+                              .attr('r', closestGraph.dotRadius);
+                this.debounce('move-info', this._moveInfo.bind(this, closestPoint), 5);
+              } else {
+                this._hideInfo();
               }
-              this._focusDot.attr('fill', fill)
-                            .attr('r', closestGraph.dotRadius);
-              this._moveInfo(closestPoint);
-            } else {
-              this._hideInfo();
-            }
-          }.bind(this))
-          .on('click', function() {
-            this._focusDot.node().dispatchEvent(new MouseEvent('click'));
+            }.bind(this));
           }.bind(this))
           .on('touchmove', this._resetZoom.bind(this));
 
@@ -889,7 +880,6 @@
       },
 
       _moveInfo: function(d) {
-        this.cancelDebouncer('hideinfo');
         if (Number.isFinite(this._y(d.y))) {
           var x = this.timeFormatRange.call(this, d.x, this._x.domain(), this._width);
           this._info.text(x + ' , ' + d.y);
@@ -924,10 +914,12 @@
 
       _updateInfo: function() {
         if (this._info.attr('hidden') === '' || this._info.x === undefined || this._info.y === undefined) return;
-        var bbox = this._info.node().getBBox();
-        // console.log(bbox, this._width, this._height);
         var x = this._x(+this._info.x),
-          y = this._y(+this._info.y) || 0;
+          y = this._y(+this._info.y);
+        if (!x || !y) {
+          return;
+        }
+        var bbox = this._info.node().getBBox();
         this._info
           .attr('x', (x + 4 + bbox.width > this._width ? (x - 4 - bbox.width < 0 ? 0 : x - 4 - bbox.width) : x + 4))
           .attr('y', (y > bbox.height + 4 ? y - 4 : bbox.height));

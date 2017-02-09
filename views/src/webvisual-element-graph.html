@@ -8,7 +8,7 @@
 <link rel="import" href="style/webvisual-element-styles.html" />
 
 <script type="text/javascript" src="../bower_components/d3/d3.min.js"></script>
-<script type="text/javascript" src="/scripts/d3-interpolate-path.min.js"></script>
+<!-- <script type="text/javascript" src="/scripts/d3-interpolate-path.min.js"></script> -->
 
 <dom-module id="webvisual-element-graph">
     <template>
@@ -40,7 +40,7 @@
 
                 lineWidth: {
                     type: Number,
-                    value: 1,
+                    value: 0.75,
                     observer: '_lineWidthChanged'
                 },
 
@@ -324,14 +324,14 @@
                           , i_color = this.item.color || '#000';
 
                         if (this.item.threshold.from !== undefined) {
-                          y = ((1 - (this.chartElement._y(this.item.threshold.from) + this.lineWidth * 1.25) / this.chartElement._height) * 100);
+                          y = ((1 - Math.ceil(this.chartElement._y(this.item.threshold.from) + this.lineWidth * 1.25) / this.chartElement._height) * 100);
                           if (Number.isFinite(y)) {
                             b_line.push({o: y + '%', c: l_color});
                             b_line.push({o: y + '%', c: i_color});
                           }
                         }
                         if (this.item.threshold.to !== undefined) {
-                          y = ((1 - (this.chartElement._y(this.item.threshold.to) - this.lineWidth * 1.25) / this.chartElement._height) * 100);
+                          y = ((1 - Math.floor(this.chartElement._y(this.item.threshold.to) - this.lineWidth * 1.25) / this.chartElement._height) * 100);
                           if (Number.isFinite(y)) {
                             b_line.push({o: y + '%', c: i_color});
                             b_line.push({o: y + '%', c: u_color});

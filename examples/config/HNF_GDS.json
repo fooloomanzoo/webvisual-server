@@ -5,7 +5,7 @@
     "connections": {
       "file": {
         "mode": "all",
-        "#path": "examples/datafile/HNF_Datafile.txt ",
+        "#path": "examples/datafile/HNF_Datafile.txt",
         "path": "//ibn-vsrv/HNF-GDS$/Datafile/HNF_Datafile.txt",
         "format": {
           "dateFormat": "DD.MM.YYYY;hh:mm:ss",
@@ -14,6 +14,11 @@
           "dimensions": 1
         }
       }
+    },
+
+    "database": {
+      "type": "redis",
+      "maxCount": 30
     },
 
     "initialView": "groups",
