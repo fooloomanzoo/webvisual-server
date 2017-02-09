@@ -80,7 +80,8 @@ WebvisualClient.prototype = {
   disconnect: function() {
     if (this.webworker) {
       this.webworker.postMessage({
-        disconnect: ''
+        target: 'socket',
+        operation: 'disconnect'
       });
     }
   },
@@ -188,11 +189,11 @@ WebvisualClient.prototype = {
   },
 
   resetNodes: function() {
-    this.nodes.forEach( function(set) {
-      set.forEach(function(node) {
-        // node.resetState();
-      });
-    })
+    // this.nodes.forEach( function(set) {
+    //   set.forEach(function(node) {
+    //     // node.resetState();
+    //   });
+    // })
   },
 
   _testMobile: function() {

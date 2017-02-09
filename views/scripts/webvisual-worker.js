@@ -96,10 +96,10 @@ self.IOSocket.prototype = {
 
       if (opt.socketRoom) {
         this.socketRoom = opt.socketRoom;
-        this.setup(options)
+        this.setup(opt)
       }
       else if (this.socketRoom) {
-        this.setup(options)
+        this.setup(opt)
       }
     }
   },
