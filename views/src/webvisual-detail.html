@@ -317,16 +317,12 @@
           if (mount.startsWith('/')) {
             mount = mount.substring(1); // cut off leading '/'
           }
-          for (var i = 0; i < elements.length; i++) {
-            if (elements[i].mount && elements[i].mount === mount) {
+          for (var i = 0; i < this.elements.length; i++) {
+            if (this.elements[i].mount && this.elements[i].mount === '/' + this.route.path) {
               this.cancelDebouncer('initial-element');
-              this._recentElementMount = elements[i].mount;
-              this.set('selectedElement', elements[i]);
-              if (this.route.path !== '/' + mount) {
-                this.set('route.path', '/' + elements[0].mount);
-                this.debounce('resize', this.notifyResize);
-              }
-              this._checkWithSvg(elements[i]);
+              this._recentElementMount = this.elements[i].mount;
+              this.set('selectedElement', this.elements[i]);
+              this._checkWithSvg(this.elements[i]);
               this.debounce('resize', this.notifyResize);
               return;
             }
