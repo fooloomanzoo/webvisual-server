@@ -69,7 +69,6 @@
     svg {
       border-radius: inherit;
       user-select: none !important;
-      isolation: isolate;
     }
     #svgContainer {
       border-radius: inherit;
@@ -104,6 +103,7 @@
       letter-spacing: normal !important;
       stroke: none !important;
       mix-blend-mode: exclusion;
+      -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
       @apply(--svg-text);
     }
     .selectable {

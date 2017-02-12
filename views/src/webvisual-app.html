@@ -4,6 +4,7 @@
 <link rel="import" href="behaviors/localize-behavior.html"/>
 
 <link rel="import" href="../bower_components/app-layout/app-header/app-header.html"/>
+<link rel="import" href="../bower_components/app-layout/app-scroll-effects/effects/waterfall.html">
 <link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html"/>
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html"/>
 <link rel="import" href="../bower_components/paper-ripple/paper-ripple.html"/>
@@ -32,22 +33,24 @@
 
     <style include="shared-styles webvisual-selectbox webvisual-button webvisual-app-style">
       :host {
-        width: 100%;
-        height: 100%;
-        min-height: 100vh;
-        transition: background 250ms cubic-bezier(0.6, 0, 0.2, 1);
-      }
-      app-header {
         position: fixed;
         top: 0;
         left: 0;
         right: 0;
+        bottom: 0;
+        transition: background 500ms cubic-bezier(0.6, 0, 0.3, 1);
+        display: block;
+      }
+      app-header {
+        /*position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;*/
         z-index: 1;
         color: var(--bright-text-color);
-        @apply(--app-header);
       }
-      app-header > * {
-        z-index: auto;
+      app-header app-toolbar {
+        @apply(--app-header);
       }
       :host {
         background-color: var(--primary-background);
@@ -61,23 +64,25 @@
         background-color: var(--dark-primary-color);
       }
       app-toolbar {
-        font-size: 16px;
+        font-size: 1em;
+        height: 4em;
+        padding-left: 1em;
+        padding-right: 1em;
       }
       app-drawer {
         z-index: 2;
       }
       app-drawer .drawer-content {
         display: block;
-        height: calc(100% - 128px);
-        padding: 0 16px;
+        height: calc(100% - 8em);
+        padding: 0 1em;
         overflow-x: hidden;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
       }
       app-drawer app-toolbar {
-        width: calc(100% - 32px);
+        width: calc(100% - 2em);
         margin: 0;
-        padding: 0 16px;
         display: flex;
         align-items: center;
         @apply(--app-drawer-header);
@@ -114,26 +119,43 @@
         width: 100%;
         font-size: 0.8em;
       }
+      #tabs {
+        position: absolute;
+        top: 0;
+        height: 2em;
+        transform: translateY(-2em);
+        will-change: transform;
+        transition: transform 500ms cubic-bezier(0.6, 0, 0.3, 1);
+        z-index: 0;
+        --tab-overlay: {
+          background-color: rgba(255, 255, 255, 0.15);
+          border-left: none;
+          border-bottom: none;
+          border-top: 2px solid var(--highlight-color, var(--primary-color));
+        }
+      }
       #pageselector {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
         display: flex;
         box-sizing: border-box;
-        justify-content: center;
-        min-height: 100vh;
-        padding-top: 64px;
-        position: relative;
-        will-change: padding;
-        /*transition: padding-top 150ms cubic-bezier(0.6, 0, 0.2, 1);*/
+        padding-top: 4em;
       }
       #pageselector > * {
         width: 100%;
+        overflow-x: hidden;
+        overflow-y: auto;
       }
-      :host([show-tabs]) #pageselector {
-        padding-top: calc(64px + 2.5em);
+      #pageselector > .fullbleed {
+        position: absolute;
+        top: 0; bottom: 0; left: 0; right: 0;
       }
-      :host([page="login"]) #pageselector,
-      :host([page="home"]) #pageselector {
-        padding-top: 0px;
-      }
+      /*:host([show-tabs]) #pageselector {
+        transform: translateY(0);
+      }*/
       .login-icon {
         color: var(--notification-color);
       }
@@ -141,26 +163,23 @@
         color: var(--warning-color);
       }
       #logo {
-        padding-left: 16px;
-      }
-      #tabs {
-        position: relative;
-        height: 2.5em;
+        padding-left: 1em;
+        flex: 1;
       }
       .webvisual-selectbox.toolbar.grouping {
         background: url(data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22%3E%3Cg%3E%3Cpath d=%22M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z%22 fill=%22%23FFFFFF%22%3E%3C/path%3E%3C/g%3E%3C/svg%3E);
         background-repeat: no-repeat;
-        background-position: 6px center;
-        background-size: 18px 18px;
-        height: 64px;
-        min-width: 96px;
+        background-position: 0.5em center;
+        background-size: 1em 1em;
+        height: 4em;
+        min-width: 6em;
         padding: 0;
-        margin: 0 8px;
+        margin: 0 0.5em;
       }
       .webvisual-selectbox.toolbar > select {
-        height: 30px;
-        font-size: 12px;
-        padding: 0 8px 0 28px;
+        height: 2.5em;
+        font-size: 0.75em;
+        padding: 0 0.5em 0 2.5em;
       }
 
     </style>
@@ -186,9 +205,9 @@
       logged-in="[[loggedIn]]"
       lazy-connect="[[loadComplete]]"></webvisual-element-socket-data>
 
-    <app-header role="home" id="header" hidden$="[[!_isContentPage]]" condenses reveals effects="waterfall">
+    <app-header role="header" id="header" effects="waterfall" condenses reveals>
 
-      <app-toolbar>
+      <app-toolbar hidden$="[[!_isContentPage]]">
         <webvisual-icon-button icon="menu" class="menu-icon" title="menu" on-tap="_toggleDrawer"></webvisual-icon-button>
 
         <webvisual-logo id="logo" href="/home" main-title title$="[[localize('home', 'name')]]"></webvisual-logo>
@@ -217,50 +236,52 @@
         </template>
       </app-toolbar>
 
-      <iron-collapse sticky opened="[[_shouldShowTabs]]">
-        <webvisual-tabs id="tabs"
-          selected="{{page}}"
-          attr-for-selected="name">
-          <div class="webvisual-button tab" name="list">
-            <paper-ripple id="ripple" recenters></paper-ripple>
-            <a href="/list/[[facilitySystem]]">{{localize('list', 'name')}}</a>
-          </div>
-          <div class="webvisual-button tab" name="groups">
-            <paper-ripple id="ripple" recenters></paper-ripple>
-            <a href="/groups/[[facilitySystem]]">{{localize('groups', 'name')}}</a>
-          </div>
-          <div class="webvisual-button tab" name="detail">
-            <paper-ripple id="ripple" recenters></paper-ripple>
-            <a href="/detail/[[facilitySystem]]">{{localize('detail', 'name')}}</a>
-          </div>
-        </webvisual-tabs>
-      </iron-collapse>
+      <!-- <app-toolbar id="tabsToolbar" sticky hidden$="[[!_shouldShowTabs]]"> -->
+
+      <!-- </app-toolbar> -->
     </app-header>
+
+    <webvisual-tabs disable-upgrade$="[[!loadComplete]]" id="tabs"
+      selected="{{page}}"
+      attr-for-selected="name">
+      <div class="webvisual-button tab" name="list">
+        <paper-ripple id="ripple" recenters></paper-ripple>
+        <a href="/list/[[facilitySystem]]">{{localize('list', 'name')}}</a>
+      </div>
+      <div class="webvisual-button tab" name="groups">
+        <paper-ripple id="ripple" recenters></paper-ripple>
+        <a href="/groups/[[facilitySystem]]">{{localize('groups', 'name')}}</a>
+      </div>
+      <div class="webvisual-button tab" name="detail">
+        <paper-ripple id="ripple" recenters></paper-ripple>
+        <a href="/detail/[[facilitySystem]]">{{localize('detail', 'name')}}</a>
+      </div>
+    </webvisual-tabs>
 
     <iron-pages id="pageselector" role="main" selected="[[page]]" attr-for-selected="name" selected-attribute="visible" fallback-selection="home">
       <!-- home view for selecting the facility -->
-      <webvisual-home name="home" dark$="[[dark]]" plain$="[[plain]]"
+      <webvisual-home class="fullbleed" name="home" dark$="[[dark]]" plain$="[[plain]]"
         facilities="[[facilities]]"
         logged-in="{{loggedIn}}"
         language="[[language]]"
         language-resources="[[languageResources]]"></webvisual-home>
       <!-- login view-->
-      <webvisual-login name="login" dark$="[[dark]]" plain$="[[plain]]"
+      <webvisual-login class="fullbleed" name="login" dark$="[[dark]]" plain$="[[plain]]"
         offline="[[offline]]"
         language="[[language]]"
         language-resources="[[languageResources]]"></webvisual-login>
       <!-- list view of items in a facility -->
-      <webvisual-list name="list" dark$="[[dark]]" plain$="[[plain]]"
+      <webvisual-list disable-upgrade$="[[!loadComplete]]" name="list" dark$="[[dark]]" plain$="[[plain]]"
         facility-system="[[facilitySystem]]"
         elements="[[elements]]"></webvisual-list>
       <!-- group view of items -->
-      <webvisual-groups name="groups" dark$="[[dark]]" plain$="[[plain]]"
+      <webvisual-groups disable-upgrade$="[[!loadComplete]]" name="groups" dark$="[[dark]]" plain$="[[plain]]"
         facility-system="[[facilitySystem]]"
         elements="[[elements]]"
         grouped-key="{{groupedKey}}"
         grouping-keys="{{groupingKeys}}"></webvisual-groups>
       <!-- detail view of one item -->
-      <webvisual-detail id="detailpage" name="detail" dark$="[[dark]]" plain$="[[plain]]"
+      <webvisual-detail class="fullbleed" disable-upgrade$="[[!loadComplete]]" id="detailpage" name="detail" dark$="[[dark]]" plain$="[[plain]]"
         route="{{subroute}}"
         facility-system="[[facilitySystem]]"
         elements="[[elements]]"
@@ -268,116 +289,114 @@
     </iron-pages>
 
     <!-- SIDEMENU -->
-    <template is="dom-if" if="[[_shouldRenderDrawer]]">
-      <app-drawer id="drawerPanel" opened="{{drawerOpened}}" align="left" swipe-open tabindex="0">
-        <app-toolbar class="top">
-          <webvisual-icon-button icon="close" title="close" on-tap="_toggleDrawer"></webvisual-icon-button>
-        </app-toolbar>
+    <app-drawer disable-upgrade$="[[!_shouldRenderDrawer]]" id="drawerPanel" opened="{{drawerOpened}}" align="left" swipe-open tabindex="0">
+      <app-toolbar class="top">
+        <webvisual-icon-button icon="close" title="close" on-tap="_toggleDrawer"></webvisual-icon-button>
+      </app-toolbar>
 
-        <div class="drawer-content">
-          <div class="webvisual-button" for="route-collapse" on-tap="_toggleCollapse">
-            <paper-ripple id="ripple" recenters></paper-ripple>
-            <iron-icon icon="more-vert" class="left"></iron-icon>
-            <span>{{localize('view')}}</span>
-            <iron-icon icon="expand-more" class="right"></iron-icon>
-          </div>
-
-          <iron-collapse id="route-collapse">
-            <div class="collapse-content">
-              <template is="dom-if" if="[[_shouldLogin]]">
-                <a href="/login">
-                  <div class="webvisual-button" name="login">
-                    <paper-ripple id="ripple" recenters></paper-ripple>
-                    <iron-icon icon="perm-identity" class="left"></iron-icon>
-                    {{localize('login', 'name')}}
-                  </div>
-                </a>
-              </template>
-              <a href="/home">
-                <div class="webvisual-button" name="home">
-                  <paper-ripple id="ripple" recenters></paper-ripple>
-                  <iron-icon icon="exit-to-app" class="left"></iron-icon>
-                  {{localize('home', 'name')}}
-                </div>
-              </a>
-              <a href="/list/[[facilitySystem]]">
-                <div class="webvisual-button" name="list">
-                  <paper-ripple id="ripple" recenters></paper-ripple>
-                  <iron-icon icon="list" class="left"></iron-icon>
-                  {{localize('list', 'name')}}
-                </div>
-              </a>
-              <a href="/groups/[[facilitySystem]]">
-                <div class="webvisual-button" name="groups">
-                  <paper-ripple id="ripple" recenters></paper-ripple>
-                  <iron-icon icon="grid-on" class="left"></iron-icon>
-                  {{localize('groups', 'name')}}
-                </div>
-              </a>
-              <a href="/detail/[[facilitySystem]]">
-                <div class="webvisual-button" name="detail">
-                  <paper-ripple id="ripple" recenters></paper-ripple>
-                  <iron-icon icon="chrome-reader-mode" class="left"></iron-icon>
-                  {{localize('detail', 'name')}}
-                </div>
-              </a>
-            </div>
-          </iron-collapse>
-
-          <div class="spacer"></div>
-
-          <div class="webvisual-button" for="layout-collapse" on-tap="_toggleCollapse">
-            <paper-ripple id="ripple" recenters></paper-ripple>
-            <iron-icon icon="settings" class="left"></iron-icon>
-            <span>{{localize('layout')}}</span>
-            <iron-icon icon="expand-more" class="right"></iron-icon>
-          </div>
-
-          <iron-collapse id="layout-collapse">
-            <div class="collapse-content">
-              <webvisual-toggle-button checked="{{plain}}">
-                <iron-icon icon="border-style"></iron-icon>
-                {{localize('plain', plain)}}
-              </webvisual-toggle-button>
-              <webvisual-toggle-button checked="{{dark}}">
-                <iron-icon icon="invert-colors"></iron-icon>
-                {{localize('dark', dark)}}
-              </webvisual-toggle-button>
-            </div>
-          </iron-collapse>
-
-          <div class="spacer"></div>
-
-          <div class="webvisual-selectbox">
-            <iron-icon icon="language"></iron-icon>
-            <span>{{localize('language')}}</span>
-
-            <select value="{{language::change}}">
-              <option value="de">deutsch</option>
-              <option value="en">english</option>
-              <option value="fr">français</option>
-              <option value="es">español</option>
-              <option value="it">italiano</option>
-              <option value="ru">русский</option>
-              <option value="zh">中文</option>
-            </select>
-          </div>
-
-          <template is="dom-if" if="[[_shouldRenderGroupingKeys]]">
-            <div class="webvisual-selectbox grouping">
-              <iron-icon icon="filter-list"></iron-icon>
-              <span>{{localize('groupedKey')}}</span>
-              <select value="{{groupedKey::change}}"></select>
-            </div>
-          </template>
+      <div class="drawer-content">
+        <div class="webvisual-button" for="route-collapse" on-tap="_toggleCollapse">
+          <paper-ripple id="ripple" recenters></paper-ripple>
+          <iron-icon icon="more-vert" class="left"></iron-icon>
+          <span>{{localize('view')}}</span>
+          <iron-icon icon="expand-more" class="right"></iron-icon>
         </div>
 
-        <app-toolbar class="bottom">
-          <webvisual-icon-button icon="[[_socketStatusIcon]]" title="[[socketStatus]]" on-tap="_socketConnect"></webvisual-icon-button>
-        </app-toolbar>
-      </app-drawer>
+        <iron-collapse id="route-collapse">
+          <div class="collapse-content">
+            <template is="dom-if" if="[[_shouldLogin]]">
+              <a href="/login">
+                <div class="webvisual-button" name="login">
+                  <paper-ripple id="ripple" recenters></paper-ripple>
+                  <iron-icon icon="perm-identity" class="left"></iron-icon>
+                  {{localize('login', 'name')}}
+                </div>
+              </a>
+            </template>
+            <a href="/home">
+              <div class="webvisual-button" name="home">
+                <paper-ripple id="ripple" recenters></paper-ripple>
+                <iron-icon icon="exit-to-app" class="left"></iron-icon>
+                {{localize('home', 'name')}}
+              </div>
+            </a>
+            <a href="/list/[[facilitySystem]]">
+              <div class="webvisual-button" name="list">
+                <paper-ripple id="ripple" recenters></paper-ripple>
+                <iron-icon icon="list" class="left"></iron-icon>
+                {{localize('list', 'name')}}
+              </div>
+            </a>
+            <a href="/groups/[[facilitySystem]]">
+              <div class="webvisual-button" name="groups">
+                <paper-ripple id="ripple" recenters></paper-ripple>
+                <iron-icon icon="grid-on" class="left"></iron-icon>
+                {{localize('groups', 'name')}}
+              </div>
+            </a>
+            <a href="/detail/[[facilitySystem]]">
+              <div class="webvisual-button" name="detail">
+                <paper-ripple id="ripple" recenters></paper-ripple>
+                <iron-icon icon="chrome-reader-mode" class="left"></iron-icon>
+                {{localize('detail', 'name')}}
+              </div>
+            </a>
+          </div>
+        </iron-collapse>
 
-    </template>
+        <div class="spacer"></div>
+
+        <div class="webvisual-button" for="layout-collapse" on-tap="_toggleCollapse">
+          <paper-ripple id="ripple" recenters></paper-ripple>
+          <iron-icon icon="settings" class="left"></iron-icon>
+          <span>{{localize('layout')}}</span>
+          <iron-icon icon="expand-more" class="right"></iron-icon>
+        </div>
+
+        <iron-collapse id="layout-collapse">
+          <div class="collapse-content">
+            <webvisual-toggle-button checked="{{plain}}">
+              <iron-icon icon="border-style"></iron-icon>
+              {{localize('plain', plain)}}
+            </webvisual-toggle-button>
+            <webvisual-toggle-button checked="{{dark}}">
+              <iron-icon icon="invert-colors"></iron-icon>
+              {{localize('dark', dark)}}
+            </webvisual-toggle-button>
+          </div>
+        </iron-collapse>
+
+        <div class="spacer"></div>
+
+        <div class="webvisual-selectbox">
+          <iron-icon icon="language"></iron-icon>
+          <span>{{localize('language')}}</span>
+
+          <select value="{{language::change}}">
+            <option value="de">deutsch</option>
+            <option value="en">english</option>
+            <option value="fr">français</option>
+            <option value="es">español</option>
+            <option value="it">italiano</option>
+            <option value="ru">русский</option>
+            <option value="zh">中文</option>
+          </select>
+        </div>
+
+        <template is="dom-if" if="[[_shouldRenderGroupingKeys]]">
+          <div class="webvisual-selectbox grouping">
+            <iron-icon icon="filter-list"></iron-icon>
+            <span>{{localize('groupedKey')}}</span>
+            <select value="{{groupedKey::change}}"></select>
+          </div>
+        </template>
+      </div>
+
+      <app-toolbar class="bottom">
+        <webvisual-icon-button icon="[[_socketStatusIcon]]" title="[[socketStatus]]" on-tap="_socketConnect"></webvisual-icon-button>
+      </app-toolbar>
+    </app-drawer>
+
   </template>
 
   <script>

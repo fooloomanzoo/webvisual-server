@@ -10,9 +10,6 @@
     <style include="shared-styles">
       :host {
         padding-top: inherit;
-        position: absolute;
-        display: block;
-        top: 0; bottom: 0; left: 0; right: 0;
         box-sizing: border-box;
         overflow: hidden;
         --tab-vertical-overlay: {
@@ -60,7 +57,7 @@
         bottom: 0;
         top: 0;
         right: 0px;
-        --app-drawer-width: 256px;
+        --app-drawer-width: 16em;
         --app-drawer-content-container: {
           padding: 0 !important;
           background-color: transparent;
@@ -101,8 +98,8 @@
         box-sizing: border-box;
         opacity: 0.25;
         pointer-events: all;
-        padding: 8px;
-        width: 32px;
+        padding: 0.5em;
+        width: 2em;
         height: 100%;
         fill: var(--primary-text-color);
         will-change: opacity;
@@ -119,10 +116,10 @@
       }
       @media (min-width: 601px) {
         #content {
-          margin-right: 256px;
+          margin-right: 16em;
         }
         #elementDrawer {
-          right: -256px;
+          right: -16em;
         }
       }
       @media (min-width: 800px) {
@@ -174,8 +171,9 @@
             exceeding="[[exceeding]]"></webvisual-element-svg>
         </template>
 
-        <template is="dom-if" if="[[visible]]">
-          <app-drawer id="elementDrawer" opened="[[_ensureOpened(showControlAsDrawer)]]" swipe-open="[[showControlAsDrawer]]" persistent="[[!showControlAsDrawer]]" align="right">
+        <!-- <template is="dom-if" if="[[visible]]"> -->
+          <app-drawer id="elementDrawer" opened="[[_ensureOpened(showControlAsDrawer)]]" swipe-open="[[showControlAsDrawer]]" persistent="[[!showControlAsDrawer]]" align="right"
+          disable-upgrade$="[[!visible]]">
 
             <webvisual-tabs id="elementTabs" vertical selected="{{route.path}}" attr-for-selected="item-mount" selected-attribute="checked">
               <svg id="requestMoreDetailButton" class="overlay-addon" on-tap="requestMoreDetail" viewBox="0 0 24 24">
@@ -196,7 +194,7 @@
             <webvisual-element-table id="elementTable" full-date item="[[selectedElement]]"></webvisual-element-table>
           </app-drawer>
 
-        </template>
+        <!-- </template> -->
       </div>
 
 
@@ -314,11 +312,13 @@
           return;
         }
         requestAnimationFrame( function() {
-          if (mount.startsWith('/')) {
-            mount = mount.substring(1); // cut off leading '/'
+          if (this.route.path.startsWith('/')) {
+            mount = this.route.path.substring(1); // cut off leading '/'
+          } else {
+            mount = this.route.path;
           }
           for (var i = 0; i < this.elements.length; i++) {
-            if (this.elements[i].mount && this.elements[i].mount === '/' + this.route.path) {
+            if (this.elements[i].mount && (mount === this.elements[i].mount)) {
               this.cancelDebouncer('initial-element');
               this._recentElementMount = this.elements[i].mount;
               this.set('selectedElement', this.elements[i]);
@@ -333,6 +333,16 @@
 
       _setInitialElement: function() {
         if (this.elements && this.elements.length) {
+          if (this._recentElementMount) {
+            for (var i = 0; i < this.elements.length; i++) {
+              if (this.elements[i].mount && (this._recentElementMount === this.elements[i].mount)) {
+                this.set('selectedElement', this.elements[i]);
+                this._checkWithSvg(this.elements[i]);
+                this.debounce('resize', this.notifyResize);
+                return;
+              }
+            }
+          }
           this.set('route.path', '/' + this.elements[0].mount);
         }
       },

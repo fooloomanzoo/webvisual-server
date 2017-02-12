@@ -197,7 +197,7 @@
 
       <section id='header'>
         <iron-pages id="headerContent" selected="[[view]]" selectable=".view" selected-attribute="opened" on-transitionend="_transitionEnd">
-          <template is="dom-if" if="[[_lazyRenderSvg]]">
+          <template is="dom-if" if="[[_shouldRenderSvg]]">
             <webvisual-element-svg class="view"
               url-prefix="[[svgUrlPrefix]]"
               src="[[svgSrcPath]]"
@@ -257,8 +257,7 @@
         title: {
           type: String,
           value: '',
-          reflectToAttribute: true,
-          observer: '_titleChanged'
+          reflectToAttribute: true
         },
 
         opened: {
@@ -286,8 +285,8 @@
           computed: '_computeShouldRenderExtensions(items.length)'
         },
 
-        _lazyRenderSvg: {
-          computed: '_computeLazyRenderSvg(opened, svgSrcPath)'
+        _shouldRenderSvg: {
+          computed: '_computeShouldRenderSvg(opened, svgSrcPath)'
         }
 
       },
@@ -340,10 +339,6 @@
         }.bind(this));
       },
 
-      _titleChanged: function(title) {
-        this.setAttribute('aria-system', title);
-      },
-
       _computeExpandIcon: function(opened) {
         return opened ? 'unfold-less' : 'unfold-more';
       },
@@ -352,7 +347,7 @@
 			  return length > 0;
 			},
 
-      _computeLazyRenderSvg: function(opened, svgSrcPath) {
+      _computeShouldRenderSvg: function(opened, svgSrcPath) {
         return opened && Boolean(svgSrcPath);
       }
 
