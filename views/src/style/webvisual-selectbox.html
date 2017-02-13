@@ -3,31 +3,26 @@
 <dom-module id="webvisual-selectbox">
   <template>
     <style>
-
       .webvisual-selectbox {
-        display: inline-flex;
+        @apply(--layout-inline);
+        @apply(--layout-center);
         box-sizing: border-box;
-        align-items: center;
         word-break: break-all;
         padding: 0.75em 1.5em;
       }
-
       .webvisual-selectbox > * {
         -webkit-appearance: none;
         margin: 0;
         padding: 0.75em 0;
       }
-
       .webvisual-selectbox > span {
         flex: 1 0 auto;
         padding: 0.25em;
         text-align: center;
       }
-
       .webvisual-selectbox > iron-icon {
         margin: 0;
       }
-
       .webvisual-selectbox > select {
         padding: 0.5em;
         font-size: 0.8em;
@@ -38,7 +33,7 @@
         color: var(--selectbox-color);
         background-color: var(--selectbox-background, transparent);
         border-color: var(--selectbox-border, var(--dark-primary-color));
-        border-radius: 6px;
+        border-radius: 3px;
         border-width: thin;
         border-style: solid;
         opacity: 0.75;
@@ -46,12 +41,10 @@
         flex: 1 0 auto;
         transition: opacity 0.25s cubic-bezier(0.6, 0, 0.1, 1);
       }
-
       .webvisual-selectbox > select:focus,
       .webvisual-selectbox > select:hover {
         opacity: 1;
       }
-
       .webvisual-selectbox option {
         overflow: hidden;
         text-overflow: ellipsis;

@@ -14,18 +14,8 @@
 
     <style include="shared-styles webvisual-input webvisual-button">
       :host {
-        display: -ms-flexbox;
-        display: -webkit-flex;
-        display: flex;
-        -ms-flex-align: center;
-        -webkit-align-items: center;
-        align-items: center;
-        -ms-flex-pack: center;
-        -webkit-justify-content: center;
-        justify-content: center;
-        -ms-flex-direction: column;
-        -webkit-flex-direction: column;
-        flex-direction: column;
+        @apply(--layout-vertical);
+        @apply(--layout-center-center);
         min-height: 100vh;
         box-sizing: border-box;
         outline: none;
@@ -44,18 +34,8 @@
         line-height: 1.4;
       }
       #login {
-        display: -ms-flexbox;
-        display: -webkit-flex;
-        display: flex;
-        -ms-flex-align: center;
-        -webkit-align-items: center;
-        align-items: center;
-        -ms-flex-pack: center;
-        -webkit-justify-content: center;
-        justify-content: center;
-        -ms-flex-direction: column;
-        -webkit-flex-direction: column;
-        flex-direction: column;
+        @apply(--layout-vertical);
+        @apply(--layout-center-center);
         position: relative;
         box-sizing: border-box;
         font-size: 1em;

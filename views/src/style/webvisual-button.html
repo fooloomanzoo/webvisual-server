@@ -9,13 +9,14 @@
         width: 100%;
       }
       .webvisual-button {
+        @apply(--layout-inline);
+        @apply(--layout-start-justified);
+        @apply(--layout-center);
+        box-sizing: border-box;
+        text-align: center;
         pointer-events: all;
-        display: inline-flex;
         padding: 0.75em 1em;
         line-height: 1.4;
-        align-items: center;
-        align-content: center;
-        justify-content: flex-start;
         white-space: nowrap;
         position: relative;
         box-sizing: border-box;
@@ -31,7 +32,7 @@
         letter-spacing: 0.2px;
         flex: 1 0 auto;
         text-align: left;
-        @apply(--.webvisual-button);
+        @apply(--webvisual-button);
       }
       .webvisual-button > * {
         -webkit-appearance: none;
@@ -41,12 +42,12 @@
       .webvisual-button > span,
       .webvisual-button > button {
         flex: 1;
+        text-align: center;
       }
       .webvisual-button > button,
       .webvisual-button > button[type="submit"] {
         font-family: inherit;
         font-size: inherit;
-        background-color: transparent;
         background-color: transparent;
         color: currentColor;
         outline: none;
@@ -77,7 +78,6 @@
       .webvisual-button > .left {
         margin-right: 0.75em;
       }
-
       .webvisual-button > .right {
         margin-left: 0.75em;
       }

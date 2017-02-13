@@ -8,11 +8,11 @@
   <template strip-whitespace>
     <style include="shared-styles page-layout">
       .grid li {
-        flex-direction: row;
+        @apply(--layout-horizontal);
       }
       a {
         border-radius: 4px;
-        display: flex;
+        @apply(--layout);
         flex: 1 1;
         -webkit-flex-basis: auto;
         flex-basis: auto;

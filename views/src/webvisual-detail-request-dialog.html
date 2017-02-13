@@ -40,10 +40,9 @@
         color: inherit;
       }
       #bottom {
-        display: flex;
-        flex-direction: row;
-        flex-wrap: wrap;
-        justify-content: flex-start;
+        @apply(--layout-horizontal);
+        @apply(--layout-wrap);
+        @apply(--layout-start-justified);
         font-size: 0.9em;
         padding: 0;
         margin-bottom: 1em;
@@ -67,10 +66,8 @@
         height: 2.5em;
       }
       .date {
-        display: inline-flex;
-        align-items: center;
-        align-content: center;
-        justify-content: flex-start;
+        @apply(--layout-inline);
+        @apply(--layout-center-center);
       }
       .date > * {
         margin: 0 0.25em;

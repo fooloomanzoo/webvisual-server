@@ -13,8 +13,7 @@
       :host {
         font-family: 'FiraSans-Regular', sans-serif;
         position: relative;
-        display: inline-flex;
-        flex-direction: column;
+        @apply(--layout-vertical);
         cursor: pointer;
         pointer-events: all;
         outline: none;
@@ -46,10 +45,9 @@
         color: var(--element-state-deceeds-text-color);
       }
       .value {
-        display: inline-flex;
-        position: absolute;;
-        align-items: center;
-        justify-content: center;
+        position: absolute;
+        @apply(--layout-inline);
+        @apply(--layout-center-center);
         top: 0;
         bottom: 0;
         right: 0;
@@ -86,9 +84,8 @@
         100% { transform: rotate(360deg); }
       }
       #valueSection {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
+        @apply(--layout-inline);
+        @apply(--layout-center-center);
         max-width: 100%;
         text-align: center;
         mix-blend-mode: hard-light;
@@ -105,9 +102,8 @@
       }
       #dateSection {
         position: absolute;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
+        @apply(--layout-inline);
+        @apply(--layout-center-center);
         pointer-events: none;
         font-size: 0.55em;
         bottom: 0;

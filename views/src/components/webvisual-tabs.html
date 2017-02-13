@@ -198,16 +198,16 @@
       _moveComplete: function() {
         if (this._lastTarget !== this.target) {
           this._move(this._lastTarget, this.target);
-        } else {
+        } else if (this.target) {
           requestAnimationFrame( function () {
-            this._lastTarget = this.target;
-            this._lastTarget.classList.add('overlay-above');
+            this.target.classList.add('overlay-above');
             this.$.overlay.style.display = 'none';
             this.$.overlay.style.willChange = '';
             if (this._addon) {
               Polymer.dom(this.target).appendChild(this._addon);
               this._addon.style.opacity = '';
             }
+            this._lastTarget = this.target;
           }.bind(this));
         }
       },

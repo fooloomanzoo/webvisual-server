@@ -4,8 +4,7 @@
   <template>
     <style>
       :host {
-        display: flex;
-        flex-direction: column;
+        @apply(--layout-vertical);
         opacity: 0;
         will-change: opacity;
         transition: opacity 300ms cubic-bezier(0.6, 0, 0.2, 1);
@@ -39,9 +38,8 @@
         @apply(--dialog-title);
       }
       :host #content {
-        display: flex;
+        @apply(--layout-vertical);
         flex: 1 0 100px;
-        flex-direction: column;
         border-top: thin solid var(--grid-border-color, #aaa);
         border-bottom: thin solid var(--grid-border-color, #aaa);
       }
@@ -55,10 +53,9 @@
         padding: 0 1em;
       }
       #bottom {
-        display: inline-flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: flex-end;
+        @apply(--layout-inline);
+        @apply(--layout-end-justified);
+        @apply(--layout-center);
         position: relative;
         padding: 0.5em 0.5em 0.5em 1.5em;
       }

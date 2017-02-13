@@ -60,28 +60,27 @@
         mix-blend-mode: exclusion;
       }
       #titleContent {
+        @apply(--layout-inline);
+        @apply(--layout-center);
+        @apply(--layout-justified);
         position: absolute;
         pointer-events: none;
         top: 0; left: 0; right: 0;
         height: 3em;
         width: 100%;
-        display: inline-flex;
-        align-items: center;
-        justify-content: space-between;
       }
       #titleContent > * {
         pointer-events: all;
       }
       #mainContent {
-        display: flex;
+        @apply(--layout-horizontal);
+        @apply(--layout-wrap);
+        @apply(--layout-start);
+        @apply(--layout-start-justified);
         pointer-events: none;
-        flex-direction: row;
         border-radius: inherit;
         position: relative;
         box-sizing: border-box;
-        flex-wrap: wrap;
-        align-items: flex-start;
-        justify-content: flex-start;
         padding-left: 0.4em;
         will-change: padding-top;
         transition: padding-top 500ms cubic-bezier(0.6, 0, 0.2, 1);

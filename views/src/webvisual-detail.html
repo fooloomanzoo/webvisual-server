@@ -336,9 +336,7 @@
           if (this._recentElementMount) {
             for (var i = 0; i < this.elements.length; i++) {
               if (this.elements[i].mount && (this._recentElementMount === this.elements[i].mount)) {
-                this.set('selectedElement', this.elements[i]);
-                this._checkWithSvg(this.elements[i]);
-                this.debounce('resize', this.notifyResize);
+                this.set('route.path', '/' + this._recentElementMount);
                 return;
               }
             }

@@ -101,9 +101,6 @@
 
     body {
       display: flex;
-      position: relative;
-      justify-content: center;
-      align-items: center;
       margin: 0;
       font-family: 'FiraSans-Regular', sans-serif;
       font-weight: normal;
@@ -116,32 +113,31 @@
     }
 
     /* styling for render while resources are loading */
-    webvisual-app[unresolved] {
-      position: absolute;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
+    webvisual-app {
+      min-height: 100vh;
+      width: 100vw;
+      display: block;
     }
     webvisual-app[unresolved] > * {
       margin-bottom: 32px;
     }
-
+    webvisual-app[unresolved] {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-content: stretch;
+      align-items: center;
+      align-self: stretch;
+    }
     .circle {
       display: none;
-      -webkit-transform-origin: center center;
-      -ms-transform-origin: center center;
       transform-origin: center center;
       transform: scale(0);
       stroke: #1ED146;
       fill: #1ED146;
       stroke-width: 0.5px;
     }
-
     webvisual-app[unresolved] .circle {
       display: inherit;
       will-change: transform, fill-opacity, stroke-opacity;
@@ -214,7 +210,7 @@
 
   <webvisual-app unresolved>
     <header class="unresolved-placeholder" style="color:#fff;font-size: 24px;letter-spacing: 6px;">WEBVISUAL</header>
-    <svg class="unresolved-placeholder" xmlns="http://www.w3.org/2000/svg" width="144" height="144" viewBox="0 0 18 18" version="1.1">
+    <svg class="unresolved-placeholder" xmlns="http://www.w3.org/2000/svg" width="144" height="144" viewBox="0 0 18 18" version="1.1" preserveAspectRatio="xMinYMin">
       <g>
         <circle class="circle" r="9" cy="9" cx="9" transform="scale(0)"></circle>
         <circle class="circle" r="9" cy="9" cx="9" transform="scale(0)"></circle>
