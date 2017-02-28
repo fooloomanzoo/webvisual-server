@@ -11,11 +11,12 @@
         left: calc(50% - 400px);
         right: calc(50% - 400px);
         bottom: 0;
-        background-color: var(--saturated-primary-color);
+        background-color: var(--primary-color, var(--primary-color));
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-        color: white;
+        color: var(--bright-text-color);
         width: 800px;
-        padding: 12px;
+        padding-left: 1em;
+        padding-right: 1em;
         visibility: hidden;
         text-align: center;
         will-change: transform;
@@ -53,19 +54,25 @@
       is: 'webvisual-snackbar',
 
       properties: {
-        autoClose: Boolean
+        autoClose: Boolean,
+
+        opened: {
+          type: Boolean,
+          value: false,
+          reflectToAttribute: true
+        }
       },
 
       open: function() {
         Polymer.dom.flush();
-        this.offsetHeight && this.setAttribute('opened', '');
+        this.offsetHeight && this.set('opened', true);
         if (this.autoClose) {
           this.debounce('_close', this.close, 4000);
         }
       },
 
       close: function() {
-        this.removeAttribute('opened');
+        this.set('opened', false);
       }
     });
 

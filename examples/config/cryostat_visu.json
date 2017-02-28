@@ -19,7 +19,7 @@
 
     "database": {
       "type": "redis",
-      "maxCount": 300000
+      "maxCount": 3000
     },
 
 		"initialView": "detail",
@@ -132,7 +132,7 @@
 
     "database": {
       "type": "redis",
-      "maxCount": 300000
+      "maxCount": 3000
     },
 
 		"initialView": "detail",

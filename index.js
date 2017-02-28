@@ -170,7 +170,7 @@ class WebvisualServer {
           });
           this.router.setSettings(this.config, this.http2Server);
 
-          this.dataHandler = new DataModule(this.config.database);
+          this.dataHandler = new DataModule();
           this.dataHandler.on('error', (err) => { process.send( { error: err } ); });
           this.dataHandler.on('info', (msg) => { process.send( { info: msg } ); });
           this.dataHandler.on('log', (msg) => { process.send( { log: msg } ); });
@@ -180,7 +180,7 @@ class WebvisualServer {
             this.dataHandler.setConfiguration(this.configFilesHandler.settings[facility], facility);
             this.router.setConfiguration(this.configFilesHandler.settings[facility], facility); // load Settings to Routen them to requests
           });
-          this.configFilesHandler.watch(this.config.userConfigFiles);
+          this.configFilesHandler.watch(this.config.userConfigFiles, this.config.database);
 
           this.dataHandler.setServer(this.router.io);
           this.http2Server.listen(this.config.server.port || process.env.port || 443);

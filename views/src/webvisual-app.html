@@ -5,6 +5,7 @@
 
 <link rel="import" href="../bower_components/app-layout/app-header/app-header.html"/>
 <link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html"/>
+<link rel="import" href="../bower_components/iron-media-query/iron-media-query.html">
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html"/>
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html"/>
 <link rel="import" href="../bower_components/iron-a11y-keys-behavior/iron-a11y-keys-behavior.html"/>
@@ -33,6 +34,9 @@
   <template strip-whitespace>
 
     <style include="shared-styles webvisual-selectbox webvisual-button webvisual-app-style">
+      :host {
+         display: block;
+      }
       app-header {
         @apply(--layout-fixed-top);
         z-index: 1;
@@ -92,9 +96,11 @@
         width: 100%;
         font-size: 0.8em;
       }
-      #tabsToolbar {
-        height: 2.5em;
-        justify-content: space-between;
+      #tabsContainer {
+        height: 3em;
+        @apply(--layout-inline);
+        @apply(--layout-around-justified);
+        @apply(--layout-center);
       }
       #tabs {
         height: 100%;
@@ -112,17 +118,20 @@
         position: relative;
       }
       #pageselector {
-        min-height: 100vh;
+        position: relative;
         @apply(--layout);
         box-sizing: border-box;
         padding-top: 4em;
+        padding-bottom: 3em;
         background-color: var(--primary-background);
         transition: background 500ms cubic-bezier(0.6, 0, 0.3, 1);
+        min-height: 100vh;
       }
       #pageselector > * {
         width: 100%;
         overflow-x: hidden;
         overflow-y: auto;
+        min-height: 100vh;
       }
       :host([page="login"]) #pageselector,
       :host([page="home"]) #pageselector{
@@ -186,6 +195,9 @@
       lazy-connect="[[loadComplete]]"></webvisual-element-socket-data>
 
     <template is="dom-if" if="[[_isContentPage]]">
+
+      <iron-media-query query="(min-width: 768px)" query-matches="{{showTabsOnTop}}"></iron-media-query>
+
       <app-header role="header" id="header" reveals threshold="1">
 
         <app-toolbar>
@@ -199,41 +211,44 @@
             </a>
           </template>
 
+          <template is="dom-if" if="[[showTabsOnTop]]">
+            <iron-collapse opened="[[showTabs]]" horizontal style="align-self: flex-end;">
+              <div id="tabsContainer">
+
+                <template is="dom-if" if="[[_shouldRenderGroupingKeys]]">
+                  <div class="webvisual-selectbox toolbar grouping" title="grouping keys">
+                    <select value="{{groupedKey::change}}"></select>
+                  </div>
+                </template>
+                
+                <webvisual-tabs id="tabs"
+                  role="tablist"
+                  selected="{{page}}"
+                  attr-for-selected="name">
+                  <div class="tab" name="list">
+                    <paper-ripple id="ripple" recenters></paper-ripple>
+                    <a href="/list/[[facilitySystem]]">{{localize('list', 'name')}}</a>
+                  </div>
+                  <div class="tab" name="groups">
+                    <paper-ripple id="ripple" recenters></paper-ripple>
+                    <a href="/groups/[[facilitySystem]]">{{localize('groups', 'name')}}</a>
+                  </div>
+                  <div class="tab" name="detail">
+                    <paper-ripple id="ripple" recenters></paper-ripple>
+                    <a href="/detail/[[facilitySystem]]">{{localize('detail', 'name')}}</a>
+                  </div>
+                </webvisual-tabs>
+
+                <template is="dom-if" if="[[detailHasDrawer]]">
+                  <webvisual-icon-button class="items-icon" icon="subject" title="items" on-tap="_toggleDetailControlDrawer">
+                  </webvisual-icon-button>
+                </template>
+              </div>
+            </iron-collapse>
+          </template>
+
           <webvisual-icon-button icon="more-vert" title="tabs" checked="{{showTabs}}"></webvisual-icon-button>
         </app-toolbar>
-
-        <iron-collapse opened="[[showTabs]]">
-          <app-toolbar id="tabsToolbar">
-            <webvisual-tabs id="tabs"
-              role="tablist"
-              selected="{{page}}"
-              attr-for-selected="name">
-              <div class="tab" name="list">
-                <paper-ripple id="ripple" recenters></paper-ripple>
-                <a href="/list/[[facilitySystem]]">{{localize('list', 'name')}}</a>
-              </div>
-              <div class="tab" name="groups">
-                <paper-ripple id="ripple" recenters></paper-ripple>
-                <a href="/groups/[[facilitySystem]]">{{localize('groups', 'name')}}</a>
-              </div>
-              <div class="tab" name="detail">
-                <paper-ripple id="ripple" recenters></paper-ripple>
-                <a href="/detail/[[facilitySystem]]">{{localize('detail', 'name')}}</a>
-              </div>
-            </webvisual-tabs>
-
-            <template is="dom-if" if="[[_shouldRenderGroupingKeys]]">
-              <div class="webvisual-selectbox toolbar grouping" title="grouping keys">
-                <select value="{{groupedKey::change}}"></select>
-              </div>
-            </template>
-
-            <template is="dom-if" if="[[detailHasDrawer]]">
-              <webvisual-icon-button class="items-icon" icon="subject" title="items" on-tap="_toggleDetailControlDrawer">
-              </webvisual-icon-button>
-            </template>
-          </app-toolbar>
-        <iron-collapse>
 
       </app-header>
     </template>
@@ -382,6 +397,40 @@
 
     </template>
 
+    <template is="dom-if" if="[[!showTabsOnTop]]">
+      <webvisual-snackbar opened="[[showTabs]]">
+        <div id="tabsContainer" style="width:100%;">
+          <webvisual-tabs id="tabs"
+            role="tablist"
+            selected="{{page}}"
+            attr-for-selected="name">
+            <div class="tab" name="list">
+              <paper-ripple id="ripple" recenters></paper-ripple>
+              <a href="/list/[[facilitySystem]]">{{localize('list', 'name')}}</a>
+            </div>
+            <div class="tab" name="groups">
+              <paper-ripple id="ripple" recenters></paper-ripple>
+              <a href="/groups/[[facilitySystem]]">{{localize('groups', 'name')}}</a>
+            </div>
+            <div class="tab" name="detail">
+              <paper-ripple id="ripple" recenters></paper-ripple>
+              <a href="/detail/[[facilitySystem]]">{{localize('detail', 'name')}}</a>
+            </div>
+          </webvisual-tabs>
+
+          <template is="dom-if" if="[[_shouldRenderGroupingKeys]]">
+            <div class="webvisual-selectbox toolbar grouping" title="grouping keys">
+              <select value="{{groupedKey::change}}"></select>
+            </div>
+          </template>
+
+          <template is="dom-if" if="[[detailHasDrawer]]">
+            <webvisual-icon-button class="items-icon" icon="subject" title="items" on-tap="_toggleDetailControlDrawer">
+            </webvisual-icon-button>
+          </template>
+        </div>
+      </webvisual-snackbar>
+    </template>
   </template>
 
   <script>
@@ -464,11 +513,13 @@
         showTabs: {
           type: Boolean,
           value: false,
-          reflectToAttribute: true
+          reflectToAttribute: true,
+          observer: '_debouncedHideTabs'
         },
 
-        _shouldShowTabs: {
-          type: Boolean
+        showTabsOnTop: {
+          type: Boolean,
+          notify: true
         },
 
         _socketStatusIcon: {
@@ -506,8 +557,7 @@
       observers: [
         '_routePageChanged(routeData.page)',
         '_subrouteChanged(subroute)',
-        '_setGroupingSelectBoxes(_shouldRenderGroupingKeys)',
-        '_showTabsChanged(showTabs, _isContentPage, loadComplete)'
+        '_setGroupingSelectBoxes(_shouldRenderGroupingKeys)'
       ],
 
       keyBindings: {
@@ -608,7 +658,13 @@
           // The size of the header depends on the page (e.g. on some pages the tabs
           // do not appear), so reset the header's layout only when switching pages.
           this.async(function() {
-            // this.$.header.resetLayout();
+            if (!this.$.header) {
+              this.$.header = this.$$('#header');
+            }
+            if (this.$.header) {
+              console.log('reset layout');
+              this.$.header.resetLayout();
+            }
           }, 1);
         }
       },
@@ -678,7 +734,6 @@
         for (var key in settings) {
           this.set(key, settings[key]);
         }
-
         this._updateStyles();
       },
 
@@ -731,11 +786,6 @@
             }
           })
         },1);
-      },
-
-      _showTabsChanged: function(isContentPage, loadComplete, showTabs) {
-        this._shouldShowTabs = (isContentPage && loadComplete && showTabs);
-        this._debouncedHideTabs();
       },
 
       _debouncedHideTabs: function() {

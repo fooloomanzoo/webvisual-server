@@ -18,7 +18,7 @@
     },
 
     "database": {
-      "type": "cache",
+      "type": "redis",
       "maxCount": 30
     },
 
@@ -237,7 +237,7 @@
     },
 
     "database": {
-      "type": "cache",
+      "type": "redis",
       "maxCount": 30
     },
 
@@ -452,7 +452,7 @@
     },
 
     "database": {
-      "type": "cache",
+      "type": "redis",
       "host": "localhost",
       "port": 6379,
       "maxCount": 1000

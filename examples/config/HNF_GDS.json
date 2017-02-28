@@ -18,7 +18,7 @@
 
     "database": {
       "type": "redis",
-      "maxCount": 30
+      "maxCount": 30000
     },
 
     "initialView": "groups",

@@ -44,7 +44,6 @@
       lazyRegister: true,
       disableUpgradeEnabled: true
     };
-
     // Load webcomponentsjs polyfill if browser does not support native Web Components
     (function() {
       'use strict';
@@ -94,11 +93,9 @@
       src: url('/fonts/FiraSans-Regular.woff2') format('woff2'),
            url('/fonts/FiraSans-Regular.ttf') format('truetype');
     }
-
     html {
       background: #005B82;
     }
-
     body {
       display: flex;
       margin: 0;
@@ -111,7 +108,6 @@
       text-rendering: optimizeLegibility;
       min-height: 100vh;
     }
-
     /* styling for render while resources are loading */
     webvisual-app {
       min-height: 100vh;
@@ -141,14 +137,17 @@
     webvisual-app[unresolved] .circle {
       display: inherit;
       will-change: transform, fill-opacity, stroke-opacity;
+      animation-name: drop, color;
+      animation-duration: 4s, 16s;
+      animation-timing-function: cubic-bezier(0.6, 0, 0.3, 1);
+      animation-iteration-count: infinite;
     }
-    webvisual-app[unresolved] .circle:nth-of-type(1) { animation: drop 4s cubic-bezier(0.6, 0, 0.3, 1) 2000ms infinite, color 16s cubic-bezier(0.6, 0, 0.3, 1) 2000ms infinite; }
-    webvisual-app[unresolved] .circle:nth-of-type(2) { animation: drop 4s cubic-bezier(0.6, 0, 0.3, 1) 2250ms infinite, color 16s cubic-bezier(0.6, 0, 0.3, 1) 2250ms infinite; }
-    webvisual-app[unresolved] .circle:nth-of-type(3) { animation: drop 4s cubic-bezier(0.6, 0, 0.3, 1) 2450ms infinite, color 16s cubic-bezier(0.6, 0, 0.3, 1) 2450ms infinite; }
-    webvisual-app[unresolved] .circle:nth-of-type(4) { animation: drop 4s cubic-bezier(0.6, 0, 0.3, 1) 2600ms infinite, color 16s cubic-bezier(0.6, 0, 0.3, 1) 2600ms infinite; }
-    webvisual-app[unresolved] .circle:nth-of-type(5) { animation: drop 4s cubic-bezier(0.6, 0, 0.3, 1) 2700ms infinite, color 16s cubic-bezier(0.6, 0, 0.3, 1) 2700ms infinite; }
-    webvisual-app[unresolved] .circle:nth-of-type(6) { animation: drop 4s cubic-bezier(0.6, 0, 0.3, 1) 2750ms infinite, color 16s cubic-bezier(0.6, 0, 0.3, 1) 2750ms infinite; }
-
+    webvisual-app[unresolved] .circle:nth-of-type(1) { animation-delay: 2000ms; }
+    webvisual-app[unresolved] .circle:nth-of-type(2) { animation-delay: 2250ms; }
+    webvisual-app[unresolved] .circle:nth-of-type(3) { animation-delay: 2450ms; }
+    webvisual-app[unresolved] .circle:nth-of-type(4) { animation-delay: 2600ms; }
+    webvisual-app[unresolved] .circle:nth-of-type(5) { animation-delay: 2700ms; }
+    webvisual-app[unresolved] .circle:nth-of-type(6) { animation-delay: 2750ms; }
     webvisual-app:not([unresolved]) .unresolved-placeholder {
       display: none;
     }
@@ -204,8 +203,8 @@
     	}
     }
   </style>
-
 </head>
+
 <body>
 
   <webvisual-app unresolved>
