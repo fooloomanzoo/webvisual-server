@@ -27,10 +27,8 @@
         padding: 0;
         margin: 0;
         font-size: 0.6em;
-        white-space: normal;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        word-wrap: normal;
+        word-break: break-all;
+        text-overflow: clip;
       }
       .captions:after {
         content: attr(title);
@@ -38,7 +36,6 @@
       .captions:first-of-type {
         font-weight: bold;
         font-size: 0.9em;
-        word-break: normal;
       }
       .captions:nth-of-type(2) {
         font-size: 0.8em;
@@ -70,11 +67,6 @@
       :host([unresolved][vertical]) {
         min-width: initial;
         min-height: 4em;
-      }
-      :host(.wrap) .captions {
-        word-break: break-all;
-        white-space: normal;
-        text-overflow: clip;
       }
     </style>
 
@@ -124,14 +116,6 @@
           type: Boolean,
           reflectToAttribute: true
         }
-      },
-
-      listeners: {
-        'tap': '_handleTap'
-      },
-
-      _handleTap: function(e) {
-        this.classList.toggle('wrap');
       },
 
       created: function() {
