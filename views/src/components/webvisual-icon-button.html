@@ -28,7 +28,7 @@
         border-radius: 50%;
         border-width: 0;
 
-        opacity: 0.75;
+        opacity: 0.8;
         border-radius: 0;
         transform: scale(0.95);
         transform-origin: center center;
@@ -55,7 +55,8 @@
         @apply(--disabled-icon-button);
       }
 
-      :host(:hover) {
+      :host(:hover),
+      :host(:focus) {
         background-color: var(--hover-background, transparent);
         opacity: 1;
         transform: scale(1);
