@@ -51,6 +51,7 @@
       user-select: none !important;
       background-color: transparent;
       color: currentColor;
+      isolation: isolate;
     }
     :host([opened]) {
       pointer-events: all;
@@ -102,6 +103,7 @@
       stroke: none !important;
       -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
       @apply(--svg-text);
+      mix-blend-mode: exclusion;
     }
     .selectable {
       pointer-events: all;
