@@ -50,8 +50,7 @@
       letter-spacing: normal;
       user-select: none !important;
       background-color: transparent;
-      color: white;
-      isolation: isolate;
+      color: currentColor;
     }
     :host([opened]) {
       pointer-events: all;
@@ -88,7 +87,6 @@
       right: 4px;
     }
     webvisual-icon-button {
-      mix-blend-mode: exclusion;
       border-radius: 0%;
       opacity: 0.5;
       will-change: opacity;
@@ -102,7 +100,6 @@
       cursor: default !important;
       letter-spacing: normal !important;
       stroke: none !important;
-      mix-blend-mode: exclusion;
       -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
       @apply(--svg-text);
     }
