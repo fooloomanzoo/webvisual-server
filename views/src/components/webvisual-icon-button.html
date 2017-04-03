@@ -28,6 +28,13 @@
         border-radius: 50%;
         border-width: 0;
 
+        opacity: 0.75;
+        border-radius: 0;
+        transform: scale(0.95);
+        transform-origin: center center;
+        will-change: opacity, transform;
+        transition: opacity 150ms cubic-bezier(0.6, 0, 0.2, 1), transform 250ms cubic-bezier(0.6, 0, 0.2, 1);
+
         padding: var(--calculated-icon-padding);
         width: calc(2*var(--calculated-icon-padding) + var(--calculated-icon-size));
         height: calc(2*var(--calculated-icon-padding) + var(--calculated-icon-size));
@@ -50,6 +57,8 @@
 
       :host(:hover) {
         background-color: var(--hover-background, transparent);
+        opacity: 1;
+        transform: scale(1);
         @apply(--hovered-icon-button);
       }
 
