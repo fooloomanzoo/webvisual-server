@@ -25,6 +25,7 @@
         color: white;
         letter-spacing: normal !important;
         user-select: none !important;
+        isolation: isolate;
       }
       :host([fullscreen]) {
         background-color: var(--fullscreen-background-color);
@@ -156,6 +157,9 @@
         display: flex;
         flex-direction: column;
         background-color: rgba(255, 255, 255, 0.25);
+      }
+      webvisual-icon-button {
+        mix-blend-mode: exclusion;
       }
       [hidden] {
         display: none !important;
@@ -500,8 +504,8 @@
           .on('end', this.brushed.bind(this._self));
         this._brush = d3.select(this.$.brush);
         this._brush
-          .on('mouseenter', this._showInfo.bind(this))
-          .on('mouseleave touchend touchstart', this._hideInfo.bind(this))
+          .on('mouseenter touchstart', this._showInfo.bind(this))
+          .on('mouseleave touchend', this._hideInfo.bind(this))
           .on('mousemove', function() {
             // this.setAttribute('r', self.dotRadius * 1.5);
             var mx = d3.mouse(this._chart.node())[0],
@@ -888,7 +892,7 @@
       },
 
       _hideInfo: function() {
-        this.debounce('hideinfo', this._debounceHideInfo, 500);
+        this.debounce('hideinfo', this._debounceHideInfo, 1500);
       },
 
       _debounceHideInfo: function() {

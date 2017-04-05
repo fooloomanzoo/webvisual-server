@@ -52,6 +52,9 @@
         padding-right: 1em;
         transition: background 500ms cubic-bezier(0.6, 0, 0.3, 1);
       }
+      app-toolbar webvisual-icon-button {
+        transform: scale(1);
+      }
       app-drawer {
         z-index: 2;
       }
@@ -96,10 +99,9 @@
         width: 100%;
         font-size: 0.8em;
       }
-      #tabsContainer {
+      #viewSelect {
         height: 3em;
         @apply(--layout-inline);
-        @apply(--layout-around-justified);
         @apply(--layout-center);
       }
       #tabs {
@@ -213,14 +215,14 @@
 
           <template is="dom-if" if="[[showTabsOnTop]]">
             <iron-collapse opened="[[showTabs]]" horizontal style="align-self: flex-end;">
-              <div id="tabsContainer">
+              <div id="viewSelect">
 
                 <template is="dom-if" if="[[_shouldRenderGroupingKeys]]">
                   <div class="webvisual-selectbox toolbar grouping" title="grouping keys">
                     <select value="{{groupedKey::change}}"></select>
                   </div>
                 </template>
-                
+
                 <webvisual-tabs id="tabs"
                   role="tablist"
                   selected="{{page}}"
@@ -399,11 +401,24 @@
 
     <template is="dom-if" if="[[!showTabsOnTop]]">
       <webvisual-snackbar opened="[[showTabs]]">
-        <div id="tabsContainer" style="width:100%;">
+        <div id="viewSelect" style="width:100%;">
+
+          <template is="dom-if" if="[[_shouldRenderGroupingKeys]]">
+            <div class="webvisual-selectbox toolbar grouping" title="grouping keys">
+              <select value="{{groupedKey::change}}"></select>
+            </div>
+          </template>
+
+          <template is="dom-if" if="[[detailHasDrawer]]">
+            <webvisual-icon-button class="items-icon" icon="subject" title="items" on-tap="_toggleDetailControlDrawer">
+            </webvisual-icon-button>
+          </template>
+
           <webvisual-tabs id="tabs"
             role="tablist"
             selected="{{page}}"
-            attr-for-selected="name">
+            attr-for-selected="name"
+            style="margin-left:auto;">
             <div class="tab" name="list">
               <paper-ripple id="ripple" recenters></paper-ripple>
               <a href="/list/[[facilitySystem]]">{{localize('list', 'name')}}</a>
@@ -417,17 +432,6 @@
               <a href="/detail/[[facilitySystem]]">{{localize('detail', 'name')}}</a>
             </div>
           </webvisual-tabs>
-
-          <template is="dom-if" if="[[_shouldRenderGroupingKeys]]">
-            <div class="webvisual-selectbox toolbar grouping" title="grouping keys">
-              <select value="{{groupedKey::change}}"></select>
-            </div>
-          </template>
-
-          <template is="dom-if" if="[[detailHasDrawer]]">
-            <webvisual-icon-button class="items-icon" icon="subject" title="items" on-tap="_toggleDetailControlDrawer">
-            </webvisual-icon-button>
-          </template>
         </div>
       </webvisual-snackbar>
     </template>

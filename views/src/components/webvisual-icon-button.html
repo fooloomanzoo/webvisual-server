@@ -40,6 +40,8 @@
         height: calc(2*var(--calculated-icon-padding) + var(--calculated-icon-size));
 
         box-sizing: border-box !important;
+
+        mix-blend-mode: hard-light;
         @apply(--icon-button);
       }
 
@@ -66,8 +68,8 @@
       iron-icon {
         --iron-icon-width: var(--calculated-icon-size);
         --iron-icon-height: var(--calculated-icon-size);
-        stroke: #000;
-        stroke-width: 0.1px;
+        /*stroke: #000;
+        stroke-width: 0.1px;*/
       }
 
       #ripple {
