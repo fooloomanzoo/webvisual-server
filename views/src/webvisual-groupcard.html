@@ -32,15 +32,6 @@
         will-change: padding-top;
         transition: padding-top 500ms cubic-bezier(0.6, 0, 0.2, 1);
       }
-      #header::before {
-        position: absolute;
-        content: '';
-        left: 0; top: 0; right: 0; bottom: 0;
-        border-top-left-radius: inherit;
-        border-top-right-radius: inherit;
-        pointer-events: none;
-        background: linear-gradient(to top, rgba(255,255,255,0.01) 38%,rgba(255,255,255,0.2) 100%);
-      }
       #header .title-text {
         margin-left: 1em;
         font-size: 1.1em;
@@ -102,6 +93,15 @@
       :host(:not([opened])) #mainContent {
         padding-top: 3.4em;
       }
+      :host(:not([opened])) #header::before {
+        position: absolute;
+        content: '';
+        left: 0; top: 0; right: 0; bottom: 0;
+        border-top-left-radius: inherit;
+        border-top-right-radius: inherit;
+        pointer-events: none;
+        background: linear-gradient(to top, rgba(255,255,255,0.01) 38%,rgba(255,255,255,0.15) 100%);
+      }
       :host([opened]) #mainContent {
         padding-top: calc(15vh + 120px + 0.4em);
       }
@@ -109,7 +109,7 @@
         padding-top: calc(15vh + 120px - 3em);
       }
       :host([opened]) #title {
-        background: rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.1);
       }
       :host([plain]) {
         border-color: transparent;
@@ -136,7 +136,7 @@
       }
       webvisual-icon-button.iron-selected {
         opacity: 1;
-        background-color: rgba(255,255,255, 0.16);
+        background-color: rgba(255,255,255, 0.15);
       }
       #header .expand-button {
         margin-right: 0.5em;
@@ -154,7 +154,7 @@
         left: 4px; bottom: 0;
         box-sizing: border-box;
         transition: visibility 300ms cubic-bezier(0.6, 0, 0.2, 1);
-        background: rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.1);
         mix-blend-mode: exclusion;
       }
       :host([opened]) #select {
@@ -209,17 +209,15 @@
           <webvisual-icon-button title="expand" on-tap="toggle" class="expand-button" icon="[[expandIcon]]"></webvisual-icon-button>
         </section>
 
-        <template is="dom-if" if="[[opened]]">
-          <iron-selector id="select" selected="{{view}}" selectable=".button">
+        <iron-selector id="select" selected="{{view}}" selectable=".button">
+          <template is="dom-if" if="[[_shouldRenderExtensions]]">
             <template is="dom-if" if="[[svgSrcPath]]">
               <webvisual-icon-button title="map" icon="map" class="button"></webvisual-icon-button>
             </template>
-            <template is="dom-if" if="[[_shouldRenderExtensions]]">
-              <webvisual-icon-button title="chart" icon="show-chart" class="button"></webvisual-icon-button>
-              <webvisual-icon-button title="table" icon="list" class="button"></webvisual-icon-button>
-            </template>
-          </iron-selector>
-        </template>
+            <webvisual-icon-button title="chart" icon="show-chart" class="button"></webvisual-icon-button>
+            <webvisual-icon-button title="table" icon="list" class="button"></webvisual-icon-button>
+          </template>
+        </iron-selector>
       </section>
 
     </section>

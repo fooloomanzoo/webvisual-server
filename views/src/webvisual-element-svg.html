@@ -84,8 +84,10 @@
     }
     #control {
       position: absolute;
-      bottom: 4px;
+      bottom: 0;
       right: 4px;
+      background: rgba(255,255,255,0.1);
+      mix-blend-mode: exclusion;
     }
     text {
       pointer-events: none !important;
@@ -140,8 +142,9 @@
         transform: scale(1.0);
       }
     }
-    webvisual-icon-button {
-      mix-blend-mode: exclusion;
+    webvisual-icon-button:focus {
+      opacity: 1;
+      background-color: rgba(255,255,255, 0.15);
     }
     [hidden] {
       display: none !important;

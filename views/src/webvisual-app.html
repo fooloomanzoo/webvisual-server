@@ -100,7 +100,7 @@
         font-size: 0.8em;
       }
       #viewSelect {
-        height: 3em;
+        height: 2.5em;
         @apply(--layout-inline);
         @apply(--layout-center);
       }
@@ -241,12 +241,13 @@
                   </div>
                 </webvisual-tabs>
 
-                <template is="dom-if" if="[[detailHasDrawer]]">
-                  <webvisual-icon-button class="items-icon" icon="subject" title="items" on-tap="_toggleDetailControlDrawer">
-                  </webvisual-icon-button>
-                </template>
               </div>
             </iron-collapse>
+          </template>
+
+          <template is="dom-if" if="[[detailHasDrawer]]">
+            <webvisual-icon-button class="items-icon" icon="subject" title="items" on-tap="_toggleDetailControlDrawer">
+            </webvisual-icon-button>
           </template>
 
           <webvisual-icon-button icon="more-vert" title="tabs" checked="{{showTabs}}"></webvisual-icon-button>
@@ -407,11 +408,6 @@
             <div class="webvisual-selectbox toolbar grouping" title="grouping keys">
               <select value="{{groupedKey::change}}"></select>
             </div>
-          </template>
-
-          <template is="dom-if" if="[[detailHasDrawer]]">
-            <webvisual-icon-button class="items-icon" icon="subject" title="items" on-tap="_toggleDetailControlDrawer">
-            </webvisual-icon-button>
           </template>
 
           <webvisual-tabs id="tabs"
