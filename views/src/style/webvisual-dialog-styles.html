@@ -20,27 +20,18 @@
       }
       :host > * {
         position: relative;
-        margin-top: 1em;
-        margin-left: 1.5em;
-        margin-right: 1.5em;
+        margin: 0.25em 1em;
       }
       :host > .no-margin {
         margin: 0;
       }
-      :host > *:first-child {
-        margin-top: 1.5em;
-      }
-      :host > *:last-child {
-        margin-bottom: 1.5em;
-      }
       :host > #title {
-        font-size: 1.5em;
+        font-size: 1.25em;
         @apply(--dialog-title);
       }
       :host #content {
         @apply(--layout-vertical);
         flex: 1 0 100px;
-        margin-top: 0;
         border-top: thin solid var(--grid-border-color, #aaa);
         border-bottom: thin solid var(--grid-border-color, #aaa);
       }
