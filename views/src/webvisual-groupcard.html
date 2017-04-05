@@ -108,6 +108,9 @@
       :host([opened]) #header {
         padding-top: calc(15vh + 120px - 3em);
       }
+      :host([opened]) #title {
+        background: rgba(255,255,255,0.08);
+      }
       :host([plain]) {
         border-color: transparent;
         background-color: transparent;
@@ -131,12 +134,9 @@
       #addons > * {
         overflow: hidden;
       }
-      webvisual-icon-button {
-        mix-blend-mode: exclusion;
-      }
       webvisual-icon-button.iron-selected {
         opacity: 1;
-        background-color: rgba(255,255,255, 0.25);
+        background-color: rgba(255,255,255, 0.16);
       }
       #header .expand-button {
         margin-right: 0.5em;
@@ -154,6 +154,8 @@
         left: 4px; bottom: 0;
         box-sizing: border-box;
         transition: visibility 300ms cubic-bezier(0.6, 0, 0.2, 1);
+        background: rgba(255,255,255,0.08);
+        mix-blend-mode: exclusion;
       }
       :host([opened]) #select {
         visibility: visible;
