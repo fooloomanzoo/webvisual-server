@@ -40,6 +40,8 @@
         text-overflow: ellipsis;
         white-space: nowrap;
         cursor: pointer;
+        border-top-left-radius: inherit;
+        border-top-right-radius: inherit;
       }
       #headerContent {
         position: absolute;
@@ -50,6 +52,8 @@
         flex-direction: column;
         box-sizing: border-box;
         border-color: inherit;
+        border-top-left-radius: inherit;
+        border-top-right-radius: inherit;
         height: auto;
         perspective: calc(15vh + 120px);
         perspective-origin: center top;
@@ -66,6 +70,8 @@
         position: absolute;
         pointer-events: none;
         top: 0; left: 0; right: 0;
+        border-top-left-radius: inherit;
+        border-top-right-radius: inherit;
         height: 3em;
         width: 100%;
         mix-blend-mode: exclusion;
@@ -109,7 +115,7 @@
         padding-top: calc(15vh + 120px - 3em);
       }
       :host([opened]) #title {
-        background: rgba(255,255,255,0.1);
+        background: linear-gradient(to bottom, rgba(255,255,255,0.01) 38%,rgba(255,255,255,0.1) 100%);
       }
       :host([plain]) {
         border-color: transparent;
@@ -154,7 +160,7 @@
         left: 4px; bottom: 0;
         box-sizing: border-box;
         transition: visibility 300ms cubic-bezier(0.6, 0, 0.2, 1);
-        background: rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.05);
         mix-blend-mode: exclusion;
       }
       :host([opened]) #select {
