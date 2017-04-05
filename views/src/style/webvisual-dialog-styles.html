@@ -40,17 +40,13 @@
       :host #content {
         @apply(--layout-vertical);
         flex: 1 0 100px;
+        margin-top: 0;
         border-top: thin solid var(--grid-border-color, #aaa);
         border-bottom: thin solid var(--grid-border-color, #aaa);
       }
-
       :host #content > * {
         position: relative;
-        margin-left: 0.5em;
-        margin-right: 0.5em;
-      }
-      #title {
-        padding: 0 1em;
+        flex: 1 0 auto;
       }
       #bottom {
         @apply(--layout-inline);
