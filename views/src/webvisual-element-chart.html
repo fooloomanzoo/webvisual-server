@@ -41,6 +41,7 @@
       }
       #svgContainer {
         border-radius: inherit;
+        position: relative;
         display: flex;
         flex-grow: 1;
         flex-shrink: 0;
@@ -140,7 +141,7 @@
       #control {
         position: absolute;
         bottom: 0;
-        right: 4px;
+        right: 0;
       }
       .webvisual-selectbox,
       .webvisual-button {
@@ -195,41 +196,40 @@
           <text id="info" x="0" y="0" hidden></text>
         </g>
       </svg>
+      <section id="control">
+        <iron-collapse id="controlcontent" opened="[[showControl]]">
+          <div class="webvisual-selectbox">
+            <select value="{{interpolation::change}}">
+              <option value="Lineare Verbindung">Lineare Verbindung</option>
+              <option value="Basis Spline">Basis Spline</option>
+              <option value="Kubischer Spline">Kubischer Spline</option>
+              <option value="Cardinaler Spline">Cardinaler Spline</option>
+              <option value="Catmull-Rom-Spline">Catmull-Rom-Spline</option>
+              <option value="Stufe (mitte)">Stufe (mitte)</option>
+              <option value="Stufe (davor)">Stufe (davor)</option>
+              <option value="Stufe (danach)">Stufe (danach)</option>
+            </select>
+          </div>
+          <div class="webvisual-selectbox">
+            <select value="{{yScale::change}}">
+              <option value="linear">linear</option>
+              <option value="√">√</option>
+              <option value="ln">ln</option>
+              <option value="log₁₀">log₁₀</option>
+            </select>
+          </div>
+          <div class="webvisual-button" on-tap="toggleFullscreen">
+            <iron-icon icon="[[fullscreenIcon]]" class="left"></iron-icon>
+            Fullscreen
+          </div>
+          <!-- <section class="buttons">
+            <webvisual-icon-button title="fullscreen" icon="[[fullscreenIcon]]" on-tap="toggleFullscreen"></webvisual-icon-button>
+            <webvisual-icon-button title="refresh" icon="refresh" on-tap="_refresh"></webvisual-icon-button>
+          </section> -->
+        </iron-collapse>
+        <webvisual-icon-button title="settings" icon="tune" checked="{{showControl}}"></webvisual-icon-button>
+      </section>
   	</div>
-
-    <section id="control">
-      <iron-collapse id="controlcontent" opened="[[showControl]]">
-        <div class="webvisual-selectbox">
-          <select value="{{interpolation::change}}">
-            <option value="Lineare Verbindung">Lineare Verbindung</option>
-            <option value="Basis Spline">Basis Spline</option>
-            <option value="Kubischer Spline">Kubischer Spline</option>
-            <option value="Cardinaler Spline">Cardinaler Spline</option>
-            <option value="Catmull-Rom-Spline">Catmull-Rom-Spline</option>
-            <option value="Stufe (mitte)">Stufe (mitte)</option>
-            <option value="Stufe (davor)">Stufe (davor)</option>
-            <option value="Stufe (danach)">Stufe (danach)</option>
-          </select>
-        </div>
-        <div class="webvisual-selectbox">
-          <select value="{{yScale::change}}">
-            <option value="linear">linear</option>
-            <option value="√">√</option>
-            <option value="ln">ln</option>
-            <option value="log₁₀">log₁₀</option>
-          </select>
-        </div>
-        <div class="webvisual-button" on-tap="toggleFullscreen">
-          <iron-icon icon="[[fullscreenIcon]]" class="left"></iron-icon>
-          Fullscreen
-        </div>
-        <!-- <section class="buttons">
-          <webvisual-icon-button title="fullscreen" icon="[[fullscreenIcon]]" on-tap="toggleFullscreen"></webvisual-icon-button>
-          <webvisual-icon-button title="refresh" icon="refresh" on-tap="_refresh"></webvisual-icon-button>
-        </section> -->
-      </iron-collapse>
-      <webvisual-icon-button title="settings" icon="tune" checked="{{showControl}}"></webvisual-icon-button>
-    </section>
 
     <template is="dom-if" if="[[multi]]" restamp>
       <template is="dom-repeat" items="[[items]]">

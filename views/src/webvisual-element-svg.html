@@ -43,6 +43,7 @@
       -webkit-overflow-scrolling: touch;
       -webkit-tap-highlight-color:rgba(0,0,0,0);
       display: block;
+      box-sizing: border-box;
       position: relative;
       width: 100%;
       height: 100%;
@@ -72,6 +73,7 @@
     }
     #svgContainer {
       border-radius: inherit;
+      position: relative;
       display: block;
       width: 100%;
       height: 100%;
@@ -85,8 +87,8 @@
     #control {
       position: absolute;
       bottom: 0;
-      right: 4px;
-      background: rgba(255,255,255,0.1);
+      right: 0;
+      background: rgba(255,255,255,0.0625);
       mix-blend-mode: exclusion;
     }
     text {
@@ -144,17 +146,18 @@
     }
     webvisual-icon-button:focus {
       opacity: 1;
-      background-color: rgba(255,255,255, 0.15);
+      background-color: rgba(255,255,255, 0.125);
     }
     [hidden] {
       display: none !important;
     }
 
   </style>
-  <div id="svgContainer"></div>
-  <div id="control" >
-    <webvisual-icon-button title="focus" icon="filter-center-focus" on-tap="_resetZoom"></webvisual-icon-button>
-    <webvisual-icon-button title="fullscreen" icon="[[fullscreenIcon]]" on-tap="toggleFullscreen"></webvisual-icon-button>
+  <div id="svgContainer">
+    <div id="control" >
+      <webvisual-icon-button title="focus" icon="filter-center-focus" on-tap="_resetZoom"></webvisual-icon-button>
+      <webvisual-icon-button title="fullscreen" icon="[[fullscreenIcon]]" on-tap="toggleFullscreen"></webvisual-icon-button>
+    </div>
   </div>
 
 </template>
