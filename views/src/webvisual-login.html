@@ -1,8 +1,9 @@
+<script src="../bower_components/fetch/fetch.js"></script>
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
 <link rel="import" href="../bower_components/iron-icon/iron-icon.html">
 <link rel="import" href="../bower_components/iron-form/iron-form.html">
-<!-- <link rel="import" href="../bower_components/iron-input/iron-input.html"> -->
+<link rel="import" href="../bower_components/iron-input/iron-input.html">
 
 <link rel="import" href="behaviors/localize-behavior.html">
 
@@ -96,28 +97,32 @@
         <h4 id="loginInfo">{{localize('login', 'title')}}</h4>
       </header>
 
-      <form id="signinForm"
+      <form is="iron-form" id="signin-form" action$="{{authUrl}}" method="post" on-iron-form-presubmit="onPwSignIn">
+        <input id="csrf_token" type="hidden" name="csrf_token" value="{{csrf_token}}" />
+        <input is="iron-input" id="username" autocomplete="username" placeholder="" autocapitalize="none" autocorrect="off" name="username" type="username" tabindex="0">
+        <input is="iron-input" id="password" class="style-scope paper-input" required="" autocomplete="current-password" placeholder="" autocapitalize="none" autocorrect="off" name="password" type="password" pattern=".{4,32}" tabindex="0">
+        <div class="buttons">
+          <button type="cancel" class="hidden">
+            <paper-button dialog-dismiss raised>Cancel</paper-button>
+          </button>
+          <button type="submit" class="hidden">
+            <paper-button raised>Submit</paper-button>
+          </button>
+        </div>
+      </form>
+      <!-- <form id="signinForm"
         is="iron-form"
         action="/login"
         method="post"
         on-iron-form-presubmit="onPwSignIn">
-        <input type="hidden" name="csrf_token" value="{{csrf_token}}" />
 
-        <!-- <input is="iron-input" id="username" type="text" name="username" label="Whatever name" autocomplete="username" pattern=".{1,32}" error-message="4-32 letters please" auto-validate required/>
-        <input is="iron-input" id="password" type="password" name="password" label="Bogus password" autocomplete="password" pattern=".{4,32}" error-message="4-32 letters please" auto-validate required/> -->
+        <input id="csrf_token" type="hidden" name="csrf_token" value="{{csrf_token}}"/>
 
-        <!-- <div class="webvisual-button" id="loginbutton">
-          <paper-ripple></paper-ripple>
-          <button class="button hidden">
-            <iron-icon class="left" icon="juelich:logo"></iron-icon>
-            <span>{{localize('login', 'name')}}</span>
-          </button>
-        </div> -->
         <section class="input-box">
           <iron-icon class="left" icon="perm-identity"></iron-icon>
           <div class="webvisual-input">
-            <input id="username" name="username" label="Whatever name" autocomplete="username" pattern=".{1,32}" error-message="4-32 letters please" auto-validate required/>
-            <div class="webvisual-md-decorator" error-message="Invalid Username" aria-hidden="true">
+            <input  is="iron-input" id="username" name="username" label="Whatever name" autocomplete="username" pattern=".{1,32}" required/>
+            <div class="webvisual-md-decorator" error-message$="{{localize('login', 'invalid-username')}}" aria-hidden="true">
               <label>{{localize('login', 'username')}}</label>
               <div class="webvisual-underline"></div>
             </div>
@@ -127,8 +132,8 @@
         <section class="input-box">
           <iron-icon class="left" icon="more-horiz"></iron-icon>
           <div class="webvisual-input">
-            <input id="password" type="password" name="password" label="Bogus password" autocomplete="password" pattern=".{4,32}" error-message="4-32 letters please" auto-validate required/>
-            <div class="webvisual-md-decorator" error-message="Invalid Password" aria-hidden="true">
+            <input is="iron-input" id="password" type="password" name="password" autocomplete="password" label="Bogus password" pattern=".{4,64}" required/>
+            <div class="webvisual-md-decorator" error-message$="{{localize('login', 'invalid-password')}}" aria-hidden="true">
               <label id="passwordLabel">{{localize('login', 'password')}}</label>
               <div class="webvisual-underline"></div>
             </div>
@@ -142,7 +147,7 @@
             <span>{{localize('login', 'name')}}</span>
           </button>
         </div>
-      </form>
+      </form> -->
     </div>
   </template>
 
@@ -194,32 +199,29 @@
               password: true,
               unmediated: unmediated
             }).then(function(cred) {
-              // If credential object is available
-              // console.log(cred);
-              // if (cred) {
-              //   // console.log(cred);
-              //   // console.log('auto sign-in performed');
-              //   //
-              //   // switch (cred.type) {
-              //   //   case 'password':
-              //       // Change form `id` name to `username`
-              //       // cred.idName = 'username';
-              //       // // Include CSRF token in the credential object
-              //       // var csrf_token = new FormData();
-              //       // console.log(document.cookie);
-              //       // // csrf_token.append('csrf_token', this.$.csrf_token.value);
-              //       // // `.additionalData` accepts `FormData`
-              //       // // You can include CSRF token etc.
-              //       // cred.additionalData = csrf_token;
-              //       // Return Promise from `pwSignIn`
-              //       // return this.pwSignIn.call(this, cred);
-              //   }
-              // } else {
+              console.log(cred);
+              if (cred) {
+                console.log('auto sign-in performed');
+
+                if (cred.type === 'password') {
+                    cred.idName = 'username';
+                    // Include CSRF token in the credential object
+                    var csrf_token = new FormData();
+                    csrf_token.append('csrf_token', this.$.csrf_token.value);
+
+                    // csrf_token.append('csrf_token', this.$.csrf_token.value);
+                    // `.additionalData` accepts `FormData`
+                    // You can include CSRF token etc.
+                    cred.additionalData = csrf_token;
+                    //Return Promise from `pwSignIn`
+                    return this.pwSignIn.call(this, cred);
+                }
+              } else {
                 console.log('auto sign-in not performed');
 
                 // Resolve if credential object is not available
                 return Promise.resolve();
-              // }
+              }
             }.bind(this))
             .catch(function(err) {
               console.log(err);
@@ -266,48 +268,52 @@
 
         var signinForm = e.target;
 
+        // Polymer `iron-form` feature to validate the form
         if (signinForm.validate && !signinForm.validate()) return;
 
-        var formdata = new FormData(signinForm);
-        for(var pair of formdata.entries()) {
-           console.log(pair[0]+ ', '+ pair[1]);
-        }
+        if (navigator.credentials) {
+          // Construct `FormData` object from actual `form`
+          //signinForm = new FormData(signinForm);
+          var cred = new PasswordCredential(signinForm);
+          var params = new FormData(signinForm).params; // get from FormData
+          var urlparams = new URLSearchParams(new FormData(signinForm)); // construct with FormData
+          // Sign-In with our own server
+          this.pwSignIn(cred)
+            .then(function(profile) {
+              console.log(profile);
 
-        this._fetch(this.authUrl, 'POST', new FormData(signinForm))
-            .then(function(status) {
-            if (status == 200) {
-              return Promise.reject();
-            } else {
-              return Promise.reject();
-            }
-          })
-          .then(this.signedIn)
-          .then(function(profile) {
-            this.dispatchEvent(new CustomEvent('announce', {
-              detail: this.localize ? this.localize('notification', 'loggedIn', true) : 'You are signed in'
-            }), {
-              bubbles: true
-            });
-
-            if (navigator.credentials) {
-              // Create password credential
-              var cred = new PasswordCredential(signinForm);
-              cred.idName = 'username';
-              cred.username = profile.username;
-              // cred.iconURL = profile.imageUrl;
-
-              // Store user information as this is registration using id/password
               navigator.credentials.store(cred);
-            }
-          }.bind(this)).catch(function(err) {
-            console.log(err);
-            this.loggedIn = false;
-            this.dispatchEvent(new CustomEvent('announce', {
-              detail: this.localize ? this.localize('notification', 'loggedIn', false) : 'You are not signed in'
-            }), {
-              bubbles: true
-            });
-          }.bind(this));
+              this.dispatchEvent(new CustomEvent('announce', {
+                detail: this.localize ? this.localize('notification', 'loggedIn', true) : 'You are signed in'
+              }), {
+                bubbles: true
+              });
+            }.bind(this), function() {
+              // Polymer event to notice user that 'Authentication failed'.
+              this.dispatchEvent(new CustomEvent('announce', {
+                detail: this.localize ? this.localize('notification', 'loggedIn', false) : 'You are not signed in'
+              }), {
+                bubbles: true
+              });
+            }.bind(this));
+        } else {
+          this._authenticateWithServer(this.authUrl, new FormData(signinForm))
+            .then(function() {
+              console.log(profile);
+              this.dispatchEvent(new CustomEvent('announce', {
+                detail: this.localize ? this.localize('notification', 'loggedIn', true) : 'You are signed in'
+              }), {
+                bubbles: true
+              });
+            }.bind(this), function() {
+              // Polymer event to notice user that 'Authentication failed'.
+              this.dispatchEvent(new CustomEvent('announce', {
+                detail: this.localize ? this.localize('notification', 'loggedIn', false) : 'You are not signed in'
+              }), {
+                bubbles: true
+              });
+            }.bind(this));
+        }
       },
 
       _fetch: function(url, method, data) {
@@ -338,7 +344,7 @@
             xhr.open(method, url);
             xhr.withCredentials = true;
             xhr.setRequestHeader('Content-Type','application/x-www-form-urlencoded');
-            xhr.send(urlencodeFormData(data));
+            xhr.send(urlencodeFormData(new FormData(data)));
           } catch (err) {
             reject(err);
           }
@@ -352,14 +358,22 @@
        */
       pwSignIn: function(cred) {
         // POST-ing credential object will be converted to FormData object
-        return fetch(this.authUrl, {
-            method: 'POST',
-            // Include the credential object as `credentials`
-            credentials: cred
-          })
-          .then(function(res) {
+        function urlencodeFormData(fd) {
+            var s = '';
+            function encode(s) { return encodeURIComponent(s).replace(/%20/g,'+'); }
+            for(var pair of fd.entries()){
+                if(typeof pair[1]=='string'){
+                    s += (s?'&':'') + encode(pair[0])+'='+encode(pair[1]);
+                }
+            }
+            return s;
+        }
+        console.log(cred);
+        return fetch(this.authUrl, { // convert multipart-formdata to urlencoded
+              method: 'POST',
+              credentials:  cred
+            }).then(function(res) {
             // Convert JSON string to an object
-            console.log(res.status, res);
             if (res.status === 200) {
               return res.json();
             } else {

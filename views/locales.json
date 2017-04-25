@@ -4,7 +4,9 @@
 			"name": "Login",
 			"title": "Bitte loggen Sie sich ein",
 			"username": "Benutzername",
-			"password": "Kennwort"
+			"password": "Kennwort",
+			"invalid-username": "ungültiger Benutzername",
+			"invalid-password": "ungültiges Kennwort"
 		},
 		"home": {
       "name": "Auswahl",
@@ -54,7 +56,9 @@
 		},
 		"login": {
 			"name": "Log In",
-			"title": "Please log in"
+			"title": "Please log in",
+			"invalid-username": "invalid user-name",
+			"invalid-password": "invalid password"
 		},
 		"groups": {
 			"name": "Groups"
@@ -94,13 +98,15 @@
 	"fr": {
 		"home": {
 			"name": "Installation de Mesure",
-			"title": "choisissez une installation de mesure, s'il vous plaît",
-			"username": "nom d'utilisateur",
-			"password": "mot de passe"
+			"title": "Choisissez une installation de mesure, s'il vous plaît",
+			"username": "Nom d'utilisateur",
+			"password": "Mot de passe"
 		},
 		"login": {
 			"name": "Connectez",
-			"title": "connectez, s'il vous plaît"
+			"title": "Connectez, s'il vous plaît",
+			"invalid-username": "Nom d'utilisateur non valable",
+			"invalid-password": "Mot de passe non valable"
 		},
 		"groups": {
 			"name": "Groupe"
@@ -141,12 +147,14 @@
 		"home": {
 			"name": "Instalación de Medición",
 			"title": "Elegid la instalación de medición",
-			"username": "nombre de usuario",
-			"password": "clave"
+			"username": "Nombre de usuario",
+			"password": "Contraseña"
 		},
 		"login": {
 			"name": "Iniciar Sesión",
-			"title": "Iniciar Sesión"
+			"title": "Iniciar Sesión",
+			"invalid-username": "Nombre de usuario no válido",
+			"invalid-password": "Contraseña no válida"
 		},
 		"groups": {
 			"name": "Grupo"
@@ -187,12 +195,14 @@
 		"home": {
 			"name": "Impianto di Misurazione",
 			"title": "seleziona uno impianto di misurazione",
-			"username": "nome utente",
-			"password": "password"
+			"username": "Nome utente",
+			"password": "Password"
 		},
 		"login": {
 			"name": "Log In",
-			"title": "accedi"
+			"title": "Accedi",
+			"invalid-username": "Nome utente non valido",
+			"invalid-password": "Password non valida"
 		},
 		"groups": {
 			"name": "Gruppo"
@@ -238,7 +248,9 @@
 		},
 		"login": {
 			"name": "Логин",
-			"title": "Логин"
+			"title": "Логин",
+			"invalid-username": "Недопустимое имя пользователя",
+			"invalid-password": "Неверный пароль"
 		},
 		"groups": {
 			"name": "группиро́вка"
@@ -284,7 +296,9 @@
 		},
 		"login": {
 			"name": "登录",
-			"title": "請登錄"
+			"title": "請登錄",
+			"invalid-username": "无效的用户名",
+			"invalid-password": "无效的密码。"
 		},
 		"groups": {
 			"name": "分批"

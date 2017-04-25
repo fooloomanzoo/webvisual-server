@@ -31,6 +31,7 @@ const EventEmitter = require('events').EventEmitter
     , compression = require('compression')
     , session = require('express-session')
     , serveStatic = require('serve-static')
+    , multer = require('multer')({ dest: 'uploads/' })
 
     // Session Store
     , RedisStore = require('connect-redis')(session);
@@ -177,8 +178,8 @@ class Router extends EventEmitter {
       });
     });
 
-    // Signin
-    this.app.post('/login',
+
+    this.app.post('/login', multer.array(),
       this.settings.server.auth.required ?
         this.passport.authenticate('activedirectory-login') :
           this.passport.authenticate('dummy'),
@@ -189,6 +190,19 @@ class Router extends EventEmitter {
 
         // res.status(200).send('Logged In');
       });
+      
+    // Signin
+    // this.app.post('/login',
+    //   this.settings.server.auth.required ?
+    //     this.passport.authenticate('activedirectory-login') :
+    //       this.passport.authenticate('dummy'),
+    //   (req, res) => {
+    //     // console.log('returnTo', path.resolve(process.cwd(), 'public', req.session.returnTo));
+    //     console.log(Object.keys(req));
+    //     res.redirect(req.session.returnTo || '/');
+    //
+    //     // res.status(200).send('Logged In');
+    //   });
 
 
 
