@@ -76,10 +76,11 @@ class Router extends EventEmitter {
     // http://stackoverflow.com/questions/25532692/how-to-share-sessions-with-socket-io-1-x-and-express-4-x
 
     // Parser
+    this.app.use(bodyParser.urlencoded({ extended: true }));
+    this.app.use(bodyParser.json());
+
     this.cookieParser = require('cookie-parser')(this.sessionSecret);
     this.app.use(this.cookieParser);
-    this.app.use(bodyParser.json());
-    this.app.use(bodyParser.urlencoded({ extended: true }));
 
     this.sessionStore = new RedisStore( {
       host: 'localhost',
@@ -139,8 +140,6 @@ class Router extends EventEmitter {
 
   setServer(opt, server) {
     this.settings.server = opt;
-    // Optional Auth
-    let authNeeded = this.settings.server.auth.required;
 
     // Auth Methods
     require('./auth/activedirectory.js')(this.passport, this.settings.server.auth.ldap); // register custom ldap-passport-stategy
@@ -167,7 +166,7 @@ class Router extends EventEmitter {
             // if (err) {
             //   console.log('Failed connection to socket.io:', err);
             // }
-            if (session || !authNeeded) {
+            if (session || !this.settings.server.auth.required) {
               // console.log('Successful connection to socket.io', session);
               next();
             }
@@ -180,18 +179,21 @@ class Router extends EventEmitter {
 
     // Signin
     this.app.post('/login',
-      authNeeded
-        ? this.passport.authenticate('activedirectory-login')
-        : this.passport.authenticate('dummy'),
+      this.settings.server.auth.required ?
+        this.passport.authenticate('activedirectory-login') :
+          this.passport.authenticate('dummy'),
       (req, res) => {
         // console.log('returnTo', path.resolve(process.cwd(), 'public', req.session.returnTo));
+        console.log(Object.keys(req));
         res.redirect(req.session.returnTo || '/');
-        // res.status(200).send('Logged In');
 
+        // res.status(200).send('Logged In');
       });
 
+
+
     // Auth Test
-    this.app.use('/auth', authNeeded ? ensureLoggedIn.isRequired : ensureLoggedIn.notRequired );
+    this.app.use('/auth', this.settings.server.auth.required ? ensureLoggedIn.isRequired : ensureLoggedIn.notRequired );
     this.app.use('/auth', (req, res) => {
       res.sendStatus(200);
     } );
@@ -203,10 +205,10 @@ class Router extends EventEmitter {
     } );
 
     // Secured Data
-    this.app.use('/data', authNeeded ? ensureLoggedIn.isRequired : ensureLoggedIn.notRequired );
+    this.app.use('/data', this.settings.server.auth.required ? ensureLoggedIn.isRequired : ensureLoggedIn.notRequired );
     this.app.use('/data', this.staticDataMiddleware );
 
-    this.app.use('/images', authNeeded ? ensureLoggedIn.isRequired : ensureLoggedIn.notRequired );
+    this.app.use('/images', this.settings.server.auth.required ? ensureLoggedIn.isRequired : ensureLoggedIn.notRequired );
     this.app.use('/images', this.staticImageMiddleware );
 
     // Public Data
@@ -364,12 +366,13 @@ class Router extends EventEmitter {
 
 const ensureLoggedIn = {
   isRequired: function(req, res, next) {
+    console.log('ensureLoggedIn isRequired', req.user, req.isAuthenticated() );
     if (!req.isAuthenticated || !req.isAuthenticated()) {
       req.session = req.session || {};
       if (req.originalUrl && !req.originalUrl.match(/.*\..*/) && !req.originalUrl.match(/.*auth.*/)) {
         req.session.returnTo = req.originalUrl;
       }
-      res.status(403).send('Unauthorized');
+      res.status(401).send('Unauthorized');
     } else {
       next();
     }

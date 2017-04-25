@@ -14,13 +14,13 @@ module.exports = function(passport, config_ldap) {
   passport.use('activedirectory-login', new LocalStrategy({
       // by default, local strategy uses username and password, we will override with username
       usernameField: 'username',
-      passwordField: 'password',
-      passReqToCallback: true // allows us to pass back the entire request to the callback
+      passwordField: 'password'
     },
-    function(req, username, password, done) { // callback with username and password from our form
+    function(username, password, done) { // callback with username and password from our form
       // creating a request through activedirectory by ldap
       // try to bring user-input in a form which is accepted by the server
 
+      console.log('activedirectory-login', username, password);
       var user = username.split("@")[0] + "@" + config_ldap.url.split('ldap://')[1];
 
       var cred = {
@@ -44,7 +44,7 @@ module.exports = function(passport, config_ldap) {
           ad.authenticate(user, password, (err, auth) => {
             if (auth) {
               // all is well, return successful user
-              // console.log("Authentification success", user);
+              console.log("Authentification success", user);
               return done(null, user);
             } else {
               // if password false, return no user
