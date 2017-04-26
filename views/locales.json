@@ -50,13 +50,13 @@
 	"en": {
 		"home": {
 			"name": "Measuring Facilities",
-			"title": "Select a measuring facility",
-			"username": "Username",
-			"password": "Password"
+			"title": "Select a measuring facility"
 		},
 		"login": {
 			"name": "Log In",
 			"title": "Please log in",
+			"username": "Username",
+			"password": "Password",
 			"invalid-username": "invalid user-name",
 			"invalid-password": "invalid password"
 		},
@@ -98,15 +98,15 @@
 	"fr": {
 		"home": {
 			"name": "Installation de Mesure",
-			"title": "Choisissez une installation de mesure, s'il vous plaît",
-			"username": "Nom d'utilisateur",
-			"password": "Mot de passe"
+			"title": "Choisissez une installation de mesure, s'il vous plaît"
 		},
 		"login": {
 			"name": "Connectez",
 			"title": "Connectez, s'il vous plaît",
 			"invalid-username": "Nom d'utilisateur non valable",
-			"invalid-password": "Mot de passe non valable"
+			"invalid-password": "Mot de passe non valable",
+			"username": "Nom d'utilisateur",
+			"password": "Mot de passe"
 		},
 		"groups": {
 			"name": "Groupe"
@@ -146,15 +146,15 @@
 	"es": {
 		"home": {
 			"name": "Instalación de Medición",
-			"title": "Elegid la instalación de medición",
-			"username": "Nombre de usuario",
-			"password": "Contraseña"
+			"title": "Elegid la instalación de medición"
 		},
 		"login": {
 			"name": "Iniciar Sesión",
 			"title": "Iniciar Sesión",
 			"invalid-username": "Nombre de usuario no válido",
-			"invalid-password": "Contraseña no válida"
+			"invalid-password": "Contraseña no válida",
+			"username": "Nombre de usuario",
+			"password": "Contraseña"
 		},
 		"groups": {
 			"name": "Grupo"
@@ -194,15 +194,15 @@
 	"it": {
 		"home": {
 			"name": "Impianto di Misurazione",
-			"title": "seleziona uno impianto di misurazione",
-			"username": "Nome utente",
-			"password": "Password"
+			"title": "seleziona uno impianto di misurazione"
 		},
 		"login": {
 			"name": "Log In",
 			"title": "Accedi",
 			"invalid-username": "Nome utente non valido",
-			"invalid-password": "Password non valida"
+			"invalid-password": "Password non valida",
+			"username": "Nome utente",
+			"password": "Password"
 		},
 		"groups": {
 			"name": "Gruppo"
@@ -242,15 +242,15 @@
 	"ru": {
 		"home": {
 			"name": "Система физических величин",
-			"title": "Система физических величин",
-			"username": "имя пользователя",
-			"password": "пароль"
+			"title": "Система физических величин"
 		},
 		"login": {
 			"name": "Логин",
 			"title": "Логин",
 			"invalid-username": "Недопустимое имя пользователя",
-			"invalid-password": "Неверный пароль"
+			"invalid-password": "Неверный пароль",
+			"username": "имя пользователя",
+			"password": "пароль"
 		},
 		"groups": {
 			"name": "группиро́вка"
@@ -290,15 +290,15 @@
 	"zh": {
 		"home": {
 			"name": "测量​设备",
-			"title": "测量​设备",
-			"username": "以标明用户的身份",
-			"password": "密码"
+			"title": "测量​设备"
 		},
 		"login": {
 			"name": "登录",
 			"title": "請登錄",
 			"invalid-username": "无效的用户名",
-			"invalid-password": "无效的密码。"
+			"invalid-password": "无效的密码。",
+			"username": "以标明用户的身份",
+			"password": "密码"
 		},
 		"groups": {
 			"name": "分批"

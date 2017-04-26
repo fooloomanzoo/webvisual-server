@@ -220,7 +220,7 @@
       },
 
       _requestLogin: function() {
-        this.fire('login-request');
+        this.dispatchEvent(new CustomEvent('request-dialog', { detail: 'login' }), { bubbles: true });
       }
     });
 

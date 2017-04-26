@@ -193,7 +193,7 @@ class Router extends EventEmitter {
     // Signout
     this.app.use('/logout', (req, res) => {
       req.logout();
-      res.sendStatus(200);
+      res.status(200).redirect('/');
     } );
 
     // Secured Data

@@ -100,7 +100,7 @@
         font-size: 0.8em;
       }
       #viewSelect {
-        height: 2.5em;
+        height: 3em;
         @apply(--layout-inline);
         @apply(--layout-center);
       }
@@ -176,6 +176,13 @@
 
     </style>
 
+    <!-- login view-->
+    <webvisual-login-dialog id="loginDialog" dark$="[[dark]]" plain$="[[plain]]" with-backdrop auto-fit-on-attach
+      logged-in="{{loggedIn}}"
+      offline="[[offline]]"
+      language="[[language]]"
+      language-resources="[[languageResources]]"></webvisual-login-dialog>
+
     <app-location route="{{route}}"></app-location>
     <app-route
       route="{{route}}"
@@ -187,7 +194,7 @@
       facilities="{{facilities}}"
       facility-system="[[facilitySystem]]"
       items="{{elements}}"
-      logged-in="{{loggedIn}}"
+      logged-in="[[loggedIn]]"
       offline="[[offline]]"></webvisual-facility-data>
 
     <webvisual-element-socket-data id="socketHandler"
@@ -259,7 +266,7 @@
         <!-- home view for selecting the facility -->
         <webvisual-home class="fullbleed" name="home" dark$="[[dark]]" plain$="[[plain]]"
           facilities="[[facilities]]"
-          logged-in="{{loggedIn}}"
+          logged-in="[[loggedIn]]"
           language="[[language]]"
           language-resources="[[languageResources]]"></webvisual-home>
         <!-- list view of items in a facility -->
@@ -279,13 +286,6 @@
           elements="[[elements]]"
           show-toggle-icon="{{detailHasDrawer}}"></webvisual-detail>
       </iron-pages>
-
-      <!-- login view-->
-      <webvisual-login-dialog id="loginDialog" dark$="[[dark]]" plain$="[[plain]]"
-        logged-in="{{loggedIn}}"
-        offline="[[offline]]"
-        language="[[language]]"
-        language-resources="[[languageResources]]"></webvisual-login-dialog>
 
       <!-- SIDEMENU -->
       <template is="dom-if" if="[[_shouldRenderDrawer]]">
@@ -494,6 +494,7 @@
 
         loggedIn: {
           type: Boolean,
+          value: false,
           notify: true
         },
 
@@ -544,8 +545,8 @@
       },
 
       listeners: {
-        'detail-request': '_openDetailRequestDialog',
-        'login-request': '_openLoginDialog',
+        'request-dialog': '_requestDialog',
+        'announce': '_onAnnounce',
       },
 
       observers: [
@@ -686,14 +687,20 @@
         // Show the snackbar if the user is offline when starting a new session
         // or if the network status changed.
         if (this.offline || (!this.offline && oldOffline === true)) {
-          if (!this._networkSnackbar) {
-            this._networkSnackbar = document.createElement('webvisual-snackbar');
-            this._networkSnackbar.setAttribute('auto-close', '');
-            Polymer.dom(this.root).appendChild(this._networkSnackbar);
+          this.dispatchEvent(new CustomEvent('announce', { detail: this.localize ? this.localize('notification', 'offline', this.offline) : (this.offline ?
+            'You are offline' : 'You are online') }), { bubbles: true });
+        }
+      },
+
+      _onAnnounce: function(e) {
+        if (e.detail) {
+          if (!this._snackbar) {
+            this._snackbar = document.createElement('webvisual-snackbar');
+            this._snackbar.setAttribute('auto-close', '');
+            Polymer.dom(this.root).appendChild(this._snackbar);
           }
-          Polymer.dom(this._networkSnackbar).innerHTML = this.localize ? this.localize('notification', 'offline', this.offline) : (this.offline ?
-            'You are offline' : 'You are online');
-          this._networkSnackbar.open();
+          Polymer.dom(this._snackbar).innerHTML = e.detail;
+          this._snackbar.open();
         }
       },
 
@@ -709,11 +716,22 @@
         this.alarmDrawerOpened = !this.alarmDrawerOpened;
       },
 
+      // detail-requests
+      _requestDialog: function(e) {
+        switch (e.detail) {
+          case 'login':
+            this._openLoginDialog();
+            break;
+          case 'detail':
+            this._openDetailRequestDialog();
+            break;
+        }
+      },
+
       _openLoginDialog: function() {
         this.$.loginDialog.open();
       },
 
-      // detail-requests
       _openDetailRequestDialog: function(e, detail) {
         this.async( function() {
           if (!this._detailRequestDialog) {

@@ -9,12 +9,12 @@ module.exports = function() {
     // used to serialize the user for the session
 
     passport.use('dummy', new LocalStrategy({
-          usernameField : 'username',
+          usernameField : 'name',
           passwordField : 'password'
-      }, function(username, password, done) {
-        if (username) {
-          console.log('Authentification of', username, '(not required)');
-          return done(null, {username: username});
+      }, function(name, password, done) {
+        if (name) {
+          console.log('Authentification of', name, '(not required)');
+          return done(null, {name: name});
         } else {
           return done(null, false);
         }

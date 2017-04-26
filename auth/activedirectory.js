@@ -12,48 +12,52 @@ module.exports = function(passport, config_ldap) {
   }
 
   passport.use('activedirectory-login', new LocalStrategy({
-      // by default, local strategy uses username and password, we will override with username
-      usernameField: 'username',
-      passwordField: 'password'
+      // by default, local strategy uses name and password, we will override with name
+      usernameField: 'user',
+      passwordField: 'password',
+      passReqToCallback: true
     },
-    function(username, password, done) { // callback with username and password from our form
+    function(req, user, password, done) { // callback with name and password from our form
       // creating a request through activedirectory by ldap
       // try to bring user-input in a form which is accepted by the server
 
-      // console.log('activedirectory-login', username, password);
-      var user = username.split("@")[0] + "@" + config_ldap.url.split('ldap://')[1];
-
+      var userEmail = user.split("@")[0] + "@" + config_ldap.url.split('ldap://')[1];
+      // console.log('activedirectory-login', user, password, userEmail);
       var cred = {
         url: config_ldap.url,
         baseDN: config_ldap.baseDN,
-        username: user,
+        username: userEmail,
         password: password
       };
 
       // console.log(req.connection.remoteAddress);
       var ad = new ActiveDirectory(cred);
-      ad.userExists(user, function(err, exists) {
+      ad.userExists(userEmail, function(err, exists) {
         // console.log(err,exists);
         if (err) {
           // if error, return no user
-          // console.log("Authentification Error", err);
+          console.log("Authentification Error", err);
           return done(null, false);
         }
         // if user exists, then check, if user can authenticate
         else if (exists) {
-          ad.authenticate(user, password, (err, auth) => {
+          ad.authenticate(userEmail, password, (err, auth) => {
             if (auth) {
               // all is well, return successful user
-              // console.log("Authentification success", user);
-              return done(null, {username: username});
+              console.log("Authentification success", userEmail);
+              return done(null, {
+                user:    req.body.user,
+                name:    req.body.name,
+                iconURL: req.body.iconURL || '/icons/app-icon-48.png'
+              });
             } else {
               // if password false, return no user
-              // console.log("Authentification Error", err);
+              console.log("Authentification Not Possible", err);
               return done(null, false);
             }
           });
         } else {
-          // console.log("Authentification Failed", user);
+          console.log("Authentification Failed", user);
           return done(null, false);
         }
       });
