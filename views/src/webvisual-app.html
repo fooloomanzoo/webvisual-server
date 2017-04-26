@@ -75,11 +75,6 @@
       app-drawer .bottom {
         justify-content: flex-end;
       }
-      .login-button,
-      .login-button:hover {
-        flex: 0;
-        background: transparent;
-      }
       app-drawer .spacer {
         margin-bottom: 1em;
       }
@@ -298,13 +293,7 @@
       <app-drawer id="drawerPanel" opened="{{drawerOpened}}" align="left" swipe-open tabindex="0">
         <app-toolbar class="top">
           <webvisual-icon-button icon="close" title="close" on-tap="_toggleDrawer"></webvisual-icon-button>
-          <template is="dom-if" if="[[_shouldLogin]]">
-            <div class="webvisual-button login-button" on-click="_openLoginDialog">
-              <paper-ripple id="ripple" recenters></paper-ripple>
-              {{localize('login', 'name')}}
-              <iron-icon icon="perm-identity" class="right"></iron-icon>
-            </div>
-          </template>
+          <webvisual-icon-button icon="perm-identity" title="user" on-tap="_openLoginDialog"></webvisual-icon-button>
         </app-toolbar>
 
         <div class="drawer-content">
