@@ -14,6 +14,7 @@
     "neon-animation": "PolymerElements/neon-animation",
     "polymer": "Polymer/polymer#1.9.1",
     "d3": "*",
-    "datetime-picker": "fooloomanzoo/datetime-picker"
+    "datetime-picker": "fooloomanzoo/datetime-picker",
+    "fetch": "*"
   }
 }

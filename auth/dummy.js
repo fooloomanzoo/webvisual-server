@@ -10,9 +10,13 @@ module.exports = function() {
 
     passport.use('dummy', new LocalStrategy({
           usernameField : 'username',
-          passwordField : 'password',
-          passReqToCallback : true
-      }, function(req, username, password, done) {
-          return done(null, username);
+          passwordField : 'password'
+      }, function(username, password, done) {
+        if (username) {
+          console.log('Authentification of', username, '(not required)');
+          return done(null, {username: username});
+        } else {
+          return done(null, false);
+        }
       }));
 };

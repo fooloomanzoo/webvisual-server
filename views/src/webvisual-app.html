@@ -16,7 +16,7 @@
 <link rel="import" href="../bower_components/app-route/app-route.html"/>
 <link rel="import" href="../bower_components/app-layout/app-scroll-effects/effects/waterfall.html"/>
 
-<link rel="import" href="webvisual-login.html"/>
+<link rel="import" href="webvisual-login-dialog.html"/>
 <link rel="import" href="webvisual-home.html"/>
 
 <link rel="import" href="webvisual-logo.html"/>
@@ -70,10 +70,15 @@
         @apply(--app-drawer-header);
       }
       app-drawer .top {
-        justify-content: flex-start;
+        justify-content: space-between;
       }
       app-drawer .bottom {
         justify-content: flex-end;
+      }
+      .login-button,
+      .login-button:hover {
+        flex: 0;
+        background: transparent;
       }
       app-drawer .spacer {
         margin-bottom: 1em;
@@ -135,11 +140,9 @@
         overflow-y: auto;
         min-height: 100vh;
       }
-      :host([page="login"]) #pageselector,
       :host([page="home"]) #pageselector{
         background-color: var(--primary-color);
       }
-      :host([page="login"][dark]) #pageselector,
       :host([page="home"][dark]) #pageselector {
         background-color: var(--dark-primary-color);
       }
@@ -148,7 +151,10 @@
         top: 0; bottom: 0; left: 0; right: 0;
       }
       .login-icon {
-        color: var(--notification-color);
+        opacity: 0.5;
+      }
+      .login-icon:hover {
+        opacity: 1;
       }
       .items-icon {
         border-radius: 0;
@@ -208,9 +214,7 @@
           <webvisual-logo id="logo" href="/home" main-title title$="[[localize('home', 'name')]]"></webvisual-logo>
 
           <template is="dom-if" if="[[_shouldLogin]]">
-            <a href="/login">
-              <webvisual-icon-button icon="assignment-ind" class="login-icon"></webvisual-icon-button>
-            </a>
+            <webvisual-icon-button icon="assignment-ind" class="login-icon" on-click="_openLoginDialog"></webvisual-icon-button>
           </template>
 
           <template is="dom-if" if="[[showTabsOnTop]]">
@@ -263,11 +267,6 @@
           logged-in="{{loggedIn}}"
           language="[[language]]"
           language-resources="[[languageResources]]"></webvisual-home>
-        <!-- login view-->
-        <webvisual-login class="fullbleed" name="login" dark$="[[dark]]" plain$="[[plain]]"
-          offline="[[offline]]"
-          language="[[language]]"
-          language-resources="[[languageResources]]"></webvisual-login>
         <!-- list view of items in a facility -->
         <webvisual-list disable-upgrade$="[[!loadComplete]]" name="list" dark$="[[dark]]" plain$="[[plain]]"
           facility-system="[[facilitySystem]]"
@@ -286,12 +285,26 @@
           show-toggle-icon="{{detailHasDrawer}}"></webvisual-detail>
       </iron-pages>
 
+      <!-- login view-->
+      <webvisual-login-dialog id="loginDialog" dark$="[[dark]]" plain$="[[plain]]"
+        logged-in="{{loggedIn}}"
+        offline="[[offline]]"
+        language="[[language]]"
+        language-resources="[[languageResources]]"></webvisual-login-dialog>
+
       <!-- SIDEMENU -->
       <template is="dom-if" if="[[_shouldRenderDrawer]]">
 
       <app-drawer id="drawerPanel" opened="{{drawerOpened}}" align="left" swipe-open tabindex="0">
         <app-toolbar class="top">
           <webvisual-icon-button icon="close" title="close" on-tap="_toggleDrawer"></webvisual-icon-button>
+          <template is="dom-if" if="[[_shouldLogin]]">
+            <div class="webvisual-button login-button" on-click="_openLoginDialog">
+              <paper-ripple id="ripple" recenters></paper-ripple>
+              {{localize('login', 'name')}}
+              <iron-icon icon="perm-identity" class="right"></iron-icon>
+            </div>
+          </template>
         </app-toolbar>
 
         <div class="drawer-content">
@@ -304,15 +317,6 @@
 
           <iron-collapse id="route-collapse">
             <div class="collapse-content">
-              <template is="dom-if" if="[[_shouldLogin]]">
-                <a href="/login">
-                  <div class="webvisual-button" name="login">
-                    <paper-ripple id="ripple" recenters></paper-ripple>
-                    <iron-icon icon="perm-identity" class="left"></iron-icon>
-                    {{localize('login', 'name')}}
-                  </div>
-                </a>
-              </template>
               <a href="/home">
                 <div class="webvisual-button" name="home">
                   <paper-ripple id="ripple" recenters></paper-ripple>
@@ -551,7 +555,8 @@
       },
 
       listeners: {
-        'detail-request': '_openDetailRequestDialog'
+        'detail-request': '_openDetailRequestDialog',
+        'login-request': '_openLoginDialog',
       },
 
       observers: [
@@ -623,7 +628,7 @@
       _pageChanged: function(page, oldPage) {
         if (page != null) {
           // home route is eagerly loaded
-          if (page === 'home' || page === 'login') {
+          if (page === 'home') {
             this._pageLoaded(Boolean(oldPage));
           // other routes are lazy loaded
           } else {
@@ -715,6 +720,10 @@
         this.alarmDrawerOpened = !this.alarmDrawerOpened;
       },
 
+      _openLoginDialog: function() {
+        this.$.loginDialog.open();
+      },
+
       // detail-requests
       _openDetailRequestDialog: function(e, detail) {
         this.async( function() {
@@ -800,7 +809,7 @@
       },
 
       _computeIsContentPage: function(page) {
-        return (page !== 'home' && page !== 'login');
+        return page !== 'home';
       },
 
       _computeShouldRenderDrawer: function(isContentPage, loadComplete) {

@@ -112,6 +112,7 @@
         transition: opacity 300ms cubic-bezier(0.6,0,0.3,1);
         padding: 0 16px;
         word-wrap: break-word;
+        cursor: pointer;
       }
       .login:focus,
       .login:hover {
@@ -126,10 +127,10 @@
     </style>
 
     <template is="dom-if" if="[[!loggedIn]]">
-      <a href="/login" class="login">
+      <div class="login" on-click="_requestLogin">
         <webvisual-icon-button icon="assignment-ind"></webvisual-icon-button>
         <span>{{localize('login', 'title')}}</span>
-      </a>
+      </div>
     </template>
 
     <div class="box">
@@ -216,6 +217,10 @@
       _computeShouldRenderBox: function(facilities) {
         this.loggedIn = (facilities && facilities.length > 0) ? this.loggedIn : false;
         return facilities && facilities.length > 0;
+      },
+
+      _requestLogin: function() {
+        this.fire('login-request');
       }
     });
 

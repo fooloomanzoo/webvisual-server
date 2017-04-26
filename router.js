@@ -178,44 +178,22 @@ class Router extends EventEmitter {
       });
     });
 
-
-    this.app.post('/login', multer.array(),
+    // Signin
+    this.app.post('/login', multer.fields([]),
       this.settings.server.auth.required ?
         this.passport.authenticate('activedirectory-login') :
           this.passport.authenticate('dummy'),
       (req, res) => {
-        // console.log('returnTo', path.resolve(process.cwd(), 'public', req.session.returnTo));
-        console.log(Object.keys(req));
-        res.redirect(req.session.returnTo || '/');
-
-        // res.status(200).send('Logged In');
+        res.status(200).send(req.user);
       });
-      
-    // Signin
-    // this.app.post('/login',
-    //   this.settings.server.auth.required ?
-    //     this.passport.authenticate('activedirectory-login') :
-    //       this.passport.authenticate('dummy'),
-    //   (req, res) => {
-    //     // console.log('returnTo', path.resolve(process.cwd(), 'public', req.session.returnTo));
-    //     console.log(Object.keys(req));
-    //     res.redirect(req.session.returnTo || '/');
-    //
-    //     // res.status(200).send('Logged In');
-    //   });
-
-
 
     // Auth Test
     this.app.use('/auth', this.settings.server.auth.required ? ensureLoggedIn.isRequired : ensureLoggedIn.notRequired );
-    this.app.use('/auth', (req, res) => {
-      res.sendStatus(200);
-    } );
 
     // Signout
-    this.app.get('/logout', (req, res) => {
+    this.app.use('/logout', (req, res) => {
       req.logout();
-      res.redirect('/');
+      res.sendStatus(200);
     } );
 
     // Secured Data
@@ -382,11 +360,7 @@ const ensureLoggedIn = {
   isRequired: function(req, res, next) {
     console.log('ensureLoggedIn isRequired', req.user, req.isAuthenticated() );
     if (!req.isAuthenticated || !req.isAuthenticated()) {
-      req.session = req.session || {};
-      if (req.originalUrl && !req.originalUrl.match(/.*\..*/) && !req.originalUrl.match(/.*auth.*/)) {
-        req.session.returnTo = req.originalUrl;
-      }
-      res.status(401).send('Unauthorized');
+      res.sendStatus(401);
     } else {
       next();
     }

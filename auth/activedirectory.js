@@ -44,8 +44,8 @@ module.exports = function(passport, config_ldap) {
           ad.authenticate(user, password, (err, auth) => {
             if (auth) {
               // all is well, return successful user
-              console.log("Authentification success", user);
-              return done(null, user);
+              // console.log("Authentification success", user);
+              return done(null, {username: username});
             } else {
               // if password false, return no user
               // console.log("Authentification Error", err);
@@ -53,6 +53,7 @@ module.exports = function(passport, config_ldap) {
             }
           });
         } else {
+          // console.log("Authentification Failed", user);
           return done(null, false);
         }
       });
