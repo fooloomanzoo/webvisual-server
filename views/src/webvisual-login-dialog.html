@@ -434,7 +434,7 @@
           .catch(function(err) {
             this.loggedIn = false;
             console.log(err);
-          });
+          }.bind(this));
       }
     });
 
