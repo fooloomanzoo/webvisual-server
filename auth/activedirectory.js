@@ -20,7 +20,7 @@ module.exports = function(passport, config_ldap) {
       // creating a request through activedirectory by ldap
       // try to bring user-input in a form which is accepted by the server
 
-      console.log('activedirectory-login', username, password);
+      // console.log('activedirectory-login', username, password);
       var user = username.split("@")[0] + "@" + config_ldap.url.split('ldap://')[1];
 
       var cred = {

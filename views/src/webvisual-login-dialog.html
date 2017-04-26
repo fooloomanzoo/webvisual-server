@@ -82,10 +82,8 @@
       }
       .webvisual-button {
         flex: 0;
-        border-radius: 8px;
         padding: 0;
         pointer-events: none;
-        border: thin solid rgba(0,0,0,0.5);
         position: relative;
       }
       .webvisual-button.submit {
@@ -203,6 +201,7 @@
         loggedIn: {
           type: Boolean,
           value: false,
+          readOnly: true,
           notify: true
         },
 
@@ -229,6 +228,8 @@
               this.loggedIn = false;
               this.open();
               this.focus();
+            } else {
+              this.close();
             }
           }.bind(this), function() {
             this.loggedIn = false;
@@ -279,7 +280,7 @@
               }
             }.bind(this))
             .catch(function(err) {
-              console.log(err);
+              console.log('auto sign-in error', err);
             });
         } else {
           // Resolve if Credential Management API is not available
@@ -295,7 +296,7 @@
       onSubmit: function(e) {
         e.preventDefault();
 
-        var signinForm = this.root.querySelector('#signinform');
+        var signinForm = Polymer.dom(this.root).querySelector('#signinform');
 
         // Polymer `iron-form` feature to validate the form
         if (signinForm.validate && !signinForm.validate()) return;
