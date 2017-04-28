@@ -1,0 +1,77 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <meta name=”robots” content="noarchive">
+
+  <title>Auto-Signin Test</title>
+
+  <script>
+    // Setup Polymer options
+    window.Polymer = {
+      dom: 'shadow',
+      lazyRegister: true,
+      disableUpgradeEnabled: true
+    };
+    // Load webcomponentsjs polyfill if browser does not support native Web Components
+    (function() {
+      'use strict';
+      var onload = function() {
+        // For native Imports, manually fire WebComponentsReady so user code
+        // can use the same code path for native and polyfill'd imports.
+        if (!window.HTMLImports) {
+          document.dispatchEvent(
+            new CustomEvent('WebComponentsReady', {bubbles: true})
+          );
+        }
+      };
+      var webComponentsSupported = (
+        'registerElement' in document
+        && 'import' in document.createElement('link')
+        && 'content' in document.createElement('template')
+      );
+      if (!webComponentsSupported) {
+        var script = document.createElement('script');
+        script.async = true;
+        script.src = '/bower_components/webcomponentsjs/webcomponents-lite.min.js';
+        script.onload = onload;
+        document.head.appendChild(script);
+      } else {
+        onload();
+      }
+    })();
+  </script>
+  <link rel="import" href="/components/webvisual-app.html" async>
+
+  <style>
+    html {
+      background: #d7ba80;
+    }
+    body {
+      display: flex;
+      margin: 0;
+      font-family: 'FiraSans-Regular', sans-serif;
+      font-weight: normal;
+      font-size: calc(0.7em + 0.6vmin);
+      line-height: calc(1em + 0.5vmin);
+      word-wrap: break-word;
+      font-kerning: normal;
+      text-rendering: optimizeLegibility;
+      min-height: 100vh;
+    }
+    /* styling for render while resources are loading */
+    auto-signin {
+      min-height: 100vh;
+      width: 100vw;
+      display: block;
+    }
+  </style>
+</head>
+
+<body>
+
+  <auto-signin></auto-signin>
+
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "Credential Management API Sample",
+  "version": "0.1.0",
+  "description": "Sample code that runs Credential Management API",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "paper-elements": "PolymerElements/paper-elements",
+    "iron-elements": "PolymerElements/iron-elements",
+    "fetch": "*"
+  }
+}

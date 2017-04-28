@@ -1,0 +1,22 @@
+{
+	"name": "passport-autologin-tests",
+	"version": "0.1.0",
+	"private": "true",
+	"scripts": {
+	    "start": "node index.js",
+	    "postinstall": "bower update"
+	},
+  "dependencies": {
+    "activedirectory": "^0.7.1",
+    "body-parser": "^1.15.2",
+    "cookie-parser": "*",
+    "cookie-session": "*",
+    "express": "*",
+    "express-session": "^1.14.2",
+    "multer": "*",
+    "passport": "*",
+    "passport-local": "*",
+    "serve-static": "^1.11.1",
+    "x-frame-options": "*"
+  }
+}
