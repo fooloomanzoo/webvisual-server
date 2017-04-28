@@ -37,7 +37,8 @@ var server = http.createServer(app)
                     console.log( `HTTP Server is listening on port ${port}` );
                   });;
 
-var staticMiddleware = serveStatic( '/static' );
+var staticMiddleware = serveStatic( './static' );
+var staticDataMiddleware = serveStatic( './static/data', {index: false} );
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -84,12 +85,12 @@ require('../dummy.js')(passport); // register dummy-stategy
 
 // Signin
 app.post('/login/ldap', multer.fields([]),
-  passport.authenticate('activedirectory-login')
+  passport.authenticate('activedirectory-login'),
   (req, res) => {
     res.status(200).send(req.user);
   });
-app.post('/login/ldap', multer.fields([]),
-  passport.authenticate('dummy')
+app.post('/login/dummy', multer.fields([]),
+  passport.authenticate('dummy'),
   (req, res) => {
     res.status(200).send(req.user);
   });
@@ -111,8 +112,8 @@ app.use('/data', staticDataMiddleware );
 app.use(staticMiddleware);
 
 // Fallback
-app.get('*', (req, res) => {
-  res.sendFile( '/static/index.html') );
-});
+// app.get('*', (req, res) => {
+//   res.sendFile( './static/index.html' );
+// });
 
 server.listen(port);

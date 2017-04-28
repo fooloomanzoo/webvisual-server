@@ -42,7 +42,7 @@
       }
     })();
   </script>
-  <link rel="import" href="/components/webvisual-app.html" async>
+  <link rel="import" href="/components/auto-signin.html" async>
 
   <style>
     html {
@@ -60,18 +60,17 @@
       text-rendering: optimizeLegibility;
       min-height: 100vh;
     }
-    /* styling for render while resources are loading */
-    auto-signin {
-      min-height: 100vh;
-      width: 100vw;
-      display: block;
+    .menu {
+      position: absolute;
+      top: 8px;
+      right: 8px;
     }
   </style>
 </head>
 
 <body>
-
-  <auto-signin></auto-signin>
+  <button class="menu" onclick="document.querySelector('#ldap').open()">open Signin-Dialog</button>
+  <auto-signin id="ldap" sign-in-url="/login/ldap"></auto-signin>
 
 </body>
 </html>

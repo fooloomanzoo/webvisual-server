@@ -36,7 +36,7 @@ module.exports = function(passport, config_ldap) {
         // console.log(err,exists);
         if (err) {
           // if error, return no user
-          // console.log("Authentification Error", err);
+          console.log("Authentification Error", err);
           return done(null, false);
         }
         // if user exists, then check, if user can authenticate
@@ -44,16 +44,16 @@ module.exports = function(passport, config_ldap) {
           ad.authenticate(user, password, (err, auth) => {
             if (auth) {
               // all is well, return successful user
-              // console.log("Authentification success", user);
+              console.log("Authentification success", user);
               return done(null, {username: username});
             } else {
               // if password false, return no user
-              // console.log("Authentification Error", err);
+              console.log("Authentification Error", err);
               return done(null, false);
             }
           });
         } else {
-          // console.log("Authentification Failed", user);
+          console.log("Authentification Failed", user);
           return done(null, false);
         }
       });
