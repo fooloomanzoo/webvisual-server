@@ -206,6 +206,7 @@
         <app-toolbar>
           <icon-button icon="menu" class="menu-icon" title="menu" on-tap="_toggleDrawer"></icon-button>
 
+          <logo-element id="logo" href="/home" main-title title$="[[localize('home', 'name')]]"></logo-element>
 
           <template is="dom-if" if="[[_shouldLogin]]">
             <icon-button icon="assignment-ind" class="login-icon" on-click="_openLoginDialog"></icon-button>
@@ -221,6 +222,7 @@
                   </div>
                 </template>
 
+                <tabs-container id="tabs"
                   role="tablist"
                   selected="{{page}}"
                   attr-for-selected="name">
@@ -236,6 +238,7 @@
                     <paper-ripple id="ripple" recenters></paper-ripple>
                     <a href="/detail/[[facilitySystem]]">{{localize('detail', 'name')}}</a>
                   </div>
+                </tabs-container>
 
               </div>
             </iron-collapse>
@@ -254,24 +257,35 @@
 
       <iron-pages id="pageselector" role="main" selected="[[page]]" attr-for-selected="name" selected-attribute="visible" fallback-selection="home">
         <!-- home view for selecting the facility -->
+        <home-page class="fullbleed" name="home" dark$="[[dark]]" plain$="[[plain]]"
           facilities="[[facilities]]"
           logged-in="{{loggedIn}}"
           language="[[language]]"
+          language-resources="[[languageResources]]"></home-page>
         <!-- list view of items in a facility -->
+        <list-page disable-upgrade$="[[!loadComplete]]" name="list" dark$="[[dark]]" plain$="[[plain]]"
           facility-system="[[facilitySystem]]"
+          elements="[[elements]]"></list-page>
         <!-- group view of items -->
+        <groups-page disable-upgrade$="[[!loadComplete]]" name="groups" dark$="[[dark]]" plain$="[[plain]]"
           facility-system="[[facilitySystem]]"
           elements="[[elements]]"
           grouped-key="{{groupedKey}}"
+          grouping-keys="{{groupingKeys}}"></groups-page>
         <!-- detail view of one item -->
+        <detail-page class="fullbleed" disable-upgrade$="[[!loadComplete]]" id="detailpage" name="detail" dark$="[[dark]]" plain$="[[plain]]"
           route="{{subroute}}"
           facility-system="[[facilitySystem]]"
           elements="[[elements]]"
+          show-toggle-icon="{{detailHasDrawer}}"></detail-page>
       </iron-pages>
 
+      <!-- login dialog-->
+      <login-dialog id="loginDialog" dark$="[[dark]]" plain$="[[plain]]"
         logged-in="{{loggedIn}}"
         offline="[[offline]]"
         language="[[language]]"
+        language-resources="[[languageResources]]"></login-dialog>
 
       <!-- SIDEMENU -->
       <template is="dom-if" if="[[_shouldRenderDrawer]]">
@@ -380,6 +394,7 @@
     </template>
 
     <template is="dom-if" if="[[!showTabsOnTop]]">
+      <snackbar-element opened="[[showTabs]]">
         <div id="viewSelect" style="width:100%;">
 
           <template is="dom-if" if="[[_shouldRenderGroupingKeys]]">
@@ -388,6 +403,7 @@
             </div>
           </template>
 
+          <tabs-container id="tabs"
             role="tablist"
             selected="{{page}}"
             attr-for-selected="name"
@@ -404,7 +420,9 @@
               <paper-ripple id="ripple" recenters></paper-ripple>
               <a href="/detail/[[facilitySystem]]">{{localize('detail', 'name')}}</a>
             </div>
+          </tabs-container>
         </div>
+      </snackbar-element>
     </template>
   </template>
 
@@ -669,6 +687,7 @@
         // or if the network status changed.
         if (this.offline || (!this.offline && oldOffline === true)) {
           if (!this._networkSnackbar) {
+            this._networkSnackbar = document.createElement('snackbar-element');
             this._networkSnackbar.setAttribute('auto-close', '');
             Polymer.dom(this.root).appendChild(this._networkSnackbar);
           }
