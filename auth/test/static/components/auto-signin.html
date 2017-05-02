@@ -108,6 +108,8 @@
       }
     </style>
 
+    <iron-icon icon="{{icon}}"></iron-icon>
+
     <div class="box">
 
         <form id="signinform" on-submit="onSubmit" method="POST">
@@ -173,10 +175,6 @@
 
       is: 'auto-signin',
 
-      behaviors: [
-        Polymer.PaperDialogBehavior
-      ],
-
       properties: {
         userProfile: {
           type: Object
@@ -196,6 +194,11 @@
         signOutUrl: {
           type: String,
           value: '/logout'
+        },
+
+        icon: {
+          type: 'String',
+          computed: '_computeIcon(loggedIn)'
         }
 
       },
@@ -413,6 +416,10 @@
             this.loggedIn = false;
             console.log(err);
           }.bind(this));
+      },
+
+      _computeIco: function(loggedIn) {
+        return loggedIn ? 'social:person' : 'social:person-outline';
       }
     });
 

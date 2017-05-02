@@ -1,27 +1,24 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 
-<link rel="import" href="../bower_components/paper-dialog-behavior/paper-dialog-behavior.html">
 <link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
 
 <link rel="import" href="behaviors/localize-behavior.html">
 
-<link rel="import" href="style/webvisual-dialog-styles.html">
 <link rel="import" href="style/webvisual-button.html">
 
-<link rel="import" href="components/webvisual-icon-button.html"/>
+<link rel="import" href="components/webvisual-dialog.html" />
+<link rel="import" href="components/webvisual-icon-button.html" />
 
-<link rel="import" href="webvisual-element-caption.html"/>
-<link rel="import" href="webvisual-element-chart.html"/>
+<link rel="import" href="webvisual-element-caption.html" />
+<link rel="import" href="webvisual-element-chart.html" />
 
 <link rel="import" href="../bower_components/datetime-picker/datetime-picker.html">
 <link rel="import" href="../bower_components/datetime-picker/calendar-element.html">
 
 <dom-module id="webvisual-detail-request-dialog">
   <template>
-    <style include="webvisual-dialog-styles webvisual-button">
+    <style include="webvisual-button">
       :host {
-        height: 100%;
-        width: 100%;
         --caption-background: transparent;
         --caption-color: currentColor;
       }
@@ -40,8 +37,7 @@
       #chart {
         color: inherit;
       }
-      #bottom {
-        @apply(--layout-horizontal);
+      [bottom] {
         @apply(--layout-wrap);
         @apply(--layout-start-justified);
         font-size: 0.9em;
@@ -61,7 +57,7 @@
         top: 0;
         margin: 0;
       }
-      #bottom > * {
+      [bottom] > * {
         align-self: stretch;
         margin: 0.25em !important;
         height: 2.5em;
@@ -93,18 +89,18 @@
 
     </style>
 
-    <div id="title">
-      <webvisual-element-caption keys="[[item.keys]]"></webvisual-element-caption>
-    </div>
+    <webvisual-dialog id="dialog" opened="{{opened}}">
+      <div dialog-title>
+        <webvisual-element-caption keys="[[item.keys]]"></webvisual-element-caption>
+      </div>
 
-    <webvisual-icon-button id="exitButton" icon="close" on-tap="close"></webvisual-icon-button>
+      <webvisual-icon-button id="exitButton" icon="close" on-tap="close"></webvisual-icon-button>
 
-    <div id="content">
-      <webvisual-element-chart id="chart" opened="[[opened]]" item="[[item]]" no-link domain-x="{{domainX}}"></webvisual-element-chart>
-    </div>
+      <div dialog-content>
+        <webvisual-element-chart id="chart" opened="[[opened]]" item="[[item]]" no-link domain-x="{{domainX}}"></webvisual-element-chart>
+      </div>
 
-    <section id="bottom">
-
+      <section dialog-bottom>
         <div class="date">
           <iron-icon class="icon" icon="first-page"></iron-icon>
           <datetime-picker id="dateFrom" value="{{fromDate}}" date-string="{{_minDate}}" max-date="[[_maxDate]]" locales="[[language]]"></datetime-picker>
@@ -113,123 +109,125 @@
           <iron-icon class="icon" icon="last-page"></iron-icon>
           <datetime-picker id="dateTo" value="{{toDate}}" date-string="{{_maxDate}}" min-date="[[_minDate]]" locales="[[language]]"></datetime-picker>
         </div>
+        <div class="webvisual-button" on-tap="requestFromSocket">
+          <paper-ripple></paper-ripple>
+          <iron-icon class="left icon" icon="date-range"></iron-icon>
+          <span>{{localize('detail', 'query')}}</span>
+        </div>
+      </section>
 
-
-      <div class="webvisual-button" on-tap="requestFromSocket">
-        <paper-ripple></paper-ripple>
-        <iron-icon class="left icon" icon="date-range"></iron-icon>
-        <span>{{localize('detail', 'query')}}</span>
-      </div>
-
-    </section>
-
-    <svg id="spinner" hidden$="[[!isLoading]]" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-      viewBox="0 0 100 100" enable-background="new 0 0 0 0" xml:space="preserve">
-        <path d="M73,50c0-12.7-10.3-23-23-23S27,37.3,27,50 M30.9,50c0-10.5,8.5-19.1,19.1-19.1S69.1,39.5,69.1,50">
-          <animateTransform
-             attributeName="transform"
-             attributeType="XML"
-             type="rotate"
-             dur="1s"
-             from="0 50 50"
-             to="360 50 50"
-             repeatCount="indefinite" />
-      </path>
-    </svg>
+      <svg id="spinner" hidden$="[[!isLoading]]" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+        viewBox="0 0 100 100" enable-background="new 0 0 0 0" xml:space="preserve">
+          <path d="M73,50c0-12.7-10.3-23-23-23S27,37.3,27,50 M30.9,50c0-10.5,8.5-19.1,19.1-19.1S69.1,39.5,69.1,50">
+            <animateTransform
+               attributeName="transform"
+               attributeType="XML"
+               type="rotate"
+               dur="1s"
+               from="0 50 50"
+               to="360 50 50"
+               repeatCount="indefinite" />
+        </path>
+      </svg>
+    </webvisual-dialog>
   </template>
 
 </dom-module>
 
 <script>
-(function() {
-  Polymer({
-    is: 'webvisual-detail-request-dialog',
+  (function() {
+    Polymer({
+      is: 'webvisual-detail-request-dialog',
 
-    behaviors: [
-      Polymer.PaperDialogBehavior,
-      WebvisualBehaviors.LocalizeBehavior
-    ],
+      behaviors: [
+        Polymer.PaperDialogBehavior,
+        WebvisualBehaviors.LocalizeBehavior
+      ],
 
-    properties: {
+      properties: {
 
-      item: {
-        type: Object,
-        value: function() {
-          return {};
+        item: {
+          type: Object,
+          value: function() {
+            return {};
+          }
+        },
+
+        opened: {
+          type: Boolean,
+          reflectToAttribute: true
+        },
+
+        isLoading: {
+          type: Boolean,
+          value: false
+        },
+
+        fromDate: {
+          type: Number,
+          value: +(new Date() - 3600000)
+        },
+
+        toDate: {
+          type: Number,
+          value: +(new Date())
+        },
+
+        domainX: {
+          type: Array,
+          observer: '_domainXChanged'
+        }
+
+      },
+
+      listeners: {
+        'dialog.iron-overlay-closed': '_reset',
+        'dialog.iron-overlay-opened': '_resize'
+      },
+
+      requestFromSocket: function() {
+        var req = {
+          target: 'socket',
+          operation: 'request',
+          args: {
+            mounts: [this.item.mount],
+            from: this.fromDate,
+            to: this.toDate
+          }
+        };
+
+        Promise.resolve(new Promise(function(resolve, reject) {
+            this.isLoading = true;
+            window.Webvisual.request(req, resolve);
+          }.bind(this)))
+          .then(function(res) {
+            this.isLoading = false;
+            this.$.chart.clearValues(res);
+            this.$.chart.insertValues(res);
+          }.bind(this))
+          .catch(function(err) {
+            console.log(err);
+          });
+      },
+
+      _domainXChanged: function() {
+        if (this.domainX && Number.isFinite(this.domainX[0]) && Number.isFinite(this.domainX[1])) {
+          this.set('fromDate', this.domainX[0]);
+          this.set('toDate', this.domainX[1]);
         }
       },
 
-      opened: {
-        type: Boolean,
-        reflectToAttribute: true
+      _reset: function(e) {
+        // console.log(e);
       },
 
-      isLoading: {
-        type: Boolean,
-        value: false
+      _resize: function() {
+        this.async(this.$.chart._sizeLayout.bind(this.$.chart), 50);
       },
 
-      fromDate: {
-        type: Number,
-        value: +(new Date() - 3600000)
-      },
-
-      toDate: {
-        type: Number,
-        value: +(new Date())
-      },
-
-      domainX: {
-        type: Array,
-        observer: '_domainXChanged'
+      open: function() {
+        this.$.dialog.open();
       }
-
-    },
-
-    listeners: {
-      'iron-overlay-closed': '_reset',
-      'iron-overlay-opened': '_resize'
-    },
-
-    requestFromSocket: function() {
-      var req = {
-        target: 'socket',
-        operation: 'request',
-        args: {
-          mounts: [this.item.mount],
-          from: this.fromDate,
-          to: this.toDate
-        }
-      };
-
-      Promise.resolve(new Promise(function(resolve, reject) {
-                        this.isLoading = true;
-                        window.Webvisual.request( req, resolve );
-                      }.bind(this)))
-             .then( function(res) {
-               this.isLoading = false;
-               this.$.chart.clearValues(res);
-               this.$.chart.insertValues(res);
-             }.bind(this))
-             .catch( function(err) {
-               console.log(err);
-             });
-    },
-
-    _domainXChanged: function() {
-      if (this.domainX && Number.isFinite(this.domainX[0]) && Number.isFinite(this.domainX[1])) {
-        this.set('fromDate', this.domainX[0]);
-        this.set('toDate', this.domainX[1]);
-      }
-    },
-
-    _reset: function(e) {
-      // console.log(e);
-    },
-
-    _resize: function() {
-      this.async( this.$.chart._sizeLayout.bind(this.$.chart), 50 );
-    }
-  });
-})();
+    });
+  })();
 </script>

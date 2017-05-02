@@ -1,5 +1,5 @@
 const authRequired = true;
-const port = 8000;
+const port = 8080;
 
 const ldapSettings = {
   "baseDN": "dc=ibn-net,dc=kfa-juelich,dc=de",
@@ -29,7 +29,9 @@ var app = require('express')()
   , compression = require('compression')
   , session = require('express-session')
   , serveStatic = require('serve-static')
-  , multer = require('multer')({ dest: 'uploads/' })
+  , multer = require('multer')(
+      // { dest: 'uploads/' }
+    )
   , http = require('http');
 
 var server = http.createServer(app)

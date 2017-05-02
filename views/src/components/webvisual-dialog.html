@@ -1,0 +1,34 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-dialog-behavior/paper-dialog-behavior.html">
+<link rel="import" href="../style/webvisual-dialog-styles.html">
+
+<dom-module id="webvisual-dialog">
+  <template>
+    <style include="webvisual-dialog-styles">
+      [hidden] {
+        display: none;
+      }
+    </style>
+    <content></content>
+  </template>
+
+</dom-module>
+
+<script>
+(function() {
+  Polymer({
+    is: 'webvisual-dialog',
+
+    behaviors: [
+      Polymer.PaperDialogBehavior
+    ],
+
+    properties: {
+      opened: {
+        type: Boolean,
+        reflectToAttribute: true
+      }
+    }
+  });
+})();
+</script>
