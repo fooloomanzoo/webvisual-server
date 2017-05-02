@@ -1,0 +1,1055 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
+<link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
+
+<link rel="import" href="behaviors/fullscreen-behavior.html"/>
+
+<link rel="import" href="components/icon-button.html"/>
+<link rel="import" href="style/selectbox-style.html"/>
+<link rel="import" href="style/button-style.html"/>
+
+<link rel="import" href="device-graph.html"/>
+
+<script type="text/javascript" src="../bower_components/d3/d3.min.js"></script>
+
+<dom-module id="device-chart">
+  <template strip-whitespace>
+    <style include="selectbox-style button-style">
+      :host {
+        display: flex;
+        /*width: 100%;
+        height: 100%;*/
+        box-sizing: border-box;
+        position: relative;
+        font-family: inherit;
+        color: white;
+        letter-spacing: normal !important;
+        user-select: none !important;
+        isolation: isolate;
+      }
+      :host([fullscreen]) {
+        background-color: var(--fullscreen-background-color);
+        max-height: 100% !important;
+        max-width: 100% !important;
+        height: 100% !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+      :host(:-webkit-full-screen) {
+        background-color: var(--fullscreen-background-color);
+      }
+      #svgContainer {
+        border-radius: inherit;
+        position: relative;
+        display: flex;
+        flex-grow: 1;
+        flex-shrink: 0;
+        box-sizing: border-box;
+        width: 100%;
+        /*height: 100%;*/
+        padding-bottom: 2.5em;
+      }
+      :host([fullscreen]) > #svgContainer {
+        padding: 1em 3em 3em 1em !important;
+      }
+      #svgChart {
+        overflow: hidden;
+        position: relative;
+        flex-grow: 1;
+        /*flex-shrink: 1;*/
+        /*width: 100%;
+        height: 100%;
+        display: block;*/
+        font-family: inherit;
+      }
+      text {
+        fill: currentColor;
+        letter-spacing: normal !important;
+        font-family: inherit !important;
+        -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
+        mix-blend-mode: hard-light;
+      }
+      g#chart .axis {
+        font-size: inherit;
+      }
+      g#chart text {
+        font-size: 0.6em;
+      }
+      g#brush .selection {
+        stroke: currentColor;
+        stroke-opacity: 0.7;
+      }
+      rect#plot {
+        fill: var(--chart-plot-background, #fff);
+        stroke: currentColor;
+        fill-opacity: 0.25;
+        stroke-opacity: 0.25;
+        shape-rendering: crispEdges;
+        stroke-width: 1px;
+      }
+      :host[fullscreen] #plot,
+      :host([fullscreen]) #plot {
+        fill: var(--chart-plot-background, #ccc);
+      }
+      .grid .tick line {
+        stroke: currentColor;
+        stroke-opacity: 0.15;
+      }
+      .grid path {
+        stroke-width: 0;
+      }
+      .axis path, .axis line {
+        fill: none;
+        stroke: currentColor;
+        stroke-opacity: 0.5;
+        stroke-width: 1.5px;
+      }
+      .axis {
+        font-family: inherit;
+      }
+      #graphs .area {
+        fill-opacity: 0.3;
+        @apply(--chart-area);
+      }
+      #graphs .line {
+        cursor: pointer;
+        stroke-opacity: 0.7;
+        @apply(--chart-line);
+      }
+      #focus > * {
+        stroke: currentColor;
+        stroke-opacity: 0.5;
+        stroke-width: 1.5px;
+      }
+      #focus .focus.line {
+        pointer-events: none;
+        stroke-dasharray: 2;
+      }
+      .dot {
+        fill-opacity: 0.9;
+        cursor: pointer;
+      }
+      .selectbox > * {
+        flex: 1 0 auto;
+        padding: 0.6em 0.3em;
+        font-size: inherit !important;
+      }
+      .selectbox {
+        padding: 0;
+      }
+      #control {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+      }
+      .selectbox,
+      .button {
+        font-size: 12px;
+        margin-top: 0.25em;
+        margin-left: 0.25em;
+        margin-right: 0.25em;
+        color: var(--primary-text-color);
+      }
+      .button {
+        padding: 0.3em;
+      }
+      #controlcontent {
+        transform: translateY(-100%);
+        position: absolute;
+        top: 0;
+        right: 0;
+        display: flex;
+        flex-direction: column;
+        background-color: rgba(255, 255, 255, 0.25);
+      }
+      icon-button {
+        mix-blend-mode: exclusion;
+      }
+      [hidden] {
+        display: none !important;
+      }
+    </style>
+
+    <div id="svgContainer">
+      <svg id="svgChart" version="1.1" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet">
+        <g id="chart">
+          <clipPath id="clip">
+            <rect x="0" y="0"></rect>
+          </clipPath>
+          <rect id="plot" clip-path="url(#clip)"></rect>
+          <g id="xGrid" class="grid" clip-path="url(#clip)"></g>
+          <g id="yGrid" class="grid" clip-path="url(#clip)"></g>
+          <g id="graphs" clip-path="url(#clip)">
+            <g id="areas"></g>
+            <g id="dots"></g>
+            <g id="bounderies"></g>
+            <g id="brush"></g>
+          </g>
+          <g id="focus" clip-path="url(#clip)" hidden>
+            <line id="focusX" class="focus line x" x1="0"></line>
+            <line id="focusY" class="focus line y"></line>
+            <circle id="focusDot" class="focus dot"></circle>
+          </g>
+          <g id="xAxis" class="axis" on-tap="_resetZoom"></g>
+          <g id="yAxis" class="axis" on-tap="_resetZoom"></g>
+          <text id="info" x="0" y="0" hidden></text>
+        </g>
+      </svg>
+      <section id="control">
+        <iron-collapse id="controlcontent" opened="[[showControl]]">
+          <div class="selectbox">
+            <select value="{{interpolation::change}}">
+              <option value="Lineare Verbindung">Lineare Verbindung</option>
+              <option value="Basis Spline">Basis Spline</option>
+              <option value="Kubischer Spline">Kubischer Spline</option>
+              <option value="Cardinaler Spline">Cardinaler Spline</option>
+              <option value="Catmull-Rom-Spline">Catmull-Rom-Spline</option>
+              <option value="Stufe (mitte)">Stufe (mitte)</option>
+              <option value="Stufe (davor)">Stufe (davor)</option>
+              <option value="Stufe (danach)">Stufe (danach)</option>
+            </select>
+          </div>
+          <div class="selectbox">
+            <select value="{{yScale::change}}">
+              <option value="linear">linear</option>
+              <option value="√">√</option>
+              <option value="ln">ln</option>
+              <option value="log₁₀">log₁₀</option>
+            </select>
+          </div>
+          <div class="button" on-tap="toggleFullscreen">
+            <iron-icon icon="[[fullscreenIcon]]" class="left"></iron-icon>
+            Fullscreen
+          </div>
+          <!-- <section class="buttons">
+            <icon-button title="fullscreen" icon="[[fullscreenIcon]]" on-tap="toggleFullscreen"></icon-button>
+            <icon-button title="refresh" icon="refresh" on-tap="_refresh"></icon-button>
+          </section> -->
+        </iron-collapse>
+        <icon-button title="settings" icon="tune" checked="{{showControl}}"></icon-button>
+      </section>
+  	</div>
+
+    <template is="dom-if" if="[[multi]]" restamp>
+      <template is="dom-repeat" items="[[items]]">
+        <device-graph
+          item="[[item]]"
+          interpolation="[[interpolation]]"
+          store-inside
+          no-link="[[noLink]]">
+        </device-graph>
+      </template>
+    </template>
+
+    <template is="dom-if" if="[[!multi]]" restamp>
+      <device-graph
+        item="[[item]]"
+        interpolation="[[interpolation]]"
+        store-inside
+        no-link="[[noLink]]">
+      </device-graph>
+    </template>
+
+  </template>
+
+  <script>
+    d3.timeFormatDefaultLocale({
+      'dateTime': '%x %X',
+      'date': '%d.%m.%Y',
+      'time': '%H:%M:%S',
+      'periods': ['', ''],
+      'days': ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'],
+      'shortDays': ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'],
+      'months': ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
+      'shortMonths': ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Dez']
+    });
+    d3.formatDefaultLocale({
+      'decimal': ',',
+      'thousands': '.',
+      'grouping': [3],
+      'currency': ['', '\u00a0€']
+    });
+
+    Polymer({
+      is: 'device-chart',
+
+      behaviors: [
+        Polymer.IronResizableBehavior,
+        WebvisualBehaviors.FullscreenBehavior
+      ],
+
+      properties: {
+
+        opened: {
+          type: Boolean,
+          reflectToAttribute: true
+        },
+
+        openOnSelect: {
+          type: Boolean,
+          value: true
+        },
+
+        gridMult: {
+          type: Number,
+          value: 2
+        },
+
+        xScale: {
+          type: String,
+          value: 'time',
+          observer: 'changeScale'
+        },
+
+        yScale: {
+          type: String,
+          value: 'linear',
+          observer: 'changeScale'
+        },
+
+        domainX: {
+          type: Array,
+          value: function() {
+            return [null, null];
+          },
+          notify: true
+        },
+
+        domainY: {
+          type: Array,
+          value: function() {
+            return [null, null];
+          },
+          notify: true
+        },
+
+        interpolation: {
+          type: String,
+          value: 'Lineare Verbindung',
+          observer: 'changeInterpolation'
+        },
+
+        noDots: {
+          type: Boolean,
+          value: false
+        },
+
+        noLine: {
+          type: Boolean,
+          value: false
+        },
+
+        noArea: {
+          type: Boolean,
+          value: false
+        },
+
+        noLink: {
+          type: Boolean
+        },
+
+        item: Object,
+
+        items: Array,
+
+        multi: {
+          type: Boolean,
+          value: false
+        },
+
+        showControl: {
+          type: Boolean,
+          value: false
+        },
+
+        uniqueid: String
+
+      },
+
+      _width: 0,
+      _height: 0,
+      _margin: {
+        top: 10,
+        right: 15,
+        bottom: 20,
+        left: 50
+      },
+
+      _xGrid: Object,
+      _yGrid: Object,
+      _brush: Object,
+      _chart: Object,
+      _svg: Object,
+      _info: Object,
+      _focus: Object,
+      _focusX: Object,
+      _focusY: Object,
+      _focusDot: Object,
+      _areas: Object,
+      _dots: Object,
+      _bounderies: Object,
+
+      _x: Function,
+      _y: Function,
+
+      _xAxis: Object,
+      _yAxis: Object,
+
+      _xGrid: Object,
+      _yGrid: Object,
+
+      _isBrushed: false,
+      _isZoomed: false,
+
+      format: {
+        Millisecond: Function,
+        Second: Function,
+        LongSecond: Function,
+        Minute: Function,
+        LongMinute: Function,
+        Hour: Function,
+        Day: Function,
+        Week: Function,
+        Month: Function,
+        Year: Function
+      },
+
+      _brushBehavior: Function,
+
+      _messageCount: 0,
+
+      get _self() {
+        return this;
+      },
+
+      listeners: {
+        'iron-resize': '_sizeChanged',
+        'contextmenu': '_resetZoom'
+      },
+
+      observers: [
+        '_sizeChanged(opened)'
+      ],
+
+      created: function() {
+        this._graphs = new Set();
+        this.format.Millisecond = d3.timeFormat(':%S,%L');
+        this.format.LongSecond = d3.timeFormat(':%M:%S,%L');
+        this.format.Second = d3.timeFormat(':%M:%S');
+        this.format.LongMinute = d3.timeFormat('%H:%M:%S');
+        this.format.Minute = d3.timeFormat('%H:%M');
+        this.format.Hour = d3.timeFormat('%X');
+        this.format.Day = d3.timeFormat('%d.%m');
+        this.format.Week = d3.timeFormat('%d.%m');
+        this.format.Month = d3.timeFormat('%d. %b');
+        this.format.Year = d3.timeFormat('%Y');
+      },
+
+      ready: function() {
+        var sel, uniqueid;
+        while (true) {
+          uniqueid = String(Math.random().toString(16).slice(2));
+          sel = document.querySelector("[uniqueid='" + uniqueid + "']");
+          if (!sel) break;
+        }
+        this.setAttribute('uniqueid', uniqueid);
+      },
+
+      attached: function() {
+        this._buildLayout();
+        this.async( function() {
+          this._sizeChanged();
+        })
+      },
+
+      _sizeChanged: function() {
+        // only resize if opened attribute is set
+        this.debounce('resize', this._sizeLayout);
+      },
+
+      _buildLayout: function() {
+
+        this._svg = d3.select(this.$.svgChart)
+          .attr('height', null)
+          .attr('width', null);
+        this._x = this._createScale(this.xScale);
+        this._y = this._createScale(this.yScale);
+
+        this._chart = d3.select(this.$.chart);
+
+        this._areas = d3.select(this.$.areas);
+        this._dots = d3.select(this.$.dots);
+        this._bounderies = d3.select(this.$.bounderies);
+
+        this._info = d3.select(this.$.info);
+        this._focus = d3.select(this.$.focus);
+        this._focusX = d3.select(this.$.focusX);
+        this._focusY = d3.select(this.$.focusY);
+        this._focusDot = d3.select(this.$.focusDot);
+        this._focusDot
+          .on('mouseenter', function() {
+              this.cancelDebouncer('hideinfo');
+          }.bind(this))
+          .on('mouseleave', this._hideInfo.bind(this))
+          .on('click', function(d) {
+              var offsetX = (this._x(this._x.domain()[1]) - this._x(this._x.domain()[0]))/4
+                , offsetY = (this._y(this._y.domain()[0]) - this._y(this._y.domain()[1]))/4
+                , x = this._x(+this._info.x)
+                , y = this._y(+this._info.y) || 0;
+              d3.event.selection = [
+                  [x - offsetX, y - offsetY],
+                  [x + offsetX, y + offsetY]
+              ];
+              this.brushed();
+          }.bind(this));
+
+        this._brushBehavior = d3.brush()
+          .on('end', this.brushed.bind(this._self));
+        this._brush = d3.select(this.$.brush);
+        this._brush
+          .on('mouseenter touchstart', this._showInfo.bind(this))
+          .on('mouseleave touchend', this._hideInfo.bind(this))
+          .on('mousemove', function() {
+            // this.setAttribute('r', self.dotRadius * 1.5);
+            var mx = d3.mouse(this._chart.node())[0],
+                my = d3.mouse(this._chart.node())[1],
+                x0 = this._x.invert(mx);
+            requestAnimationFrame( function() {
+              var closestGraph, closestPoint, closestDistance;
+              this._graphs.forEach(
+                function(g) {
+                  if (g.values && g.values.length) {
+                    var i = g.bisectDate(g.values, x0, 1);
+
+                    if (i < 0) {
+                      i = 1;
+                    } else if (i >= g.values.length) {
+                      i = g.values.length - 1;
+                    }
+                    var d0 = g.values[i - 1],
+                      d1 = g.values[i];
+                    if (d0 && d1) {
+                      var dd0 = Math.pow(mx - this._x(d0.x), 2) + Math.pow(my - this._y(d0.y), 2),
+                        dd1 = Math.pow(mx - this._x(d1.x), 2) + Math.pow(my - this._y(d1.y), 2),
+                        currentMin, currentClosest;
+                      if (dd0 < dd1) {
+                        currentMin = dd0;
+                        currentClosest = d0;
+                      } else {
+                        currentMin = dd1;
+                        currentClosest = d1;
+                      }
+                      if (closestDistance === undefined || currentMin < closestDistance) {
+                        closestDistance = currentMin;
+                        closestPoint = currentClosest;
+                        closestGraph = g;
+                      }
+                    }
+                  }
+                }.bind(this));
+              if (closestPoint) {
+                var fill = '#000';
+                if (closestGraph.item.threshold) {
+                  switch (closestPoint.state) {
+                    case 1:
+                      fill = closestGraph.customStyle['device-state-exceeds-color'] || '#F20C0C';
+                      break;
+                    case -1:
+                      fill = closestGraph.customStyle['device-state-deceeds-color'] || '#F20C0C';
+                      break;
+                  }
+                }
+                this._focusDot.attr('fill', fill)
+                              .attr('r', closestGraph.dotRadius);
+                this.debounce('move-info', this._moveInfo.bind(this, closestPoint), 5);
+              } else {
+                this._hideInfo();
+              }
+            }.bind(this));
+          }.bind(this))
+          .on('touchmove', this._resetZoom.bind(this));
+
+        this._svg.selectAll('g,line,text,path,rect')
+          .classed('style-scope', true)
+          .classed('device-chart', true);
+
+        this.debounce('resize', this._sizeLayout);
+      },
+
+      _sizeLayout: function() {
+        var bRect = this.$.svgChart.getBoundingClientRect();
+
+        if (bRect.height === 0 || bRect.width === 0) return;
+
+        this._height = bRect.height;
+        this._width = bRect.width;
+
+        this._width = this._width - this._margin.left - this._margin.right;
+        this._height = this._height - this._margin.bottom - this._margin.top;
+
+        this.xTicks = Math.ceil(this._width / 150);
+        this.yTicks = Math.ceil(this._height / 50);
+
+        this._x.range([0, this._width]);
+        this._y.range([this._height, 0]);
+
+        this._chart.attr('transform', 'translate(' + this._margin.left + ',' + (this._margin.top) + ')');
+
+        // Limiting Projection to Margin
+        this._chart.select('clipPath#clip rect')
+          .attr('width', this._width)
+          .attr('height', this._height);
+
+        this._chart.select('rect#plot')
+          .attr('width', this._width)
+          .attr('height', this._height);
+
+        this._xAxis = this._createAxis(this._x, 'bottom', this.xScale);
+        this._yAxis = this._createAxis(this._y, 'left', this.yScale);
+
+        this._xGrid = this._createAxis(this._x, 'bottom', this.xScale, this.gridMult)
+          .tickSize(-this._height)
+          .tickFormat('');
+        this._yGrid = this._createAxis(this._y, 'left', this.yScale, this.gridMult)
+          .tickSize(-this._width)
+          .tickFormat('');
+
+        this._chart.select('#xAxis')
+          .call(this._xAxis)
+          .attr('transform', 'translate(0,' + this._height + ')');
+        this._chart.select('#yAxis')
+          .call(this._yAxis)
+          .attr('transform', 'translate(0,' + 0 + ')');
+        this._chart.select('#xGrid')
+          .attr('transform', 'translate(0,' + this._height + ')')
+          .call(this._xGrid);
+        this._chart.select('#yGrid')
+          .call(this._yGrid)
+          .attr('transform', 'translate(0,' + 0 + ')');;
+
+        if (this._isBrushed !== true || this._isZoomed !== true) {
+          this._brushBehavior.extent([
+            [0, 0],
+            [this._width, this._height]
+          ])
+          this._brush.call(this._brushBehavior);
+        }
+
+        this._svg.selectAll('g,line,text,path,rect')
+          .classed('style-scope', true)
+          .classed('device-chart', true);
+        this._focusY.attr('y1', this._height);
+
+        this._redraw();
+      },
+
+      _createScale: function(option) {
+        switch (option) {
+          case 'time':
+            return d3.scaleTime();
+            break;
+          case 'ln':
+            return d3.scaleLog().base(Math.E);
+            break;
+          case 'log₁₀':
+            return d3.scaleLog();
+            break;
+          case '√':
+            return d3.scaleSqrt();
+            break;
+          default:
+            return d3.scaleLinear();
+        }
+      },
+
+      _createAxis: function(scale, orient, kind, tickmult) {
+        var axis, ticks, horTicks, verTicks;
+        tickmult = tickmult || 1;
+
+        switch (orient) {
+          case 'top':
+            axis = d3.axisTop();
+            ticks = this.xTicks;
+            break;
+          case 'bottom':
+            axis = d3.axisBottom();
+            ticks = this.xTicks;
+            break;
+          case 'left':
+            axis = d3.axisLeft();
+            ticks = this.yTicks;
+            break;
+          case 'right':
+            axis = d3.axisRight();
+            ticks = this.yTicks;
+            break;
+        }
+        axis.scale(scale).ticks(ticks * tickmult);
+        if (kind === 'time')
+          axis.ticks(ticks * tickmult)
+          .tickFormat(this.timeFormat.bind(this));
+        else if (scale.base && scale.base() === Math.E)
+          axis.tickFormat( function(d) {
+            return (d < 1 || d > 1000 ? (Math.log(d)).toExponential(3) : (Math.log(d)).toFixed(2));
+          })
+
+        return axis;
+      },
+
+      timeFormat: function(date) {
+        return (d3.timeSecond(date) < date ? this.format.Millisecond :
+          d3.timeMinute(date) < date ? this.format.Second :
+          d3.timeHour(date) < date ? this.format.Minute :
+          d3.timeDay(date) < date ? this.format.Hour :
+          d3.timeMonth(date) < date ? (d3.timeWeek(date) < date ? this.format.Day : this.format.Week) :
+          d3.timeYear(date) < date ? this.format.Month :
+          this.format.Year)(date);
+      },
+
+      timeFormatRange: function(date, r, pixels) {
+        var rangeRatio = (r[1] - r[0]).valueOf() / pixels;
+        return (rangeRatio < 100 ? this.format.Millisecond :
+          rangeRatio < 500 ? this.format.LongSecond :
+          rangeRatio < 5000 ? this.format.Second :
+          rangeRatio < 20000 ? this.format.LongMinute :
+          rangeRatio < 60000 ? this.format.Minute :
+          rangeRatio < 3600000 ? this.format.Hour :
+          rangeRatio < 86400000 ? this.format.Day :
+          rangeRatio < 604800000 ? this.format.Week :
+          rangeRatio < 2419200000 ? this.format.Month :
+          this.format.Year)(date);
+      },
+
+      redraw: function() {
+        if (!(this.opened && this._chart && this._chart.select)) return;
+
+        Promise.resolve( this.setDomains.call(this) )
+              .then( this._redraw.bind(this) )
+              .catch( function(err) {
+                if (err) {
+                  console.warn(err);
+                }
+              });
+      },
+
+      _redraw: function(force) {
+        if (!(this.opened && this._chart && this._chart.select)) return;
+
+        if (force || !this.domainY || !this.domainX) {
+          this.redraw();
+          return;
+        }
+        if (this._graphs.size > 0) {
+          this._graphs.forEach( function(g) {
+            if (g.redraw)
+              g.redraw();
+          });
+        }
+
+        this._chart.select('#xAxis').call(this._xAxis);
+        this._chart.select('#yAxis').call(this._yAxis);
+        this._chart.transition(50).select('#xGrid').call(this._xGrid);
+        this._chart.transition(50).select('#yGrid').call(this._yGrid);
+
+        this._svg.selectAll('g,line,text,path,rect')
+          .classed('style-scope', true)
+          .classed('device-chart', true);
+        this._updateInfo();
+      },
+
+      brushed: function() {
+        var s = d3.event.selection;
+        this._hideInfo();
+        if (s) {
+          this._isBrushed = true;
+          this._isZoomed = true;
+          this._x.domain([s[0][0], s[1][0]].map(this._x.invert, this._x)).nice(this.xTicks);
+          this._y.domain([s[1][1], s[0][1]].map(this._y.invert, this._y)).nice(this.yTicks);
+          this._brush.call(this._brushBehavior.move, null);
+          return;
+        } else if (this._isBrushed === true) {
+          this._isBrushed = false;
+        } else {
+          this._isZoomed = false;
+          this.redraw();
+          return;
+        }
+        this._redraw();
+      },
+
+      setDomains: function() {
+        return new Promise( function(resolve, reject) {
+          if (!this._graphs.size)
+            reject('No Graphs are attached');
+          if (this._isZoomed === true || this._isBrushed === true) {
+            resolve();
+          }
+
+          this.requestRange('x')
+              .then( function(rangeX) {
+                var domainX = rangeX;
+                this.requestRange('y')
+                    .then( function(rangeY) {
+
+                      var domainY = rangeY;
+
+                      // if min, max are equal, add a little space
+                      if (domainY[0] !== undefined && domainY[1] !== undefined && domainY[0] === domainY[1]) {
+                        domainY[0] -= 0.5;
+                        domainY[1] += 0.5;
+                      }
+
+                      if (this.yScale === 'ln' || this.yScale === 'log₁₀') {
+                        if (domainY[0] <= 0) {
+                          domainY[0] = Number.EPSILON;
+                        }
+                        if (domainY[1] <= 0) {
+                          domainY[1] = Number.EPSILON;
+                        }
+                      }
+
+                      this._x.domain(domainX);
+                      this.set('domainX', domainX);
+                      this._y.domain(domainY).nice(this.yTicks);
+
+                      // if domain is on the edge of data, add a little space
+                      domainY = this._y.domain();
+                      if (domainY[0] === rangeY[0]) {
+                        domainY[0] -= (rangeY[1] - rangeY[0]) / this.yTicks;
+                      }
+                      if (domainY[1] === rangeY[1]) {
+                        domainY[1] += (rangeY[1] - rangeY[0]) / this.yTicks;
+                      }
+                      this._y.domain(domainY);
+                      this.set('domainY', domainY);
+                      resolve();
+
+                    }.bind(this))
+                    .catch( function(err) {
+                      reject(err);
+                    });
+              }.bind(this))
+              .catch( function(err) {
+                reject(err);
+              });
+        }.bind(this));
+      },
+
+      insertValues: function(data) {
+        this._graphs.forEach( function(g) {
+          if (g.item && g.item.mount && data[g.item.mount])
+            g.insertValues(data[g.item.mount]);
+        });
+      },
+
+      clearValues: function() {
+        this._graphs.forEach( function(g) {
+          if (g.item && g.item.mount)
+            g.clearValues();
+        });
+      },
+
+      requestRange: function(key) {
+        return new Promise( function(resolve, reject) {
+          var p = [];
+          this._graphs.forEach( function(g) {
+            if (g.item && g.item.mount)
+              p.push( g.requestRange(key) );
+          });
+          Promise.all(p)
+                 .then( function(res) {
+                   var min, max;
+                   for (var i = 0; i < res.length; i++) {
+                     min = (min === undefined || min > res[i][0]) ? res[i][0] : min;
+                     max = (max === undefined || max < res[i][1]) ? res[i][1] : max;
+                   }
+                   if (min === undefined || max === undefined) {
+                     reject();
+                   }
+                   resolve([min, max]);
+                 })
+                 .catch( function(err) {
+                  //  reject(err);
+                  //  if (err) {
+                  //    console.log(err);
+                  //  }
+                 });
+        }.bind(this) );
+      },
+
+      _moveInfo: function(d) {
+        if (Number.isFinite(this._y(d.y))) {
+          var x = this.timeFormatRange.call(this, d.x, this._x.domain(), this._width);
+          this._info.text(x + ' , ' + d.y);
+          this._info.x = d.x;
+          this._info.y = d.y;
+          this._info.attr('hidden', null);
+          this._focus.attr('hidden', null);
+          this._updateInfo();
+        }
+      },
+
+      _showInfo: function() {
+        this.cancelDebouncer('hideinfo');
+        this._focus.attr('hidden', null);
+      },
+
+      _hideInfo: function() {
+        this.debounce('hideinfo', this._debounceHideInfo, 1500);
+      },
+
+      _debounceHideInfo: function() {
+        this._xAxis = this._createAxis(this._x, 'bottom', this.xScale);
+        this._yAxis = this._createAxis(this._y, 'left', this.yScale);
+        this._chart.select('#xAxis').call(this._xAxis);
+        this._chart.select('#yAxis').call(this._yAxis);
+        this._info.attr('hidden', '');
+        this._focus.attr('hidden', '');
+        this._svg.selectAll('g,line,text,path,rect')
+          .classed('style-scope', true)
+          .classed('device-chart', true);
+      },
+
+      _updateInfo: function() {
+        if (this._info.attr('hidden') === '' || this._info.x === undefined || this._info.y === undefined) return;
+        var x = this._x(+this._info.x),
+          y = this._y(+this._info.y);
+        if (!x || !y) {
+          return;
+        }
+        var bbox = this._info.node().getBBox();
+        this._info
+          .attr('x', (x + 4 + bbox.width > this._width ? (x - 4 - bbox.width < 0 ? 0 : x - 4 - bbox.width) : x + 4))
+          .attr('y', (y > bbox.height + 4 ? y - 4 : bbox.height));
+        this._focusX
+          .attr('x2', x)
+          .attr('y2', y)
+          .attr('y1', y);
+        this._focusY
+          .attr('y2', y)
+          .attr('x2', x)
+          .attr('x1', x);
+        this._focusDot
+          .attr('cy', y)
+          .attr('cx', x);
+
+        this._xAxis.tickValues([this._info.x]);
+        this._yAxis.tickValues([this._info.y]);
+        this._chart.select('#xAxis').call(this._xAxis);
+        this._chart.select('#yAxis').call(this._yAxis);
+        this._svg.selectAll('g,line,text,path,rect')
+          .classed('style-scope', true)
+          .classed('device-chart', true);
+      },
+
+      // openLegend: function() {
+      //   var graphs = [];
+      //   this._graphs.forEach(
+      //     function(g) {
+      //       graphs.push({type: 'device-checkbox', checked: g.checked, item: g.item})
+      //     });
+      //   // console.log(graphs);
+      //   this.fire('open-settings', { trigger: this, title: 'chart', settings: [ {title: 'graphs', entries: graphs} ]} );
+      // },
+
+      toggleMenu: function() {
+        if (this.$.menu.hasAttribute('hidden')) {
+          this.$.menu.removeAttribute('hidden');
+        } else {
+          this.$.menu.setAttribute('hidden', '');
+        }
+      },
+
+      changeInterpolation: function(interpolation, oldValue) {
+        if (!this._graphs.size) return;
+        this._graphs.forEach(
+          function(g) {
+            g.set('interpolation', interpolation);
+          });
+      },
+
+      changeScale: function(newValue, oldValue) {
+        if (oldValue === undefined) return;
+        var domainY = this._y.domain();
+        if (this.yScale === 'ln' || this.yScale === 'log₁₀') {
+          if (domainY[0] <= 0) {
+            domainY[0] = Number.EPSILON;
+          }
+          if (domainY[1] <= 0) {
+            domainY[1] = Number.EPSILON;
+          }
+        }
+        this._hideInfo();
+        this._y = this._createScale(this.yScale);
+        this._y.domain(domainY).nice(this.yTicks);
+        this.set('domainY', domainY);
+        this.debounce('resize', this._sizeLayout);
+      },
+
+      // changeDots: function(e) {
+      //   this.noDots = !e.target.checked;
+      //   if (!this._graphs.size) return;
+      //   this._graphs.forEach(
+      //     function(g) {
+      //       g.set('noDots', !e.target.checked)
+      //     });
+      // },
+      //
+      // changeLines: function(e) {
+      //   this.noLines = !e.target.checked;
+      //   if (!this._graphs.size) return;
+      //   this._graphs.forEach(
+      //     function(g) {
+      //       g.set('noLine', !e.target.checked)
+      //     });
+      // },
+      //
+      // changeAreas: function(e) {
+      //   this.noAreas = !e.target.checked;
+      //   if (!this._graphs.size) return;
+      //   this._graphs.forEach(
+      //     function(g) {
+      //       g.set('noFill', !e.target.checked)
+      //     });
+      // },
+
+      _resetZoom: function(e) {
+        if (d3.event)
+          d3.event.preventDefault();
+        else if (e && e.preventDefault) {
+          e.preventDefault();
+        }
+        this._isZoomed = false;
+        this._hideInfo();
+        this.redraw();
+      },
+
+      _refresh: function() {
+        this._buildLayout();
+        if (!this._graphs.size) return;
+        this._graphs.forEach(
+          function(g) {
+            g.clearValues(true);
+            g.requestValues(null, null, this.viewLength)
+                .then( function(data) {
+                  for (var mount in data) {
+                    if (mount === this.item.mount) {
+                      this.insertValues(data[mount]);
+                      break;
+                    }
+                  }
+                }.bind(g))
+                .catch( function(err) {
+                  if (err) {
+                    console.log(err);
+                  }
+                }.bind(this) );
+          }.bind(this));
+        this._isZoomed = false;
+        this.redraw();
+      }
+    });
+  </script>
+
+</dom-module>

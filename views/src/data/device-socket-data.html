@@ -1,0 +1,75 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<script type="text/javascript" src="../../scripts/client.js"></script>
+
+<dom-module id="device-socket-data">
+  <script>
+    Polymer({
+
+      is: 'device-socket-data',
+
+      properties: {
+
+        locationHost: {
+          type: String,
+          value: window.location.origin
+        },
+
+        socketName: String,
+
+        socketRoom: {
+          type: String,
+          observer: 'connect'
+        },
+
+        socketStatus: {
+          type: String,
+          value: 'connect',
+          notify: true
+        },
+
+        lazyConnect: Boolean
+
+      },
+
+      observers: [
+        '_createSocketConnection(lazyConnect, locationHost, socketName)'
+      ],
+
+      _createSocketConnection: function(lazyConnect, locationHost, socketName) {
+        if (!lazyConnect || !locationHost || !socketName || this.socketStatus === 'sync-disabled') return;
+
+        Webvisual.assignStatusNotifications(this);
+        Webvisual.createSocketConnection(locationHost, socketName);
+
+        if (this.socketRoom) {
+          if (this.socketRoom.substring(0, 1) === '/') {
+            this.socketRoom = this.socketRoom.slice(1, this.socketRoom.length);
+          }
+          this.connect();
+        }
+      },
+
+      connect: function(socketRoom) {
+        socketRoom = socketRoom || this.socketRoom;
+
+        if (!socketRoom) {
+          this.socketStatus = 'sync-problem';
+          return;
+        }
+        if (socketRoom.substring(0, 1) === '/') {
+          socketRoom = socketRoom.slice(1, socketRoom.length);
+        }
+        Webvisual.setupConnection(socketRoom);
+        if (this.socketStatus !== 'connected') {
+          this.socketStatus = 'connect';
+        }
+      },
+
+      disconnect: function() {
+        this.socketStatus = 'sync-disabled';
+        Webvisual.disconnect();
+      }
+
+    });
+  </script>
+</dom-module>

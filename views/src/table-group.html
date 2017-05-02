@@ -1,0 +1,99 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<link rel="import" href="../bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+
+<link rel="import" href="style/button-style.html">
+<link rel="import" href="components/tabs-container.html">
+<link rel="import" href="device-table.html">
+
+<dom-module id="table-group">
+	<template strip-whitespace>
+    <style include="button-style">
+      :host {
+        @apply(--layout-horizontal);
+        position: relative;
+        box-sizing: border-box;
+        line-height: 0;
+        min-height: 100px;
+      }
+			#select {
+        min-width: 3em;
+        max-width: 6em;
+        flex-shrink: 0;
+				--tab-vertical-overlay: {
+					background-color: rgba(255, 255, 255, 0.25);
+					border-right: 2px solid var(--saturated-primary-color, var(--highlight-color));
+					border-left: none;
+					border-bottom: none;
+				}
+			}
+      #tables {
+        position: relative;
+        box-sizing: border-box;
+        flex: 1 0 auto;
+      }
+      .tab {
+        font-size: 0.75em;
+        padding: 0.5em;
+        border-radius: 0;
+        white-space: normal;
+      }
+      .hidden {
+        display: none;
+      }
+    </style>
+
+    <tabs-container id="select" selected="{{currentTable}}" fallback-selection="0" vertical>
+      <template is="dom-repeat" items="[[items]]">
+        <div class="button tab" title="[[item.id]]"><div>[[item.id]]</div></div>
+      </template>
+    </tabs-container>
+    <iron-pages id="tables" selected="[[currentTable]]">
+      <template is="dom-repeat" items="[[items]]">
+        <device-table title$="[[item.id]]" item="[[item]]" keys-for-caption full-date></device-table>
+      </template>
+    </iron-pages>
+
+  </template>
+
+	<script>
+		WebvisualElementTable = Polymer({
+
+			is: 'table-group',
+
+			properties: {
+        items: {
+          type: Array,
+          value: function() {
+            return [];
+          },
+          notify: true
+        },
+
+				onlyFirstRow: Boolean,
+
+				showFullDate: Boolean,
+
+        currentTable: {
+          type: Number,
+          value: 0,
+          notify: true
+        }
+			},
+
+      observers: [
+        '_shouldHideTabs(items.length)'
+      ],
+
+			_shouldHideTabs: function(length) {
+        if (length < 2) {
+          this.$.select.classList.add('hidden');
+        } else {
+          this.$.select.classList.remove('hidden');
+        }
+			}
+		});
+	</script>
+
+</dom-module>

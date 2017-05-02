@@ -1,13 +1,11 @@
-<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/polymer/polymer.html">
 
-<dom-module id="dialog-element-styles">
+<dom-module id="dialog-style">
   <template>
     <style>
       :host {
         display: block;
-        padding: 1em;
         margin: 2em;
-        border-radius: 8px;
         background-color: var(--dialog-background-color, #f1f1f1);
         color: var(--dialog-color, var(--primary-text-color));
         --dialog-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12), 0 5px 5px -3px rgba(0, 0, 0, 0.4);
@@ -20,37 +18,34 @@
       :host([opened]) {
         opacity: 1;
       }
-      .no-margin {
+      :host > * {
+        position: relative;
+        margin: 0.25em 1em;
+      }
+      :host > .no-margin {
         margin: 0;
       }
-      :host > ::content > * {
-        position: relative;
-        box-sizing: border-box;
-      }
-      :host > ::content > [dialog-title] {
-        text-align: center;
+      :host > [dialog-title] {
         font-size: 1.25em;
-        margin: 0.5em 0 1em 0;
         @apply(--dialog-title);
       }
-      :host > ::content >[dialog-content] {
+      :host > [dialog-content] {
         @apply(--layout-vertical);
+        flex: 1 0 100px;
         border-top: thin solid var(--grid-border-color, #aaa);
         border-bottom: thin solid var(--grid-border-color, #aaa);
       }
-      :host > ::content > [dialog-content] > * {
+      :host > [dialog-content] > * {
         position: relative;
         flex: 1 0 auto;
       }
-      :host > ::content > [dialog-bottom] {
+      :host > [dialog-bottom] {
         @apply(--layout-horizontal);
         @apply(--layout-end-justified);
-        padding: 0.5em;
+        position: relative;
+        padding: 0.5em 0.5em 0.5em 1.5em;
       }
-      :host > ::content > [dialog-bottom] > * {
-        align-self: stretch;
-      }
-      :host > ::content > [dialog-bottom] > *:not(:first-child) {
+      :host > [dialog-bottom] > *:not(:first-child) {
         margin-left: 0.5em;
       }
     </style>

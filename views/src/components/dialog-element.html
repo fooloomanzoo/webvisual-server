@@ -1,0 +1,31 @@
+<link rel="import" href="../style/dialog-style.html">
+
+<dom-module id="dialog">
+  <template>
+    <style include="dialog-style">
+      [hidden] {
+        display: none;
+      }
+    </style>
+    <content></content>
+  </template>
+
+</dom-module>
+
+<script>
+(function() {
+  Polymer({
+
+    behaviors: [
+      Polymer.PaperDialogBehavior
+    ],
+
+    properties: {
+      opened: {
+        type: Boolean,
+        reflectToAttribute: true
+      }
+    }
+  });
+})();
+</script>

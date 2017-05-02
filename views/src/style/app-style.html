@@ -1,0 +1,81 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<dom-module id="app-style">
+  <template>
+    <style>
+      :host {
+        --toggle-button-unchecked-bar-color: #005B82;
+        --toggle-button-unchecked-button-color: #f1f1f1;
+        --toggle-button-unchecked-ink-color: #005B82;
+        --toggle-button-checked-bar-color:	#68D97B;
+        --toggle-button-checked-button-color:	#68D97B;
+        --toggle-button-checked-ink-color:	#68D97B;
+
+        --radio-button-checked-color: var(--select-color);
+        --radio-button-unchecked-color: var(--highlight-color);
+        --radio-button-unchecked-background-color: tranparent;
+        --radio-button-system-color: currentColor;
+
+        --app-drawer-width: 20em;
+        --app-drawer-scim-background: rgba(0, 0, 0, 0.25);
+        --app-drawer-content-container: {
+          min-width: 256px;
+          color: var(--primary-text-color);
+          background-color: var(--bright-primary-color);
+        };
+        --app-header: {
+          background-color: var(--primary-color);
+          color: var(--bright-text-color);
+        };
+      }
+      :host([plain]) {
+        --primary-background: var(--bright-primary-color);
+        --toggle-button-unchecked-bar-color: var(--bright-primary-color);
+        --toggle-button-unchecked-button-color: #f1f1f1;
+        --toggle-button-unchecked-ink-color: var(--bright-primary-color);
+        --app-drawer-content-container: {
+          min-width: 256px;
+          color: var(--bright-text-color);
+          background-color: var(--primary-color);
+        };
+        --app-header: {
+          background-color: var(--bright-primary-color);
+          color: var(--bright-text-color);
+        };
+      }
+      :host([plain][dark]) {
+        --primary-background: var(--dark-primary-color);
+        --app-drawer-header: {
+          color: #f1f1f1;
+        };
+        --app-header: {
+          background-color: var(--dark-primary-color);
+          color: var(--bright-text-color);
+        };
+        --app-drawer-content-container: {
+          color: var(--bright-text-color);
+          background-color: #222;
+        };
+      }
+      :host(:not([plain])) {
+        --primary-background: #999;
+      }
+      :host(:not([plain])[dark]) {
+        --primary-background: #252525;
+        --app-header: {
+          background-color: var(--dark-primary-color);
+          color: var(--bright-text-color);
+        };
+        --app-drawer-content-container: {
+          color: var(--bright-text-color);
+          background-color: #222;
+        };
+      }
+      tabs > button {
+        height: 100%;
+      }
+    </style>
+
+  </template>
+
+</dom-module>

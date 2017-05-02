@@ -16,11 +16,11 @@
     setColor: function(color) {
       // random color if color is not set
       if (color !== undefined) {
-        this.updateStyles({'--element-color': color || null});
+        this.updateStyles({'--device-color': color || null});
         if (!this.item.isIndicatorLamp ) {
-          this.updateStyles({'--element-state-inrange-color': color || null});
+          this.updateStyles({'--device-state-inrange-color': color || null});
         } else {
-          this.updateStyles({'--element-state-inrange-color': null});
+          this.updateStyles({'--device-state-inrange-color': null});
         }
       }
       this.updateStyles();

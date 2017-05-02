@@ -1,0 +1,302 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<!-- modification of polymer paper-dropdown -->
+<dom-module id="dropdown-element">
+  <template>
+    <style>
+      :host {
+        display: none;
+        position: absolute;
+        top: 0;
+        left: 0;
+        flex-direction: column;
+        overflow: hidden;
+        outline-style: none;
+        border-radius: inherit;
+        align-items: stretch;
+        align-content: stretch;
+        justify-content: center;
+        z-index: 2;
+        color: var(--dropdown-text-color, --primary-text-color);
+        background-color: var(--dropdown-background, transparent);
+        will-change: opacity;
+        transition: opacity 300ms cubic-bezier(0.6, 1, 0.2, 1);
+      }
+      :host(.opened) {
+        opacity: 1;
+      }
+      :host(:not(.opened)) {
+        opacity: 0;
+      }
+      :host([horizontal]) {
+        flex-direction: row;
+      }
+      ::content > * {
+        border-radius: 0;
+        border-width: 0;
+
+      }
+    </style>
+
+    <content></content>
+  </template>
+
+  <script>
+    Polymer({
+      is: 'dropdown-element',
+
+      properties: {
+        for: {
+          type: String,
+          observer: '_forChanged'
+        },
+
+        // options: 'left', 'right', 'bottom', 'top'
+        position: {
+          type: String,
+          value: 'bottom'
+        },
+
+        // options: 'start', 'center', 'end'
+        align: {
+          type: String,
+          value: 'start'
+        },
+
+        offset: {
+          type: Number,
+          value: 0
+        },
+
+        horizontal: {
+          type: Boolean,
+          reflectToAttribute: true
+        },
+
+        // e.g. tap
+        targetToggleEvent: {
+          type: String
+        },
+        // e.g. tap
+        targetOpenEvent: {
+          type: String
+        },
+        // e.g. iron-select
+        targetCloseEvent: {
+          type: String
+        },
+
+        hidingEvent: {
+          type: String,
+          value: "mouseleave"
+        },
+
+        opened: Boolean,
+
+        autoclose: Number
+
+      },
+
+      listeners: {
+        'transitionend': '_afterFinish'
+      },
+
+      hostAttributes: {
+        role: 'tooltip',
+        tabindex: -1
+      },
+
+      observers: [
+        '_setClass(opened)'
+      ],
+
+      attached: function () {
+        this._forChanged();
+      },
+
+      get target () {
+        var parentNode = Polymer.dom(this).parentNode;
+        var ownerRoot = Polymer.dom(this).getOwnerRoot();
+        var target;
+        if (this.for) {
+          target = Polymer.dom(ownerRoot).querySelector('#' + this.for);
+        } else {
+          target = parentNode.nodeType == Node.DOCUMENT_FRAGMENT_NODE ?
+              ownerRoot.host : parentNode;
+        }
+        return target;
+      },
+
+      _addTargetEventListeners: function(targetOpenEvent, targetCloseEvent, targetToggleEvent) {
+        if (!this._target)
+          return;
+
+        if (targetToggleEvent)
+          this._target.addEventListener(targetToggleEvent, this.toggle.bind(this), {passive: true});
+        if (targetOpenEvent)
+          this._target.addEventListener(targetOpenEvent, this.open.bind(this), {passive: true});
+        if (targetCloseEvent)
+          this._target.addEventListener(targetCloseEvent, this.close.bind(this), {passive: true});
+      },
+
+      _removeTargetEventListeners: function(targetOpenEvent, targetCloseEvent, targetToggleEvent) {
+        if (!this._target) {
+          return;
+        }
+
+        if (targetOpenEvent)
+          this._target.removeEventListener(this._target, targetOpenEvent, this.toggle, {passive: true});
+        if (targetToggleEvent)
+          this._target.removeEventListener(this._target, targetToggleEvent, this.open, {passive: true});
+        if (targetCloseEvent)
+          this._target.removeEventListener(this._target, targetCloseEvent, this.close, {passive: true});
+      },
+
+      _addHidingEventListener: function(hidingEvent) {
+        if (hidingEvent)
+          this.addEventListener(hidingEvent, this.close.bind(this), false);
+      },
+
+      _removeHidingEventListener: function(hidingEvent) {
+        if (hidingEvent)
+          this.removeEventListener(hidingEvent, this.close, false);
+      },
+
+      detached: function() {
+        this._removeTargetEventListeners(this.targetOpenEvent, this.targetCloseEvent, this.targetToggleEvent);
+        this._removeHidingEventListener(this.hidingEvent);
+      },
+
+      open: function(targetRect) {
+        if (this._closeJob) {
+          clearTimeout(this._closeJob);
+        }
+
+        this.style.display = 'flex';
+        this._updatePosition(targetRect);
+        this.opened = true;
+
+        if (this.autoclose) {
+          this._closeJob = setTimeout( this.close.bind(this), this.autoclose );
+        }
+      },
+
+      close: function() {
+        this.opened = false;
+      },
+
+      toggle: function() {
+        if (this.opened) this.close();
+        else this.open();
+      },
+
+      _forChanged: function() {
+        this._removeTargetEventListeners(this.targetOpenEvent, this.targetCloseEvent, this.targetToggleEvent);
+
+        if (!this.for) {
+          this._target = null;
+          return;
+        }
+
+        this._target = this.target;
+        this._addTargetEventListeners(this.targetOpenEvent, this.targetCloseEvent, this.targetToggleEvent);
+      },
+
+      _updatePosition: function(targetRect) {
+        if (!this.offsetParent)
+          return;
+
+        if (this._target) {
+          targetRect = this._target.getBoundingClientRect();
+        } else if (!targetRect) {
+          return;
+        }
+
+        var offset = this.offset;
+        var parentRect = this.offsetParent.getBoundingClientRect();
+        var thisRect = this.getBoundingClientRect();
+        var horizontalOffset, verticalOffset;
+
+        switch (this.align) {
+          case 'start':
+          default:
+            horizontalOffset = 0;
+            verticalOffset = 0;
+            break;
+          case 'end':
+            horizontalOffset = targetRect.width - thisRect.width;
+            verticalOffset = targetRect.height - thisRect.height;
+            break;
+          case 'center':
+            horizontalOffset = (targetRect.width - thisRect.width) / 2;
+            verticalOffset = (targetRect.height - thisRect.height) / 2;
+            break;
+          case 'outer-start':
+            horizontalOffset = -thisRect.width;
+            verticalOffset = -thisRect.height;
+            break;
+          case 'outer-end':
+            horizontalOffset = targetRect.width;
+            verticalOffset = targetRect.height;
+            break;
+          case 'outer-center':
+            horizontalOffset = targetRect.width / 2;
+            verticalOffset = targetRect.height / 2;
+            break;
+        }
+
+        var targetLeft = targetRect.left - parentRect.left;
+        var targetTop = targetRect.top - parentRect.top;
+        var dropdownLeft, dropdownTop;
+
+        switch (this.position) {
+          case 'top':
+            dropdownLeft = targetLeft + horizontalOffset;
+            dropdownTop = targetTop - thisRect.height - offset;
+            break;
+          case 'bottom':
+            dropdownLeft = targetLeft + horizontalOffset;
+            dropdownTop = targetTop + targetRect.height + offset;
+            break;
+          case 'left':
+            dropdownLeft = targetLeft - thisRect.width - offset;
+            dropdownTop = targetTop + verticalOffset;
+            break;
+          case 'right':
+            dropdownLeft = targetLeft + targetRect.width + offset;
+            dropdownTop = targetTop + verticalOffset;
+            break;
+        }
+
+        // clip the left/right side.
+        if (dropdownLeft + parentRect.left + thisRect.width > window.innerWidth) {
+          dropdownLeft = window.innerWidth - (parentRect.left + thisRect.width);
+        } else if (dropdownLeft + targetRect.left < 0) {
+          dropdownLeft = -targetRect.left;
+        }
+
+        // clip the top/bottom side.
+        if (dropdownTop + thisRect.height > window.innerHeight) {
+          dropdownTop = window.innerHeight - (thisRect.height + targetRect.top);
+        } else if (dropdownTop + targetRect.top < 0) {
+          dropdownTop = -targetRect.top;
+        }
+        this.style.transform = 'translate(' + dropdownLeft + 'px,' + dropdownTop + 'px)';
+      },
+
+      _setClass: function (opened) {
+        if (opened) {
+          this.classList.add('opened');
+        } else {
+          this.classList.remove('opened');
+        }
+      },
+
+      _afterFinish: function() {
+        if (!this.opened)
+          this.style.display = 'none';
+      }
+
+    });
+  </script>
+</dom-module>

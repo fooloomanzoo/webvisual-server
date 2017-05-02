@@ -206,7 +206,7 @@ class Router extends EventEmitter {
     // Public Data
     this.app.use(this.staticMiddleware);
 
-    // Fallback
+    // Fallback (for in-app-page-routing neccessary)
     this.app.get('*', (req, res) => {
       res.sendFile( resolvePath( this.dir.dist, 'index.html') );
     });

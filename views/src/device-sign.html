@@ -1,0 +1,269 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
+
+<link rel="import" href="behaviors/color-behavior.html"/>
+<link rel="import" href="behaviors/checked-and-select-behavior.html"/>
+<link rel="import" href="behaviors/device-behavior.html"/>
+
+<link rel="import" href="style/device-shared-style.html"/>
+
+<dom-module id="device-sign">
+  <template strip-whitespace>
+    <style include="device-shared-style">
+      :host {
+        font-family: 'FiraSans-Regular', sans-serif;
+        position: relative;
+        @apply(--layout-vertical);
+        cursor: pointer;
+        pointer-events: all;
+        outline: none;
+        -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
+        -webkit-touch-callout: none; -webkit-tap-highlight-color: rgba(0,0,0,0);
+        font-size: 1em;
+        line-height: 1;
+        width: auto;
+        min-width: 4em;
+        min-height: 4em;
+        /*min-width: 5em;*/
+        align-self: stretch;
+        background-color: var(--device-color);
+        color: var(--device-text-color);
+        will-change: background-color;
+        transition: background-color 250ms cubic-bezier(0.3, 0, 0.15, 1);
+      }
+
+      :host([state="0"]) {
+        background-color: var(--device-state-inrange-color);
+        color: var(--device-state-inrange-text-color);
+      }
+      :host([state="1"]) {
+        background-color: var(--device-state-exceeds-color);
+        color: var(--device-state-exceeds-text-color);
+      }
+      :host([state="-1"]) {
+        background-color: var(--device-state-deceeds-color);
+        color: var(--device-state-deceeds-text-color);
+      }
+      .value {
+        position: absolute;
+        @apply(--layout-inline);
+        @apply(--layout-center-center);
+        top: 0;
+        bottom: 0;
+        right: 0;
+        left: 0;
+        padding: 0.3em 0.3em 0.5em 0.3em;
+        box-sizing: border-box;
+        overflow: hidden;
+      }
+      .value::before {
+        position: absolute;
+        content: "";
+        top: 0;
+        bottom: 0;
+        right: 0;
+        left: 0;
+        pointer-events: none;
+        background: linear-gradient(180deg,rgba(255,255,255,0),rgba(255,255,255,0.12),rgba(255,255,255,0));
+      }
+      :host([state="1"]) .value::before, :host([state="-1"]) .value::before {
+        will-change: transform;
+        animation-name: sign-background-rotate;
+        animation-duration: 1800ms;
+        animation-fill-mode: both;
+        animation-timing-function: linear;
+        animation-iteration-count: infinite;
+      }
+      @keyframes sign-background-rotate {
+        0%   { transform: rotate(0deg);  }
+        100% { transform: rotate(360deg); }
+      }
+      #valueSection {
+        @apply(--layout-inline);
+        @apply(--layout-center-center);
+        max-width: 100%;
+        text-align: center;
+      }
+      #value {
+        font-size: 0.9em;
+        padding-right: 0.2em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      #unitSection {
+        font-size: 0.65em;
+      }
+      #dateSection {
+        position: absolute;
+        @apply(--layout-inline);
+        @apply(--layout-center-center);
+        pointer-events: none;
+        font-size: 0.55em;
+        bottom: 0;
+        width: 100%;
+        padding: 0.5em;
+        box-sizing: border-box;
+      }
+      svg#icon {
+        height: 1.5em;
+        width: 1.5em;
+        fill: currentColor;
+      }
+      #ripple {
+        pointer-events: none;
+        color: #1d1d1d;
+        border-radius: inherit;
+      }
+      #bookmark {
+        padding: 4px;
+        cursor: pointer;
+        outline: none;
+        position: absolute;
+        right: -5px;
+        top: -5px;
+        height: 1.25em;
+        width: 1.25em;
+        fill: #fff;
+        opacity: 0.75;
+        will-change: transform, opacity;
+        transform-origin: center;
+        transition: transform 300ms cubic-bezier(0.3, 0, 0.1, 1), opacity 300ms cubic-bezier(0.3, 0, 0.1, 1);
+      }
+      #bookmark:hover {
+        transform: scale(1.4);
+        opacity: 1;
+      }
+      #checkbox {
+        fill: #fff;
+        cursor: pointer;
+        outline: none;
+        pointer-events: none;
+        position: absolute;
+        opacity: 0.5;
+        right: 0;
+        bottom: 0;
+        height: 1.25em;
+        width: 1.25em;
+      }
+      [hidden] {
+        pointer-events: none;
+        display: none !important;
+      }
+    </style>
+
+    <div class="value" on-tap="select">
+      <template is="dom-if" if="[[selectable]]">
+        <paper-ripple id="ripple" recenters></paper-ripple>
+      </template>
+
+      <div id="valueSection" hidden$="[[item.isIndicatorLamp]]">
+        <span id="value"></span>
+        <span id="unitSection">[[item.unit]]</span>
+      </div>
+
+      <svg id="icon" hidden$="[[!item.isIndicatorLamp]]" aria-label="Alarm" viewBox="0 0 24 24">
+        <g id="error-outline" hidden$="[[!isExceeding]]"><path d="M11 15h2v2h-2zm0-8h2v6h-2zm.99-5C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/></g>
+      </svg>
+    </div>
+
+    <span id="dateSection" hidden$="[[!showDate]]"></span>
+
+    <svg id="bookmark" hidden$="[[!hasExceeded]]"
+      viewBox="0 0 24 24"
+      on-tap="_requestExceedingDetails">
+      <g id="announcement"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 9h-2V5h2v6zm0 4h-2v-2h2v2z"/></g>
+    </svg>
+
+    <template is="dom-if" if="[[checked]]">
+      <svg id="checkbox"
+        viewBox="0 0 24 24">
+        <g id="playlist-add-check"><path d="M14 10H2v2h12v-2zm0-4H2v2h12V6zM2 16h8v-2H2v2zm19.5-4.5L23 13l-6.99 7-4.51-4.5L13 14l3.01 3 5.49-5.5z"/></g>
+      </svg>
+    </template>
+
+  </template>
+
+  <script>
+
+    WebvisualElementSign = Polymer({
+      is: 'device-sign',
+
+      behaviors: [
+        WebvisualBehaviors.ColorBehavior,
+        WebvisualBehaviors.CheckedAndSelectBehavior,
+        WebvisualBehaviors.DeviceBehavior
+      ],
+
+      properties: {
+
+        showDate: {
+          type: Boolean,
+          value: false
+        },
+
+        viewLength: {
+          type: Number,
+          value: 1
+        }
+
+      },
+
+      hostAttributes: {
+        tabindex: '0'
+      },
+
+      insertValues: function(values) {
+        if (values && values.length) {
+          this.async( function() {
+
+            if (!this._initialized)
+              this._initialized = true;
+
+            var value = values[values.length-1];
+
+            if (!this.item.isIndicatorLamp) {
+              this.$.value.textContent = this.computeValue(value.y);
+            }
+
+            if (this.showDate)
+              this.$.dateSection.textContent = this.computeDate(value.x);
+
+            if (this.item.exceedable) {
+              this.checkExceedingState(value);
+              if (!this.hasAttribute('state') || this.state !== value.state) {
+                this.setAttribute('state', value.state);
+              }
+            }
+
+          }.bind(this));
+        } else {
+          this.renderClearing();
+        }
+      },
+
+      computeValue: function(y) {
+        return y;
+      },
+
+      renderClearing: function(values) {
+        if (!this._initialized) {
+          this.hasExceeded = false;
+          this.isExceeding = false;
+        }
+        this.$.value.textContent = '';
+        this.$.dateSection.textContent = '';
+        this.setAttribute('state', null);
+      },
+
+      _requestExceedingDetails: function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.fire('request-exceeding-details', {
+            item: this.item
+          });
+      }
+    });
+  </script>
+
+</dom-module>

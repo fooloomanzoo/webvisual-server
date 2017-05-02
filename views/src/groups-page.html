@@ -1,0 +1,204 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<link rel="import" href="../bower_components/app-route/app-route.html">
+
+<link rel="import" href="style/shared-style.html">
+<link rel="import" href="style/grid-layout.html">
+
+<link rel="import" href="data/group-data.html"/>
+<link rel="import" href="group-card.html"/>
+
+<dom-module id="groups-page">
+  <template strip-whitespace>
+    <style include="shared-style grid-layout">
+      :host(:not([plain])) .grid.sign li > * {
+        border-radius: 12px;
+      }
+      :host([plain]) .grid.sign li > * {
+        border-radius: 8px;
+      }
+      .grid.sign li > * {
+        box-shadow: none;
+        border: thin solid var(--grid-border-color);
+      }
+
+      .grid.sign li > :first-child {
+        border-bottom-left-radius: 0px;
+        border-bottom-right-radius: 0px;
+        border-bottom-width: 0px;
+      }
+
+      .grid.sign li > :last-child {
+        border-top-left-radius: 0px;
+        border-top-right-radius: 0px;
+      }
+      @media (max-width: 1980px) {
+        .grid.sign li {
+          -webkit-flex-basis: 25%;
+          flex-basis: 25%;
+          max-width: 25%;
+        }
+      }
+      @media (max-width: 1280px) {
+        .grid.sign li {
+          -webkit-flex-basis: 33.3%;
+          flex-basis: 33.3%;
+          max-width: 33.3%;
+        }
+      }
+      @media (min-width: 768px) and (max-width: 900px) {
+        .grid.sign li {
+          -webkit-flex-basis: 50%;
+          flex-basis: 50%;
+          max-width: 50%;
+        }
+      }
+      @media (max-width: 520px) {
+        .grid.sign li {
+          -webkit-flex-basis: 50%;
+          flex-basis: 50%;
+          max-width: 50%;
+        }
+      }
+      @media (max-width: 400px) {
+        .grid.sign li {
+          -webkit-flex-basis: 33.3%;
+          flex-basis: 33.3%;
+          max-width: 33.3%;
+        }
+      }
+
+    </style>
+
+    <group-data
+      subgroups="{{subgroups}}"
+      grouped-key="{{groupedKey}}"
+      grouping-keys="{{groupingKeys}}"
+      facility-system="[[facilitySystem]]"></group-data>
+
+    <svg-data
+      svg-data="{{svgData}}"
+      facility-system="[[facilitySystem]]"></svg-data>
+
+    <template is="dom-if" if="[[visible]]">
+
+      <ul class="grid">
+        <template is="dom-repeat" id="cards" items="[[_getSubGroups(subgroups)]]" as="group">
+          <li>
+            <group-card
+              title="[[group.title]]"
+              plain$="[[plain]]"
+              open-on-select
+              open-on-exceed
+              multi
+              svg-url-prefix="/images/[[facilitySystem]]/"
+              svg-src-path="[[group.svg.path]]"
+              svg-selectable="[[_getSvgSelectable(group.svg.path, svgData.paths)]]">
+
+              <ul class="grid sign">
+                <template is="dom-repeat" items="[[group.items]]" as="id">
+                  <li>
+                    <device-sign
+                      item="[[_getItem(id, elements)]]"
+                      show-date
+                      selectable></device-sign>
+                    <device-caption
+                      vertical
+                      keys="[[_getItemKeys(id, elements)]]"
+                      grouped-key='[[groupedKey]]' without-grouped-key></device-caption>
+                  </li>
+                </template>
+              </ul>
+            </group-card>
+          </li>
+        </template>
+      </ul>
+
+    </template>
+
+  </template>
+
+  <script>
+    Polymer({
+      is: 'groups-page',
+
+      properties: {
+
+        facilitySystem: String,
+
+        elements: {
+          type: Array,
+          notify: true
+        },
+
+        subgroups: Array,
+
+        groupedKey: {
+          type: String,
+          notify: true,
+          observer: '_groupedKeyChanged'
+        },
+
+        groupingKeys: {
+          type: Array,
+          notify: true
+        },
+
+        visible: {
+          type: Boolean,
+          value: false,
+          reflectToAttribute: true
+        },
+
+        svgData: Object
+
+      },
+
+      _getSubGroups: function(subgroup) {
+        // Return placeholder items when the items haven't loaded yet.
+        return subgroup || [{},{},{},{},{}];
+      },
+
+      _getItem: function(id, elements) {
+        if (id && elements) {
+          for (var i = 0, item; item = elements[i]; ++i) {
+            if (item.id === id) {
+              return item;
+            }
+          }
+        }
+        return {};
+      },
+
+      _getItemKeys: function(id, elements) {
+        if (id && elements) {
+          for (var i = 0, item; item = elements[i]; ++i) {
+            if (item.id === id) {
+              return item.keys;
+            }
+          }
+        }
+        return {};
+      },
+
+      _getSvgSelectable: function(src, svgSrcPaths) {
+        return svgSrcPaths[src] || {};
+      },
+
+      _groupedKeyChanged: function(groupedKey, old) {
+        if (old !== undefined) {
+          var sel = Polymer.dom(this.root).querySelectorAll('[element]');
+          sel.forEach( function(el) {
+            el.resetState();
+          });
+
+          var cards = Polymer.dom(this.root).querySelectorAll('group-card');
+          cards.forEach( function(gr) {
+            gr.clearItems();
+          });
+        }
+      }
+    });
+  </script>
+
+</dom-module>

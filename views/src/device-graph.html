@@ -1,0 +1,508 @@
+<!-- Dependent to be content of device-chart -->
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<link rel="import" href="behaviors/color-behavior.html" />
+<!-- <link rel="import" href="behaviors/checked-and-select-behavior.html"/> -->
+<link rel="import" href="behaviors/device-behavior.html" />
+
+<link rel="import" href="style/device-shared-style.html" />
+
+<script type="text/javascript" src="../bower_components/d3/d3.min.js"></script>
+<!-- <script type="text/javascript" src="/scripts/d3-interpolate-path.min.js"></script> -->
+
+<dom-module id="device-graph">
+    <template>
+    <style include="device-shared-style"></style>
+  </template>
+    <script>
+        DiagramGraph = Polymer({
+            is: 'device-graph',
+
+            behaviors: [
+                WebvisualBehaviors.ColorBehavior,
+                // WebvisualBehaviors.CheckedAndSelectBehavior,
+                WebvisualBehaviors.DeviceBehavior
+            ],
+
+            properties: {
+
+                interpolation: {
+                    type: String,
+                    value: 'Lineare Verbindung',
+                    observer: '_interpolationChanged'
+                },
+
+                noDots: Boolean,
+
+                noLine: Boolean,
+
+                noFill: Boolean,
+
+                lineWidth: {
+                    type: Number,
+                    value: 0.75,
+                    observer: '_lineWidthChanged'
+                },
+
+                dotRadius: {
+                    type: Number,
+                    value: 3,
+                    observer: '_dotRadiusChanged'
+                },
+
+                viewLength: {
+                    type: Number,
+                    value: Number.POSITIVE_INFINITY
+                },
+
+                storeInside: {
+                    type: Boolean,
+                    value: true,
+                    readOnly: true
+                }
+            },
+
+            chartElement: Object,
+            area: Object,
+
+            _isAttached: false,
+
+            get containerRoot() {
+                var root = Polymer.dom(this).getOwnerRoot();
+                if (!root)
+                    return Polymer.dom(this).parentNode;
+                else if (root.nodeType == Node.DOCUMENT_FRAGMENT_NODE)
+                    return root.host;
+                else {
+                    return undefined;
+                }
+            },
+
+            observers: [
+                '_itemChanged(item)',
+                '_presentationChanged(noDots, noLine, noFill)'
+            ],
+
+            created: function() {
+                this.area = d3.area()
+                    .defined(this._defined.bind(this))
+                    .x( function(d) {
+                        return this.chartElement._x(d.x);
+                    }.bind(this))
+                    .y0( function() {
+                      if (this.chartElement.yScale === 'ln' || this.chartElement.yScale === 'log₁₀') {
+                        return this.chartElement._height;
+                      } else {
+                        return this.chartElement._y(0)
+                      }
+                    }.bind(this))
+                    .y1( function(d) {
+                        return this.chartElement._y(d.y);
+                    }.bind(this));
+
+                this.bisectDate = d3.bisector(function(d) { return d.x; }).left;
+            },
+
+            attached: function() {
+                if (this.item) {
+                    this.addNodes();
+                }
+            },
+
+            detached: function() {
+                this.removeNodes();
+                this.chartElement = null;
+            },
+
+            addNodes: function() {
+                if (this._isAttached) {
+                    this.clearValues(true);
+                }
+                var containerRoot = this.containerRoot;
+
+                if (!containerRoot || containerRoot.nodeName !== 'DEVICE-CHART') {
+                    console.warn('No parentElement (chart) for graph found. Registration of Graph Element failed');
+                    return;
+                } else {
+                    this.chartElement = containerRoot;
+                }
+
+                if (!this.chartElement._height || !this.chartElement._width) {
+                  this.chartElement._sizeLayout();
+                }
+
+                this.chartElement._graphs.add(this);
+
+                this.noDots = this.chartElement.noDots || false;
+                this.noLine = this.chartElement.noLine || false;
+                this.noFill = this.chartElement.noFill || false;
+
+                // fill area
+                if (this.areaNode && this.areaNode.node) {
+                    this.areaNode
+                        .attr('data-name', this.item.mount)
+                        .attr('fill', this.noFill ? null : (this.item.color || '#000'))
+                        .attr('stroke', this.noLine ? null : this.item.color || '#000')
+                        .attr('stroke-width', this.lineWidth);
+                } else {
+                    this.areaNode = this.chartElement._areas
+                        .append('svg:path')
+                        .attr('data-name', this.item.mount)
+                        .attr('class', 'area')
+                        .attr('fill', this.noFill ? null : (this.item.color || '#000'))
+                        .attr('stroke', this.noLine ? null : this.item.color || '#000')
+                        .attr('stroke-width', this.lineWidth);
+                }
+                this.areaNode
+                    .datum([])
+                    .attr('d', this.area);
+
+                // threshold markings
+                var y, node;
+                var bounderies = this.chartElement._bounderies;
+                if (this.item.threshold) {
+                  this.bounderyLineGradientNode = bounderies.append('linearGradient')
+                      .attr('id', 'boundery-line-' + this.item.mount)
+                      .attr('gradientUnits', 'userSpaceOnUse')
+                      .attr('x1', 0).attr('y1', this.chartElement._height)
+                      .attr('x2', 0).attr('y2', 0);
+                  this.areaNode.attr('stroke', 'url(#boundery-line-' + this.item.mount + ')');
+                } else {
+                  if (this.bounderyLineGradientNode && this.bounderyLineGradientNode.node) {
+                    node = this.bounderyLineGradientNode.node();
+                    if (node && node.parentElement)
+                        node.parentElement.removeChild(node);
+                    this.bounderyLineGradientNode = null;
+                  }
+                }
+                // group of dots
+                if (this.dots && this.dots.node) {
+                    this.dots.attr('mount', this.item.mount)
+                        .attr('hidden', this.noDots ? true : null);
+                } else {
+                    this.dots = this.chartElement._dots
+                        .append('svg:g')
+                        .attr('mount', this.item.mount)
+                        .attr('class', 'dots')
+                        .attr('hidden', this.noDots ? true : null);
+                }
+
+                this._isAttached = true;
+                this.chartElement.redraw();
+            },
+
+            removeNodes: function() {
+                var node;
+                if (this.areaNode && this.areaNode.node) {
+                    node = this.areaNode.node();
+                    if (node && node.parentElement)
+                        node.parentElement.removeChild(node);
+                    this.areaNode = null;
+                }
+                if (this.dots && this.dots.node) {
+                    node = this.dots.node();
+                    if (node && node.parentElement)
+                        node.parentElement.removeChild(node);
+                    this.dots = null;
+                }
+                if (this.bounderyLineGradientNode && this.bounderyLineGradientNode.node) {
+                  node = this.bounderyLineGradientNode.node();
+                  if (node && node.parentElement)
+                      node.parentElement.removeChild(node);
+                  this.bounderyLineGradientNode = null;
+                }
+                if (this.chartElement && this.chartElement._graphs)
+                    this.chartElement._graphs.delete(this);
+                this._isAttached = false;
+            },
+
+            _itemChanged: function(item) {
+                if (!item || !item.mount) {
+                    // this.removeNodes();
+                    return;
+                }
+                this.addNodes();
+            },
+
+            insertValues: function(values, len) {
+                if (values === undefined) {
+                    return;
+                }
+
+                var len = len || (this.viewLength > 0 ? this.viewLength : values.length);
+
+                if (!this._initialized)
+                    this._initialized = true;
+                if (!len) {
+                    values.map(function(v) {
+                        return {
+                            x: +v.x,
+                            y: +v.y,
+                            state: +v.state
+                        };
+                    });
+                    if (this.storeInside) {
+                        this.values = this.values.concat(values);
+                    }
+                    this.renderInsertedValues(values);
+                } else {
+                    var tmp = values.slice(values.length - len, values.length);
+                    tmp.map(function(v) {
+                        return {
+                            x: new Date(v.x),
+                            y: +v.y,
+                            state: +v.state
+                        };
+                    });
+                    if (this.storeInside) {
+                        this.values = this.values.concat(tmp);
+                    }
+                    this.renderInsertedValues(tmp);
+                    tmp.length = 0;
+                }
+            },
+
+            spliceValues: function(splices) {
+                // var list = this.$.list.items;
+
+                // requestAnimationFrame( function() {
+                var changeRecord = [];
+
+                for (var i = 0; i < splices.length; i++) {
+                    for (var j = this.values.length - 1; j >= 0; j--) {
+                        if (this.values[j].x === splices[i].x)
+                            break;
+                    }
+                    if (j !== -1) {
+                        this.values.splice(j, 1);
+                        // changeRecord.push( { index: j, removed: [this.values[j]], addedCount: 0, object: this.values, type: 'splice'} );
+                    }
+                }
+
+                // }.bind(this))
+                // this.notifySplices('values', changeRecord);
+                this.redraw();
+            },
+
+            renderInsertedValues: function(values) {
+                if (!this.chartElement)
+                    this.chartElement = this.containerRoot;
+
+                if (this.chartElement) {
+                    if (this.chartElement._isZoomed === false)
+                        this.chartElement.redraw();
+                    else
+                        this.redraw();
+                }
+            },
+
+            redraw: function() {
+                if (!(this.chartElement && this.chartElement.opened && this.item && this.values && this.values.length)) return;
+                this.async(function() {
+                    // performance.mark('graph redraw start');
+                    var self = this;
+                    var data = this.values || [];
+                    if (!this.noFill) {
+                      if (this.areaNode && this.areaNode.node) {
+                        this.areaNode
+                            .datum(data)
+                            .attr('d', this.area);
+                      } else if (this.item && this.item.mount){
+                        this.addNodes();
+                        return;
+                      } else {
+                        return;
+                      }
+                    }
+
+                    var y;
+                    if (this.item.threshold) {
+                      if (this.bounderyLineGradientNode && this.bounderyLineGradientNode.node) {
+                        var b_line = []
+                          , u_color = this.customStyle['device-state-exceeds-color'] || '#F20C0C'
+                          , l_color = this.customStyle['device-state-deceeds-color'] || '#F20C0C'
+                          , i_color = this.item.color || '#000';
+
+                        if (this.item.threshold.from !== undefined) {
+                          y = ((1 - Math.ceil(this.chartElement._y(this.item.threshold.from) + this.lineWidth * 1.25) / this.chartElement._height) * 100);
+                          if (Number.isFinite(y)) {
+                            b_line.push({o: y + '%', c: l_color});
+                            b_line.push({o: y + '%', c: i_color});
+                          }
+                        }
+                        if (this.item.threshold.to !== undefined) {
+                          y = ((1 - Math.floor(this.chartElement._y(this.item.threshold.to) - this.lineWidth * 1.25) / this.chartElement._height) * 100);
+                          if (Number.isFinite(y)) {
+                            b_line.push({o: y + '%', c: i_color});
+                            b_line.push({o: y + '%', c: u_color});
+                          }
+                        }
+                        // for area
+                        var gradients = this.bounderyLineGradientNode
+                            .attr('x1', 0).attr('y1', this.chartElement._height)
+                            .attr('x2', 0).attr('y2', 0)
+                            .selectAll('stop')
+                              .data(b_line);
+
+                        gradients.attr('offset', function(d) { return d.o; })
+                              .attr('stop-color', function(d) { return d.c; });
+
+                        gradients.enter()
+                              .append('stop')
+                              .attr('offset', function(d) { return d.o; })
+                              .attr('stop-color', function(d) { return d.c; });
+
+                        gradients.exit()
+                              .remove();
+                      }
+                    }
+
+                    // if (!this.noDots) {
+                    //   // hide line if there are too many data-points
+                    //   data = data.filter(this._defined.bind(this));
+                    //   // console.log(data.length, this.lineWidth, this.chartElement._width, data.length / this.lineWidth);
+                    //   if (data.length * this.dotRadius * 4 > this.chartElement._width) {
+                    //     data = [];
+                    //   }
+                    //
+                    //   var dots = this.dots.selectAll('circle')
+                    //       .data(data);
+                    //   // update current dots
+                    //   dots.attr('cx', function(d) {
+                    //           return this.chartElement._x(d.x)
+                    //       }.bind(this))
+                    //       .attr('cy', function(d) {
+                    //           return this.chartElement._y(d.y)
+                    //       }.bind(this));
+                    //   // enter new dots
+                    //   dots.enter()
+                    //       .append('circle')
+                    //       .classed('dot style-scope device-graph', true)
+                    //       .attr('r', this.dotRadius)
+                    //       .attr('cx', function(d) {
+                    //           return this.chartElement._x(d.x)
+                    //       }.bind(this))
+                    //       .attr('cy', function(d) {
+                    //           return this.chartElement._y(d.y)
+                    //       }.bind(this))
+                    //       .attr('fill', this._getStrokeColor.bind(this))
+                    //       .attr('stroke', this._getStrokeColor.bind(this));
+                    //   //  remove old dots
+                    //   dots.exit()
+                    //       .remove();
+                    // }
+                }.bind(this));
+
+                // performance.mark('graph redraw end');
+                // performance.measure('graph redraw', 'graph redraw start', 'graph redraw end');
+                // TODO(?): update line, animated http://bl.ocks.org/benjchristensen/1148374
+            },
+
+            _defined: function(d, i, data) {
+                var domainX = this.chartElement._x.domain(),
+                    yScale = this.chartElement.yScale;
+
+                if (!Number.isFinite(d.y))
+                    return false;
+                else if ((yScale === 'ln' || yScale === 'log₁₀') && d.y <= 0)
+                    return false; // log- and sqrt-scales require larger than 0-Values
+                else if ((d.x >= domainX[0] && d.x <= domainX[1])
+                     || (data[i+1] && data[i+1].x >= domainX[0] && data[i+1].x <= domainX[1])
+                     || (data[i-1] && data[i-1].x >= domainX[0] && data[i-1].x <= domainX[1]))
+                    return true; // only numbers in x-Domain are shown (and their successor and predecessor) (graph is a function by definition, so y-Domain is not relevant)
+                else
+                    return false;
+            },
+
+            setColor: function(color) {
+                // random color if color is not set
+                WebvisualBehaviors.ColorBehavior.setColor.call(this, color);
+                if (this.chart) {
+                    if (this.areaNode && this.areaNode.attr) this.areaNode.attr('fill', color);
+                }
+            },
+
+            clearValues: function(force) {
+              WebvisualBehaviors.DeviceBehavior.clearValues.call(this, force);
+              // if (this.dots && this.dots.node) {
+              //   this.dots.selectAll('circle')
+              //           .remove();
+              // }
+            },
+
+            _getStrokeColor: function(d) {
+              if (this.item.threshold) {
+                switch (d.state) {
+                  case 1:
+                    return this.customStyle['device-state-exceeds-color'] || '#F20C0C';
+                  case -1:
+                    return this.customStyle['device-state-deceeds-color'] || '#F20C0C';
+                }
+              }
+              return this.item.color || '#fff';
+            },
+
+            _presentationChanged: function(noDots, noLine, noFill) {
+                // if (this.dots && this.dots.attr) {
+                //     this.dots.attr('hidden', this.noDots ? true : null);
+                //     this.debounce('redraw', this.redraw, 16);
+                // }
+                if (this.areaNode && this.areaNode.attr) {
+                    this.areaNode.attr('fill', this.noFill ? (this.item.color || '#000') : null)
+                                 .attr('stroke', this.noLine ? '#000' : null);
+                    this.debounce('redraw', this.redraw, 16);
+                }
+            },
+
+            _dotRadiusChanged: function(dotRadius) {
+                if (this.dots && this.dots.selectAll) {
+                    this.dots.selectAll('circle.dot').attr('r', dotRadius);
+                }
+            },
+
+            _lineWidthChanged: function(lineWidth) {
+                if (this.areaNode && this.areaNode.attr) {
+                  this.areaNode.attr('stroke-width', lineWidth);
+                }
+            },
+
+            _interpolationChanged: function(interpolation) {
+                var curve;
+                switch (interpolation) {
+                    case 'Basis Spline':
+                        curve = d3.curveBasis;
+                        break;
+                    case 'Monotoner Spline':
+                        curve = d3.curveMonotoneX;
+                        break;
+                    case 'Kubischer Spline':
+                        curve = d3.curveNatural;
+                        break;
+                    case 'Cardinaler Spline':
+                        curve = d3.curveCardinal;
+                        break;
+                    case 'Catmull-Rom-Spline':
+                        curve = d3.curveCatmullRom;
+                        break;
+                    case 'Stufe (mitte)':
+                        curve = d3.curveStep;
+                        break;
+                    case 'Stufe (davor)':
+                        curve = d3.curveStepAfter;
+                        break;
+                    case 'Stufe (danach)':
+                        curve = d3.curveStepBefore;
+                        break;
+                    default:
+                        curve = d3.curveLinear;
+                        break;
+                }
+                this.area.curve(curve);
+
+                if (this.chartElement && this.areaNode)
+                    this.redraw();
+            }
+        });
+    </script>
+
+</dom-module>

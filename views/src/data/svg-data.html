@@ -1,0 +1,79 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<dom-module id="svg-data">
+
+  <script>
+  (function() {
+
+    Polymer({
+
+      is: 'svg-data',
+
+      properties: {
+
+        urlPrefix: String,
+
+        facilitySystem: String,
+
+        svgData: {
+          type: Object,
+          notify: true
+        }
+      },
+
+      observers: [
+        '_fetchSvgSource(facilitySystem)'
+      ],
+
+      _fetchSvgSource: function(facilitySystem) {
+        var facilityName, systemName;
+        var names = facilitySystem.split('/')
+                         .filter(function (str) { return str !== ''; });
+        if (names.length === 2) {
+          facilityName = names[0];
+          systemName = names[1];
+        }
+        if (facilityName && systemName) {
+          this.async( function() {
+            this._getResource(facilityName, systemName);
+          }.bind(this));
+        }
+      },
+
+      _getResource: function(facilityName, systemName, attempts) {
+        if (!(facilityName && systemName)) {
+          return;
+        }
+        var prefix = this.urlPrefix || '/data/';
+        var xhr = new XMLHttpRequest();
+        xhr.addEventListener('load', function(e) {
+          if (e.target.status < 400) {
+            this.set('svgData', JSON.parse(e.target.responseText));
+            // localStorage.setItem(request, e.target.responseText);
+          } else {
+            // var items = localStorage.getItem(request);
+            // if (items)
+            //   this.set(request, JSON.parse(items));
+          }
+        }.bind(this));
+        xhr.addEventListener('error', function(e) {
+          console.log(e.target.status);
+          // Flaky connections might fail fetching resources
+          if (attempts > 1) {
+            this.debounce('_getResource', this._getResource.bind(this, rq, attempts - 1), 200);
+          } else {
+            rq.onError.call(this, e);
+          }
+        }.bind(this));
+
+        xhr.open('GET', prefix + facilityName + '+' + systemName + '+svgSource.json');
+        xhr.withCredentials = true;
+        xhr.send();
+      }
+
+    });
+
+  })();
+  </script>
+
+</dom-module>

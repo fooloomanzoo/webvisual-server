@@ -1,0 +1,204 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-list/iron-list.html">
+
+<link rel="import" href="behaviors/device-behavior.html">
+<link rel="import" href="style/device-shared-style.html"/>
+
+<dom-module id="device-table">
+	<template strip-whitespace>
+    <style include="device-shared-style">
+      :host {
+        /*height needs to be set by outer element*/
+        color: var(--table-color, currentColor);
+        background-color: var(--table-background, transparent);
+        @apply(--layout-vertical);
+        width: 100%;
+        height: 100%;
+        position: relative;
+        border-color: inherit;
+        border-radius: inherit;
+  			min-width: 150px;
+  			min-height: 75px;
+        text-align: left;
+        line-height: 1.5;
+        cursor: default;
+        pointer-events: all;
+      }
+  		span {
+  			position: relative;
+  			padding: 0 0.5em;
+  		}
+  		.tr {
+        @apply(--layout-horizontal);
+        @apply(--layout-around-justified);
+    		font-size: 0.7em;
+        -webkit-user-select: all; -moz-user-select: all; -ms-user-select: all; user-select: all;
+  		}
+  		.tr:not([state]), .tr[state="0"] {
+  			background: none; color: inherit;
+  		}
+  		.tr:nth-of-type(even) {
+  			background: rgba(137, 137, 137, 0.15);
+  		}
+  		.tr[state="1"] {
+  			background: var(--device-state-exceeds-color);
+  			color: var(--device-state-exceeds-text-color);
+  		}
+  		.tr[state="-1"] {
+  			background: var(--device-state-deceeds-color);
+  			color: var(--device-state-deceeds-text-color);
+  		}
+  		.tr[onlyfirstrow] > span:not(:first-of-type) {
+  			display: none;
+  		}
+  		#head {
+        @apply(--layout-horizontal);
+        @apply(--layout-around-justified);
+        font-size: 0.8em;
+  			width: 100%;
+  			line-height: 1.8;
+  			border-bottom-style: solid;
+  			border-bottom-width: thin;
+  			border-color: inherit;
+  			cursor: pointer;
+  			text-align: center;
+  		}
+      #caption {
+        font-weight: bold;
+        display: block;
+        position: relative;
+        font-size: 0.6em;
+        padding: 0.25em 0.5em;
+        text-align: center;
+        -webkit-user-select: all; -moz-user-select: all; -ms-user-select: all; user-select: all;
+      }
+  		[hidden] {
+  			display: none !important;
+  		}
+  		#list {
+  			height: auto;
+  			width: 100%;
+  			flex: 1 1 50px;
+  		}
+    </style>
+
+    <section id="head" hidden$="[[hideHeader]]" on-tap="_toggleGridView">
+      <span>Datum</span>
+      <span hidden$="[[onlyFirstRow]]">Wert <span hidden$="[[!item.unit]]" style="font-style:italic;">([[unit]])</span></span>
+    </section>
+
+  	<iron-list id="list" items="[[values]]" as="value">
+  		<template>
+        <div class="tr" state$="[[value.state]]" onlyfirstrow$="[[onlyFirstRow]]">
+          <span>[[computeDate(value.x)]]</span>
+          <span>[[computeValue(value.y, value.state)]]</span>
+        </div>
+      </template>
+  	</iron-list>
+
+    <section id="caption">[[caption]]</section>
+  </template>
+
+	<script>
+		WebvisualElementTable = Polymer({
+			is: 'device-table',
+
+			behaviors: [
+				WebvisualBehaviors.DeviceBehavior
+			],
+
+			properties: {
+
+				caption: String,
+
+				keysForCaption: Boolean,
+
+				onlyFirstRow: Boolean,
+
+				hideHeader: Boolean,
+
+				fullDate: Boolean,
+
+				viewLength: {
+          type: Number,
+          value: Number.POSITIVE_INFINITY
+        },
+
+        storeInside: {
+          type: Boolean,
+          value: true
+        }
+
+			},
+
+      observers: [
+        '_computeKeysForCaption(keysForCaption, item)'
+      ],
+
+			insertValues: function(values) {
+				if (values && values.length) {
+					this.async( function() {
+						if (!this._initialized) {
+							this.set('values', values.reverse());
+							this._initialized = true;
+						} else {
+							for (var i = 0; i < values.length; i++) {
+								this.unshift('values', values[i]);
+							}
+						}
+					}.bind(this));
+				} else if (!this._initialized) {
+					this.renderClearing();
+				}
+			},
+
+			spliceValues: function(splices) {
+        // var list = this.$.list.items;
+
+        this.async( function() {
+          var changeRecord = [];
+
+          for (var i = 0; i < splices.length; i++) {
+            for (var j = this.values.length - 1; j >= 0; j--) {
+              if (this.values[j].x === splices[i].x)
+                break;
+            }
+            if (j !== -1) {
+              this.values.splice(j, 1);
+              changeRecord.push( { index: j, removed: [this.values[j]], addedCount: 0, object: this.values, type: 'splice'} );
+            }
+          }
+
+          this.notifySplices('values', changeRecord);
+        }.bind(this))
+
+			},
+
+      renderClearing: function() {
+        this.$.list.set('items', []);
+      },
+
+      _computeKeysForCaption: function(keysForCaption, item) {
+        if (keysForCaption && item && item.keys) {
+          var cap = '';
+          for (var key in this.item.keys) {
+            cap += this.item.keys[key] + ' ';
+          }
+          this.$.caption.textContent = cap;
+        } else if (this.caption) {
+          this.$.caption.textContent = this.caption;
+        }
+        // if (item && item.color) {
+        //   this.$.caption.style.background = item.color;
+        // } else {
+        //   this.$.caption.style.background = '';
+        // }
+      },
+
+      _toggleGridView: function() {
+        this.$.list.grid = !!!this.$.list.grid;
+      }
+		});
+	</script>
+
+</dom-module>

@@ -1,0 +1,144 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<dom-module id="group-data">
+
+  <script>
+  (function() {
+
+    Polymer({
+
+      is: 'group-data',
+
+      properties: {
+
+        urlPrefix: String,
+
+        facilitySystem: String,
+
+        groupedKey: {
+          type: String,
+          notify: true,
+          observer: '_groupedKeyChanged'
+        },
+
+        groupingKeys: {
+          type: Array,
+          notify: true,
+          observer: '_groupingKeysChanged'
+        },
+
+        groups: {
+          type: Array,
+          notify: true
+        },
+
+        subgroups: {
+          type: Array,
+          computed: '_computeSubGroups(groups, groupedKey)',
+          notify: true
+        }
+
+      },
+
+      observers: [
+        '_fetchGroups(facilitySystem)'
+      ],
+
+      _fetchGroups: function(facilitySystem) {
+        var names = facilitySystem.split('/')
+                         .filter(function (str) { return str !== ''; });
+        if (names.length === 2) {
+          this._facilitySystem = names[0] + '+' + names[1];
+          this.async( function() {
+            this._request(this._facilitySystem, 'groups');
+            this._request(this._facilitySystem, 'groupingKeys');
+          }.bind(this));
+        }
+      },
+
+      _computeSubGroups: function(groups, groupedKey) {
+        if (groups && groupedKey) {
+          for (var i = 0, group; group = groups[i]; ++i) {
+            if (group.key === groupedKey) {
+              return group.groups;
+            }
+          }
+        }
+        return [];
+      },
+
+      _request: function(_facilitySystem, request, attempts) {
+        if (!(_facilitySystem && request)) {
+          return;
+        }
+        var prefix = this.urlPrefix || '/data/';
+        this._getResource({
+          url: prefix + _facilitySystem + '+' + request + '.json',
+          onLoad: function(e) {
+            if (e.target.status < 400) {
+              this.set(request, JSON.parse(e.target.responseText));
+              // localStorage.setItem(request, e.target.responseText);
+            } else {
+              // var items = localStorage.getItem(request);
+              // if (items)
+              //   this.set(request, JSON.parse(items));
+            }
+          },
+          onError: function(e) {
+            // var items = localStorage.getItem(request);
+            // if (items)
+            //   this.set(request, JSON.parse(items));
+          }
+        }, attempts);
+      },
+
+      _getResource: function(rq, attempts) {
+        var xhr = new XMLHttpRequest();
+        xhr.addEventListener('load', rq.onLoad.bind(this));
+        xhr.addEventListener('error', function(e) {
+          console.log(e.target.status);
+          // Flaky connections might fail fetching resources
+          if (attempts > 1) {
+            this.debounce('_getResource', this._getResource.bind(this, rq, attempts - 1), 200);
+          } else {
+            rq.onError.call(this, e);
+          }
+        }.bind(this));
+
+        xhr.open('GET', rq.url);
+        xhr.withCredentials = true;
+        xhr.send();
+      },
+
+      _groupingKeysChanged: function(groupingKeys) {
+        var prefix = this.urlPrefix || '/data/';
+        var groupedKey = localStorage.getItem('groupedKey');
+        if (groupedKey && groupedKey in this.groupingKeys) {
+          this.set('groupedKey', groupedKey);
+        } else {
+          this._getResource({
+            url: prefix + this._facilitySystem + '+preferedGroupingKey.json',
+            onLoad: function(e) {
+              if (e.target.status < 400) {
+                this.set('groupedKey', JSON.parse(e.target.responseText));
+              }
+            },
+            onError: function(e) {
+              console.log(e);
+            }
+          });
+        }
+      },
+
+      _groupedKeyChanged: function(groupedKey, old) {
+        if (groupedKey) {
+          localStorage.setItem('groupedKey', groupedKey);
+        }
+      }
+
+    });
+
+  })();
+  </script>
+
+</dom-module>

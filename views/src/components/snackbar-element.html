@@ -1,0 +1,81 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<dom-module id="snackbar-element">
+
+  <template>
+    <style>
+      :host {
+        display: block;
+        position: fixed;
+        font-size: 1em;
+        left: calc(50% - 400px);
+        right: calc(50% - 400px);
+        bottom: 0;
+        background-color: var(--primary-color, var(--primary-color));
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        color: var(--bright-text-color);
+        width: 800px;
+        padding-left: 1em;
+        padding-right: 1em;
+        visibility: hidden;
+        text-align: center;
+        will-change: transform;
+        -webkit-transform: translate3d(0, 100%, 0);
+        transform: translate3d(0, 100%, 0);
+        transition-property: visibility, -webkit-transform, opacity;
+        transition-property: visibility, transform, opacity;
+        transition-duration: 0.2s;
+      }
+      :host([opened]) {
+        visibility: visible;
+        -webkit-transform: translate3d(0, 0, 0);
+        transform: translate3d(0, 0, 0);
+      }
+      @media (max-width: 1280px) {
+        :host {
+          top: auto;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          width: auto;
+          -webkit-transform: translate3d(0, 100%, 0);
+          transform: translate3d(0, 100%, 0);
+        }
+      }
+    </style>
+
+    <content></content>
+
+  </template>
+
+  <script>
+
+    Polymer({
+      is: 'snackbar-element',
+
+      properties: {
+        autoClose: Boolean,
+
+        opened: {
+          type: Boolean,
+          value: false,
+          reflectToAttribute: true
+        }
+      },
+
+      open: function() {
+        Polymer.dom.flush();
+        this.offsetHeight && this.set('opened', true);
+        if (this.autoClose) {
+          this.debounce('_close', this.close, 4000);
+        }
+      },
+
+      close: function() {
+        this.set('opened', false);
+      }
+    });
+
+  </script>
+
+</dom-module>
