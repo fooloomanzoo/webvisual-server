@@ -1,11 +1,14 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
 
 <dom-module id="dialog-style">
   <template>
     <style>
       :host {
         display: block;
+        padding: 1em;
         margin: 2em;
+        border-radius: 8px;
         background-color: var(--dialog-background-color, #f1f1f1);
         color: var(--dialog-color, var(--primary-text-color));
         --dialog-shadow: 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12), 0 5px 5px -3px rgba(0, 0, 0, 0.4);
@@ -18,35 +21,52 @@
       :host([opened]) {
         opacity: 1;
       }
-      :host > * {
-        position: relative;
-        margin: 0.25em 1em;
-      }
-      :host > .no-margin {
+      .no-margin {
         margin: 0;
       }
-      :host > [dialog-title] {
-        font-size: 1.25em;
+      :host > ::content > * {
+        position: relative;
+        box-sizing: border-box;
+      }
+      :host > ::content > [dialog-title] {
+        @apply(--layout-vertical);
+        @apply(--layout-center-center);
+        text-align: center;
+        font-size: 1.1em;
+        margin: 0.5em 0 1em 0;
         @apply(--dialog-title);
       }
-      :host > [dialog-content] {
+      :host > ::content > [dialog-title] > * {
+        position: relative;
+      }
+      :host > ::content > [dialog-title] > *:first-child:not(:only-child) {
+        font-size: 1.5em;
+        margin-bottom: 0.75em;
+      }
+      :host > ::content > [dialog-title] > *:only-child {
+        font-size: 0.8em;
+      }
+      :host > ::content > [dialog-content] {
         @apply(--layout-vertical);
-        flex: 1 0 100px;
         border-top: thin solid var(--grid-border-color, #aaa);
         border-bottom: thin solid var(--grid-border-color, #aaa);
       }
-      :host > [dialog-content] > * {
+      :host > ::content > [dialog-content] > * {
         position: relative;
         flex: 1 0 auto;
       }
-      :host > [dialog-bottom] {
+      :host > ::content > [dialog-bottom],
+      :host > ::content > .button {
         @apply(--layout-horizontal);
         @apply(--layout-end-justified);
-        position: relative;
-        padding: 0.5em 0.5em 0.5em 1.5em;
+        padding: 1em 0.5em 0.5em;
+        flex-wrap: wrap;
       }
-      :host > [dialog-bottom] > *:not(:first-child) {
-        margin-left: 0.5em;
+      :host > ::content > [dialog-bottom] > * {
+        align-self: center;
+      }
+      :host > ::content > [dialog-bottom] > *:not(:last-child) {
+        margin-right: 0.5em;
       }
     </style>
   </template>

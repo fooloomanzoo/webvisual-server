@@ -13,7 +13,7 @@ module.exports = function() {
           passwordField : 'password'
       }, function(username, password, done) {
         if (username) {
-          console.log('Authentification of', username, '(not required)');
+          // console.log('Authentification of', username, '(not required)');
           return done(null, {username: username});
         } else {
           return done(null, false);

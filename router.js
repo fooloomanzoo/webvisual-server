@@ -358,7 +358,7 @@ class Router extends EventEmitter {
 
 const ensureLoggedIn = {
   isRequired: function(req, res, next) {
-    console.log('ensureLoggedIn isRequired', req.user, req.isAuthenticated() );
+    // console.log('ensureLoggedIn isRequired', req.user, req.isAuthenticated() );
     if (!req.isAuthenticated || !req.isAuthenticated()) {
       res.sendStatus(401);
     } else {

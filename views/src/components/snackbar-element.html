@@ -11,7 +11,7 @@
         left: calc(50% - 400px);
         right: calc(50% - 400px);
         bottom: 0;
-        background-color: var(--primary-color, var(--primary-color));
+        background-color: #444;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
         color: var(--bright-text-color);
         width: 800px;
@@ -45,6 +45,7 @@
     </style>
 
     <content></content>
+    <div>[[message]]</div>
 
   </template>
 
@@ -54,20 +55,32 @@
       is: 'snackbar-element',
 
       properties: {
-        autoClose: Boolean,
+        autoClose: {
+          type: Boolean,
+          value: false
+        },
+
+        autoClosePeriod: {
+          type: Number,
+          value: 8000
+        },
 
         opened: {
           type: Boolean,
           value: false,
           reflectToAttribute: true
+        },
+
+        message: {
+          type: String
         }
       },
 
       open: function() {
         Polymer.dom.flush();
-        this.offsetHeight && this.set('opened', true);
+        this.set('opened', true);
         if (this.autoClose) {
-          this.debounce('_close', this.close, 4000);
+          this.debounce('close', this.close, this.autoClosePeriod);
         }
       },
 

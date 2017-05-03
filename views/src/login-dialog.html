@@ -1,186 +1,111 @@
 <script src="../bower_components/fetch/fetch.js"></script>
 <link rel="import" href="../bower_components/polymer/polymer.html">
-<link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
-<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
-<link rel="import" href="../bower_components/iron-form/iron-form.html">
-<link rel="import" href="../bower_components/iron-input/iron-input.html">
-<link rel="import" href="../bower_components/paper-dialog-behavior/paper-dialog-behavior.html">
 
 <link rel="import" href="behaviors/localize-behavior.html">
 
-<link rel="import" href="style/shared-style.html">
-<link rel="import" href="style/button-style.html">
+<link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
+
+<link rel="import" href="components/icon-button.html">
+<link rel="import" href="components/dialog-element.html">
 <link rel="import" href="style/input-style.html">
+<link rel="import" href="style/button-style.html">
 
 <dom-module id="login-dialog">
 
-  <template strip-whitespace>
+  <template>
 
-    <style include="shared-style input-style button-style">
+    <style include="input-style button-style">
       :host {
-        @apply(--layout-vertical);
-        @apply(--layout-center-center);
-        min-height: 100vh;
-        box-sizing: border-box;
         outline: none;
-      }
-      .box {
-        background: #f1f1f1;
-        box-shadow: 0px 2px 6px 4px rgba(0,0,0,0.16);
-        color: black;
-        border-radius: 32px;
-        position: relative;
-        box-sizing: border-box;
-        font-size: 1em;
-        padding: 1.5em;
-        margin: 1.5em;
-        white-space: normal;
-        line-height: 1.4;
       }
       #signinform {
         @apply(--layout-vertical);
         @apply(--layout-center-center);
-        position: relative;
-        box-sizing: border-box;
         font-size: 1em;
-        padding: 1em;
-        margin: auto;
-        align-self: center;
-        white-space: normal;
-        line-height: 1.4;
-      }
-      .buttons {
-        @apply(--layout-horizontal);
-        @apply(--layout-center-justified);
-        align-items: stretch;
-        position: relative;
-        width: 100%;
-        margin-top: 1em;
-      }
-      #signinform > *:not(:last-child) {
-        margin-bottom: 1em;
-      }
-      h3, h4 {
-        font-weight: normal;
-        text-align: center;
-        white-space: normal;
-      }
-      #loginInfo {
-        font-size: 1.1em;
-        margin: 0;
-        margin-bottom: 1.5em;
-      }
-      .input-box {
-        display: inline-flex;
-        align-items: center;
-      }
-      .left {
-        margin-right: 0.75em;
-      }
-      .right {
-        margin-left: 0.75em;
-      }
-      .button {
-        flex: 0;
-        padding: 0;
-        pointer-events: none;
-        position: relative;
-      }
-      .button.submit {
-        flex: 1 1 auto;
+        padding: 0.5em 0 0;
       }
       .usercard {
         @apply(--layout-horizontal);
         @apply(--layout-center-center);
-        flex: 1 1 auto;
-        padding: 0 1em;
-        margin-right: 1em;
-        border-radius: 8px;
+        padding: 0.75em 1em;
         background: rgba(0,0,0,0.1);
       }
-      .button:not(:last-of-type) {
-        margin-right: 1em;
+      iron-icon {
+        margin-right: 0.5em;
       }
-      .button > button {
-        padding: 0.75em;
-        pointer-events: all;
+      .input > iron-icon {
+        margin-right: 0.25em;
       }
-      button > span {
-        padding: 0.5em;
+      [hidden] {
+        display: none !important;
       }
     </style>
 
-    <div class="box">
-      <template is="dom-if" if="{{!loggedIn}}">
+    <dialog-element id="dialog">
+      <template is="dom-if" if="[[!loggedIn]]">
+        <div dialog-title id="loginInfo">
+          <div>{{localize('login', 'name')}}</div>
+          <div>{{localize('login', 'title')}}</div>
+        </div>
 
-        <form is="iron-form" id="signinform" action$="{{signInUrl}}" method="post" on-iron-form-presubmit="onSubmit">
-          <div>
-            <h4 id="loginInfo">{{localize('login', 'title')}}</h4>
-          </div>
-          <input id="csrf_token" type="hidden" name="csrf_token" value="{{csrf_token}}" />
-
-          <section class="input-box">
-            <iron-icon class="left" icon="perm-identity"></iron-icon>
-            <div class="input">
-              <input is="iron-input" id="username" autocomplete="username" placeholder="" autocapitalize="none" autocorrect="off" name="username" type="text" tabindex="0"/>
-              <div class="md-decorator" error-message$="{{localize('login', 'invalid-username')}}" aria-hidden="true">
-                <label>{{localize('login', 'username')}}</label>
-                <div class="underline"></div>
-              </div>
+        <form dialog-content id="signinform" on-submit="onSubmit" method="POST">
+          <section class="input">
+            <iron-icon class="left" icon="person-add"></iron-icon>
+            <input id="username" autocomplete="username" name="username" type="text" pattern=".{1,32}\..{1,32}" placeholder$="{{localize('login', 'username')}}" required>
+            <div class="decorator" error-message$="{{localize('login', 'invalid-username')}}" aria-hidden="true">
+              <label>{{localize('login', 'username')}}</label>
+              <div class="underline"></div>
             </div>
           </section>
 
-          <section class="input-box">
-            <iron-icon class="left" icon="perm-identity"></iron-icon>
-            <div class="input">
-              <input is="iron-input" id="password" class="style-scope paper-input" required="" autocomplete="current-password" placeholder="" autocapitalize="none" autocorrect="off" name="password" type="password" pattern=".{4,32}" tabindex="0"/>
-              <div class="md-decorator" error-message$="{{localize('login', 'invalid-password')}}" aria-hidden="true">
-                <label>{{localize('login', 'password')}}</label>
-                <div class="underline"></div>
-              </div>
+          <section class="input">
+            <iron-icon class="left" icon="more-horiz"></iron-icon>
+            <input id="password" required autocomplete="current-password" pattern=".{6,64}" name="password"  placeholder$="{{localize('login', 'password')}}" type="password" pattern="">
+            <div class="decorator" error-message$="{{localize('login', 'invalid-password')}}" aria-hidden="true">
+              <label>{{localize('login', 'password')}}</label>
+              <div class="underline"></div>
             </div>
           </section>
 
           <div class="buttons">
-            <div class="button">
+            <div dialog-dismiss class="button" on-tap="onReset">
               <paper-ripple></paper-ripple>
-              <button dialog-dismiss type="cancel">
-                <iron-icon icon="close"></iron-icon>
-              </button>
+              <iron-icon class="left" icon="close"></iron-icon>
+              <span>{{localize('login', 'reset')}}</span>
             </div>
-            <div class="button submit">
+            <div class="button" on-tap="onSubmit">
               <paper-ripple></paper-ripple>
-              <button type="submit">
-                <iron-icon class="left" icon="juelich:logo"></iron-icon>
-                <span>{{localize('login', 'name')}}</span>
-              </button>
+              <iron-icon class="left" icon="group-add"></iron-icon>
+              <span>{{localize('login', 'confirm')}}</span>
             </div>
           </div>
         </form>
       </template>
 
-      <template is="dom-if" if="{{loggedIn}}">
-        <h3>{{localize('notification', 'loggedIn', 'true')}}</h3>
-        <div class="buttons">
+      <template is="dom-if" if="[[loggedIn]]">
+        <div dialog-title>
+          <div>{{localize('notification', 'loggedIn', loggedIn)}}</div>
+        </div>
+        <div dialog-content>
           <div class="usercard">
-            <iron-icon class="left" icon="perm-identity"></iron-icon>
+            <iron-icon class="left" icon="person"></iron-icon>
             <span>{{userProfile.username}}</span>
           </div>
-          <div class="button">
+        </div>
+
+        <div dialog-bottom class="buttons">
+          <icon-button icon="close" dialog-dismiss></icon-button >
+          <div class="button" on-tap="signOut">
             <paper-ripple></paper-ripple>
-            <button dialog-dismiss>
-              <iron-icon icon="close"></iron-icon>
-            </button>
-          </div>
-          <div class="button">
-            <paper-ripple></paper-ripple>
-            <button on-click="signOut">
-              <iron-icon icon="sync-disabled"></iron-icon>
-            </button>
+            <iron-icon class="left" icon="person-outline"></iron-icon>
+            <span>{{localize('login', 'logout')}}</span>
           </div>
         </div>
       </template>
-    </div>
+
+    </dialog-element>
+
   </template>
 
   <script>
@@ -189,7 +114,6 @@
       is: 'login-dialog',
 
       behaviors: [
-        Polymer.PaperDialogBehavior,
         WebvisualBehaviors.LocalizeBehavior
       ],
 
@@ -201,7 +125,6 @@
         loggedIn: {
           type: Boolean,
           value: false,
-          readOnly: true,
           notify: true
         },
 
@@ -214,7 +137,6 @@
           type: String,
           value: '/logout'
         }
-
       },
 
       attached: function() {
@@ -227,14 +149,16 @@
             if (!profile) {
               this.loggedIn = false;
               this.open();
-              this.focus();
             } else {
-              this.close();
+              this.dispatchEvent(new CustomEvent('announce', {
+                detail: this.localize ? this.localize('notification', 'loggedIn', true) : 'You are signed in'
+              }), {
+                bubbles: true
+              });
             }
           }.bind(this), function() {
             this.loggedIn = false;
             this.open();
-            this.focus();
             // When rejected, authentication was performed but failed.
             this.dispatchEvent(new CustomEvent('announce', {
               detail: this.localize ? this.localize('notification', 'loggedIn', false) : 'You are not signed in'
@@ -243,7 +167,14 @@
             });
           }.bind(this))
           .catch(function(err) {
-            console.log(err);
+            if (err)
+              console.log(err);
+            this.dispatchEvent(new CustomEvent('announce', {
+              detail: this.localize ? this.localize('notification', 'loggedIn', false) : 'You are not signed in'
+            }), {
+              bubbles: true
+            });
+            this.open();
           });
       },
 
@@ -262,15 +193,9 @@
               if (cred) {
                 // console.log('auto sign-in performed');
                 if (cred.type === 'password') {
-                    cred.idName = 'username';
-                    // Include CSRF token in the credential object
-                    var csrf_token = new FormData();
-                    csrf_token.append('csrf_token', this.root.querySelector('#csrf_token').value);
-                    // `.additionalData` accepts `FormData`
-                    // You can include CSRF token etc.
-                    cred.additionalData = csrf_token;
-                    //Return Promise from `signIn`
-                    return this.signIn.call(this, cred);
+                  cred.idName = 'username';
+                  //Return Promise from `signIn`
+                  return this.signIn.call(this, cred);
                 }
               } else {
                 // console.log('auto sign-in not performed');
@@ -279,9 +204,7 @@
                 return Promise.resolve();
               }
             }.bind(this))
-            .catch(function(err) {
-              console.log('auto sign-in error', err);
-            });
+            .catch(this.notSignedIn.bind(this));
         } else {
           // Resolve if Credential Management API is not available
           console.log('auto sign-in not available');
@@ -301,6 +224,12 @@
         // Polymer `iron-form` feature to validate the form
         if (signinForm.validate && !signinForm.validate()) return;
 
+        if (!signinForm.elements.username.value || !signinForm.elements.password.value) {
+          this.notSignedIn.call(this, 'password or username are empty', 401)
+              .catch(console.warn);
+          return;
+        }
+
         if (navigator.credentials) {
           // Construct `FormData` object from actual `form`
           var cred = new PasswordCredential(signinForm);
@@ -313,6 +242,7 @@
               }), {
                 bubbles: true
               });
+              this.open();
             }.bind(this), function() {
               // Polymer event to notice user that 'Authentication failed'.
               this.loggedIn = false;
@@ -330,6 +260,7 @@
               }), {
                 bubbles: true
               });
+              this.open();
             }.bind(this), function() {
               // Polymer event to notice user that 'Authentication failed'.
               this.loggedIn = false;
@@ -342,6 +273,11 @@
         }
       },
 
+      onReset: function() {
+        this.$$('#username').value = '';
+        this.$$('#password').value = '';
+      },
+
       /**
        * Let user sign-in using id/password
        * @param  {CredentialObject} cred FormData or CredentialObject
@@ -351,20 +287,18 @@
         // POST-ing credential object will be converted to FormData object
 
         return fetch(this.signInUrl, { // convert multipart-formdata to urlencoded
-              method: 'POST',
-              credentials:  cred
-            }).then(function(res) {
+            method: 'POST',
+            credentials: cred
+          }).then(function(res) {
             // Convert JSON string to an object
             if (res.status === 200) {
               return res.json();
             } else {
-              return Promise.reject();
+              return Promise.reject(null, res.status);
             }
           }.bind(this))
           .then(this.signedIn.bind(this))
-          .catch(function(err) {
-            console.log(err);
-          }.bind(this));
+          .catch(this.notSignedIn.bind(this));
       },
 
       /**
@@ -375,22 +309,21 @@
       signOut: function() {
         // POST-ing credential object will be converted to FormData object
         return fetch(this.signOutUrl, { // convert multipart-formdata to urlencoded
-              method: 'POST',
-              body: JSON.stringify(this.userProfile)
-            }).then(function(res) {
+            method: 'POST',
+            body: JSON.stringify(this.userProfile)
+          }).then(function(res) {
             // Convert JSON string to an object
-              if (res.status !== 200) {
-                return Promise.reject();
-              }
-              if (navigator.credentials) {
-                navigator.credentials.requireUserMediation();
-              }
-              this.loggedIn = false;
-              this.userProfile = null;
-            }.bind(this))
-            .catch(function(err) {
-              console.log(err);
-            }.bind(this));
+            if (res.status !== 200) {
+              return Promise.reject();
+            }
+            if (navigator.credentials) {
+              navigator.credentials.requireUserMediation();
+            }
+            this.loggedIn = false;
+            this.userProfile = null;
+            this.open();
+          }.bind(this))
+          .catch(this.notSignedIn.bind(this));
       },
 
       /**
@@ -399,7 +332,6 @@
        * @return {Promise} Resolves when authentication succeeded.
        */
       signedIn: function(profile) {
-
         if (profile && profile.username) {
           this.loggedIn = true;
           this.userProfile = {
@@ -411,6 +343,29 @@
         }
       },
 
+      notSignedIn: function(err, statusCode) {
+        var status = '';
+        this.loggedIn = false;
+        if (statusCode) {
+          if (statusCode >= 400 && statusCode < 500) {
+            status = 'Login with Server failed';
+          } else if (statusCode >= 500 && statusCode < 600) {
+            status = 'Server-Error occured';
+          } else {
+            status = 'Unknown Error occured';
+          }
+        }
+        this.dispatchEvent(new CustomEvent('announce', {
+          detail: status ? status : err
+        }), {
+          bubbles: true
+        });
+        this.$$('#username').value = '';
+        this.$$('#password').value = '';
+        this.open();
+        return Promise.reject(err);
+      },
+
       /**
        * Authentication flow with our own server
        * @param  {String} url Credential type string.
@@ -418,7 +373,6 @@
        * @return {Promise} Resolves when successfully authenticated
        */
       noCredApiSignIn: function(url, signinForm) {
-
         return fetch(url, {
             method: 'POST',
             // `credentials:'include'` is required to include cookies on `fetch`
@@ -432,13 +386,13 @@
               return Promise.reject();
             }
           }).then(this.signedIn.bind(this))
-          .catch(function(err) {
-            this.loggedIn = false;
-            console.log(err);
-          }.bind(this));
+          .catch(this.notSignedIn.bind(this));
+      },
+
+      open: function() {
+        this.$.dialog.open();
       }
     });
-
   </script>
 
 </dom-module>

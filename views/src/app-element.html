@@ -16,6 +16,7 @@
 <link rel="import" href="../bower_components/app-route/app-route.html"/>
 <link rel="import" href="../bower_components/app-layout/app-scroll-effects/effects/waterfall.html"/>
 
+<link rel="import" href="components/snackbar-element.html">
 <link rel="import" href="login-dialog.html"/>
 <link rel="import" href="home-page.html"/>
 
@@ -34,9 +35,6 @@
   <template strip-whitespace>
 
     <style include="shared-style selectbox-style button-style app-style">
-      :host {
-         display: block;
-      }
       app-header {
         @apply(--layout-fixed-top);
         z-index: 1;
@@ -173,6 +171,10 @@
         font-size: 0.75em;
         padding: 0 0.5em 0 2.5em;
       }
+      .network,
+      .announcement {
+        line-height: 2;
+      }
 
     </style>
 
@@ -183,11 +185,19 @@
       data="{{routeData}}"
       tail="{{subroute}}"></app-route>
 
+    <login-dialog id="loginDialog"
+      icon="{{loginIcon}}"
+      logged-in="{{loggedIn}}"
+      offline="[[offline]]"
+      language="[[language]]"
+      language-resources="[[languageResources]]">
+    </login-dialog>
+    
     <facility-data
       facilities="{{facilities}}"
       facility-system="[[facilitySystem]]"
       items="{{elements}}"
-      logged-in="{{loggedIn}}"
+      logged-in="[[loggedIn]]"
       offline="[[offline]]"></facility-data>
 
     <device-socket-data id="socketHandler"
@@ -209,7 +219,7 @@
           <logo-element id="logo" href="/home" main-title title$="[[localize('home', 'name')]]"></logo-element>
 
           <template is="dom-if" if="[[_shouldLogin]]">
-            <icon-button icon="assignment-ind" class="login-icon" on-click="_openLoginDialog"></icon-button>
+            <icon-button icon="[[loginIcon]]" class="login-icon" on-click="_openLoginDialog"></icon-button>
           </template>
 
           <template is="dom-if" if="[[showTabsOnTop]]">
@@ -259,41 +269,41 @@
         <!-- home view for selecting the facility -->
         <home-page class="fullbleed" name="home" dark$="[[dark]]" plain$="[[plain]]"
           facilities="[[facilities]]"
-          logged-in="{{loggedIn}}"
+          logged-in="[[loggedIn]]"
           language="[[language]]"
-          language-resources="[[languageResources]]"></home-page>
+          language-resources="[[languageResources]]">
+          <content></content>
+        </home-page>
         <!-- list view of items in a facility -->
         <list-page disable-upgrade$="[[!loadComplete]]" name="list" dark$="[[dark]]" plain$="[[plain]]"
           facility-system="[[facilitySystem]]"
-          elements="[[elements]]"></list-page>
+          elements="[[elements]]">
+        </list-page>
         <!-- group view of items -->
         <groups-page disable-upgrade$="[[!loadComplete]]" name="groups" dark$="[[dark]]" plain$="[[plain]]"
           facility-system="[[facilitySystem]]"
           elements="[[elements]]"
           grouped-key="{{groupedKey}}"
-          grouping-keys="{{groupingKeys}}"></groups-page>
+          grouping-keys="{{groupingKeys}}">
+        </groups-page>
         <!-- detail view of one item -->
         <detail-page class="fullbleed" disable-upgrade$="[[!loadComplete]]" id="detailpage" name="detail" dark$="[[dark]]" plain$="[[plain]]"
           route="{{subroute}}"
           facility-system="[[facilitySystem]]"
           elements="[[elements]]"
-          show-toggle-icon="{{detailHasDrawer}}"></detail-page>
+          show-toggle-icon="{{detailHasDrawer}}">
+        </detail-page>
       </iron-pages>
 
       <!-- login dialog-->
-      <login-dialog id="loginDialog" dark$="[[dark]]" plain$="[[plain]]"
-        logged-in="{{loggedIn}}"
-        offline="[[offline]]"
-        language="[[language]]"
-        language-resources="[[languageResources]]"></login-dialog>
-
       <!-- SIDEMENU -->
       <template is="dom-if" if="[[_shouldRenderDrawer]]">
 
       <app-drawer id="drawerPanel" opened="{{drawerOpened}}" align="left" swipe-open tabindex="0">
         <app-toolbar class="top">
           <icon-button icon="close" title="close" on-tap="_toggleDrawer"></icon-button>
-          <icon-button icon="perm-identity" title="user" on-tap="_openLoginDialog"></icon-button>
+          <icon-button icon="[[loginIcon]]" title="login" on-tap="_openLoginDialog"></icon-button>
+
         </app-toolbar>
 
         <div class="drawer-content">
@@ -424,6 +434,7 @@
         </div>
       </snackbar-element>
     </template>
+
   </template>
 
   <script>
@@ -497,6 +508,11 @@
           notify: true
         },
 
+        loginIcon: {
+          type: String,
+          computed: '_computeLoginIcon(loggedIn)'
+        },
+
         offline: Boolean,
 
         loadComplete: Boolean,
@@ -546,6 +562,7 @@
       listeners: {
         'detail-request': '_openDetailRequestDialog',
         'login-request': '_openLoginDialog',
+        'announce': '_notifyAnnouncement'
       },
 
       observers: [
@@ -688,12 +705,29 @@
         if (this.offline || (!this.offline && oldOffline === true)) {
           if (!this._networkSnackbar) {
             this._networkSnackbar = document.createElement('snackbar-element');
-            this._networkSnackbar.setAttribute('auto-close', '');
+            this._networkSnackbar.setAttribute('auto-close', true);
             Polymer.dom(this.root).appendChild(this._networkSnackbar);
+            this._networkSnackbar.classList.add('network');
           }
-          Polymer.dom(this._networkSnackbar).innerHTML = this.localize ? this.localize('notification', 'offline', this.offline) : (this.offline ?
-            'You are offline' : 'You are online');
+          this._networkSnackbar.set('message', this.localize ? this.localize('notification', 'offline', this.offline) : (this.offline ?
+            'You are offline' : 'You are online'));
           this._networkSnackbar.open();
+        }
+      },
+
+      _notifyAnnouncement: function(e) {
+        var message = e.detail;
+        // Show the snackbar if the user is offline when starting a new session
+        // or if the network status changed.
+        if (message) {
+          if (!this._announceSnackbar) {
+            this._announceSnackbar = document.createElement('snackbar-element');
+            this._announceSnackbar.setAttribute('auto-close', true);
+            Polymer.dom(this.root).appendChild(this._announceSnackbar);
+            this._announceSnackbar.classList.add('announcement');
+          }
+          this._announceSnackbar.set('message', message);
+          this._announceSnackbar.open();
         }
       },
 
@@ -841,6 +875,10 @@
               iconbutton.set('icon', 'expand-less');
           }
         }
+      },
+
+      _computeLoginIcon: function(loggedIn) {
+        return loggedIn ? 'person' : 'person-outline';
       }
     });
 

@@ -60,7 +60,7 @@
       }
       .item.facility {
         margin: 24px;
-        border-radius: 16px;
+        border-radius: 12px;
         border: thin solid var(--highlight-color);
       }
       .item.facility.iron-selected,
@@ -72,7 +72,7 @@
       .item.system {
         box-sizing: border-box;
         margin-bottom: 0.75em;
-        border-radius: 8px;
+        border-radius: 12px;
         border: thin solid var(--highlight-color);
       }
       .item.system:hover {
@@ -87,7 +87,7 @@
         -ms-flex-align: stretch;
         -webkit-align-items: stretch;
         align-items: stretch;
-        margin: 0 60px;
+        margin: 0 54px;
       }
       a:link,
       a:visited {
@@ -105,12 +105,12 @@
         top: 1em;
         opacity: 0.5;
         width: auto;
-        font-size: 1.25em;
+        font-size: 1em;
         background-color: #252525;
-        border-radius: 12px;
+        border-radius: 8px;
         border: thin solid currentColor;
         transition: opacity 300ms cubic-bezier(0.6,0,0.3,1);
-        padding: 0 16px;
+        padding: 0 12px;
         word-wrap: break-word;
         cursor: pointer;
       }
@@ -120,10 +120,9 @@
       }
       @media (min-width: 768px) {
         .box {
-          max-width: 68vw;
+          max-width: 50vw;
         }
       }
-
     </style>
 
     <template is="dom-if" if="[[!loggedIn]]">
@@ -134,7 +133,10 @@
     </template>
 
     <div class="box">
-      <template is="dom-if" if="[[_shouldRenderHeader]]">
+      <template is="dom-if" if="[[_gotFacilityItems]]">
+        <content></content>
+      </template>
+      <template is="dom-if" if="[[_gotFacilityItems]]">
         <header>
           <h1>{{localize('home', 'title')}}</h1>
         </header>
@@ -194,9 +196,9 @@
           type: Boolean
         },
 
-        _shouldRenderHeader: {
+        _gotFacilityItems: {
           type: Boolean,
-          computed: '_computeShouldRenderBox(facilities)'
+          computed: '_computeGotFacilityItems(facilities)'
         }
       },
 
@@ -214,7 +216,7 @@
         return (name === selected);
       },
 
-      _computeShouldRenderBox: function(facilities) {
+      _computeGotFacilityItems: function(facilities) {
         this.loggedIn = (facilities && facilities.length > 0) ? this.loggedIn : false;
         return facilities && facilities.length > 0;
       },
