@@ -37,8 +37,8 @@ set "subj=/C=%country%/ST=%state%/L=%city%/O=%company%/OU=%company_unit%/CN=%dom
 rem ** Create a Certificate **
 
 rem generate a private key for CA
-openssl genrsa -newkey -passout pass:%pass% ^
-            -out %output_dir%\ca.key rsa:4096
+openssl genrsa -passout pass:%pass% ^
+            -out %output_dir%\ca.key -aes256 4096
 
 rem generate the certificate signing request
 openssl req -passin pass:%pass% ^
@@ -47,16 +47,16 @@ openssl req -passin pass:%pass% ^
             -key %output_dir%\ca.key ^
             -subj "%subj%" ^
             -days "%days%" ^
-            -out %output_dir%\ca.csr
+            -out %output_dir%\%domain%.csr
 
 rem Create self-signed public key
 openssl x509 -passin pass:%pass% ^
             -req ^
             -sha256 ^
             -days %days% ^
-            -in %output_dir%\ca.csr ^
+            -in %output_dir%\%domain%.csr ^
             -signkey %output_dir%\ca.key ^
-            -out %output_dir%\ca.crt
+            -out %output_dir%\ca.ss.crt
 
 rem pkcs12-format file
 rem without password
@@ -64,16 +64,16 @@ openssl pkcs12 -export ^
             -passin pass:%pass% ^
             -passout pass: ^
             -inkey %output_dir%\ca.key ^
-            -in %output_dir%\ca.crt ^
-            -out %output_dir%\ca_empty_pw.p12
+            -in %output_dir%\ca.ss.crt ^
+            -out %output_dir%\ca.ss.np.p12
 
 rem including same password
 openssl pkcs12 -export ^
             -passin pass:%pass% ^
             -passout pass:%pass% ^
             -inkey %output_dir%\ca.key ^
-            -in %output_dir%\ca.crt ^
-            -out %output_dir%\ca.p12
+            -in %output_dir%\ca.ss.crt ^
+            -out %output_dir%\ca.ss.p12
 
 rem Remove temporary Files
 if exist "%RANDFILE%" ( del "%RANDFILE%" )

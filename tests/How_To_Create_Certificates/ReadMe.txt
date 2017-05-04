@@ -1,44 +1,60 @@
-Here will be explained, how can you create the Private Key,
-Certificate Request and Self-Signed Certificate at once.
+=============================================================================
+OpenSSL v1.0.2k                                Precompiled Binaries for Win64
+-----------------------------------------------------------------------------
 
-There two scripts, you can use for it: Windows PowerShell Script and Windows Batch Script.
-Both Scripts do the same thing, so you can choose the way you prefer.
+                         *** Release Information ***
 
-There is one Important Thing, equal for both ways:
-!! You need to run the Script on Windows OS, which have an Internet Explorer !!
+Release Date:     Jan 26, 2017
 
-So, how to use the Scripts exactly?
-If you prefer "bat"-File, Be Careful with variables Declaration!!
-spaces by equal sign are forbidden!! (right: "var=value", wrong: "var= value")
-If you can't run "ps1"-File, try to start PowerShell as Administrator and call "set-executionpolicy remotesigned"
+Author:           Frederik A. Winkelsdorf (opendec.wordpress.com)
+                  for the Indy Project (www.indyproject.org)
 
-Before you start the prefered Script, please set important variables, like said below (under 1.)
-(! You can skip next part (1-3), if Certificate is needed only for Developement (not public use) !)
+Requirements:     Indy 10.5.5+ (SVN Version or Delphi 2009 and newer)
 
-  1. As first you need to put all the information under the "-- Certificate Information --" comment
-     pass_length refers to the password that you need to protect your private key.
-     The key is useful without that phrase. That password by default will be written to ./cert/pass.txt
+Dependencies:     The libraries have no noteworthy dependencies
 
-  2. You can also change the path for output files under the "-- Paths --" comment
+Installation:     Copy both DLL files into your application directory
 
-  3. The creation of certificate runs with openssl.
-     Commands for creating the file are explained under comment "** Create a Certificate **"
-     Better explanation you can find under: https://nodejs.org/api/tls.html#tls_tls_ssl
+Supported OS:     Windows XP x64 up to Windows 10 x64
 
-You will get 4 Files (under "./cert" by default)
-"ca.key" is your private key
-"ca.pw.json" includes password for your private key
-"domain_name_csr.pem" is the Signification Request, you should provide to your Certificate Authority
-"ca.crt" is self-signed certificate you can use for some tests till your Request is officially signed
+-----------------------------------------------------------------------------
 
-To run the server you'll need to place "ca.key", "ca.crt" and "ca.pw.json" to the "src/ssl" directory of the server.
+                          *** Legal Disclaimer ***
 
+THIS SOFTWARE IS PROVIDED BY ITS AUTHOR AND THE INDY PROJECT "AS IS" AND ANY 
+EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
+DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE FOR ANY 
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND 
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF 
+THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
------ Procedure of Official certification -----
+OpenSSL license terms are provided in the file "OpenSSL License.txt".
 
-If you want to officially sign your Certificate, you need to provide "domain_name_csr.pem" to your Certificate Authority.
-After Certificate Authority has approved your request, they should provide you with officially-signed certificate,
-that you need to use instead of self-generated "ca.crt".
-IMPORTANT! If you don't follow the next step, your page will be shown as insecure!!
-You'll need to get the latest version of every Certificate in Certification Chain
-and place it into "src/ssl/cert_chain" directory!
+PLEASE CHECK IF YOU NEED TO COMPLY WITH EXPORT RESTRICTIONS FOR CRYPTOGRAPHIC
+SOFTWARE AND/OR PATENTS.
+
+-----------------------------------------------------------------------------
+
+                       *** Build Information Win64 ***
+
+Built with:       Windows Server 2003 SP1 Platform SDK for x64
+                  The Netwide Assembler (NASM) v2.11.08 Win32
+                  Strawberry Perl v5.22.0.1 Win32 Portable
+                  Windows PowerShell
+                  FinalBuilder 7
+
+Shell:            Windows XP x64 Build Environment (Retail)
+
+Commands:         perl configure VC-WIN64A
+                  ms\do_win64a
+                  adjusted ms\version32.rc    (Indy Information inserted)
+                  nmake -f ms\ntdll.mak
+                  nmake -f ms\ntdll.mak test
+                  editbin.exe /rebase:base=0x11000000 libeay32.dll
+                  editbin.exe /rebase:base=0x12000000 ssleay32.dll
+
+=============================================================================

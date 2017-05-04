@@ -31,12 +31,14 @@
 
         groupingKeys: {
           type: Array,
+          value: function() { return []; },
           notify: true,
           observer: '_groupingKeysChanged'
         },
 
         groups: {
           type: Array,
+          value: function() { return []; },
           notify: true
         },
 
