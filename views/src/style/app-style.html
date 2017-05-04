@@ -26,6 +26,7 @@
         --app-header: {
           background-color: var(--primary-color);
           color: var(--bright-text-color);
+          transition: background 500ms cubic-bezier(0.6, 0, 0.3, 1);
         };
       }
       :host([plain]) {
@@ -61,7 +62,7 @@
         --primary-background: #999;
       }
       :host(:not([plain])[dark]) {
-        --primary-background: #252525;
+        --primary-background: #050505;
         --app-header: {
           background-color: var(--dark-primary-color);
           color: var(--bright-text-color);

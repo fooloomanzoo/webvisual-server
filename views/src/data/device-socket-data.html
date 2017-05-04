@@ -27,16 +27,35 @@
           notify: true
         },
 
-        lazyConnect: Boolean
+        lazyConnect: {
+          type: Boolean
+        },
+
+        loggedIn: {
+          type: Boolean
+        },
+
+        offline: {
+          type: Boolean
+        }
 
       },
 
       observers: [
-        '_createSocketConnection(lazyConnect, locationHost, socketName)'
+        '_connect(loggedIn, offline, lazyConnect)'
       ],
 
-      _createSocketConnection: function(lazyConnect, locationHost, socketName) {
-        if (!lazyConnect || !locationHost || !socketName || this.socketStatus === 'sync-disabled') return;
+      _connect: function(loggedIn, offline, lazyConnect) {
+        if (loggedIn && !offline && lazyConnect) {
+          this._createSocketConnection(this.locationHost, this.socketName);
+        } else {
+          this.socketStatus = 'sync-problem';
+          Webvisual.disconnect();
+        }
+      },
+
+      _createSocketConnection: function(locationHost, socketName) {
+        if (!locationHost || !socketName || this.socketStatus === 'sync-disabled') return;
 
         Webvisual.assignStatusNotifications(this);
         Webvisual.createSocketConnection(locationHost, socketName);

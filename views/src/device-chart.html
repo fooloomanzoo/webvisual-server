@@ -25,7 +25,7 @@
         color: white;
         letter-spacing: normal !important;
         user-select: none !important;
-        isolation: isolate;
+        /*isolation: isolate;*/
       }
       :host([fullscreen]) {
         background-color: var(--fullscreen-background-color);
@@ -54,7 +54,7 @@
         padding: 1em 3em 3em 1em !important;
       }
       #svgChart {
-        overflow: hidden;
+        /*overflow: hidden;*/
         position: relative;
         flex-grow: 1;
         /*flex-shrink: 1;*/
@@ -83,9 +83,8 @@
       rect#plot {
         fill: var(--chart-plot-background, #fff);
         stroke: currentColor;
-        fill-opacity: 0.25;
-        stroke-opacity: 0.25;
-        shape-rendering: crispEdges;
+        fill-opacity: 0.2;
+        stroke-opacity: 0.5;
         stroke-width: 1px;
       }
       :host[fullscreen] #plot,
@@ -178,7 +177,7 @@
             <rect x="0" y="0"></rect>
           </clipPath>
           <rect id="plot" clip-path="url(#clip)"></rect>
-          <g id="xGrid" class="grid" clip-path="url(#clip)"></g>
+          <!-- <g id="xGrid" class="grid" clip-path="url(#clip)"></g> -->
           <g id="yGrid" class="grid" clip-path="url(#clip)"></g>
           <g id="graphs" clip-path="url(#clip)">
             <g id="areas"></g>
@@ -376,7 +375,7 @@
         left: 50
       },
 
-      _xGrid: Object,
+      // _xGrid: Object,
       _yGrid: Object,
       _brush: Object,
       _chart: Object,
@@ -395,9 +394,6 @@
 
       _xAxis: Object,
       _yAxis: Object,
-
-      _xGrid: Object,
-      _yGrid: Object,
 
       _isBrushed: false,
       _isZoomed: false,
@@ -465,7 +461,9 @@
 
       _sizeChanged: function() {
         // only resize if opened attribute is set
-        this.debounce('resize', this._sizeLayout);
+        if (this._initialized) {
+          this.debounce('resize', this._sizeLayout);
+        }
       },
 
       _buildLayout: function() {
@@ -574,7 +572,8 @@
           .classed('style-scope', true)
           .classed('device-chart', true);
 
-        this.debounce('resize', this._sizeLayout);
+        this._initialized = true;
+        this._sizeChanged();
       },
 
       _sizeLayout: function() {
@@ -608,9 +607,9 @@
         this._xAxis = this._createAxis(this._x, 'bottom', this.xScale);
         this._yAxis = this._createAxis(this._y, 'left', this.yScale);
 
-        this._xGrid = this._createAxis(this._x, 'bottom', this.xScale, this.gridMult)
-          .tickSize(-this._height)
-          .tickFormat('');
+        // this._xGrid = this._createAxis(this._x, 'bottom', this.xScale, this.gridMult)
+        //   .tickSize(-this._height)
+        //   .tickFormat('');
         this._yGrid = this._createAxis(this._y, 'left', this.yScale, this.gridMult)
           .tickSize(-this._width)
           .tickFormat('');
@@ -621,9 +620,9 @@
         this._chart.select('#yAxis')
           .call(this._yAxis)
           .attr('transform', 'translate(0,' + 0 + ')');
-        this._chart.select('#xGrid')
-          .attr('transform', 'translate(0,' + this._height + ')')
-          .call(this._xGrid);
+        // this._chart.select('#xGrid')
+        //   .attr('transform', 'translate(0,' + this._height + ')')
+        //   .call(this._xGrid);
         this._chart.select('#yGrid')
           .call(this._yGrid)
           .attr('transform', 'translate(0,' + 0 + ')');;
@@ -749,7 +748,7 @@
 
         this._chart.select('#xAxis').call(this._xAxis);
         this._chart.select('#yAxis').call(this._yAxis);
-        this._chart.transition(50).select('#xGrid').call(this._xGrid);
+        // this._chart.transition(50).select('#xGrid').call(this._xGrid);
         this._chart.transition(50).select('#yGrid').call(this._yGrid);
 
         this._svg.selectAll('g,line,text,path,rect')

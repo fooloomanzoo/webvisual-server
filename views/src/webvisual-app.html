@@ -3,8 +3,10 @@
 
 <link rel="import" href="behaviors/localize-behavior.html"/>
 
+<link rel="import" href="../bower_components/app-layout/app-header-layout/app-header-layout.html"/>
 <link rel="import" href="../bower_components/app-layout/app-header/app-header.html"/>
 <link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html"/>
+<link rel="import" href="../bower_components/app-layout/app-scroll-effects/app-scroll-effects.html">
 <link rel="import" href="../bower_components/iron-media-query/iron-media-query.html">
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html"/>
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html"/>
@@ -17,10 +19,10 @@
 <link rel="import" href="../bower_components/app-layout/app-scroll-effects/effects/waterfall.html"/>
 
 <link rel="import" href="components/snackbar-element.html">
-<link rel="import" href="login-dialog.html"/>
-<link rel="import" href="home-page.html"/>
+<link rel="import" href="dialog-login.html"/>
+<link rel="import" href="page-home.html"/>
 
-<link rel="import" href="logo-element.html"/>
+<link rel="import" href="components/logo-element.html"/>
 <link rel="import" href="components/icon-button.html"/>
 
 <link rel="import" href="style/shared-style.html">
@@ -30,17 +32,15 @@
 
 <link rel="import" href="data/facility-data.html"/>
 
-<dom-module id="app-element">
+<dom-module id="webvisual-app">
 
   <template strip-whitespace>
 
     <style include="shared-style selectbox-style button-style app-style">
-      app-header {
-        @apply(--layout-fixed-top);
-        z-index: 1;
-        color: var(--bright-text-color);
+      :host {
+        @apply(--layout-fit);
       }
-      app-header app-toolbar {
+      app-header {
         @apply(--app-header);
       }
       app-toolbar {
@@ -48,7 +48,6 @@
         height: 4em;
         padding-left: 1em;
         padding-right: 1em;
-        transition: background 500ms cubic-bezier(0.6, 0, 0.3, 1);
       }
       app-toolbar icon-button {
         transform: scale(1);
@@ -97,12 +96,31 @@
         width: 100%;
         font-size: 0.8em;
       }
-      #viewSelect {
+      .viewSelect {
         height: 2.5em;
         @apply(--layout-inline);
-        @apply(--layout-center);
+        @apply(--layout-center-center);
       }
-      #tabs {
+      .viewSelect.behind {
+        @apply(--layout-fixed-top);
+        z-index: 1;
+        will-change: transform;
+        transition-property: -webkit-transform;
+        transition-property: transform;
+        transition-duration: 0.2s;
+        -webkit-transform: translate3d(0px, -2.5em, 0px);
+        transform: translate3d(0px, -2.5em, 0px);
+        box-shadow: 0 1px 3px 2px rgba(0, 0, 0, 0.2)
+      }
+      #header[threshold-triggered] ~ .viewSelect.behind {
+        transform: translate3d(0px, 0px, 0px);
+      }
+      snackbar-element,
+      .viewSelect.behind {
+        background-color: var(--primary-background);
+        color: var(--bright-text-color);
+      }
+      .tabs {
         height: 100%;
         --tab-overlay: {
           background-color: rgba(255, 255, 255, 0.1);
@@ -118,30 +136,16 @@
         position: relative;
       }
       #pageselector {
+        flex: 1 0 auto;
         position: relative;
-        @apply(--layout);
-        box-sizing: border-box;
-        padding-top: 4em;
-        padding-bottom: 3em;
         background-color: var(--primary-background);
         transition: background 500ms cubic-bezier(0.6, 0, 0.3, 1);
-        min-height: 100vh;
       }
-      #pageselector > * {
-        width: 100%;
-        overflow-x: hidden;
-        overflow-y: auto;
-        min-height: 100vh;
-      }
-      :host([page="home"]) #pageselector{
+      :host([page="home"]) #pageselector {
         background-color: var(--primary-color);
       }
-      :host([page="home"][dark]) #pageselector {
+      :host([dark][page="home"]) #pageselector {
         background-color: var(--dark-primary-color);
-      }
-      #pageselector > .fullbleed {
-        position: absolute;
-        top: 0; bottom: 0; left: 0; right: 0;
       }
       .login-icon {
         opacity: 0.5;
@@ -171,13 +175,9 @@
         font-size: 0.75em;
         padding: 0 0.5em 0 2.5em;
       }
-      .network,
-      .announcement {
-        line-height: 2;
-      }
-
     </style>
 
+    <!-- Routing-->
     <app-location route="{{route}}"></app-location>
     <app-route
       route="{{route}}"
@@ -185,14 +185,16 @@
       data="{{routeData}}"
       tail="{{subroute}}"></app-route>
 
-    <login-dialog id="loginDialog"
+    <!-- login dialog-->
+    <dialog-login id="loginDialog"
       icon="{{loginIcon}}"
       logged-in="{{loggedIn}}"
       offline="[[offline]]"
       language="[[language]]"
       language-resources="[[languageResources]]">
-    </login-dialog>
-    
+    </dialog-login>
+
+    <!-- Data -->
     <facility-data
       facilities="{{facilities}}"
       facility-system="[[facilitySystem]]"
@@ -205,105 +207,125 @@
       socket-room="[[facilitySystem]]"
       socket-status="{{socketStatus}}"
       logged-in="[[loggedIn]]"
+      offline="[[offline]]"
       lazy-connect="[[loadComplete]]"></device-socket-data>
 
-    <template is="dom-if" if="[[_isContentPage]]">
+    <iron-media-query query="(min-width: 768px)" query-matches="{{showTabsOnTop}}"></iron-media-query>
 
-      <iron-media-query query="(min-width: 768px)" query-matches="{{showTabsOnTop}}"></iron-media-query>
+    <app-header-layout id="headerLayout" fullbleed has-scrolling-region>
+      <template is="dom-if" if="[[_isContentPage]]">
+        <!-- Toolbar -->
+        <app-header role="header" id="header" reveals effects="waterfall" threshold="192">
+          <app-toolbar>
+            <icon-button icon="menu" class="menu-icon" title="menu" on-tap="_toggleDrawer"></icon-button>
+            <logo-element id="logo" href="/home" main-title title$="[[localize('home', 'name')]]"></logo-element>
 
-      <app-header role="header" id="header" reveals threshold="1">
+            <template is="dom-if" if="[[_shouldLogin]]">
+              <icon-button icon="[[loginIcon]]" class="login-icon" on-click="_openLoginDialog"></icon-button>
+            </template>
 
-        <app-toolbar>
-          <icon-button icon="menu" class="menu-icon" title="menu" on-tap="_toggleDrawer"></icon-button>
+            <template is="dom-if" if="[[showTabsOnTop]]">
+              <iron-collapse opened="[[showTabs]]" horizontal style="align-self: flex-end;">
+                <div class="viewSelect">
 
-          <logo-element id="logo" href="/home" main-title title$="[[localize('home', 'name')]]"></logo-element>
+                  <template is="dom-if" if="[[_shouldRenderGroupingKeys]]">
+                    <div class="selectbox toolbar grouping" title="grouping keys">
+                      <select value="{{groupedKey::change}}"></select>
+                    </div>
+                  </template>
 
-          <template is="dom-if" if="[[_shouldLogin]]">
-            <icon-button icon="[[loginIcon]]" class="login-icon" on-click="_openLoginDialog"></icon-button>
-          </template>
+                  <tabs-container class="tabs"
+                    role="tablist"
+                    selected="{{page}}"
+                    attr-for-selected="name">
+                    <div class="tab" name="list">
+                      <paper-ripple id="ripple" recenters></paper-ripple>
+                      <a href="/list/[[facilitySystem]]">{{localize('list', 'name')}}</a>
+                    </div>
+                    <div class="tab" name="groups">
+                      <paper-ripple id="ripple" recenters></paper-ripple>
+                      <a href="/groups/[[facilitySystem]]">{{localize('groups', 'name')}}</a>
+                    </div>
+                    <div class="tab" name="detail">
+                      <paper-ripple id="ripple" recenters></paper-ripple>
+                      <a href="/detail/[[facilitySystem]]">{{localize('detail', 'name')}}</a>
+                    </div>
+                  </tabs-container>
 
-          <template is="dom-if" if="[[showTabsOnTop]]">
-            <iron-collapse opened="[[showTabs]]" horizontal style="align-self: flex-end;">
-              <div id="viewSelect">
+                </div>
+              </iron-collapse>
+            </template>
 
-                <template is="dom-if" if="[[_shouldRenderGroupingKeys]]">
-                  <div class="selectbox toolbar grouping" title="grouping keys">
-                    <select value="{{groupedKey::change}}"></select>
-                  </div>
-                </template>
+            <template is="dom-if" if="[[detailHasDrawer]]">
+              <icon-button class="items-icon" icon="subject" title="items" on-tap="_toggleDetailControlDrawer">
+              </icon-button>
+            </template>
 
-                <tabs-container id="tabs"
-                  role="tablist"
-                  selected="{{page}}"
-                  attr-for-selected="name">
-                  <div class="tab" name="list">
-                    <paper-ripple id="ripple" recenters></paper-ripple>
-                    <a href="/list/[[facilitySystem]]">{{localize('list', 'name')}}</a>
-                  </div>
-                  <div class="tab" name="groups">
-                    <paper-ripple id="ripple" recenters></paper-ripple>
-                    <a href="/groups/[[facilitySystem]]">{{localize('groups', 'name')}}</a>
-                  </div>
-                  <div class="tab" name="detail">
-                    <paper-ripple id="ripple" recenters></paper-ripple>
-                    <a href="/detail/[[facilitySystem]]">{{localize('detail', 'name')}}</a>
-                  </div>
-                </tabs-container>
+            <icon-button icon="more-vert" title="tabs" checked="{{showTabs}}"></icon-button>
+          </app-toolbar>
 
-              </div>
-            </iron-collapse>
-          </template>
+        </app-header>
 
-          <template is="dom-if" if="[[detailHasDrawer]]">
-            <icon-button class="items-icon" icon="subject" title="items" on-tap="_toggleDetailControlDrawer">
-            </icon-button>
-          </template>
+        <div class="viewSelect behind">
+          <tabs-container class="tabs"
+            role="tablist"
+            selected="{{page}}"
+            attr-for-selected="name">
+            <div class="tab" name="list">
+              <paper-ripple id="ripple" recenters></paper-ripple>
+              <a href="/list/[[facilitySystem]]">{{localize('list', 'name')}}</a>
+            </div>
+            <div class="tab" name="groups">
+              <paper-ripple id="ripple" recenters></paper-ripple>
+              <a href="/groups/[[facilitySystem]]">{{localize('groups', 'name')}}</a>
+            </div>
+            <div class="tab" name="detail">
+              <paper-ripple id="ripple" recenters></paper-ripple>
+              <a href="/detail/[[facilitySystem]]">{{localize('detail', 'name')}}</a>
+            </div>
+          </tabs-container>
+        </div>
+      </template>
 
-          <icon-button icon="more-vert" title="tabs" checked="{{showTabs}}"></icon-button>
-        </app-toolbar>
-
-      </app-header>
-    </template>
-
+      <!-- Pages-->
       <iron-pages id="pageselector" role="main" selected="[[page]]" attr-for-selected="name" selected-attribute="visible" fallback-selection="home">
         <!-- home view for selecting the facility -->
-        <home-page class="fullbleed" name="home" dark$="[[dark]]" plain$="[[plain]]"
+        <page-home name="home" dark$="[[dark]]" plain$="[[plain]]"
           facilities="[[facilities]]"
           logged-in="[[loggedIn]]"
           language="[[language]]"
           language-resources="[[languageResources]]">
           <content></content>
-        </home-page>
+        </page-home>
         <!-- list view of items in a facility -->
-        <list-page disable-upgrade$="[[!loadComplete]]" name="list" dark$="[[dark]]" plain$="[[plain]]"
-          facility-system="[[facilitySystem]]"
+        <page-list disable-upgrade$="[[!loadComplete]]" name="list" dark$="[[dark]]" plain$="[[plain]]"
           elements="[[elements]]">
-        </list-page>
+        </page-list>
         <!-- group view of items -->
-        <groups-page disable-upgrade$="[[!loadComplete]]" name="groups" dark$="[[dark]]" plain$="[[plain]]"
+        <page-groups disable-upgrade$="[[!loadComplete]]" name="groups" dark$="[[dark]]" plain$="[[plain]]"
           facility-system="[[facilitySystem]]"
+          logged-in="[[loggedIn]]"
           elements="[[elements]]"
           grouped-key="{{groupedKey}}"
           grouping-keys="{{groupingKeys}}">
-        </groups-page>
+        </page-groups>
         <!-- detail view of one item -->
-        <detail-page class="fullbleed" disable-upgrade$="[[!loadComplete]]" id="detailpage" name="detail" dark$="[[dark]]" plain$="[[plain]]"
+        <page-detail disable-upgrade$="[[!loadComplete]]" id="detailpage" name="detail" dark$="[[dark]]" plain$="[[plain]]"
           route="{{subroute}}"
+          logged-in="[[loggedIn]]"
           facility-system="[[facilitySystem]]"
           elements="[[elements]]"
           show-toggle-icon="{{detailHasDrawer}}">
-        </detail-page>
+        </page-detail>
       </iron-pages>
+    </app-header-layout>
 
-      <!-- login dialog-->
-      <!-- SIDEMENU -->
-      <template is="dom-if" if="[[_shouldRenderDrawer]]">
-
+    <!-- SIDEMENU -->
+    <template is="dom-if" if="[[_shouldRenderDrawer]]">
       <app-drawer id="drawerPanel" opened="{{drawerOpened}}" align="left" swipe-open tabindex="0">
         <app-toolbar class="top">
           <icon-button icon="close" title="close" on-tap="_toggleDrawer"></icon-button>
           <icon-button icon="[[loginIcon]]" title="login" on-tap="_openLoginDialog"></icon-button>
-
         </app-toolbar>
 
         <div class="drawer-content">
@@ -396,16 +418,23 @@
         </div>
 
         <app-toolbar class="bottom">
-          <icon-button icon="[[_socketStatusIcon]]" title="[[socketStatus]]" on-tap="_socketConnect"></icon-button>
+          <icon-button icon="[[socketStatusIcon]]" title="[[socketStatus]]" on-tap="_socketConnect"></icon-button>
         </app-toolbar>
-
       </app-drawer>
-
     </template>
 
+    <snackbar-element id="announceNotification" auto-close auto-close-period="8000">
+      <iron-icon icon="event"></iron-icon>
+      <span class="message"></span>
+    </snackbar-element>
+    <snackbar-element id="networkNotification" auto-close auto-close-period="4000">
+      <iron-icon icon="[[socketStatusIcon]]"></iron-icon>
+      <span class="message"></span>
+    </snackbar-element>
+
     <template is="dom-if" if="[[!showTabsOnTop]]">
-      <snackbar-element opened="[[showTabs]]">
-        <div id="viewSelect" style="width:100%;">
+      <snackbar-element opened="[[showTabs]]" id="toolbarBottom">
+        <div class="viewSelect">
 
           <template is="dom-if" if="[[_shouldRenderGroupingKeys]]">
             <div class="selectbox toolbar grouping" title="grouping keys">
@@ -413,7 +442,7 @@
             </div>
           </template>
 
-          <tabs-container id="tabs"
+          <tabs-container class="tabs"
             role="tablist"
             selected="{{page}}"
             attr-for-selected="name"
@@ -439,7 +468,7 @@
 
   <script>
     Polymer({
-      is: 'app-element',
+      is: 'webvisual-app',
 
       behaviors: [
         Polymer.IronA11yKeysBehavior,
@@ -531,7 +560,7 @@
           notify: true
         },
 
-        _socketStatusIcon: {
+        socketStatusIcon: {
           computed: '_computeStatusIcon(socketStatus)'
         },
 
@@ -568,7 +597,7 @@
       observers: [
         '_routePageChanged(routeData.page)',
         '_subrouteChanged(subroute)',
-        '_setGroupingSelectBoxes(_shouldRenderGroupingKeys)'
+        '_setGroupingSelectBoxes(_shouldRenderGroupingKeys, showTabsOnTop)'
       ],
 
       keyBindings: {
@@ -603,8 +632,13 @@
           var order = ['home', 'list', 'groups', 'detail'];
           var pos = order.indexOf(this.page) || 0;
           pos = (pos + 1 + order.length) % order.length;
-          this.showTabs = true;
-          this.set('route.path', order[pos] + '/' + (this.facilitySystem || ''));
+          if (this.facilitySystem) {
+            this.showTabs = true;
+            this.set('route.path', order[pos] + '/' + this.facilitySystem);
+          } else {
+            this.showTabs = false;
+            this.set('route.path', 'home');
+          }
         })
       },
 
@@ -613,8 +647,13 @@
           var order = ['home', 'list', 'groups', 'detail'];
           var pos = order.indexOf(this.page) || 0;
           pos = (pos - 1 + order.length) % order.length;
-          this.showTabs = true;
-          this.set('route.path', order[pos] + '/' + (this.facilitySystem || ''));
+          if (this.facilitySystem) {
+            this.showTabs = true;
+            this.set('route.path', order[pos] + '/' + this.facilitySystem);
+          } else {
+            this.showTabs = false;
+            this.set('route.path', 'home');
+          }
         })
       },
 
@@ -639,7 +678,7 @@
           // other routes are lazy loaded
           } else {
             this.importHref(
-              this.resolveUrl(page + '-page.html'),
+              this.resolveUrl('page-' + page + '.html'),
               function() {
                 this._pageLoaded(Boolean(oldPage));
                 var item;
@@ -669,14 +708,9 @@
           // The size of the header depends on the page (e.g. on some pages the tabs
           // do not appear), so reset the header's layout only when switching pages.
           this.async(function() {
-            if (!this.$.header) {
-              this.$.header = this.$$('#header');
-            }
-            if (this.$.header) {
-              console.log('reset layout');
-              this.$.header.resetLayout();
-            }
-          }, 1);
+            console.log('reset layout');
+            this.$.headerLayout.resetLayout();
+          }, 25);
         }
       },
 
@@ -703,15 +737,9 @@
         // Show the snackbar if the user is offline when starting a new session
         // or if the network status changed.
         if (this.offline || (!this.offline && oldOffline === true)) {
-          if (!this._networkSnackbar) {
-            this._networkSnackbar = document.createElement('snackbar-element');
-            this._networkSnackbar.setAttribute('auto-close', true);
-            Polymer.dom(this.root).appendChild(this._networkSnackbar);
-            this._networkSnackbar.classList.add('network');
-          }
-          this._networkSnackbar.set('message', this.localize ? this.localize('notification', 'offline', this.offline) : (this.offline ?
-            'You are offline' : 'You are online'));
-          this._networkSnackbar.open();
+          this.$.networkNotification.querySelector('.message').innerHTML = this.localize ? this.localize('notification', 'offline', this.offline) : (this.offline ?
+            'You are offline' : 'You are online');
+          this.$.networkNotification.open();
         }
       },
 
@@ -720,14 +748,8 @@
         // Show the snackbar if the user is offline when starting a new session
         // or if the network status changed.
         if (message) {
-          if (!this._announceSnackbar) {
-            this._announceSnackbar = document.createElement('snackbar-element');
-            this._announceSnackbar.setAttribute('auto-close', true);
-            Polymer.dom(this.root).appendChild(this._announceSnackbar);
-            this._announceSnackbar.classList.add('announcement');
-          }
-          this._announceSnackbar.set('message', message);
-          this._announceSnackbar.open();
+          this.$.announceNotification.querySelector('.message').innerHTML = message;
+          this.$.announceNotification.open();
         }
       },
 
@@ -751,7 +773,7 @@
       _openDetailRequestDialog: function(e, detail) {
         this.async( function() {
           if (!this._detailRequestDialog) {
-            this._detailRequestDialog = document.createElement('detail-request-dialog');
+            this._detailRequestDialog = document.createElement('dialog-detail-request');
             Polymer.dom(this.root).appendChild(this._detailRequestDialog);
           }
           this._detailRequestDialog.set('item', detail.item);

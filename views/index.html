@@ -85,7 +85,7 @@
       document.head.appendChild(scr);
     }
   </script>
-  <link rel="import" href="/src/app-element.html" async>
+  <link rel="import" href="/src/webvisual-app.html" async>
 
   <style>
     @font-face {
@@ -109,17 +109,17 @@
       min-height: 100vh;
     }
     /* styling for render while resources are loading */
-    app-element {
+    webvisual-app {
       min-height: 100vh;
       width: 100vw;
       display: block;
       position: relative;
       box-sizing: border-box;
     }
-    app-element[unresolved] > * {
+    webvisual-app[unresolved] > * {
       margin-bottom: 32px;
     }
-    app-element[unresolved] {
+    webvisual-app[unresolved] {
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -135,7 +135,7 @@
       fill: #1ED146;
       stroke-width: 0.5px;
     }
-    app-element[unresolved] .circle {
+    webvisual-app[unresolved] .circle {
       display: inherit;
       will-change: transform, fill-opacity, stroke-opacity;
       animation-name: drop, color;
@@ -143,13 +143,13 @@
       animation-timing-function: cubic-bezier(0.6, 0, 0.3, 1);
       animation-iteration-count: infinite;
     }
-    app-element[unresolved] .circle:nth-of-type(1) { animation-delay: 2000ms; }
-    app-element[unresolved] .circle:nth-of-type(2) { animation-delay: 2250ms; }
-    app-element[unresolved] .circle:nth-of-type(3) { animation-delay: 2450ms; }
-    app-element[unresolved] .circle:nth-of-type(4) { animation-delay: 2600ms; }
-    app-element[unresolved] .circle:nth-of-type(5) { animation-delay: 2700ms; }
-    app-element[unresolved] .circle:nth-of-type(6) { animation-delay: 2750ms; }
-    app-element:not([unresolved]) .unresolved-placeholder {
+    webvisual-app[unresolved] .circle:nth-of-type(1) { animation-delay: 2000ms; }
+    webvisual-app[unresolved] .circle:nth-of-type(2) { animation-delay: 2250ms; }
+    webvisual-app[unresolved] .circle:nth-of-type(3) { animation-delay: 2450ms; }
+    webvisual-app[unresolved] .circle:nth-of-type(4) { animation-delay: 2600ms; }
+    webvisual-app[unresolved] .circle:nth-of-type(5) { animation-delay: 2700ms; }
+    webvisual-app[unresolved] .circle:nth-of-type(6) { animation-delay: 2750ms; }
+    webvisual-app:not([unresolved]) .unresolved-placeholder {
       display: none;
     }
     @keyframes drop {
@@ -208,7 +208,7 @@
 
 <body>
 
-  <app-element unresolved>
+  <webvisual-app unresolved>
     <header class="unresolved-placeholder" style="color:#fff;font-size: 24px;letter-spacing: 6px;">WEBVISUAL</header>
     <svg class="unresolved-placeholder" xmlns="http://www.w3.org/2000/svg" width="144" height="144" viewBox="0 0 18 18" version="1.1" preserveAspectRatio="xMinYMin">
       <g>
@@ -222,7 +222,7 @@
       <path id="logo" class="unresolved-placeholder"
          d="m 7.921007,9.6185999 c 0.00246,0 0.069517,-0.1271011 0.1238027,-0.2191016 C 8.4858762,8.6535007 11.162847,2.016 11.818367,0.45299994 10.931859,0.16060007 9.9845674,1.3411045e-7 8.9998426,1.3411045e-7 4.0292495,1.3411045e-7 0,4.0296008 0,9.0004025 0,9.8200982 0.11180425,10.613197 0.31703414,11.367597 0.88207947,10.999897 4.326143,8.6165011 4.3313039,8.6333003 4.8828769,10.664597 6.7408919,11.712097 7.9210133,9.6185999 Z M 15.877983,3.1983005 C 15.20168,4.7980011 12.925902,10.164797 12.315732,11.372497 11.113851,13.558698 9.1934612,15.598399 6.5917182,15.715499 3.5379727,15.852899 1.9207658,14.687199 1.0502453,13.219198 2.562154,16.0633 5.5546274,18 8.9998426,18 13.970672,18 18,13.970398 18,9.0004025 18,6.7887033 17.200507,4.7651011 15.877983,3.1983005" style="fill:#fff;"></path>
     </svg>
-  </app-element>
+  </webvisual-app>
 
 </body>
 </html>

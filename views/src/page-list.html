@@ -4,7 +4,7 @@
 <link rel="import" href="style/shared-style.html">
 <link rel="import" href="style/grid-layout.html">
 
-<dom-module id="list-page">
+<dom-module id="page-list">
   <template strip-whitespace>
     <style include="shared-style grid-layout">
       .grid li {
@@ -69,18 +69,18 @@
 
   <script>
     Polymer({
-      is: 'list-page',
+      is: 'page-list',
 
       properties: {
-
-        facilitySystem: String,
 
         elements: {
           type: Array,
           notify: true
         },
 
-        visible: Boolean
+        visible: {
+          type: Boolean
+        }
 
       },
 

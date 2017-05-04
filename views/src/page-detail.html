@@ -5,11 +5,11 @@
 
 <link rel="import" href="style/shared-style.html">
 
-<dom-module id="detail-page">
+<dom-module id="page-detail">
   <template strip-whitespace>
     <style include="shared-style">
       :host {
-        padding-top: inherit;
+        @apply(--layout-fit);
         box-sizing: border-box;
         overflow: hidden;
         --tab-vertical-overlay: {
@@ -163,63 +163,58 @@
 
     <iron-media-query query="(max-width: 600px)" query-matches="{{showControlAsDrawer}}"></iron-media-query>
 
-    <svg-data
-      hidden
-      svg-data="{{svgData}}"
-      facility-system="[[facilitySystem]]"></svg-data>
+    <svg-data hidden
+      facility-system="[[facilitySystem]]"
+      logged-in="[[loggedIn]]"
+      svg-data="{{svgData}}"></svg-data>
 
-    <!-- <template is="dom-if" if="[[visible]]"> -->
+    <div id="content">
 
-      <div id="content">
+      <device-chart id="chart" opened="[[visible]]" fullheight$="[[!_withSvg]]"
+        item="[[selectedElement]]"></device-chart>
 
-        <device-chart id="chart" opened="[[visible]]" fullheight$="[[!_withSvg]]"
-          item="[[selectedElement]]"></device-chart>
+      <template is="dom-if" if="[[_withSvg]]">
+        <device-svg id="svg" opened="[[visible]]"
+          url-prefix="/images/[[facilitySystem]]/"
+          src="[[selectedElement.svg.path]]"
+          selectable-items="[[_getSvgSelectable(selectedElement.svg.path, svgData.paths)]]"
+          item="[[selectedElement]]"
+          exceeding="[[exceeding]]"></device-svg>
+      </template>
 
-        <template is="dom-if" if="[[_withSvg]]">
-          <device-svg id="svg" opened="[[visible]]"
-            url-prefix="/images/[[facilitySystem]]/"
-            src="[[selectedElement.svg.path]]"
-            selectable-items="[[_getSvgSelectable(selectedElement.svg.path, svgData.paths)]]"
-            item="[[selectedElement]]"
-            exceeding="[[exceeding]]"></device-svg>
-        </template>
+      <template is="dom-if" if="{{showControlAsDrawer}}">
+        <device-caption id="currentSelected" class="caption" keys="[[selectedElement.keys]]"></device-caption>
+      </template>
 
-        <template is="dom-if" if="{{showControlAsDrawer}}">
-          <device-caption id="currentSelected" class="caption" keys="[[selectedElement.keys]]"></device-caption>
-        </template>
+      <!-- <template is="dom-if" if="[[visible]]"> -->
+        <app-drawer id="elementDrawer" opened="[[_ensureOpened(showControlAsDrawer)]]" swipe-open="[[showControlAsDrawer]]" persistent="[[!showControlAsDrawer]]" align="right"
+        disable-upgrade$="[[!visible]]">
 
-        <!-- <template is="dom-if" if="[[visible]]"> -->
-          <app-drawer id="elementDrawer" opened="[[_ensureOpened(showControlAsDrawer)]]" swipe-open="[[showControlAsDrawer]]" persistent="[[!showControlAsDrawer]]" align="right"
-          disable-upgrade$="[[!visible]]">
+          <tabs-container id="elementTabs" vertical selected="{{route.path}}" attr-for-selected="item-mount" selected-attribute="checked">
+            <svg id="requestMoreDetailButton" class="overlay-addon" on-tap="requestMoreDetail" viewBox="0 0 24 24">
+              <g><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></g>
+            </svg>
 
-            <tabs-container id="elementTabs" vertical selected="{{route.path}}" attr-for-selected="item-mount" selected-attribute="checked">
-              <svg id="requestMoreDetailButton" class="overlay-addon" on-tap="requestMoreDetail" viewBox="0 0 24 24">
-                <g><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></g>
-              </svg>
+            <template is="dom-repeat" items="[[_getListItems(elements)]]">
+              <device-checkbox class="checkbox tab"
+                item="[[item]]"
+                item-mount="/[[item.mount]]"
+                selectable>
+                <device-caption class="caption"
+                  keys="[[item.keys]]"></device-caption>
+              </device-checkbox>
+            </template>
+          </tabs-container>
 
-              <template is="dom-repeat" items="[[_getListItems(elements)]]">
-                <device-checkbox class="checkbox tab"
-                  item="[[item]]"
-                  item-mount="/[[item.mount]]"
-                  selectable>
-                  <device-caption class="caption"
-                    keys="[[item.keys]]"></device-caption>
-                </device-checkbox>
-              </template>
-            </tabs-container>
-
-            <device-table id="elementTable" full-date item="[[selectedElement]]"></device-table>
-          </app-drawer>
-
-        <!-- </template> -->
-      </div>
-
-
+          <device-table id="elementTable" full-date item="[[selectedElement]]"></device-table>
+        </app-drawer>
+      <!-- </template> -->
+    </div>
   </template>
 
   <script>
     Polymer({
-      is: 'detail-page',
+      is: 'page-detail',
 
       behaviors: [
         Polymer.IronResizableBehavior
@@ -227,9 +222,17 @@
 
       properties: {
 
-        route: Object,
+        route: {
+          type: Object
+        },
 
-        facilitySystem: String,
+        facilitySystem: {
+          type: String
+        },
+
+        loggedIn: {
+          type: Boolean
+        },
 
         elements: {
           type: Array,
@@ -249,7 +252,9 @@
           notify: true
         },
 
-        svgData: Object,
+        svgData: {
+          type: Object
+        },
 
         visible: {
           type: Boolean
@@ -268,20 +273,6 @@
           type: Boolean,
           notify: true,
           computed: '_computeShowToggleIcon(showControlAsDrawer, visible)'
-        },
-
-        _minDate: String,
-
-        _maxDate: String,
-
-        range: {
-          type: Object,
-          value: function() {
-            return {
-              from: +(new Date()),
-              to: +(new Date())
-            };
-          }
         }
       },
 
@@ -339,7 +330,7 @@
               this.cancelDebouncer('initial-element');
               this._recentElementMount = this.elements[i].mount;
               this.set('selectedElement', this.elements[i]);
-              this._checkWithSvg(this.elements[i]);
+              this._hasSvg(this.elements[i]);
               this.debounce('resize', this.notifyResize);
               return;
             }
@@ -353,16 +344,18 @@
           if (this._recentElementMount) {
             for (var i = 0; i < this.elements.length; i++) {
               if (this.elements[i].mount && (this._recentElementMount === this.elements[i].mount)) {
+                this.set('route.prefix', '/detail');
                 this.set('route.path', '/' + this._recentElementMount);
                 return;
               }
             }
           }
+          this.set('route.prefix', '/detail');
           this.set('route.path', '/' + this.elements[0].mount);
         }
       },
 
-      _checkWithSvg: function(selectedElement) {
+      _hasSvg: function(selectedElement) {
         // notify the chart to resize
         var _withSvg = Boolean(selectedElement && selectedElement.svg && selectedElement.svg.path)
         if (_withSvg !== this._withSvg) {

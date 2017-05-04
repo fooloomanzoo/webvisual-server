@@ -1,22 +1,23 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html"/>
 
 <dom-module id="snackbar-element">
 
   <template>
     <style>
       :host {
-        display: block;
+        @apply(--layout-inline);
+        @apply(--layout-center-center);
         position: fixed;
         font-size: 1em;
-        left: calc(50% - 400px);
-        right: calc(50% - 400px);
+        left: calc(50% - 384px);
+        right: calc(50% - 384px);
         bottom: 0;
-        background-color: #444;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        background-color: #555;
+        box-shadow: 0 1px 3px 2px rgba(0, 0, 0, 0.2);
         color: var(--bright-text-color);
-        width: 800px;
-        padding-left: 1em;
-        padding-right: 1em;
+        padding-left: var(--icon-size, 1.5em);
+        padding-right: var(--icon-size, 1.5em);
         visibility: hidden;
         text-align: center;
         will-change: transform;
@@ -25,13 +26,16 @@
         transition-property: visibility, -webkit-transform, opacity;
         transition-property: visibility, transform, opacity;
         transition-duration: 0.2s;
+        height: 2.5em;
+        border-top-left-radius: 6px;
+        border-top-right-radius: 6px;
       }
       :host([opened]) {
         visibility: visible;
         -webkit-transform: translate3d(0, 0, 0);
         transform: translate3d(0, 0, 0);
       }
-      @media (max-width: 1280px) {
+      @media (max-width: 768px) {
         :host {
           top: auto;
           bottom: 0;
@@ -40,12 +44,23 @@
           width: auto;
           -webkit-transform: translate3d(0, 100%, 0);
           transform: translate3d(0, 100%, 0);
+          border-top-left-radius: 0px;
+          border-top-right-radius: 0px;
         }
+      }
+      :host ::content iron-icon {
+        position: absolute;
+        color: currentColor;
+        height: var(--icon-size, 1.5em);
+        width: var(--icon-size, 1.5em);
+        padding: var(--icon-padding, 0.5em);
+        left: 4px;
+        bottom: 0;
       }
     </style>
 
+    <content select="iron-icon"></content>
     <content></content>
-    <div>[[message]]</div>
 
   </template>
 
@@ -69,10 +84,6 @@
           type: Boolean,
           value: false,
           reflectToAttribute: true
-        },
-
-        message: {
-          type: String
         }
       },
 

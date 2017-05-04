@@ -11,15 +11,25 @@
 
       properties: {
 
-        urlPrefix: String,
+        urlPrefix: {
+          type: String
+        },
 
-        facilitySystem: String,
+        facilitySystem: {
+          type: String
+        },
 
-        facilityName: String,
+        facilityName: {
+          type: String
+        },
 
-        systemName: String,
+        systemName: {
+          type: String
+        },
 
-        itemName: String,
+        itemName: {
+          type: String
+        },
 
         facilities: {
           type: Array,
@@ -52,47 +62,37 @@
           notify: true
         },
 
-        offline: Boolean
+        offline: {
+          type: Boolean,
+          value: true
+        }
       },
 
       observers: [
-        '_computeLoggedIn(offline)',
-        '_computeFacilityList(loggedIn)',
+        '_computeFacilityList(loggedIn, offline)',
         '_computeNames(facilitySystem)',
         '_computeFacility(facilities, facilityName)',
         '_computeSystem(facility, systemName)',
         '_computeItems(system)'
       ],
 
-      _computeLoggedIn: function(offline) {
-        // if (!offline) {
+      _computeFacilityList: function(loggedIn, offline) {
+        if (loggedIn || offline) {
           this.async( function() {
-            this._testLoggedIn()
-                .then( function() {
-                  this.loggedIn = true;
+            // var facilities = localStorage.getItem('facilities');
+            // if (facilities)
+            //   this.set('facilities', JSON.parse(facilities));
+            var prefix = this.urlPrefix || '/data/';
+            this._fetchFacilityList(prefix)
+                .then(function(facilities) {
+                  this.set('facilities', facilities);
+                  // localStorage.setItem('facilities',  JSON.stringify(facilities));
                 }.bind(this))
-                .catch( function() {
-                  this.loggedIn = false
+                .catch(function(status) {
+                  console.log('Facilities could not be loaded, Status:', status);
                 }.bind(this));
           }.bind(this));
-        // }
-      },
-
-      _computeFacilityList: function(loggedIn) {
-        this.async( function() {
-          // var facilities = localStorage.getItem('facilities');
-          // if (facilities)
-          //   this.set('facilities', JSON.parse(facilities));
-          var prefix = this.urlPrefix || '/data/';
-          this._fetchFacilityList(prefix)
-              .then(function(facilities) {
-                this.set('facilities', facilities);
-                // localStorage.setItem('facilities',  JSON.stringify(facilities));
-              }.bind(this))
-              .catch(function(status) {
-                console.log('Server answered ', status);
-              }.bind(this));
-        }.bind(this));
+        }
       },
 
       _computeNames: function(facilitySystem) {
@@ -193,26 +193,6 @@
             reject(err);
           }
         })
-      },
-
-      _testLoggedIn: function() {
-        return new Promise(function (resolve, reject) {
-          var xhr = new XMLHttpRequest();
-          xhr.addEventListener('load', function(e) {
-            if (e.target.status === 200) {
-              //console.log(e.target.status, e.target.response);
-              resolve();
-            } else {
-              reject(e.target.status);
-            }
-          }.bind(this));
-          xhr.addEventListener('error', function(e) {
-            reject(e.target.status);
-          }.bind(this));
-          xhr.open('GET', '/auth');
-          xhr.withCredentials = true;
-          xhr.send();
-        });
       },
 
       _getNamedArrayItem: function(arr, name) {

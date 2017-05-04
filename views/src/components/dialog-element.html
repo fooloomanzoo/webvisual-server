@@ -1,15 +1,25 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/paper-dialog-behavior/paper-dialog-behavior.html">
+<link rel="import" href="../../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
 <link rel="import" href="../style/dialog-style.html">
+<link rel="import" href="../components/icon-button.html">
 
 <dom-module id="dialog-element">
   <template>
     <style include="dialog-style">
+      #exitButton {
+        position: absolute;
+        right: 4px;
+        top: 4px;
+        margin: 0;
+        border-radius: 50%;
+      }
       [hidden] {
         display: none;
       }
     </style>
     <content></content>
+    <icon-button id="exitButton" icon="close" on-tap="close"></icon-button>
   </template>
 
 </dom-module>
@@ -20,14 +30,23 @@
     is: 'dialog-element',
 
     behaviors: [
+      Polymer.IronResizableBehavior,
       Polymer.PaperDialogBehavior
     ],
+
+    listners: {
+      'iron-overlay-opened': '_debouncedNotifyResize'
+    },
 
     properties: {
       opened: {
         type: Boolean,
         reflectToAttribute: true
       }
+    },
+
+    _debouncedNotifyResize: function() {
+      this.debounce('resize', this.notifyResize);
     }
   });
 })();

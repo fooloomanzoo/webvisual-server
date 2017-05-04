@@ -10,14 +10,14 @@
 <link rel="import" href="style/shared-style.html">
 <link rel="import" href="style/button-style.html">
 
-<dom-module id="home-page">
+<dom-module id="page-home">
 
   <template strip-whitespace>
     <style include="shared-style button-style">
       :host {
+        @apply(--layout-fit);
         @apply(--layout-vertical);
         @apply(--layout-center-center);
-        min-height: 100vh;
         box-sizing: border-box;
         color: var(--bright-text-color);
         outline: none;
@@ -30,7 +30,7 @@
         box-sizing: border-box;
         font-size: 1em;
         line-height: 1.4;
-        margin: 2em;
+        margin: 0.5em 2em;
       }
       .box > * {
         flex: 1 0 auto;
@@ -170,7 +170,7 @@
 
     Polymer({
 
-      is: 'home-page',
+      is: 'page-home',
 
       behaviors: [
         WebvisualBehaviors.LocalizeBehavior

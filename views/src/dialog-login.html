@@ -11,7 +11,7 @@
 <link rel="import" href="style/input-style.html">
 <link rel="import" href="style/button-style.html">
 
-<dom-module id="login-dialog">
+<dom-module id="dialog-login">
 
   <template>
 
@@ -23,7 +23,7 @@
         @apply(--layout-vertical);
         @apply(--layout-center-center);
         font-size: 1em;
-        padding: 0.5em 0 0;
+        padding: 1em 0 0;
       }
       .usercard {
         @apply(--layout-horizontal);
@@ -39,6 +39,15 @@
       }
       [hidden] {
         display: none !important;
+      }
+      .buttons {
+        padding-top: 0.5em;
+      }
+      .button > .left {
+        margin-right: 0.5em;
+      }
+      .button > .right {
+        margin-left: 0.5em;
       }
     </style>
 
@@ -61,7 +70,7 @@
 
           <section class="input">
             <iron-icon class="left" icon="more-horiz"></iron-icon>
-            <input id="password" required autocomplete="current-password" pattern=".{6,64}" name="password"  placeholder$="{{localize('login', 'password')}}" type="password" pattern="">
+            <input id="password" required autocomplete="current-password" pattern=".{6,64}" name="password"  placeholder$="{{localize('login', 'password')}}" type="password">
             <div class="decorator" error-message$="{{localize('login', 'invalid-password')}}" aria-hidden="true">
               <label>{{localize('login', 'password')}}</label>
               <div class="underline"></div>
@@ -69,15 +78,15 @@
           </section>
 
           <div class="buttons">
-            <div dialog-dismiss class="button" on-tap="onReset">
+            <div class="button" on-tap="onReset">
               <paper-ripple></paper-ripple>
               <iron-icon class="left" icon="close"></iron-icon>
-              <span>{{localize('login', 'reset')}}</span>
+              <input type="reset" value$="{{localize('login', 'reset')}}"/>
             </div>
             <div class="button" on-tap="onSubmit">
               <paper-ripple></paper-ripple>
               <iron-icon class="left" icon="group-add"></iron-icon>
-              <span>{{localize('login', 'confirm')}}</span>
+              <input type="submit" value$="{{localize('login', 'confirm')}}"/>
             </div>
           </div>
         </form>
@@ -95,15 +104,13 @@
         </div>
 
         <div dialog-bottom class="buttons">
-          <icon-button icon="close" dialog-dismiss></icon-button >
           <div class="button" on-tap="signOut">
             <paper-ripple></paper-ripple>
             <iron-icon class="left" icon="person-outline"></iron-icon>
-            <span>{{localize('login', 'logout')}}</span>
+            {{localize('login', 'logout')}}
           </div>
         </div>
       </template>
-
     </dialog-element>
 
   </template>
@@ -111,7 +118,7 @@
   <script>
     Polymer({
 
-      is: 'login-dialog',
+      is: 'dialog-login',
 
       behaviors: [
         WebvisualBehaviors.LocalizeBehavior
@@ -128,6 +135,11 @@
           notify: true
         },
 
+        offline: {
+          type: Boolean,
+          observer: '_offlineChanged'
+        },
+
         signInUrl: {
           type: String,
           value: '/login'
@@ -139,43 +151,10 @@
         }
       },
 
-      attached: function() {
-        this.autoSignIn(false)
-          .then(function(profile) {
-            // When auto sign-in didn't resolve with a profile
-            // it's failed to get credential information.
-            // Open the form so the user can enter id/password
-            // or select federated login manually
-            if (!profile) {
-              this.loggedIn = false;
-              this.open();
-            } else {
-              this.dispatchEvent(new CustomEvent('announce', {
-                detail: this.localize ? this.localize('notification', 'loggedIn', true) : 'You are signed in'
-              }), {
-                bubbles: true
-              });
-            }
-          }.bind(this), function() {
-            this.loggedIn = false;
-            this.open();
-            // When rejected, authentication was performed but failed.
-            this.dispatchEvent(new CustomEvent('announce', {
-              detail: this.localize ? this.localize('notification', 'loggedIn', false) : 'You are not signed in'
-            }), {
-              bubbles: true
-            });
-          }.bind(this))
-          .catch(function(err) {
-            if (err)
-              console.log(err);
-            this.dispatchEvent(new CustomEvent('announce', {
-              detail: this.localize ? this.localize('notification', 'loggedIn', false) : 'You are not signed in'
-            }), {
-              bubbles: true
-            });
-            this.open();
-          });
+      _offlineChanged: function(offline) {
+        if (!offline) {
+          this.autoSignIn(false);
+        }
       },
 
       /**
@@ -184,9 +163,10 @@
        * @return {Promise} Resolves if credential info is available.
        */
       autoSignIn: function(unmediated) {
+        var p;
         if (navigator.credentials) {
           // Actual Credential Management API call to get credential object
-          return navigator.credentials.get({
+          p = navigator.credentials.get({
               password: true,
               unmediated: unmediated
             }).then(function(cred) {
@@ -208,8 +188,53 @@
         } else {
           // Resolve if Credential Management API is not available
           console.log('auto sign-in not available');
-          return Promise.resolve();
         }
+        Promise.resolve(p)
+          .then( function(profile) {
+          // When auto sign-in didn't resolve with a profile
+          // it's failed to get credential information.
+          if (!profile) {
+            this.loggedIn = false;
+            if (!this.offline) {
+              this.open();
+            }
+            this.dispatchEvent(new CustomEvent('announce', {
+              detail: this.localize ? this.localize('notification', 'loggedIn', false) : 'You are not signed in'
+            }), {
+              bubbles: true
+            });
+          } else {
+            this.dispatchEvent(new CustomEvent('announce', {
+              detail: this.localize ? this.localize('notification', 'loggedIn', true) : 'You are signed in'
+            }), {
+              bubbles: true
+            });
+          }
+        }.bind(this), function() {
+          this.loggedIn = false;
+          if (!this.offline) {
+            this.open();
+          }
+          // When rejected, authentication was performed but failed.
+          this.dispatchEvent(new CustomEvent('announce', {
+            detail: this.localize ? this.localize('notification', 'loggedIn', false) : 'You are not signed in'
+          }), {
+            bubbles: true
+          });
+        }.bind(this))
+        .catch(function(err) {
+          if (err)
+            console.log(err);
+          this.dispatchEvent(new CustomEvent('announce', {
+            detail: this.localize ? this.localize('notification', 'loggedIn', false) : 'You are not signed in'
+          }), {
+            bubbles: true
+          });
+          if (!this.offline) {
+            this.open();
+          }
+        });
+
       },
 
       /**
@@ -242,7 +267,6 @@
               }), {
                 bubbles: true
               });
-              this.open();
             }.bind(this), function() {
               // Polymer event to notice user that 'Authentication failed'.
               this.loggedIn = false;
@@ -251,6 +275,9 @@
               }), {
                 bubbles: true
               });
+              if (!this.offline) {
+                this.open();
+              }
             }.bind(this));
         } else {
           this.noCredApiSignIn(this.signInUrl, new FormData(signinForm))
@@ -260,7 +287,6 @@
               }), {
                 bubbles: true
               });
-              this.open();
             }.bind(this), function() {
               // Polymer event to notice user that 'Authentication failed'.
               this.loggedIn = false;
@@ -269,6 +295,9 @@
               }), {
                 bubbles: true
               });
+              if (!this.offline) {
+                this.open();
+              }
             }.bind(this));
         }
       },
@@ -321,7 +350,9 @@
             }
             this.loggedIn = false;
             this.userProfile = null;
-            this.open();
+            if (!this.offline) {
+              this.open();
+            }
           }.bind(this))
           .catch(this.notSignedIn.bind(this));
       },
@@ -362,7 +393,9 @@
         });
         this.$$('#username').value = '';
         this.$$('#password').value = '';
-        this.open();
+        if (!this.offline) {
+          this.open();
+        }
         return Promise.reject(err);
       },
 

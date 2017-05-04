@@ -11,9 +11,17 @@
 
       properties: {
 
-        urlPrefix: String,
+        urlPrefix: {
+          type: String
+        },
 
-        facilitySystem: String,
+        loggedIn: {
+          type: Boolean
+        },
+
+        facilitySystem: {
+          type: String
+        },
 
         groupedKey: {
           type: String,
@@ -41,18 +49,20 @@
       },
 
       observers: [
-        '_fetchGroups(facilitySystem)'
+        '_fetchGroups(facilitySystem, loggedIn)'
       ],
 
-      _fetchGroups: function(facilitySystem) {
+      _fetchGroups: function(facilitySystem, loggedIn) {
+        if (!facilitySystem) return;
+
         var names = facilitySystem.split('/')
                          .filter(function (str) { return str !== ''; });
         if (names.length === 2) {
-          this._facilitySystem = names[0] + '+' + names[1];
-          this.async( function() {
-            this._request(this._facilitySystem, 'groups');
-            this._request(this._facilitySystem, 'groupingKeys');
-          }.bind(this));
+          this._groupUri = names[0] + '+' + names[1];
+          this.debounce('group-data', function() {
+            this._request(this._groupUri, 'groups');
+            this._request(this._groupUri, 'groupingKeys');
+          }.bind(this), 25);
         }
       },
 
@@ -67,13 +77,13 @@
         return [];
       },
 
-      _request: function(_facilitySystem, request, attempts) {
-        if (!(_facilitySystem && request)) {
+      _request: function(groupUri, request, attempts) {
+        if (!(groupUri && request)) {
           return;
         }
         var prefix = this.urlPrefix || '/data/';
         this._getResource({
-          url: prefix + _facilitySystem + '+' + request + '.json',
+          url: prefix + groupUri + '+' + request + '.json',
           onLoad: function(e) {
             if (e.target.status < 400) {
               this.set(request, JSON.parse(e.target.responseText));
@@ -93,6 +103,9 @@
       },
 
       _getResource: function(rq, attempts) {
+        if (!rq) {
+          return;
+        }
         var xhr = new XMLHttpRequest();
         xhr.addEventListener('load', rq.onLoad.bind(this));
         xhr.addEventListener('error', function(e) {
@@ -117,7 +130,7 @@
           this.set('groupedKey', groupedKey);
         } else {
           this._getResource({
-            url: prefix + this._facilitySystem + '+preferedGroupingKey.json',
+            url: prefix + this._groupUri + '+preferedGroupingKey.json',
             onLoad: function(e) {
               if (e.target.status < 400) {
                 this.set('groupedKey', JSON.parse(e.target.responseText));

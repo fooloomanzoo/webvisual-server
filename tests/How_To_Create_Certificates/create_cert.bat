@@ -14,7 +14,7 @@ set "city=Juelich"&                       rem Locality Name (eg, city)
 set "company=Forschungszentrum Juelich"&  rem Organization Name (eg, company)
 set "company_unit=ICS-TAE"&               rem Organizational Unit Name (eg, section)
 set "domain=localhost"&                   rem Domain Name (Address)
-set "email=example@example.de"&           rem Email Address
+set "email=example@localhost.de"&           rem Email Address
 set "days=1100"&                          rem Certificate validity duration in days
 
 rem Length of passphrase (min 4, max 1024)
@@ -37,8 +37,8 @@ set "subj=/C=%country%/ST=%state%/L=%city%/O=%company%/OU=%company_unit%/CN=%dom
 rem ** Create a Certificate **
 
 rem generate a private key for CA
-openssl genrsa -passout pass:%pass% ^
-            -out %output_dir%\ca.key 4096
+openssl genrsa -newkey -passout pass:%pass% ^
+            -out %output_dir%\ca.key rsa:4096
 
 rem generate the certificate signing request
 openssl req -passin pass:%pass% ^
@@ -46,6 +46,7 @@ openssl req -passin pass:%pass% ^
             -sha256 ^
             -key %output_dir%\ca.key ^
             -subj "%subj%" ^
+            -days "%days%" ^
             -out %output_dir%\ca.csr
 
 rem Create self-signed public key
@@ -56,6 +57,23 @@ openssl x509 -passin pass:%pass% ^
             -in %output_dir%\ca.csr ^
             -signkey %output_dir%\ca.key ^
             -out %output_dir%\ca.crt
+
+rem pkcs12-format file
+rem without password
+openssl pkcs12 -export ^
+            -passin pass:%pass% ^
+            -passout pass: ^
+            -inkey %output_dir%\ca.key ^
+            -in %output_dir%\ca.crt ^
+            -out %output_dir%\ca_empty_pw.p12
+
+rem including same password
+openssl pkcs12 -export ^
+            -passin pass:%pass% ^
+            -passout pass:%pass% ^
+            -inkey %output_dir%\ca.key ^
+            -in %output_dir%\ca.crt ^
+            -out %output_dir%\ca.p12
 
 rem Remove temporary Files
 if exist "%RANDFILE%" ( del "%RANDFILE%" )

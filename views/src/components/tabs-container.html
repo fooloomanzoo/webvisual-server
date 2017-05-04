@@ -124,9 +124,9 @@
       ],
 
       _onSelectedItemChanged: function(selectedItem) {
-        if (selectedItem === undefined) return;
-
-        this.target = selectedItem;
+        if (selectedItem) {
+          this.target = selectedItem;
+        }
         this._targetChanged(selectedItem, this._lastTarget);
       },
 
@@ -185,14 +185,17 @@
         if (this._transitionsInFlight.length) {
           this._moveComplete();
         }
-        if (oldTarget) {
-          oldTarget.classList.remove('overlay-above');
+
+          if (oldTarget) {
+            oldTarget.classList.remove('overlay-above');
+          }
+          if (!this._addon) {
+            this._addon = this.queryEffectiveChildren('.overlay-addon')
+          }
+        if (newTarget) {
+          this._move(oldTarget, newTarget);
+          this._lastTarget = newTarget;
         }
-        if (!this._addon) {
-          this._addon = this.queryEffectiveChildren('.overlay-addon')
-        }
-        this._move(oldTarget, newTarget);
-        this._lastTarget = newTarget;
       },
 
       _moveComplete: function() {

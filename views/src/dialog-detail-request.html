@@ -15,7 +15,7 @@
 <link rel="import" href="../bower_components/datetime-picker/datetime-picker.html">
 <link rel="import" href="../bower_components/datetime-picker/calendar-element.html">
 
-<dom-module id="detail-request-dialog">
+<dom-module id="dialog-detail-request">
   <template>
     <style include="button-style">
       :host {
@@ -37,13 +37,6 @@
       #chart {
         color: inherit;
       }
-      [bottom] {
-        @apply(--layout-wrap);
-        @apply(--layout-start-justified);
-        font-size: 0.9em;
-        padding: 0;
-        margin-bottom: 1em;
-      }
       .button {
         flex: 0;
       }
@@ -51,13 +44,13 @@
         color: currentColor;
         fill: currentColor;
       }
-      #exitButton {
-        position: absolute;
-        right: 0;
-        top: 0;
-        margin: 0;
+      [dialog-bottom] {
+        @apply(--layout-center-center);
+        font-size: 0.9em !important;
+        padding-left: 2em !important;
+        padding-right: 2em !important;
       }
-      [bottom] > * {
+      [dialog-bottom] > * {
         align-self: stretch;
         margin: 0.25em !important;
         height: 2.5em;
@@ -73,28 +66,40 @@
       .button {
         padding: 0.5em 1.5em;
       }
+      .send {
+        position: absolute !important;
+        right: 4px;
+        bottom: 4px;
+      }
       #spinner {
-        position: absolute;
-        right: 0;
-        bottom: 0;
-        margin: 0.5em;
+        position: absolute !important;
+        left: 4px;
+        bottom: 4px;
         box-sizing: border-box;
         height: 40px;
         width: 40px;
         fill: currentColor;
       }
+      #dialog {
+        height: 100vh;
+        width: 100vw;
+        border-radius: 0;
+        margin: 64px;
+      }
+      @media (max-width: 768px) {
+        #dialog {
+          margin: 0;
+        }
+      }
       [hidden] {
         display: none;
       }
-
     </style>
 
     <dialog-element id="dialog" opened="{{opened}}">
       <div dialog-title>
         <device-caption keys="[[item.keys]]"></device-caption>
       </div>
-
-      <icon-button id="exitButton" icon="close" on-tap="close"></icon-button>
 
       <div dialog-content>
         <device-chart id="chart" opened="[[opened]]" item="[[item]]" no-link domain-x="{{domainX}}"></device-chart>
@@ -109,12 +114,9 @@
           <iron-icon class="icon" icon="last-page"></iron-icon>
           <datetime-picker id="dateTo" value="{{toDate}}" date-string="{{_maxDate}}" min-date="[[_minDate]]" locales="[[language]]"></datetime-picker>
         </div>
-        <div class="button" on-tap="requestFromSocket">
-          <paper-ripple></paper-ripple>
-          <iron-icon class="left icon" icon="date-range"></iron-icon>
-          <span>{{localize('detail', 'query')}}</span>
-        </div>
       </section>
+
+      <icon-button class="send" icon="date-range" title="{{localize('detail', 'query')}}" on-tap="requestFromSocket"></icon-button>
 
       <svg id="spinner" hidden$="[[!isLoading]]" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
         viewBox="0 0 100 100" enable-background="new 0 0 0 0" xml:space="preserve">
@@ -126,10 +128,10 @@
                dur="1s"
                from="0 50 50"
                to="360 50 50"
-               repeatCount="indefinite" />
-        </path>
+               repeatCount="indefinite" /></path>
       </svg>
     </dialog-element>
+
   </template>
 
 </dom-module>
@@ -137,7 +139,7 @@
 <script>
   (function() {
     Polymer({
-      is: 'detail-request-dialog',
+      is: 'dialog-detail-request',
 
       behaviors: [
         WebvisualBehaviors.LocalizeBehavior
@@ -195,14 +197,22 @@
           }
         };
 
-        Promise.resolve(new Promise(function(resolve, reject) {
-            this.isLoading = true;
+        var start = +(new Date());
+        this.isLoading = true;
+        Promise.resolve( new Promise( function(resolve, reject) {
             window.Webvisual.request(req, resolve);
-          }.bind(this)))
+          }))
           .then(function(res) {
-            this.isLoading = false;
             this.$.chart.clearValues(res);
             this.$.chart.insertValues(res);
+            var remaining = new Date() - start;
+            if (remaining < 1000) {
+              this.async( function() {
+                this.isLoading = false;
+              }, remaining);
+            } else {
+              this.isLoading = false;
+            }
           }.bind(this))
           .catch(function(err) {
             console.log(err);
@@ -226,6 +236,9 @@
 
       open: function() {
         this.$.dialog.open();
+      },
+      close: function() {
+        this.$.dialog.close();
       }
     });
   })();

@@ -2,9 +2,10 @@
   "entrypoint": "index.html",
   "shell": "src/webvisual-app.html",
   "fragments": [
-    "src/webvisual-list.html",
-    "src/webvisual-groups.html",
-    "src/webvisual-detail.html",
+    "src/page-home.html",
+    "src/page-list.html",
+    "src/page-groups.html",
+    "src/page-detail.html",
     "src/lazy-resources.html"
   ],
   "sources": [

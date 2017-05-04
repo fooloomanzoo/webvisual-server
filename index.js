@@ -227,7 +227,7 @@ class WebvisualServer {
         process.send( { error: `Error in closing Server\n ${e}` } );
       }
     } else {
-      process.send( {error: 'No activeErrorRestartJob'});
+      // process.send( {error: 'No activeErrorRestartJob'});
       if (this.isRunning)
         this.disconnect();
       else

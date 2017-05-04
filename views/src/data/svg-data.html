@@ -11,9 +11,17 @@
 
       properties: {
 
-        urlPrefix: String,
+        urlPrefix: {
+          type: String
+        },
 
-        facilitySystem: String,
+        loggedIn: {
+          type: Boolean
+        },
+
+        facilitySystem: {
+          type: String
+        },
 
         svgData: {
           type: Object,
@@ -22,10 +30,12 @@
       },
 
       observers: [
-        '_fetchSvgSource(facilitySystem)'
+        '_fetchSvgSource(facilitySystem, loggedIn)'
       ],
 
-      _fetchSvgSource: function(facilitySystem) {
+      _fetchSvgSource: function(facilitySystem, loggedIn) {
+        if (!facilitySystem) return;
+
         var facilityName, systemName;
         var names = facilitySystem.split('/')
                          .filter(function (str) { return str !== ''; });
@@ -34,9 +44,9 @@
           systemName = names[1];
         }
         if (facilityName && systemName) {
-          this.async( function() {
+          this.debounce('svg-data', function() {
             this._getResource(facilityName, systemName);
-          }.bind(this));
+          }.bind(this), 25);
         }
       },
 

@@ -1,6 +1,7 @@
 <!-- Modification of polymers paper-toggle-button because of conflicts with paper-style -->
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/paper-ripple/paper-ripple.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html"/>
 
 <dom-module id="toggle-button">
   <template strip-whitespace>
@@ -24,7 +25,7 @@
         pointer-events: none;
       }
 
-      .toggle-bar {
+      .bar {
         position: absolute;
         height: 100%;
         width: 100%;
@@ -33,11 +34,10 @@
         opacity: 0.75;
         transition: background-color linear 100ms;
         background-color: var(--toggle-button-unchecked-bar-color, #000000);
-
         @apply(--toggle-button-unchecked-bar);
       }
 
-      .toggle-button {
+      .button {
         position: absolute;
         top: -0.125em;
         left: 0;
@@ -53,35 +53,34 @@
         @apply(--toggle-button-unchecked-button);
       }
 
-      .toggle-button.dragging {
+      .button.dragging {
         -webkit-transition: none;
         transition: none;
       }
 
-      :host([checked]:not([disabled])) .toggle-bar {
+      :host([checked]:not([disabled])) .bar {
         opacity: 0.5;
         background-color: var(--toggle-button-checked-bar-color, --primary-color);
 
         @apply(--toggle-button-checked-bar);
       }
 
-      :host([disabled]) .toggle-bar {
+      :host([disabled]) .bar {
         background-color: #000;
         opacity: 0.2;
       }
 
-      :host([checked]) .toggle-button {
+      :host([checked]) .button {
         -webkit-transform: translate(1.25em, 0);
         transform: translate(1.25em, 0);
       }
 
-      :host([checked]:not([disabled])) .toggle-button {
+      :host([checked]:not([disabled])) .button {
         background-color: var(--toggle-button-checked-button-color, --primary-color);
-
         @apply(--toggle-button-checked-button);
       }
 
-      :host([disabled]) .toggle-button {
+      :host([disabled]) .button {
         background-color: var(--disabled-text-color);
         opacity: 1;
       }
@@ -103,7 +102,7 @@
         color: var(--toggle-button-checked-ink-color, --primary-color);
       }
 
-      .toggle-container {
+      .container {
         display: inline-block;
         position: relative;
         width: 2.5em;
@@ -111,7 +110,7 @@
         margin: 0.25em 1px;
       }
 
-      .toggle-content {
+      .content {
         position: relative;
         display: inline-block;
         vertical-align: middle;
@@ -129,13 +128,13 @@
     </style>
 
     <content select="iron-icon"></content>
-    <section class="toggle-container">
+    <section class="container">
       <paper-ripple id="ink" class="circle"></paper-ripple>
-      <section id="toggleBar" class="toggle-bar"></section>
-      <section id="toggleButton" class="toggle-button"></section>
+      <section id="toggleBar" class="bar"></section>
+      <section id="toggleButton" class="button"></section>
     </section>
 
-    <section class="toggle-content"><content></content></section>
+    <section class="content"><content></content></section>
 
   </template>
 
