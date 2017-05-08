@@ -154,7 +154,7 @@
     </style>
 
     <app-route
-      route="{{route}}"></app-route>
+      route="[[route]]"></app-route>
 
     <iron-media-query query="(max-width: 600px)" query-matches="{{showControlAsDrawer}}"></iron-media-query>
 
@@ -311,7 +311,7 @@
       },
 
       _getCurrentElement: function(elements, path, visible) {
-        if (!(visible && elements && elements.length && path && this.route.prefix === '/detail')) {
+        if (!(visible && elements && elements.length && path)) {
           return;
         }
         var facility, system, mount;

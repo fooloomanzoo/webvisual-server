@@ -17,7 +17,7 @@
 <link rel="import" href="../bower_components/app-route/app-route.html"/>
 <link rel="import" href="../bower_components/app-layout/app-scroll-effects/effects/waterfall.html"/>
 
-<link rel="import" href="components/snackbar-element.html">
+<link rel="import" href="components/drawer-element.html">
 <link rel="import" href="dialog-login.html"/>
 <link rel="import" href="page-home.html"/>
 
@@ -100,35 +100,13 @@
         @apply(--layout-inline);
         @apply(--layout-center-center);
       }
-      .viewSelect.behind {
+      .tabView {
+        visibility: hidden;
+      }
+      #header[threshold-triggered] ~ .tabView {
+        visibility: visible;
         z-index: 1;
-        @apply(--layout-fixed-top);
-        will-change: transform;
-        transition-property: -webkit-transform;
-        transition-property: transform;
-        transition-duration: 0.2s;
-        -webkit-transform: translate3d(0px, -2.5em, 0px);
-        transform: translate3d(0px, -2.5em, 0px);
-      }
-      #header[threshold-triggered] ~ .viewSelect.behind {
-        transform: translate3d(0px, 0px, 0px);
-        box-shadow: 0 1px 3px 2px rgba(0, 0, 0, 0.2)
-      }
-      snackbar-element,
-      .viewSelect.behind {
-        background-color: var(--primary-background);
-        color: var(--bright-text-color);
-      }
-      .notification::before {
-        position: absolute;
-        content: "";
-        top: 0;
-        bottom: 0;
-        right: 0;
-        left: 0;
-        border-top-left-radius: inherit;
-        border-top-right-radius: inherit;
-        background: linear-gradient(to top, rgba(255,255,255,0.0078125) 38%,rgba(255,255,255,0.125) 100%);
+        /*box-shadow: 0 1px 3px 2px rgba(0, 0, 0, 0.2)*/
       }
       .tabs {
         height: 100%;
@@ -279,7 +257,7 @@
 
         </app-header>
 
-        <div class="viewSelect behind" hidden$="[[showTabs]]">
+        <drawer-element class="tabView" position="top" opened$="[[!showTabs]]">
           <tabs-container class="tabs"
             role="tablist"
             selected="{{page}}"
@@ -297,7 +275,7 @@
               <a href="/detail/[[facilitySystem]]">{{localize('detail', 'name')}}</a>
             </div>
           </tabs-container>
-        </div>
+        </drawer-element>
       </template>
       <!-- Pages-->
       <iron-pages id="pageselector" role="main" selected="{{page}}" attr-for-selected="name" selected-attribute="visible" fallback-selection="home">
@@ -435,17 +413,17 @@
       </app-drawer>
     </template>
 
-    <snackbar-element id="announceNotification" class="notification" auto-close auto-close-period="8000">
+    <drawer-element id="announceNotification" class="notification" auto-close auto-close-period="8000">
       <iron-icon icon="event"></iron-icon>
       <span class="message"></span>
-    </snackbar-element>
-    <snackbar-element id="networkNotification" class="notification" auto-close auto-close-period="4000">
+    </drawer-element>
+    <drawer-element id="networkNotification" class="notification" auto-close auto-close-period="4000">
       <iron-icon icon="[[socketStatusIcon]]"></iron-icon>
       <span class="message"></span>
-    </snackbar-element>
+    </drawer-element>
 
     <template is="dom-if" if="[[!showTabsOnTop]]">
-      <snackbar-element opened="[[showTabs]]" id="toolbarBottom">
+      <drawer-element opened="{{showTabs}}" id="toolbarBottom" swipe-open>
         <div class="viewSelect">
 
           <template is="dom-if" if="[[_shouldRenderGroupingKeys]]">
@@ -473,7 +451,7 @@
             </div>
           </tabs-container>
         </div>
-      </snackbar-element>
+      </drawer-element>
     </template>
 
   </template>
@@ -762,7 +740,7 @@
       _notifyNetworkStatus: function() {
         var oldOffline = this.offline;
         this.offline =  !navigator.onLine;
-        // Show the snackbar if the user is offline when starting a new session
+        // Show the drawer if the user is offline when starting a new session
         // or if the network status changed.
         if (this.offline || (!this.offline && oldOffline === true)) {
           this.$.networkNotification.querySelector('.message').innerHTML = this.localize ? this.localize('notification', 'offline', this.offline) : (this.offline ?
@@ -773,7 +751,7 @@
 
       _notifyAnnouncement: function(e) {
         var message = e.detail;
-        // Show the snackbar if the user is offline when starting a new session
+        // Show the drawer if the user is offline when starting a new session
         // or if the network status changed.
         if (message) {
           this.$.announceNotification.querySelector('.message').innerHTML = message;

@@ -16,6 +16,9 @@
         --radio-button-unchecked-background-color: tranparent;
         --radio-button-system-color: currentColor;
 
+        --drawer-color: var(--bright-text-color);
+        --drawer-background: var(--primary-color);
+
         --app-drawer-width: 20em;
         --app-drawer-scim-background: rgba(0, 0, 0, 0.25);
         --app-drawer-content-container: {
@@ -46,6 +49,7 @@
       }
       :host([plain][dark]) {
         --primary-background: var(--dark-primary-color);
+        --drawer-background: #151515;
         --app-drawer-header: {
           color: #f1f1f1;
         };
@@ -62,7 +66,8 @@
         --primary-background: #999;
       }
       :host(:not([plain])[dark]) {
-        --primary-background: #050505;
+        --primary-background: #151515;
+        --drawer-background: var(--dark-primary-color);
         --app-header: {
           background-color: var(--dark-primary-color);
           color: var(--bright-text-color);
