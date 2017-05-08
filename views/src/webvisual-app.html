@@ -6,7 +6,6 @@
 <link rel="import" href="../bower_components/app-layout/app-header-layout/app-header-layout.html"/>
 <link rel="import" href="../bower_components/app-layout/app-header/app-header.html"/>
 <link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html"/>
-<link rel="import" href="../bower_components/app-layout/app-scroll-effects/app-scroll-effects.html">
 <link rel="import" href="../bower_components/iron-media-query/iron-media-query.html">
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html"/>
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html"/>
@@ -102,23 +101,34 @@
         @apply(--layout-center-center);
       }
       .viewSelect.behind {
-        @apply(--layout-fixed-top);
         z-index: 1;
+        @apply(--layout-fixed-top);
         will-change: transform;
         transition-property: -webkit-transform;
         transition-property: transform;
         transition-duration: 0.2s;
         -webkit-transform: translate3d(0px, -2.5em, 0px);
         transform: translate3d(0px, -2.5em, 0px);
-        box-shadow: 0 1px 3px 2px rgba(0, 0, 0, 0.2)
       }
       #header[threshold-triggered] ~ .viewSelect.behind {
         transform: translate3d(0px, 0px, 0px);
+        box-shadow: 0 1px 3px 2px rgba(0, 0, 0, 0.2)
       }
       snackbar-element,
       .viewSelect.behind {
         background-color: var(--primary-background);
         color: var(--bright-text-color);
+      }
+      .notification::before {
+        position: absolute;
+        content: "";
+        top: 0;
+        bottom: 0;
+        right: 0;
+        left: 0;
+        border-top-left-radius: inherit;
+        border-top-right-radius: inherit;
+        background: linear-gradient(180deg,rgba(0,0,0,0.15) 25%,rgba(0,0,0,0) 75%);
       }
       .tabs {
         height: 100%;
@@ -175,6 +185,9 @@
         font-size: 0.75em;
         padding: 0 0.5em 0 2.5em;
       }
+      :-webkit-full-screen-ancestor > * {
+        z-index: auto !important;
+      }
     </style>
 
     <!-- Routing-->
@@ -215,7 +228,7 @@
     <app-header-layout id="headerLayout" fullbleed has-scrolling-region>
       <template is="dom-if" if="[[_isContentPage]]">
         <!-- Toolbar -->
-        <app-header role="header" id="header" reveals effects="waterfall" threshold="192">
+        <app-header role="header" id="header" reveals threshold="1">
           <app-toolbar>
             <icon-button icon="menu" class="menu-icon" title="menu" on-tap="_toggleDrawer"></icon-button>
             <logo-element id="logo" href="/home" main-title title$="[[localize('home', 'name')]]"></logo-element>
@@ -286,7 +299,6 @@
           </tabs-container>
         </div>
       </template>
-
       <!-- Pages-->
       <iron-pages id="pageselector" role="main" selected="[[page]]" attr-for-selected="name" selected-attribute="visible" fallback-selection="home">
         <!-- home view for selecting the facility -->
@@ -423,11 +435,11 @@
       </app-drawer>
     </template>
 
-    <snackbar-element id="announceNotification" auto-close auto-close-period="8000">
+    <snackbar-element id="announceNotification" class="notification" auto-close auto-close-period="8000">
       <iron-icon icon="event"></iron-icon>
       <span class="message"></span>
     </snackbar-element>
-    <snackbar-element id="networkNotification" auto-close auto-close-period="4000">
+    <snackbar-element id="networkNotification" class="notification" auto-close auto-close-period="4000">
       <iron-icon icon="[[socketStatusIcon]]"></iron-icon>
       <span class="message"></span>
     </snackbar-element>

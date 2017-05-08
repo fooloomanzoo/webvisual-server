@@ -25,6 +25,7 @@
         color: white;
         letter-spacing: normal !important;
         user-select: none !important;
+        z-index: auto;
         /*isolation: isolate;*/
       }
       :host([fullscreen]) {
@@ -35,6 +36,7 @@
         width: 100% !important;
         padding: 0 !important;
         margin: 0 !important;
+        z-index: 1000;
       }
       :host(:-webkit-full-screen) {
         background-color: var(--fullscreen-background-color);

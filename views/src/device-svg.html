@@ -53,6 +53,7 @@
       background-color: transparent;
       color: currentColor;
       isolation: isolate;
+      z-index: auto;
     }
     :host([opened]) {
       pointer-events: all;
@@ -63,6 +64,7 @@
       max-width: 100% !important;
       height: 100% !important;
       width: 100% !important;
+      z-index: 1000;
     }
     :host(:-webkit-full-screen) {
       background-color: var(--fullscreen-background-color);

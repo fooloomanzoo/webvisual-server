@@ -64,7 +64,7 @@
           this.debounce('group-data', function() {
             this._request(this._groupUri, 'groups');
             this._request(this._groupUri, 'groupingKeys');
-          }.bind(this), 25);
+          }.bind(this), 200);
         }
       },
 
@@ -126,13 +126,17 @@
       },
 
       _groupingKeysChanged: function(groupingKeys) {
+        if (!(groupingKeys && groupingKeys.length)) {
+          return;
+        }
         var prefix = this.urlPrefix || '/data/';
         var groupedKey = localStorage.getItem('groupedKey');
         if (groupedKey && groupedKey in this.groupingKeys) {
           this.set('groupedKey', groupedKey);
-        } else {
+        } else if (this._groupUri) {
+          var URL = prefix + this._groupUri + '+preferedGroupingKey.json';
           this._getResource({
-            url: prefix + this._groupUri + '+preferedGroupingKey.json',
+            url: URL,
             onLoad: function(e) {
               if (e.target.status < 400) {
                 this.set('groupedKey', JSON.parse(e.target.responseText));
