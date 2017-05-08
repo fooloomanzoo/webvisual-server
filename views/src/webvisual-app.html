@@ -300,7 +300,7 @@
         </div>
       </template>
       <!-- Pages-->
-      <iron-pages id="pageselector" role="main" selected="[[page]]" attr-for-selected="name" selected-attribute="visible" fallback-selection="home">
+      <iron-pages id="pageselector" role="main" selected="{{page}}" attr-for-selected="name" selected-attribute="visible" fallback-selection="home">
         <!-- home view for selecting the facility -->
         <page-home name="home" dark$="[[dark]]" plain$="[[plain]]"
           facilities="[[facilities]]"
@@ -496,11 +496,17 @@
           observer: '_pageChanged'
         },
 
-        routeData: Object,
+        routeData: {
+          type: Object
+        },
 
-        subroute: Object,
+        subroute: {
+          type: Object
+        },
 
-        elements: Array,
+        elements: {
+          type: Array
+        },
 
         groupingKeys: {
           type: Array,
@@ -540,9 +546,13 @@
           observer: '_plainChanged'
         },
 
-        facilitySystem: String,
+        facilitySystem: {
+          type: String
+        },
 
-        socketStatus: String,
+        socketStatus: {
+          type: String
+        },
 
         loggedIn: {
           type: Boolean,
@@ -554,11 +564,17 @@
           computed: '_computeLoginIcon(loggedIn)'
         },
 
-        offline: Boolean,
+        offline: {
+          type: Boolean
+        },
 
-        loadComplete: Boolean,
+        loadComplete: {
+          type: Boolean
+        },
 
-        detailHasDrawer: Boolean,
+        detailHasDrawer: {
+          type: Boolean
+        },
 
         showTabs: {
           type: Boolean,

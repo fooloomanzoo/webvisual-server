@@ -12,11 +12,6 @@
         @apply(--layout-fit);
         box-sizing: border-box;
         overflow: hidden;
-        --tab-vertical-overlay: {
-          background-color: rgba(255, 255, 255, 1);
-          border-left: 3px solid var(--saturated-primary-color, white);
-          border-bottom: none;
-        }
       }
       :host > #content {
         display: flex;
@@ -159,7 +154,7 @@
     </style>
 
     <app-route
-      route="[[route]]"></app-route>
+      route="{{route}}"></app-route>
 
     <iron-media-query query="(max-width: 600px)" query-matches="{{showControlAsDrawer}}"></iron-media-query>
 
@@ -315,28 +310,45 @@
         return items || [{},{},{},{},{},{},{},{},{},{}];
       },
 
-      _getCurrentElement: function(elements, mount, visible) {
-        if (!(visible && elements && elements.length && mount && mount !== this._recentElementMount)) {
+      _getCurrentElement: function(elements, path, visible) {
+        if (!(visible && elements && elements.length && path && this.route.prefix === '/detail')) {
           return;
         }
-        requestAnimationFrame( function() {
-          if (this.route.path.startsWith('/')) {
-            mount = this.route.path.substring(1); // cut off leading '/'
-          } else {
-            mount = this.route.path;
+        var facility, system, mount;
+        var pathData = path.split('/').filter(function (str) { return str !== ''; });;
+        if (pathData.length < 2) {
+          if (this.facilitySystem) {
+            facility = this.facilitySystem.split('/')[0];
+            system = this.facilitySystem.split('/')[1];
           }
-          for (var i = 0; i < this.elements.length; i++) {
-            if (this.elements[i].mount && (mount === this.elements[i].mount)) {
-              this.cancelDebouncer('initial-element');
-              this._recentElementMount = this.elements[i].mount;
-              this.set('selectedElement', this.elements[i]);
+          if (!facility || !system) {
+            return;
+          }
+        } else {
+          facility = pathData[0];
+          system = pathData[1];
+        }
+        if (!pathData[2]) {
+          mount = this._recentElementMount || this.elements[0].mount;
+        } else {
+          mount = facility + '/' + system + '/' + pathData[2];
+        }
+
+        for (var i = 0; i < this.elements.length; i++) {
+          if (this.elements[i].mount && (mount === this.elements[i].mount)) {
+            this.cancelDebouncer('initial-element');
+            this._recentElementMount = this.elements[i].mount;
+            if (path !== '/' + mount) {
               this._hasSvg(this.elements[i]);
+              this.set('selectedElement', this.elements[i]);
+              this.set('route.prefix', '/detail');
+              this.set('route.path', '/' + mount);
               this.debounce('resize', this.notifyResize);
-              return;
             }
+            return;
           }
-          this.debounce('initial-element', this._setInitialElement.bind(this), 250);
-        }.bind(this))
+        }
+        this.debounce('initial-element', this._setInitialElement.bind(this), 250);
       },
 
       _setInitialElement: function() {

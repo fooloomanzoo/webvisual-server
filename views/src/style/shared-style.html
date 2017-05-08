@@ -6,6 +6,7 @@
       --primary-color: #005B82;
       --dark-primary-color: #345475; /* Primary Colors */
       --bright-primary-color: #669DB4;
+      --very-bright-primary-color: #E5EEf2;
       --saturated-primary-color: #3170B0;
       --unsaturated-primary-color: #243241;
 
@@ -37,7 +38,7 @@
         --primary-text-color: #252525;
         --bright-text-color: #f1f1f1;
         --disabled-text-color: #bbb;
-        --highlight-color: #BDE2F1;
+        --highlight-color: var(--saturated-primary-color);
         --select-color: #CCF2DD;
 
         --selectbox-color: var(--primary-text-color);
@@ -86,6 +87,7 @@
       }
 
       :host(:not([plain])) {
+        --highlight-color: var(--very-bright-primary-color);
         --caption-background: #fff;
         --caption-color: var(--primary-text-color);
         --checkbox-checked-background: #fff;
