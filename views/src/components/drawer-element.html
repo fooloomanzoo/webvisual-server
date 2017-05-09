@@ -6,10 +6,7 @@
     <style>
       :host {
         position: fixed;
-        left: 0;
-        top: 0;
-        right: 0;
-        bottom: 0;
+        left: 0; top: 0; right: 0; bottom: 0;
         z-index: 1;
         visibility: hidden;
         transition-property: visibility;
@@ -19,35 +16,38 @@
       }
       #contentContainer {
         position: fixed;
-        bottom: 0;
-        left: 50%;
         box-sizing: border-box;
-        width: auto;
         @apply(--layout-inline);
         @apply(--layout-center-center);
         font-size: 1em;
-        height: var(--drawer-height, 2.5em);
         text-align: center;
         will-change: transform;
-        -webkit-transform: translate3d(-50%, 100%, 0);
-        transform: translate3d(-50%, 100%, 0);
         transition-property: -webkit-transform;
         transition-property: transform;
         pointer-events: all;
         background-color: var(--drawer-background, --primary-background);
         color: var(--drawer-color, --primary-text-color);
       }
+      :host([position=bottom]) > #contentContainer {
+        bottom: 0; left: 50%; top: auto; right: auto;
+        -webkit-transform: translate3d(-50%, 100%, 0);
+        transform: translate3d(-50%, 100%, 0);
+        width: auto;
+        height: var(--drawer-height, 2.75em);
+        border-radius: 4px 4px 0 0;
+      }
       :host([position=top]) > #contentContainer {
-        bottom: auto;
-        top: 0;
+        bottom: auto; top: 0; left: 50%; right: auto;
         -webkit-transform: translate3d(-50%, -100%, 0);
         transform: translate3d(-50%, -100%, 0);
+        width: auto;
+        height: var(--drawer-height, 2.75em);
+        border-radius: 0 0 4px 4px;
       }
       :host([opened]) > #contentContainer {
         visibility: visible;
-        -webkit-transform: translate3d(-50%, 0, 0);
+          -webkit-transform: translate3d(-50%, 0, 0);
         transform: translate3d(-50%, 0, 0);
-        box-shadow: 0px 5px 6px -3px rgba(0, 0, 0, 0.2);
       }
       :host([swipe-open]) > #contentContainer::after {
         position: fixed;
@@ -64,11 +64,9 @@
         bottom: auto;
       }
       @media (max-width: 767px) {
-        #contentContainer {
+        :host([position]) #contentContainer {
           width: 100%;
-        }
-        :host([opened]) > #contentContainer {
-          box-shadow: 0px 1px 4px 3px rgba(0, 0, 0, 0.2);
+          border-radius: 0 0 0 0;
         }
       }
       :host ::content iron-icon {

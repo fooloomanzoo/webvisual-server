@@ -5,7 +5,6 @@
 
 <link rel="import" href="../bower_components/app-layout/app-header-layout/app-header-layout.html"/>
 <link rel="import" href="../bower_components/app-layout/app-header/app-header.html"/>
-<link rel="import" href="../bower_components/app-layout/app-scroll-effects/effects/waterfall.html"/>
 <link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html"/>
 <link rel="import" href="../bower_components/iron-media-query/iron-media-query.html">
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html"/>
@@ -16,7 +15,6 @@
 
 <link rel="import" href="../bower_components/app-route/app-location.html"/>
 <link rel="import" href="../bower_components/app-route/app-route.html"/>
-<link rel="import" href="../bower_components/app-layout/app-scroll-effects/effects/waterfall.html"/>
 
 <link rel="import" href="components/drawer-element.html">
 <link rel="import" href="dialog-login.html"/>
@@ -99,7 +97,7 @@
       .viewSelect {
         position: relative;
         padding-left: 2.5em;
-        height: 2.5em;
+        height: 100%;
         width: 100%;
         @apply(--layout-inline);
         @apply(--layout-center-center);
@@ -236,7 +234,7 @@
     <app-header-layout id="headerLayout" fullbleed has-scrolling-region>
       <template is="dom-if" if="[[_isContentPage]]">
         <!-- Toolbar -->
-        <app-header role="header" id="header" reveals threshold="1" threshold-triggered="{{thresholdTriggered}}" effects="waterfall">
+        <app-header role="header" id="header" reveals threshold="64" threshold-triggered="{{thresholdTriggered}}">
           <app-toolbar>
             <icon-button icon="menu" class="menu-icon" title="menu" on-tap="_toggleDrawer"></icon-button>
             <logo-element id="logo" href="/home" main-title title$="[[localize('home', 'name')]]"></logo-element>
@@ -245,7 +243,7 @@
               <div class="viewSelect top">
 
                 <template is="dom-if" if="[[_shouldRenderGroupingKeys]]">
-                  <div class="selectbox toolbar grouping" title="grouping keys">
+                  <div class="selectbox toolbar grouping" title="[[groupedKey]]">
                     <select value="{{groupedKey::change}}"></select>
                   </div>
                 </template>
@@ -271,7 +269,7 @@
             </iron-collapse>
 
             <template is="dom-if" if="[[_shouldLogin]]">
-              <icon-button icon="[[loginIcon]]" class="login-icon" on-click="_openLoginDialog"></icon-button>
+              <icon-button icon="[[loginIcon]]" class="login-icon" title="{{localize('login', 'name')}}" on-click="_openLoginDialog"></icon-button>
             </template>
 
             <template is="dom-if" if="[[detailHasDrawer]]">
@@ -279,7 +277,7 @@
               </icon-button>
             </template>
 
-            <icon-button icon="more-vert" title="tabs" on-tap="toggleShowTabs"></icon-button>
+            <icon-button icon="more-vert" title="{{localize('view')}}" on-tap="toggleShowTabs"></icon-button>
           </app-toolbar>
 
         </app-header>
@@ -322,7 +320,7 @@
       <app-drawer id="drawerPanel" opened="{{drawerOpened}}" align="left" swipe-open tabindex="0">
         <app-toolbar class="top">
           <icon-button icon="close" title="close" on-tap="_toggleDrawer"></icon-button>
-          <icon-button icon="[[loginIcon]]" title="login" on-tap="_openLoginDialog"></icon-button>
+          <icon-button icon="[[loginIcon]]" title="{{localize('notification', 'loggedIn', loggedIn)}}" on-tap="_openLoginDialog"></icon-button>
         </app-toolbar>
 
         <div class="drawer-content">
@@ -390,7 +388,7 @@
 
           <div class="spacer"></div>
 
-          <div class="selectbox">
+          <div class="selectbox" title="[[language]]">
             <iron-icon icon="language"></iron-icon>
             <span>{{localize('language')}}</span>
 
@@ -406,7 +404,7 @@
           </div>
 
           <template is="dom-if" if="[[_shouldRenderGroupingKeys]]">
-            <div class="selectbox grouping">
+            <div class="selectbox grouping" title="[[groupedKey]]">
               <iron-icon icon="filter-list"></iron-icon>
               <span>{{localize('groupedKey')}}</span>
               <select value="{{groupedKey::change}}"></select>
@@ -433,7 +431,7 @@
       <div class="viewSelect">
 
         <template is="dom-if" if="[[_shouldRenderGroupingKeys]]">
-          <div class="selectbox toolbar grouping" title="grouping keys">
+          <div class="selectbox toolbar grouping" title="[[groupedKey]]">
             <select value="{{groupedKey::change}}"></select>
           </div>
         </template>
