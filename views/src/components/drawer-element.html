@@ -431,7 +431,8 @@
         // If the drawer is not flinging, toggle the opened state based on the align of
         // the drawer.
         var conditionalDragLength = drawerExpandedSide * this._CONDITION_PARTS;
-        if (-dd > conditionalDragLength) {
+
+        if (dd < -conditionalDragLength) {
           this.opened = this.endPositioned;
         } else if (dd > conditionalDragLength) {
           this.opened = !this.endPositioned;
@@ -448,7 +449,10 @@
         this.style.visibility = '';
       },
 
-      _calculateVelocity: function(event, trackDetails, horizontal) {
+      _calculateVelocity: function(event, trackDetails) {
+        if (!(trackDetails && trackDetails.length)) {
+          return 0;
+        }
         // Find the oldest track event that is within 100ms using binary search.
         var now = Date.now();
         var timeLowerBound = now - 100;
@@ -469,7 +473,7 @@
         }
 
         if (trackDetail) {
-          var d = horizontal ? event.detail.dy - trackDetail.d : event.detail.dx - trackDetail.d;
+          var d = this.horizontal ? event.detail.dy - trackDetail.d : event.detail.dx - trackDetail.d;
           var dt = (now - trackDetail.timeStamp) || 1;
           return d / dt;
         }
@@ -477,7 +481,7 @@
       },
 
       _flingDrawer: function(event, trackDetails) {
-        var velocity = this._calculateVelocity(event, trackDetails, this.horizontal);
+        var velocity = this._calculateVelocity(event, trackDetails);
 
         // Do not fling if velocity is not above a threshold.
         if (Math.abs(velocity) < this._MIN_FLING_THRESHOLD) {
@@ -500,7 +504,6 @@
         } else {
           dd = -d;
         }
-
         // Enforce a minimum transition velocity to make the drawer feel snappx.
         if (isVelocityPositive) {
           velocity = Math.max(velocity, this._MIN_TRANSITION_VELOCITY);
@@ -512,7 +515,7 @@
 
         // Calculate the amount of time needed to finish the transition based on the
         // initial slope of the timing function.
-        var t = this._FLING_INITIAL_SLOPE * dd / velocity
+        var t = this._FLING_INITIAL_SLOPE * dd / velocity;
         this._styleTransitionDuration(t);
         this._styleTransitionTimingFunction(this._FLING_TIMING_FUNCTION);
 
