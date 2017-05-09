@@ -151,7 +151,7 @@
     <app-route
       route="[[route]]"></app-route>
 
-    <iron-media-query query="(max-width: 600px)" query-matches="{{showControlAsDrawer}}"></iron-media-query>
+    <iron-media-query query="(max-width: 600px)" query-matches="{{narrowLayout}}"></iron-media-query>
 
     <svg-data hidden
       facility-system="[[facilitySystem]]"
@@ -172,12 +172,12 @@
           exceeding="[[exceeding]]"></device-svg>
       </template>
 
-      <template is="dom-if" if="{{showControlAsDrawer}}">
+      <template is="dom-if" if="[[narrowLayout]]">
         <device-caption id="currentSelected" class="caption" keys="[[selectedElement.keys]]"></device-caption>
       </template>
 
       <!-- <template is="dom-if" if="[[visible]]"> -->
-        <app-drawer id="elementDrawer" opened="[[_ensureOpened(showControlAsDrawer)]]" swipe-open="[[showControlAsDrawer]]" persistent="[[!showControlAsDrawer]]" align="right"
+        <app-drawer id="elementDrawer" opened="[[_ensureOpened(narrowLayout)]]" swipe-open="[[narrowLayout]]" persistent="[[!narrowLayout]]" align="right"
         disable-upgrade$="[[!visible]]">
 
           <tabs-container id="elementTabs" vertical selected="{{route.path}}" attr-for-selected="item-mount" selected-attribute="checked">
@@ -247,7 +247,8 @@
         },
 
         visible: {
-          type: Boolean
+          type: Boolean,
+          observer: '_debounceResize'
         },
 
         _withSvg: {
@@ -255,7 +256,7 @@
           computed: '_hasSvg(selectedElement, svgPaths)'
         },
 
-        showControlAsDrawer: {
+        narrowLayout: {
           type: Boolean,
           notify: true
         },
@@ -263,7 +264,7 @@
         showToggleIcon: {
           type: Boolean,
           notify: true,
-          computed: '_computeShowToggleIcon(showControlAsDrawer, visible)'
+          computed: '_computeShowToggleIcon(narrowLayout, visible)'
         }
       },
 
@@ -340,7 +341,7 @@
             if (path !== '/' + mount) {
               this.set('route.prefix', '/detail');
               this.set('route.path', '/' + mount);
-              this.debounce('resize', this.notifyResize);
+              this._debounceResize();
             }
             return;
           }
@@ -368,7 +369,7 @@
         // notify the chart to resize
         var _withSvg = Boolean(selectedElement && selectedElement.svg && selectedElement.svg.path && svgPaths && svgPaths[selectedElement.svg.path])
         if (_withSvg !== this._withSvg) {
-          this.debounce('resize', this.notifyResize);
+          this._debounceResize();
         }
         return _withSvg;
       },
@@ -377,12 +378,12 @@
         return svgPaths[src] || {};
       },
 
-      _ensureOpened: function(showControlAsDrawer) {
-        return true; // if 'showControlAsDrawer' changes the drawer is opened
+      _ensureOpened: function(narrowLayout) {
+        return true; // if 'narrowLayout' changes the drawer is opened
       },
 
-      _computeShowToggleIcon: function(showControlAsDrawer, visible) {
-        return showControlAsDrawer && visible;
+      _computeShowToggleIcon: function(narrowLayout, visible) {
+        return narrowLayout && visible;
       },
 
       toggleControlDrawer: function() {
@@ -395,6 +396,18 @@
       requestMoreDetail: function(e) {
         e.stopPropagation();
         this.fire('detail-request', { item: this.selectedElement })
+      },
+
+      _debounceResize: function() {
+        this.debounce('resize', function() {
+          this.notifyResize();
+          if (this.narrowLayout) {
+            var drawer = this.$$('#elementDrawer');
+            if (drawer) {
+              drawer.open();
+            }
+          }
+        }.bind(this), 15);
       }
     });
   </script>
