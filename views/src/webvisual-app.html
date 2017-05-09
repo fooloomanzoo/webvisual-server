@@ -97,15 +97,19 @@
         font-size: 0.8em;
       }
       .viewSelect {
+        position: relative;
+        padding-left: 2.5em;
         height: 2.5em;
-        width: auto;
+        width: 100%;
         @apply(--layout-inline);
         @apply(--layout-center-center);
       }
       .viewSelect.top {
         padding-right: 0.5em;
+        width: auto;
       }
       .tabs {
+        position: relative;
         height: 100%;
         --tab-overlay: {
           background-color: rgba(255, 255, 255, 0.1);
@@ -153,18 +157,40 @@
         padding: 0 1em;
       }
       .selectbox.toolbar.grouping {
+        position: absolute;
+        bottom: 0;
+        top: 0;
+        left: 1.5em;
+        @apply(--layout-inline);
+        @apply(--layout-center-center);
         background: url(data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22%3E%3Cg%3E%3Cpath d=%22M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z%22 fill=%22%23FFFFFF%22%3E%3C/path%3E%3C/g%3E%3C/svg%3E);
         background-repeat: no-repeat;
         background-position: 0.5em center;
         background-size: 1em 1em;
-        min-width: 6em;
         padding: 0;
-        margin: 0 1.5em;
+        margin: 0;
       }
       .selectbox.toolbar > select {
         height: 2.5em;
         font-size: 0.75em;
-        padding: 0 0.5em 0 2.5em;
+        padding-left: 2em;
+        max-width: 2.5em;
+        background-color: rgba(255,255,255,0.05);
+        transition: background 0.2s linear;
+        border-color: rgba(255,255,255,0.5);
+      }
+      .selectbox.toolbar > select:hover {
+        background-color: rgba(255,255,255,0.25);
+      }
+      @media (min-width: 768px) {
+        .selectbox.toolbar.grouping {
+          position: relative;
+          left: 0;
+        }
+        .viewSelect {
+          width: auto;
+          padding-left: 0;
+        }
       }
       :-webkit-full-screen-ancestor * {
         z-index: auto !important;
@@ -221,10 +247,6 @@
                   <div class="selectbox toolbar grouping" title="grouping keys">
                     <select value="{{groupedKey::change}}"></select>
                   </div>
-                </template>
-
-                <template is="dom-if" if="[[!_shouldRenderGroupingKeys]]">
-                  <div></div>
                 </template>
 
                 <tabs-container class="tabs"
@@ -415,15 +437,10 @@
           </div>
         </template>
 
-        <template is="dom-if" if="[[!_shouldRenderGroupingKeys]]">
-          <div></div>
-        </template>
-
         <tabs-container class="tabs"
           role="tablist"
           selected="{{page}}"
-          attr-for-selected="name"
-          style="margin-left:auto;">
+          attr-for-selected="name">
           <div class="tab" name="list">
             <paper-ripple id="ripple" recenters></paper-ripple>
             <a href="/list/[[facilitySystem]]">{{localize('list', 'name')}}</a>
