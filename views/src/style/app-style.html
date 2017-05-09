@@ -17,11 +17,10 @@
         --radio-button-system-color: currentColor;
 
         --drawer-color: var(--bright-text-color);
-        --drawer-background: var(--primary-color);
 
-        --app-drawer-width: 20em;
-        --app-drawer-scim-background: rgba(0, 0, 0, 0.25);
-        --app-drawer-content-container: {
+        --drawer-width: 20em;
+        --drawer-scim-background: rgba(0, 0, 0, 0.25);
+        --drawer-content: {
           min-width: 256px;
           color: var(--primary-text-color);
           background-color: var(--bright-primary-color);
@@ -34,12 +33,11 @@
       }
       :host([plain]) {
         --primary-background: var(--bright-primary-color);
-        --drawer-background: var(--dark-primary-color);
 
         --toggle-button-unchecked-bar-color: var(--bright-primary-color);
         --toggle-button-unchecked-button-color: #f1f1f1;
         --toggle-button-unchecked-ink-color: var(--bright-primary-color);
-        --app-drawer-content-container: {
+        --drawer-content: {
           min-width: 256px;
           color: var(--bright-text-color);
           background-color: var(--dark-primary-color);
@@ -51,7 +49,6 @@
       }
       :host([plain][dark]) {
         --primary-background: var(--dark-primary-color);
-        --drawer-background: #151515;
         --app-drawer-header: {
           color: #f1f1f1;
         };
@@ -59,7 +56,7 @@
           background-color: var(--dark-primary-color);
           color: var(--bright-text-color);
         };
-        --app-drawer-content-container: {
+        --drawer-content: {
           color: var(--bright-text-color);
           background-color: #222;
         };
@@ -69,12 +66,11 @@
       }
       :host(:not([plain])[dark]) {
         --primary-background: #151515;
-        --drawer-background: var(--dark-primary-color);
         --app-header: {
           background-color: var(--dark-primary-color);
           color: var(--bright-text-color);
         };
-        --app-drawer-content-container: {
+        --drawer-content: {
           color: var(--bright-text-color);
           background-color: #222;
         };

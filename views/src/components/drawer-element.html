@@ -1,4 +1,5 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
 
 <dom-module id="drawer-element">
 
@@ -10,6 +11,7 @@
         z-index: 1;
         visibility: hidden;
         transition-property: visibility;
+        pointer-events: none;
       }
       :host([opened]) {
         visibility: visible;
@@ -17,8 +19,6 @@
       #contentContainer {
         position: fixed;
         box-sizing: border-box;
-        @apply(--layout-inline);
-        @apply(--layout-center-center);
         font-size: 1em;
         text-align: center;
         will-change: transform;
@@ -27,8 +27,15 @@
         pointer-events: all;
         background-color: var(--drawer-background, --primary-background);
         color: var(--drawer-color, --primary-text-color);
+        @apply(--layout-vertical);
+        @apply(--drawer-content);
       }
-      :host([position=bottom]) > #contentContainer {
+      :host([horizontal]) > #contentContainer {
+        @apply(--layout-horizontal);
+        @apply(--layout-center-center);
+        @apply(--drawer-content);
+      }
+      :host([align=bottom]) > #contentContainer {
         bottom: 0; left: 50%; top: auto; right: auto;
         -webkit-transform: translate3d(-50%, 100%, 0);
         transform: translate3d(-50%, 100%, 0);
@@ -36,7 +43,7 @@
         height: var(--drawer-height, 2.75em);
         border-radius: 4px 4px 0 0;
       }
-      :host([position=top]) > #contentContainer {
+      :host([align=top]) > #contentContainer {
         bottom: auto; top: 0; left: 50%; right: auto;
         -webkit-transform: translate3d(-50%, -100%, 0);
         transform: translate3d(-50%, -100%, 0);
@@ -44,32 +51,73 @@
         height: var(--drawer-height, 2.75em);
         border-radius: 0 0 4px 4px;
       }
+      :host([align=left]) > #contentContainer {
+        bottom: auto; top: 50%; left: 0; right: auto;
+        -webkit-transform: translate3d(-100%, -50%, 0);
+        transform: translate3d(-100%, -50%, 0);
+        width: var(--drawer-width, 20em);
+        height: auto;
+        border-radius: 0 4px 4px 0;
+      }
+      :host([align=right]) > #contentContainer {
+        bottom: auto; top: 50%; left: auto; right: 0;
+        -webkit-transform: translate3d(100%, -50%, 0);
+        transform: translate3d(100%, -50%, 0);
+        width: var(--drawer-width, 20em);
+        height: auto;
+        border-radius: 4px 0 0 4px;
+      }
+      :host([stretch]) > #contentContainer {
+        border-radius: 0 0 0 0;
+      }
+      :host([stretch][align=bottom]) > #contentContainer {
+        width: 100%;
+      }
+      :host([stretch][align=top]) > #contentContainer {
+        width: 100%;
+      }
+      :host([stretch][align=left]) > #contentContainer {
+        height: 100%;
+      }
+      :host([stretch][align=right]) > #contentContainer {
+        height: 100%;
+      }
       :host([opened]) > #contentContainer {
         visibility: visible;
-          -webkit-transform: translate3d(-50%, 0, 0);
+      }
+      :host([opened][align=bottom]) > #contentContainer,
+      :host([opened][align=top]) > #contentContainer {
+        -webkit-transform: translate3d(-50%, 0, 0);
         transform: translate3d(-50%, 0, 0);
+      }
+      :host([opened][align=left]) > #contentContainer,
+      :host([opened][align=right]) > #contentContainer {
+        -webkit-transform: translate3d(0, -50%, 0);
+        transform: translate3d(0, -50%, 0);
       }
       :host([swipe-open]) > #contentContainer::after {
         position: fixed;
-        left: 0;
-        right: 0;
-        bottom: 100%;
         visibility: visible;
-        height: 24px;
         content: '';
         cursor: pointer;
       }
-      :host([swipe-open][position=top]) > #contentContainer::after {
-        top: 100%;
-        bottom: auto;
+      :host([swipe-open][align=bottom]) > #contentContainer::after {
+        top: auto; bottom: 100%; left: 0; right: 0;
+        height: 24px;
       }
-      @media (max-width: 767px) {
-        :host([position]) #contentContainer {
-          width: 100%;
-          border-radius: 0 0 0 0;
-        }
+      :host([swipe-open][align=top]) > #contentContainer::after {
+        top: 100%; bottom: auto; left: 0; right: 0;
+        height: 24px;
       }
-      :host ::content iron-icon {
+      :host([swipe-open][align=left]) > #contentContainer::after {
+        top: 0; bottom: 0; left: 100%; right: auto;
+        width: 24px;
+      }
+      :host([swipe-open][align=right]) > #contentContainer::after {
+        top: 0; bottom: 0; left: auto; right: 100%;
+        width: 24px;
+      }
+      :host ::content > iron-icon {
         position: absolute;
         color: currentColor;
         height: var(--icon-size, 1.5em);
@@ -78,22 +126,19 @@
         left: 0.25em;
         bottom: 0;
       }
-      :host ::content iron-icon ~ * {
+      :host ::content > iron-icon ~ * {
         margin-left: calc(2*var(--icon-padding, 0.5em) + var(--icon-size, 1.5em) - 0.5em);
       }
       #scrim {
         position: absolute;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
-
+        top: 0; right: 0; bottom: 0; left: 0;
         transition-property: opacity;
         -webkit-transform: translateZ(0);
         transform:  translateZ(0);
-
         opacity: 0;
-        background: var(--drawer-scrim-background, rgba(0, 0, 0, 0.1));
+        pointer-events: all;
+        cursor: pointer;
+        background: var(--drawer-scrim-background, rgba(0, 0, 0, 0.4));
       }
       :host([opened]) > #scrim {
         opacity: 1;
@@ -102,9 +147,20 @@
       :host([opened][persistent]) > #scrim {
         visibility: hidden;
         opacity: 0;
-      }
-      :host(:not([scrim])) {
         pointer-events: none;
+      }
+      @media (max-width: 767px) {
+        :host([align]) #contentContainer {
+          border-radius: 0 0 0 0;
+        }
+        :host([align=bottom]) #contentContainer,
+        :host([align=top]) #contentContainer {
+          width: 100%;
+        }
+        :host([align=left]) #contentContainer,
+        :host([align=right]) #contentContainer {
+          height: 100%;
+        }
       }
     </style>
 
@@ -118,7 +174,6 @@
   </template>
 
   <script>
-
     Polymer({
       is: 'drawer-element',
 
@@ -160,9 +215,9 @@
         },
 
         /**
-         * The computed, read-only position of the drawer on the screen ('top' or 'bottom').
+         * align of the drawer on the screen ('top', 'bottom', 'left', 'right').
          */
-        position: {
+        align: {
           type: String,
           value: 'bottom',
           reflectToAttribute: true
@@ -181,13 +236,31 @@
           type: Boolean,
           value: false,
           reflectToAttribute: true
+        },
+
+        stretch: {
+          type: Boolean,
+          value: false,
+          reflectToAttribute: true
+        },
+
+        horizontal: {
+          type: Boolean,
+          computed: '_computeHorizontal(align)',
+          reflectToAttribute: true
+        },
+
+        endPositioned: {
+          type: Boolean,
+          computed: '_computePositioning(align)'
         }
 
       },
 
       observers: [
         '_styleTransitionDuration(transitionDuration)',
-        '_openedPersistentChanged(opened, persistent)'
+        '_openedPersistentChanged(opened, persistent)',
+        '_addTrackListeners(horizontal)'
       ],
 
       _translateOffset: 0,
@@ -209,10 +282,6 @@
         Polymer.RenderStatus.afterNextRender(this, function() {
           this._styleTransitionDuration(this.transitionDuration);
           this._boundEscKeydownHandler = this._escKeydownHandler.bind(this);
-
-          // Only listen for horizontal track so you can vertically scroll inside the drawer.
-          this.listen(this, 'track', '_track');
-          this.setScrollDirection('y');
         });
       },
 
@@ -256,13 +325,24 @@
         }
       },
 
-      /**
-       * Gets the width of the drawer.
-       *
-       * @return {number} The width of the drawer in piyels.
-       */
-      getHeight: function() {
-        return this.$.contentContainer.offsetHeight;
+      _computeHorizontal: function(align) {
+        return align === 'bottom' || align === 'top';
+      },
+
+      _computePositioning: function(align) {
+        return align === 'bottom' || align === 'right';
+      },
+
+      _getExpandedLength: function() {
+        return this.horizontal ? this.$.contentContainer.offsetHeight : this.$.contentContainer.offsetWidth;
+      },
+
+      _addTrackListeners: function(horizontal) {
+        Polymer.RenderStatus.afterNextRender(this, function() {
+          this.unlisten(this, 'track', '_track');
+          this.listen(this, 'track', '_track');
+          this.setScrollDirection(horizontal ? 'x' : 'y');
+        });
       },
 
       _escKeydownHandler: function(event) {
@@ -303,33 +383,39 @@
         this.style.visibility = 'visible';
 
         var rect = this.$.contentContainer.getBoundingClientRect();
-        if (this.position === 'top') {
-          this._translateOffset = rect.top;
-        } else {
-          this._translateOffset = rect.bottom - window.innerHeight;
+        switch (this.align) {
+          case 'left':
+            this._translateOffset = rect.left;
+            break;
+          case 'right':
+            this._translateOffset = rect.right - window.innerWidth;
+            break;
+          case 'top':
+            this._translateOffset = rect.top;
+            break;
+          case 'bottom':
+            this._translateOffset = rect.bottom - window.innerHeight;
+            break;
         }
-
         this._trackDetails = [];
       },
 
       _trackMove: function(event) {
-        this._translateDrawer(event.detail.dy + this._translateOffset);
-
-        // Use Date.now() since event.timeStamp is inconsistent across browsers (e.g. most
-        // browsers use milliseconds but FF 44 uses microseconds).
+        var d = this.horizontal ? event.detail.dy : event.detail.dx;
+        this._translateDrawer(d + this._translateOffset);
         this._trackDetails.push({
-          dy: event.detail.dy,
+          d: d,
           timeStamp: Date.now()
         });
       },
 
       _trackEnd: function(event) {
-        var y = event.detail.dy + this._translateOffset;
-        var drawerHeight = this.getHeight();
+        var dd = this.horizontal ? event.detail.dy : event.detail.dx;
+        var d = dd + this._translateOffset;
+        var drawerExpandedSide = this._getExpandedLength();
 
-        var isPositionBottom = this.position === 'bottom';
-        var isInEndState = isPositionBottom ? (y <= 0 || -y >= drawerHeight) :
-          (y <= 0 || y >= drawerHeight);
+        var isInEndState = this.endPositioned ? (d <= 0 || -d >= drawerExpandedSide) :
+          (d <= 0 || d >= drawerExpandedSide);
 
         if (!isInEndState) {
           // No longer need the track events after this method returns - allow them to be GC'd.
@@ -342,13 +428,13 @@
           }
         }
 
-        // If the drawer is not flinging, toggle the opened state based on the position of
+        // If the drawer is not flinging, toggle the opened state based on the align of
         // the drawer.
-        var oneQuarterHeight = drawerHeight * this._CONDITION_PARTS;
-        if (-event.detail.dy > oneQuarterHeight) {
-          this.opened = this.position === 'bottom';
-        } else if (event.detail.dy > oneQuarterHeight) {
-          this.opened = this.position === 'top';
+        var conditionalDragLength = drawerExpandedSide * this._CONDITION_PARTS;
+        if (-dd > conditionalDragLength) {
+          this.opened = this.endPositioned;
+        } else if (dd > conditionalDragLength) {
+          this.opened = !this.endPositioned;
         }
 
         if (isInEndState) {
@@ -362,7 +448,7 @@
         this.style.visibility = '';
       },
 
-      _calculateVelocity: function(event, trackDetails) {
+      _calculateVelocity: function(event, trackDetails, horizontal) {
         // Find the oldest track event that is within 100ms using binary search.
         var now = Date.now();
         var timeLowerBound = now - 100;
@@ -383,15 +469,15 @@
         }
 
         if (trackDetail) {
-          var dy = event.detail.dy - trackDetail.dy;
+          var d = horizontal ? event.detail.dy - trackDetail.d : event.detail.dx - trackDetail.d;
           var dt = (now - trackDetail.timeStamp) || 1;
-          return dy / dt;
+          return d / dt;
         }
         return 0;
       },
 
       _flingDrawer: function(event, trackDetails) {
-        var velocity = this._calculateVelocity(event, trackDetails);
+        var velocity = this._calculateVelocity(event, trackDetails, this.horizontal);
 
         // Do not fling if velocity is not above a threshold.
         if (Math.abs(velocity) < this._MIN_FLING_THRESHOLD) {
@@ -400,33 +486,33 @@
 
         this._drawerState = this._DRAWER_STATE.FLINGING;
 
-        var y = event.detail.dy + this._translateOffset;
-        var drawerHeight = this.getHeight();
-        var isPositionBottom = this.position === 'bottom';
+        var d = this.horizontal ? event.detail.dy + this._translateOffset : event.detail.dx + this._translateOffset;
+        var drawerExpandedSide = this._getExpandedLength();
+
         var isVelocityPositive = velocity > 0;
-        var isClosingTop = !isVelocityPositive && isPositionBottom;
-        var isClosingBottom = isVelocityPositive && !isPositionBottom;
-        var dy;
-        if (isClosingTop) {
-          dy = -(y + drawerHeight);
-        } else if (isClosingBottom) {
-          dy = (drawerHeight - y);
+        var isClosingStart = !isVelocityPositive && this.endPositioned;
+        var isClosingEnd = isVelocityPositive && !this.endPositioned;
+        var dd;
+        if (isClosingStart) {
+          dd = -(d + drawerExpandedSide);
+        } else if (isClosingEnd) {
+          dd = (drawerExpandedSide - d);
         } else {
-          dy = -y;
+          dd = -d;
         }
 
         // Enforce a minimum transition velocity to make the drawer feel snappx.
         if (isVelocityPositive) {
           velocity = Math.max(velocity, this._MIN_TRANSITION_VELOCITY);
-          this.opened = this.position === 'bottom';
+          this.opened = this.endPositioned;
         } else {
           velocity = Math.min(velocity, -this._MIN_TRANSITION_VELOCITY);
-          this.opened = this.position === 'top';
+          this.opened = !this.endPositioned;
         }
 
         // Calculate the amount of time needed to finish the transition based on the
         // initial slope of the timing function.
-        var t = this._FLING_INITIAL_SLOPE * dy / velocity
+        var t = this._FLING_INITIAL_SLOPE * dd / velocity
         this._styleTransitionDuration(t);
         this._styleTransitionTimingFunction(this._FLING_TIMING_FUNCTION);
 
@@ -447,18 +533,31 @@
         }
       },
 
-      _translateDrawer: function(y) {
-        var drawerHeight = this.getHeight();
+      _translateDrawer: function(d) {
+        var drawerExpandedSide = this._getExpandedLength();
 
-        if (this.position === 'top') {
-          y = Math.max(-drawerHeight, Math.min(y, 0));
-          this.$.scrim.style.opacity = 1 + y / drawerHeight;
-        } else {
-          y = Math.max(0, Math.min(y, drawerHeight));
-          this.$.scrim.style.opacity = 1 - y / drawerHeight;
+        switch (this.align) {
+          case 'left':
+            d = Math.max(-drawerExpandedSide, Math.min(d, 0));
+            this.$.scrim.style.opacity = 1 + d / drawerExpandedSide;
+            this.translate3d(d + 'px', '-50%', '0', this.$.contentContainer);
+            break;
+          case 'right':
+            d = Math.max(0, Math.min(d, drawerExpandedSide));
+            this.$.scrim.style.opacity = 1 - d / drawerExpandedSide;
+            this.translate3d(d + 'px', '-50%', '0', this.$.contentContainer);
+            break;
+          case 'top':
+            d = Math.max(-drawerExpandedSide, Math.min(d, 0));
+            this.$.scrim.style.opacity = 1 + d / drawerExpandedSide;
+            this.translate3d('-50%', d + 'px', '0', this.$.contentContainer);
+            break;
+          case 'bottom':
+            d = Math.max(0, Math.min(d, drawerExpandedSide));
+            this.$.scrim.style.opacity = 1 - d / drawerExpandedSide;
+            this.translate3d('-50%', d + 'px', '0', this.$.contentContainer);
+            break;
         }
-
-        this.translate3d('-50%', y + 'px', '0', this.$.contentContainer);
       },
 
       _resetDrawerTranslate: function() {

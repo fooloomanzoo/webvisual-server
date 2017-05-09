@@ -50,10 +50,10 @@
       app-toolbar icon-button {
         transform: scale(1);
       }
-      app-drawer {
+      #drawerPanel {
         z-index: 2;
       }
-      app-drawer .drawer-content {
+      #drawerPanel .drawer-content {
         display: block;
         height: calc(100% - 8em);
         padding: 0 1em;
@@ -61,16 +61,16 @@
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
       }
-      app-drawer app-toolbar {
+      #drawerPanel app-toolbar {
         @apply(--app-drawer-header);
       }
-      app-drawer .top {
+      #drawerPanel .top {
         justify-content: space-between;
       }
-      app-drawer .bottom {
+      #drawerPanel .bottom {
         justify-content: flex-end;
       }
-      app-drawer .spacer {
+      #drawerPanel .spacer {
         margin-bottom: 1em;
       }
       .drawer-content .selectbox,
@@ -82,8 +82,7 @@
       .drawer-content iron-collapse > .collapse-content {
         padding: 0.5em 1em;
         width: 100%;
-        display: inline-flex;
-        flex-direction: column;
+        @apply(--layout-vertical);
         box-sizing: border-box;
         border-left: thin solid rgba(255,255,255,0.1);
         border-right: thin solid rgba(255,255,255,0.1);
@@ -97,7 +96,7 @@
       .viewSelect {
         position: relative;
         padding-left: 2.5em;
-        height: 100%;
+        height: 2.75em;
         width: 100%;
         @apply(--layout-inline);
         @apply(--layout-center-center);
@@ -163,15 +162,14 @@
         @apply(--layout-center-center);
         background: url(data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22%3E%3Cg%3E%3Cpath d=%22M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z%22 fill=%22%23FFFFFF%22%3E%3C/path%3E%3C/g%3E%3C/svg%3E);
         background-repeat: no-repeat;
-        background-position: 0.5em center;
-        background-size: 1em 1em;
+        background-position: 0.33em center;
+        background-size: 1.33em 1.33em;
         padding: 0;
         margin: 0;
       }
       .selectbox.toolbar > select {
         height: 2.5em;
-        font-size: 0.75em;
-        padding-left: 2em;
+        padding-left: 1.75em;
         max-width: 2.5em;
         background-color: rgba(255,255,255,0.05);
         transition: background 0.2s linear;
@@ -317,7 +315,7 @@
 
     <!-- SIDEMENU -->
     <template is="dom-if" if="[[_shouldRenderDrawer]]">
-      <app-drawer id="drawerPanel" opened="{{drawerOpened}}" align="left" swipe-open tabindex="0">
+      <drawer-element id="drawerPanel" opened="{{drawerOpened}}" align="left" swipe-open tabindex="0" scrim stretch disable-upgrade$="[[!_shouldRenderDrawer]]">
         <app-toolbar class="top">
           <icon-button icon="close" title="close" on-tap="_toggleDrawer"></icon-button>
           <icon-button icon="[[loginIcon]]" title="{{localize('notification', 'loggedIn', loggedIn)}}" on-tap="_openLoginDialog"></icon-button>
@@ -415,21 +413,20 @@
         <app-toolbar class="bottom">
           <icon-button icon="[[socketStatusIcon]]" title="[[socketStatus]]" on-tap="_socketConnect"></icon-button>
         </app-toolbar>
-      </app-drawer>
+      </drawer-element>
     </template>
 
-    <drawer-element id="announceNotification" class="notification" auto-close auto-close-period="5000">
-      <iron-icon icon="event"></iron-icon>
+    <drawer-element id="networkNotification" class="notification" align="bottom" auto-close auto-close-period="4000">
+      <iron-icon icon="[[socketStatusIcon]]"></iron-icon>
       <span class="message"></span>
     </drawer-element>
-    <drawer-element id="networkNotification" class="notification" auto-close auto-close-period="3500">
-      <iron-icon icon="[[socketStatusIcon]]"></iron-icon>
+    <drawer-element id="announceNotification" class="notification" align="bottom" auto-close auto-close-period="5000">
+      <iron-icon icon="event"></iron-icon>
       <span class="message"></span>
     </drawer-element>
 
     <drawer-element opened="{{showTabsOnBottom}}" id="toolbarBottom" swipe-open auto-close-period="8000" auto-close="[[!thresholdTriggered]]">
       <div class="viewSelect">
-
         <template is="dom-if" if="[[_shouldRenderGroupingKeys]]">
           <div class="selectbox toolbar grouping" title="[[groupedKey]]">
             <select value="{{groupedKey::change}}"></select>
@@ -677,6 +674,7 @@
       },
 
       _subrouteChanged: function(subroute) {
+        console.log(subroute);
         if (!subroute || !subroute.path) {
           return;
         }
@@ -685,7 +683,7 @@
 
         if (names.length >= 2) {
           this.facilitySystem = names[0] + '/' + names[1];
-          document.title = this.facilitySystem + ' - Webvisual';
+          document.title = names.join('/')  + ' - ' + (this.localize ? this.localize(this.page, 'name') : subroute.prefix.slice(1));
         }
       },
 
@@ -760,7 +758,7 @@
 
       _notifyNetworkStatus: function() {
         var oldOffline = this.offline;
-        this.offline =  !navigator.onLine;
+        this.offline = !navigator.onLine;
         // Show the drawer if the user is offline when starting a new session
         // or if the network status changed.
         if (this.offline || (!this.offline && oldOffline === true)) {
