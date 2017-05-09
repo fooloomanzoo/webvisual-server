@@ -314,7 +314,7 @@
 
     <!-- SIDEMENU -->
     <template is="dom-if" if="[[_shouldRenderDrawer]]">
-      <drawer-element id="drawerPanel" opened="{{drawerOpened}}" align="left" swipe-open tabindex="0" scrim stretch disable-upgrade$="[[!_shouldRenderDrawer]]">
+      <drawer-element id="drawerPanel" opened="{{drawerOpened}}" align="left" swipe-open tabindex="0" scrim stretch>
         <app-toolbar class="top">
           <icon-button icon="close" title="close" on-tap="_toggleDrawer"></icon-button>
           <icon-button icon="[[loginIcon]]" title="{{localize('notification', 'loggedIn', loggedIn)}}" on-tap="_openLoginDialog"></icon-button>
