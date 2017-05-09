@@ -1,5 +1,4 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
-<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html"/>
 
 <dom-module id="drawer-element">
 
@@ -7,11 +6,11 @@
     <style>
       :host {
         position: fixed;
-        left: -120px;
+        left: 0;
         top: 0;
-        right: -120px;
+        right: 0;
         bottom: 0;
-        z-index: 0;
+        z-index: 1;
         visibility: hidden;
         transition-property: visibility;
       }
@@ -28,8 +27,6 @@
         @apply(--layout-center-center);
         font-size: 1em;
         height: var(--drawer-height, 2.5em);
-        padding-left: 1em;
-        padding-right: 1em;
         text-align: center;
         will-change: transform;
         -webkit-transform: translate3d(-50%, 100%, 0);
@@ -50,7 +47,7 @@
         visibility: visible;
         -webkit-transform: translate3d(-50%, 0, 0);
         transform: translate3d(-50%, 0, 0);
-        box-shadow: 0 0 6px 4px rgba(0, 0, 0, 0.2);
+        box-shadow: 0px 5px 6px -3px rgba(0, 0, 0, 0.2);
       }
       :host([swipe-open]) > #contentContainer::after {
         position: fixed;
@@ -58,16 +55,20 @@
         right: 0;
         bottom: 100%;
         visibility: visible;
-        height: 20px;
+        height: 24px;
         content: '';
+        cursor: pointer;
       }
       :host([swipe-open][position=top]) > #contentContainer::after {
         top: 100%;
         bottom: auto;
       }
-      @media (max-width: 639px) {
+      @media (max-width: 768px) {
         #contentContainer {
           width: 100%;
+        }
+        :host([opened]) > #contentContainer {
+          box-shadow: 0px 1px 4px 3px rgba(0, 0, 0, 0.2);
         }
       }
       :host ::content iron-icon {
@@ -126,12 +127,14 @@
       properties: {
         autoClose: {
           type: Boolean,
-          value: false
+          value: false,
+          observer: '_autoCloseChanged'
         },
 
         autoClosePeriod: {
           type: Number,
-          value: 8000
+          value: 8000,
+          observer: 'close'
         },
 
         opened: {
@@ -178,7 +181,8 @@
 
         scrim: {
           type: Boolean,
-          value: false
+          value: false,
+          reflectToAttribute: true
         }
 
       },
@@ -224,9 +228,7 @@
       open: function() {
         this.opened = true;
         this.cancelDebouncer('drawer-close');
-        if (this.autoClose) {
-          this.debounce('drawer-close', this.close, this.autoClosePeriod);
-        }
+        this._autoCloseChanged(this.autoClose);
       },
 
       /**
@@ -245,6 +247,14 @@
           this.close();
         } else {
           this.open();
+        }
+      },
+
+      _autoCloseChanged: function(autoClose) {
+        if (autoClose) {
+          this.debounce('drawer-close', this.close, this.autoClosePeriod);
+        } else {
+          this.cancelDebouncer('drawer-close');
         }
       },
 

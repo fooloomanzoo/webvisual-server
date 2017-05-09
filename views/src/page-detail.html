@@ -8,12 +8,7 @@
 <dom-module id="page-detail">
   <template strip-whitespace>
     <style include="shared-style">
-      :host {
-        @apply(--layout-fit);
-        box-sizing: border-box;
-        overflow: hidden;
-      }
-      :host > #content {
+      #content {
         display: flex;
         flex-direction: column;
         margin: 0;
@@ -161,7 +156,7 @@
     <svg-data hidden
       facility-system="[[facilitySystem]]"
       logged-in="[[loggedIn]]"
-      svg-data="{{svgData}}"></svg-data>
+      paths="{{svgPaths}}"></svg-data>
 
     <div id="content">
 
@@ -172,7 +167,7 @@
         <device-svg id="svg" opened="[[visible]]"
           url-prefix="/images/[[facilitySystem]]/"
           src="[[selectedElement.svg.path]]"
-          selectable-items="[[_getSvgSelectable(selectedElement.svg.path, svgData.paths)]]"
+          selectable-items="[[_getSvgSelectable(selectedElement.svg.path, svgPaths)]]"
           item="[[selectedElement]]"
           exceeding="[[exceeding]]"></device-svg>
       </template>
@@ -247,7 +242,7 @@
           notify: true
         },
 
-        svgData: {
+        svgPaths: {
           type: Object
         },
 
@@ -256,7 +251,8 @@
         },
 
         _withSvg: {
-          type: Boolean
+          type: Boolean,
+          computed: '_hasSvg(selectedElement, svgPaths)'
         },
 
         showControlAsDrawer: {
@@ -337,10 +333,11 @@
         for (var i = 0; i < this.elements.length; i++) {
           if (this.elements[i].mount && (mount === this.elements[i].mount)) {
             this.cancelDebouncer('initial-element');
-            this._recentElementMount = this.elements[i].mount;
-            if (path !== '/' + mount) {
-              this._hasSvg(this.elements[i]);
+            if (this._recentElementMount !== this.elements[i].mount) {
+              this._recentElementMount = this.elements[i].mount;
               this.set('selectedElement', this.elements[i]);
+            }
+            if (path !== '/' + mount) {
               this.set('route.prefix', '/detail');
               this.set('route.path', '/' + mount);
               this.debounce('resize', this.notifyResize);
@@ -367,17 +364,17 @@
         }
       },
 
-      _hasSvg: function(selectedElement) {
+      _hasSvg: function(selectedElement, svgPaths) {
         // notify the chart to resize
-        var _withSvg = Boolean(selectedElement && selectedElement.svg && selectedElement.svg.path)
+        var _withSvg = Boolean(selectedElement && selectedElement.svg && selectedElement.svg.path && svgPaths && svgPaths[selectedElement.svg.path])
         if (_withSvg !== this._withSvg) {
-          this._withSvg = _withSvg;
           this.debounce('resize', this.notifyResize);
         }
+        return _withSvg;
       },
 
-      _getSvgSelectable: function(src, svgSrcPaths) {
-        return svgSrcPaths[src] || {};
+      _getSvgSelectable: function(src, svgPaths) {
+        return svgPaths[src] || {};
       },
 
       _ensureOpened: function(showControlAsDrawer) {

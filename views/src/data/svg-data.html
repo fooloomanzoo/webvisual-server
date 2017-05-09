@@ -23,7 +23,11 @@
           type: String
         },
 
-        svgData: {
+        origin: {
+          type: String
+        },
+
+        paths: {
           type: Object,
           value: function() { return {}; },
           notify: true
@@ -59,12 +63,17 @@
         var xhr = new XMLHttpRequest();
         xhr.addEventListener('load', function(e) {
           if (e.target.status < 400) {
-            this.set('svgData', JSON.parse(e.target.responseText));
-            // localStorage.setItem(request, e.target.responseText);
+            var data = JSON.parse(e.target.responseText);
+            if (data) {
+              if (data.origin) {
+                this.set('origin', data.origin);
+              }
+              if (data.paths) {
+                this.set('paths', data.paths);
+              }
+            }
           } else {
-            // var items = localStorage.getItem(request);
-            // if (items)
-            //   this.set(request, JSON.parse(items));
+            console.log('failed to load svg-data,', e.target.status)
           }
         }.bind(this));
         xhr.addEventListener('error', function(e) {

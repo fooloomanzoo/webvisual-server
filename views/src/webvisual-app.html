@@ -5,6 +5,7 @@
 
 <link rel="import" href="../bower_components/app-layout/app-header-layout/app-header-layout.html"/>
 <link rel="import" href="../bower_components/app-layout/app-header/app-header.html"/>
+<link rel="import" href="../bower_components/app-layout/app-scroll-effects/effects/waterfall.html"/>
 <link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html"/>
 <link rel="import" href="../bower_components/iron-media-query/iron-media-query.html">
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html"/>
@@ -78,7 +79,7 @@
       .drawer-content .button,
       .drawer-content .toggle-button {
         width: 100%;
-        padding: 1.25em 1em;
+        padding: 1em;
       }
       .drawer-content iron-collapse > .collapse-content {
         padding: 0.5em 1em;
@@ -97,16 +98,12 @@
       }
       .viewSelect {
         height: 2.5em;
+        width: auto;
         @apply(--layout-inline);
         @apply(--layout-center-center);
       }
-      .tabView {
-        visibility: hidden;
-      }
-      #header[threshold-triggered] ~ .tabView {
-        visibility: visible;
-        z-index: 1;
-        /*box-shadow: 0 1px 3px 2px rgba(0, 0, 0, 0.2)*/
+      .viewSelect.top {
+        padding-right: 0.5em;
       }
       .tabs {
         height: 100%;
@@ -128,6 +125,7 @@
         position: relative;
         background-color: var(--primary-background);
         transition: background 500ms cubic-bezier(0.6, 0, 0.3, 1);
+        padding-bottom: var(--drawer-height, 2.5em);
       }
       :host([page="home"]) #pageselector {
         background-color: var(--primary-color);
@@ -135,35 +133,40 @@
       :host([dark][page="home"]) #pageselector {
         background-color: var(--dark-primary-color);
       }
+      #pageselector > .fullbleed {
+        @apply(--layout-fit);
+        box-sizing: border-box;
+        overflow: hidden;
+        padding-bottom: 0;
+      }
       .login-icon {
         opacity: 0.5;
       }
       .login-icon:hover {
         opacity: 1;
       }
-      .items-icon {
-        border-radius: 0;
-      }
       #logo {
         padding-left: 1em;
         flex: 1;
+      }
+      .notification > .message {
+        padding: 0 1em;
       }
       .selectbox.toolbar.grouping {
         background: url(data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22%3E%3Cg%3E%3Cpath d=%22M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z%22 fill=%22%23FFFFFF%22%3E%3C/path%3E%3C/g%3E%3C/svg%3E);
         background-repeat: no-repeat;
         background-position: 0.5em center;
         background-size: 1em 1em;
-        height: 4em;
         min-width: 6em;
         padding: 0;
-        margin: 0 0.5em;
+        margin: 0 1.5em;
       }
       .selectbox.toolbar > select {
         height: 2.5em;
         font-size: 0.75em;
         padding: 0 0.5em 0 2.5em;
       }
-      :-webkit-full-screen-ancestor > * {
+      :-webkit-full-screen-ancestor * {
         z-index: auto !important;
       }
     </style>
@@ -201,86 +204,67 @@
       offline="[[offline]]"
       lazy-connect="[[loadComplete]]"></device-socket-data>
 
-    <iron-media-query query="(min-width: 768px)" query-matches="{{showTabsOnTop}}"></iron-media-query>
+    <iron-media-query query="(min-width: 768px)" query-matches="{{wideLayout}}"></iron-media-query>
 
     <app-header-layout id="headerLayout" fullbleed has-scrolling-region>
       <template is="dom-if" if="[[_isContentPage]]">
         <!-- Toolbar -->
-        <app-header role="header" id="header" reveals threshold="1">
+        <app-header role="header" id="header" reveals threshold="1" threshold-triggered="{{thresholdTriggered}}" effects="waterfall">
           <app-toolbar>
             <icon-button icon="menu" class="menu-icon" title="menu" on-tap="_toggleDrawer"></icon-button>
             <logo-element id="logo" href="/home" main-title title$="[[localize('home', 'name')]]"></logo-element>
+
+            <iron-collapse opened="[[showTabs]]" hidden$="[[!wideLayout]]" horizontal style="align-self: flex-end;">
+              <div class="viewSelect top">
+
+                <template is="dom-if" if="[[_shouldRenderGroupingKeys]]">
+                  <div class="selectbox toolbar grouping" title="grouping keys">
+                    <select value="{{groupedKey::change}}"></select>
+                  </div>
+                </template>
+
+                <template is="dom-if" if="[[!_shouldRenderGroupingKeys]]">
+                  <div></div>
+                </template>
+
+                <tabs-container class="tabs"
+                  role="tablist"
+                  selected="{{page}}"
+                  attr-for-selected="name">
+                  <div class="tab" name="list">
+                    <paper-ripple id="ripple" recenters></paper-ripple>
+                    <a href="/list/[[facilitySystem]]">{{localize('list', 'name')}}</a>
+                  </div>
+                  <div class="tab" name="groups">
+                    <paper-ripple id="ripple" recenters></paper-ripple>
+                    <a href="/groups/[[facilitySystem]]">{{localize('groups', 'name')}}</a>
+                  </div>
+                  <div class="tab" name="detail">
+                    <paper-ripple id="ripple" recenters></paper-ripple>
+                    <a href="/detail/[[facilitySystem]]">{{localize('detail', 'name')}}</a>
+                  </div>
+                </tabs-container>
+              </div>
+            </iron-collapse>
 
             <template is="dom-if" if="[[_shouldLogin]]">
               <icon-button icon="[[loginIcon]]" class="login-icon" on-click="_openLoginDialog"></icon-button>
             </template>
 
-            <template is="dom-if" if="[[showTabsOnTop]]">
-              <iron-collapse opened="[[showTabs]]" horizontal style="align-self: flex-end;">
-                <div class="viewSelect">
-
-                  <template is="dom-if" if="[[_shouldRenderGroupingKeys]]">
-                    <div class="selectbox toolbar grouping" title="grouping keys">
-                      <select value="{{groupedKey::change}}"></select>
-                    </div>
-                  </template>
-
-                  <tabs-container class="tabs"
-                    role="tablist"
-                    selected="{{page}}"
-                    attr-for-selected="name">
-                    <div class="tab" name="list">
-                      <paper-ripple id="ripple" recenters></paper-ripple>
-                      <a href="/list/[[facilitySystem]]">{{localize('list', 'name')}}</a>
-                    </div>
-                    <div class="tab" name="groups">
-                      <paper-ripple id="ripple" recenters></paper-ripple>
-                      <a href="/groups/[[facilitySystem]]">{{localize('groups', 'name')}}</a>
-                    </div>
-                    <div class="tab" name="detail">
-                      <paper-ripple id="ripple" recenters></paper-ripple>
-                      <a href="/detail/[[facilitySystem]]">{{localize('detail', 'name')}}</a>
-                    </div>
-                  </tabs-container>
-
-                </div>
-              </iron-collapse>
-            </template>
-
             <template is="dom-if" if="[[detailHasDrawer]]">
-              <icon-button class="items-icon" icon="subject" title="items" on-tap="_toggleDetailControlDrawer">
+              <icon-button icon="subject" title="items" on-tap="_toggleDetailControlDrawer">
               </icon-button>
             </template>
 
-            <icon-button icon="more-vert" title="tabs" checked="{{showTabs}}"></icon-button>
+            <icon-button icon="more-vert" title="tabs" on-tap="toggleShowTabs"></icon-button>
           </app-toolbar>
 
         </app-header>
-
-        <drawer-element class="tabView" position="top" opened$="[[!showTabs]]">
-          <tabs-container class="tabs"
-            role="tablist"
-            selected="{{page}}"
-            attr-for-selected="name">
-            <div class="tab" name="list">
-              <paper-ripple id="ripple" recenters></paper-ripple>
-              <a href="/list/[[facilitySystem]]">{{localize('list', 'name')}}</a>
-            </div>
-            <div class="tab" name="groups">
-              <paper-ripple id="ripple" recenters></paper-ripple>
-              <a href="/groups/[[facilitySystem]]">{{localize('groups', 'name')}}</a>
-            </div>
-            <div class="tab" name="detail">
-              <paper-ripple id="ripple" recenters></paper-ripple>
-              <a href="/detail/[[facilitySystem]]">{{localize('detail', 'name')}}</a>
-            </div>
-          </tabs-container>
-        </drawer-element>
       </template>
       <!-- Pages-->
       <iron-pages id="pageselector" role="main" selected="{{page}}" attr-for-selected="name" selected-attribute="visible" fallback-selection="home">
         <!-- home view for selecting the facility -->
-        <page-home name="home" dark$="[[dark]]" plain$="[[plain]]"
+        <page-home name="home" dark$="[[dark]]" plain$="[[plain]]" class="fullbleed"
           facilities="[[facilities]]"
           logged-in="[[loggedIn]]"
           language="[[language]]"
@@ -300,7 +284,7 @@
           grouping-keys="{{groupingKeys}}">
         </page-groups>
         <!-- detail view of one item -->
-        <page-detail disable-upgrade$="[[!loadComplete]]" id="detailpage" name="detail" dark$="[[dark]]" plain$="[[plain]]"
+        <page-detail disable-upgrade$="[[!loadComplete]]" id="detailpage" name="detail" dark$="[[dark]]" plain$="[[plain]]" class="fullbleed"
           route="{{subroute}}"
           logged-in="[[loggedIn]]"
           facility-system="[[facilitySystem]]"
@@ -413,46 +397,48 @@
       </app-drawer>
     </template>
 
-    <drawer-element id="announceNotification" class="notification" auto-close auto-close-period="8000">
+    <drawer-element id="announceNotification" class="notification" auto-close auto-close-period="5000">
       <iron-icon icon="event"></iron-icon>
       <span class="message"></span>
     </drawer-element>
-    <drawer-element id="networkNotification" class="notification" auto-close auto-close-period="4000">
+    <drawer-element id="networkNotification" class="notification" auto-close auto-close-period="3500">
       <iron-icon icon="[[socketStatusIcon]]"></iron-icon>
       <span class="message"></span>
     </drawer-element>
 
-    <template is="dom-if" if="[[!showTabsOnTop]]">
-      <drawer-element opened="{{showTabs}}" id="toolbarBottom" swipe-open>
-        <div class="viewSelect">
+    <drawer-element opened="{{showTabsOnBottom}}" id="toolbarBottom" swipe-open auto-close-period="8000" auto-close="[[!thresholdTriggered]]">
+      <div class="viewSelect">
 
-          <template is="dom-if" if="[[_shouldRenderGroupingKeys]]">
-            <div class="selectbox toolbar grouping" title="grouping keys">
-              <select value="{{groupedKey::change}}"></select>
-            </div>
-          </template>
+        <template is="dom-if" if="[[_shouldRenderGroupingKeys]]">
+          <div class="selectbox toolbar grouping" title="grouping keys">
+            <select value="{{groupedKey::change}}"></select>
+          </div>
+        </template>
 
-          <tabs-container class="tabs"
-            role="tablist"
-            selected="{{page}}"
-            attr-for-selected="name"
-            style="margin-left:auto;">
-            <div class="tab" name="list">
-              <paper-ripple id="ripple" recenters></paper-ripple>
-              <a href="/list/[[facilitySystem]]">{{localize('list', 'name')}}</a>
-            </div>
-            <div class="tab" name="groups">
-              <paper-ripple id="ripple" recenters></paper-ripple>
-              <a href="/groups/[[facilitySystem]]">{{localize('groups', 'name')}}</a>
-            </div>
-            <div class="tab" name="detail">
-              <paper-ripple id="ripple" recenters></paper-ripple>
-              <a href="/detail/[[facilitySystem]]">{{localize('detail', 'name')}}</a>
-            </div>
-          </tabs-container>
-        </div>
-      </drawer-element>
-    </template>
+        <template is="dom-if" if="[[!_shouldRenderGroupingKeys]]">
+          <div></div>
+        </template>
+
+        <tabs-container class="tabs"
+          role="tablist"
+          selected="{{page}}"
+          attr-for-selected="name"
+          style="margin-left:auto;">
+          <div class="tab" name="list">
+            <paper-ripple id="ripple" recenters></paper-ripple>
+            <a href="/list/[[facilitySystem]]">{{localize('list', 'name')}}</a>
+          </div>
+          <div class="tab" name="groups">
+            <paper-ripple id="ripple" recenters></paper-ripple>
+            <a href="/groups/[[facilitySystem]]">{{localize('groups', 'name')}}</a>
+          </div>
+          <div class="tab" name="detail">
+            <paper-ripple id="ripple" recenters></paper-ripple>
+            <a href="/detail/[[facilitySystem]]">{{localize('detail', 'name')}}</a>
+          </div>
+        </tabs-container>
+      </div>
+    </drawer-element>
 
   </template>
 
@@ -557,13 +543,24 @@
         showTabs: {
           type: Boolean,
           value: false,
-          reflectToAttribute: true,
           observer: '_debouncedHideTabs'
         },
 
-        showTabsOnTop: {
+        wideLayout: {
           type: Boolean,
+          value: false,
           notify: true
+        },
+
+        thresholdTriggered: {
+          type: Boolean,
+          value: false
+        },
+
+        showTabsOnBottom: {
+          type: Boolean,
+          notify: true,
+          computed: '_computeShowTabsOnBottom(thresholdTriggered, wideLayout, showTabs)'
         },
 
         socketStatusIcon: {
@@ -603,7 +600,7 @@
       observers: [
         '_routePageChanged(routeData.page)',
         '_subrouteChanged(subroute)',
-        '_setGroupingSelectBoxes(_shouldRenderGroupingKeys, showTabsOnTop)'
+        '_setGroupingSelectBoxes(_shouldRenderGroupingKeys)'
       ],
 
       keyBindings: {
@@ -674,6 +671,14 @@
           this.facilitySystem = names[0] + '/' + names[1];
           document.title = this.facilitySystem + ' - Webvisual';
         }
+      },
+
+      toggleShowTabs: function functionName() {
+        this.showTabs = !this.showTabs;
+      },
+
+      _computeShowTabsOnBottom: function(thresholdTriggered, wideLayout, showTabs) {
+        return thresholdTriggered || (!wideLayout && showTabs);
       },
 
       _pageChanged: function(page, oldPage) {
@@ -848,11 +853,13 @@
         },1);
       },
 
-      _debouncedHideTabs: function() {
-        this.debounce('hide-tabs', function() {
-          this.showTabs = false;
-          this.async(this.notifyResize, 500);
-        }, 10000);
+      _debouncedHideTabs: function(showTabs) {
+        if (showTabs) {
+          this.debounce('hide-tabs', function() {
+            this.showTabs = false;
+            this.async(this.notifyResize, 500);
+          }, 10000);
+        }
       },
 
       _computeShouldLogin: function(loggedIn, offline) {

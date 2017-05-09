@@ -44,8 +44,8 @@
         "false": "Sie sind online"
       },
       "loggedIn":  {
-        "true": "Sie sind eingeloggt",
-        "false": "Sie sind ausgeloggt"
+        "true": "Sie sind angemeldet",
+        "false": "Sie sind nicht angemeldet"
       },
       "loaded": "geladen"
     }

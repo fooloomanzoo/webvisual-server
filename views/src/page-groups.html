@@ -80,7 +80,7 @@
     <svg-data
       facility-system="[[facilitySystem]]"
       logged-in="[[loggedIn]]"
-      svg-data="{{svgData}}"></svg-data>
+      paths="{{svgPaths}}"></svg-data>
 
     <template is="dom-if" if="[[visible]]">
 
@@ -95,7 +95,7 @@
               multi
               svg-url-prefix="/images/[[facilitySystem]]/"
               svg-src-path="[[group.svg.path]]"
-              svg-selectable="[[_getSvgSelectable(group.svg.path, svgData.paths)]]">
+              svg-selectable="[[_getSvgSelectable(group.svg.path, svgPaths)]]">
 
               <ul class="grid sign">
                 <template is="dom-repeat" items="[[group.items]]" as="id">
@@ -159,7 +159,7 @@
           type: Boolean
         },
 
-        svgData: {
+        svgPaths: {
           type: Object
         },
 

@@ -23,7 +23,7 @@
     },
 
     "svgSource": {
-      "origin": "",
+      "origin": "examples/svg",
       "paths": {
         "berlin.svg": {
           "items": {
