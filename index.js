@@ -92,14 +92,14 @@ class WebvisualServer {
                 rej( `${filepaths[kind]} Error accessing file\n${err}` );
               }
             } else {
-              res();
+              res(ca);
             }
           });
         }
       });
 
       Promise.resolve(p)
-             .then( () => {
+             .then( (ca) => {
                sslSettings.key = fs.readFileSync(filepaths.key, 'utf8');
                sslSettings.cert = fs.readFileSync(filepaths.cert, 'utf8');
                sslSettings.passphrase = require(filepaths.passphrase).password;
