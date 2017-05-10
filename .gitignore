@@ -1,6 +1,9 @@
 # bower components
 **/bower_components
 
+# certs
+defaults/ssl/*
+
 # build
 public/build/*
 public/**
