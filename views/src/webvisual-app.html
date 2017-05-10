@@ -62,7 +62,7 @@
         -webkit-overflow-scrolling: touch;
       }
       #drawerPanel app-toolbar {
-        @apply(--app-drawer-header);
+        @apply(--drawer-header);
       }
       #drawerPanel .top {
         justify-content: space-between;
@@ -170,6 +170,8 @@
         height: 2.5em;
         padding-left: 1.75em;
         max-width: 2.5em;
+        width: 2.5em;
+        color: transparent;
         background-color: rgba(255,255,255,0.05);
         transition: background 0.2s linear;
         border-color: rgba(255,255,255,0.5);
@@ -415,16 +417,16 @@
       </drawer-element>
     </template>
 
-    <drawer-element id="networkNotification" class="notification" align="bottom" auto-close auto-close-period="4000">
+    <drawer-element id="networkNotification" class="notification" align="bottom" shadow auto-close auto-close-period="4000">
       <iron-icon icon="[[socketStatusIcon]]"></iron-icon>
       <span class="message"></span>
     </drawer-element>
-    <drawer-element id="announceNotification" class="notification" align="bottom" auto-close auto-close-period="5000">
+    <drawer-element id="announceNotification" class="notification" align="bottom" shadow auto-close auto-close-period="5000">
       <iron-icon icon="event"></iron-icon>
       <span class="message"></span>
     </drawer-element>
 
-    <drawer-element opened="{{showTabsOnBottom}}" id="toolbarBottom" swipe-open auto-close-period="8000" auto-close="[[!thresholdTriggered]]">
+    <drawer-element opened="{{showTabsOnBottom}}" id="toolbarBottom" swipe-open auto-close-period="8000" shadow auto-close="[[!thresholdTriggered]]">
       <div class="viewSelect">
         <template is="dom-if" if="[[_shouldRenderGroupingKeys]]">
           <div class="selectbox toolbar grouping" title="[[groupedKey]]">

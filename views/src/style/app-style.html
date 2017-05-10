@@ -20,10 +20,9 @@
 
         --drawer-width: 20em;
         --drawer-scim-background: rgba(0, 0, 0, 0.25);
+        --drawer-background: var(--bright-primary-color);
         --drawer-content: {
-          min-width: 256px;
           color: var(--primary-text-color);
-          background-color: var(--bright-primary-color);
         };
         --app-header: {
           background-color: var(--primary-color);
@@ -37,10 +36,11 @@
         --toggle-button-unchecked-bar-color: var(--bright-primary-color);
         --toggle-button-unchecked-button-color: #f1f1f1;
         --toggle-button-unchecked-ink-color: var(--bright-primary-color);
+
+        --drawer-background: var(--dark-primary-color);
+
         --drawer-content: {
-          min-width: 256px;
           color: var(--bright-text-color);
-          background-color: var(--dark-primary-color);
         };
         --app-header: {
           background-color: var(--bright-primary-color);
@@ -49,16 +49,12 @@
       }
       :host([plain][dark]) {
         --primary-background: var(--dark-primary-color);
-        --app-drawer-header: {
+        --drawer-header: {
           color: #f1f1f1;
         };
         --app-header: {
           background-color: var(--dark-primary-color);
           color: var(--bright-text-color);
-        };
-        --drawer-content: {
-          color: var(--bright-text-color);
-          background-color: #222;
         };
       }
       :host(:not([plain])) {
@@ -70,9 +66,11 @@
           background-color: var(--dark-primary-color);
           color: var(--bright-text-color);
         };
+      }
+      :host([dark]) {
+        --drawer-background: #222;
         --drawer-content: {
           color: var(--bright-text-color);
-          background-color: #222;
         };
       }
       tabs > button {

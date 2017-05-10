@@ -8,6 +8,17 @@
 <dom-module id="page-detail">
   <template strip-whitespace>
     <style include="shared-style">
+      :host {
+        --drawer-width: 16em;
+        --drawer-background: rgba(255,255,255, 0.15);
+        --drawer-content: {
+          padding: 0;
+          position: absolute;
+        };
+      }
+      :host([plain]) {
+        --drawer-background: rgba(255,255,255, 0.25);
+      }
       #content {
         display: flex;
         flex-direction: column;
@@ -56,15 +67,9 @@
       }
       #elementDrawer {
         position: absolute;
-        bottom: 0;
-        top: 0;
-        right: 0;
-        --drawer-width: 16em;
-        --drawer-content: {
-          padding: 0;
-          position: absolute;
-          background-color: transparent;
-        };
+      }
+      :host(.fullscreen) #elementDrawer {
+        position: fixed;
       }
       #svg {
         overflow: hidden;

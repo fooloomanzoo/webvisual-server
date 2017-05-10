@@ -85,7 +85,7 @@ class WebvisualServer {
         for (let kind in filepaths) {
           fs.open(filepaths[kind], 'r', (err, fd) => {
             if (err) {
-              if (err.code === "ENOENT") {
+              if (err.code === 'ENOENT') {
                 rej( `${filepaths[kind]} does not exist` );
                 return;
               } else {
@@ -114,14 +114,21 @@ class WebvisualServer {
                      // Read files for the certification path
                      var cert_chain = [];
                      fs.readdirSync(ca).forEach( (filename) => {
-                       cert_chain.push( fs.readFileSync( path.resolve(ca, filename), "utf-8") );
+                       cert_chain.push( fs.readFileSync( path.resolve(ca, filename), 'utf-8') );
                      });
                      sslSettings.ca = cert_chain;
                    } catch (err) {
-                     this.emit("error", "Cannot open \"/ssl/cert_chain\" to read Certification chain");
+                     process.send( {
+                       error: err,
+                       info: `Cannot open ${ca} to read Certification chain\n${err}`
+                     } );
                    }
                  } else {
-                   console.log(err);
+                   process.send( {
+                     error: err,
+                     info: `Cannot open ${ca} to read Certification chain\n${err}`
+                   } );
+                   sslSettings.ca = null;
                  }
                });
                resolve(sslSettings);
@@ -275,7 +282,7 @@ if (!process.send) {
 
 server = new WebvisualServer(config);
 
-process.on("message", (arg) => {
+process.on('message', (arg) => {
   if (arg.init === true && arg.config)
     server = new WebvisualServer(arg.config);
   else {

@@ -27,7 +27,10 @@
       "paths": {
         "berlin.svg": {
           "items": {
-          }
+          },
+          "minZoom": 1,
+          "maxZoom": 10,
+          "zoomPartition": 2
         }
       }
     },
@@ -242,10 +245,13 @@
     },
 
     "svgSource": {
-      "origin": "",
+      "origin": "examples/svg",
       "paths": {
         "bor-atom-modell.svg": {
-          "items": {}
+          "items": {},
+          "minZoom": 2,
+          "maxZoom": 10,
+          "zoomPartition": 6
         }
       }
     },
@@ -459,10 +465,13 @@
     },
 
     "svgSource": {
-      "origin": "",
+      "origin": "examples/svg",
       "paths": {
         "boxes.svg": {
-          "items": {}
+          "items": {},
+          "minZoom": 0.75,
+          "maxZoom": 3,
+          "zoomPartition": 4
         }
       }
     },

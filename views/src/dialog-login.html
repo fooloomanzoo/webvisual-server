@@ -61,7 +61,7 @@
         <form dialog-content id="signinform" on-submit="onSubmit" method="POST">
           <section class="input">
             <iron-icon class="left" icon="person-add"></iron-icon>
-            <input id="username" autocomplete="username" name="username" type="text" pattern=".{1,32}\..{1,32}" placeholder$="{{localize('login', 'username')}}" required>
+            <input id="username" autocomplete="username" name="username" type="text" pattern=".{1,32}\..{1,32}" autocorrect="off" autocapitalize="off" spellcheck="off" placeholder$="{{localize('login', 'username')}}" required>
             <div class="decorator" error-message$="{{localize('login', 'invalid-username')}}" aria-hidden="true">
               <label>{{localize('login', 'username')}}</label>
               <div class="underline"></div>
@@ -70,7 +70,7 @@
 
           <section class="input">
             <iron-icon class="left" icon="more-horiz"></iron-icon>
-            <input id="password" required autocomplete="current-password" pattern=".{6,64}" name="password"  placeholder$="{{localize('login', 'password')}}" type="password">
+            <input id="password" required autocomplete="current-password" pattern=".{6,64}" name="password" autocorrect="off" autocapitalize="off" spellcheck="off" placeholder$="{{localize('login', 'password')}}" type="password">
             <div class="decorator" error-message$="{{localize('login', 'invalid-password')}}" aria-hidden="true">
               <label>{{localize('login', 'password')}}</label>
               <div class="underline"></div>

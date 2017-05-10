@@ -374,22 +374,13 @@
     _registerXML: function(xml) {
       // import svg to document
       var svgNode = document.importNode(xml.cloneNode(true), true);
-      // register zoom function
-      this._d3Zoom = d3.zoom()
-                       .scaleExtent([this.minZoom, this.maxZoom])
-                       .on('zoom', this._zoom.bind(this));
 
       // append imported svg to this element
       this.$.svgContainer.insertBefore(svgNode, this.$.svgContainer.firstChild);
       this._svg = d3.select(svgNode).attr('id', 'main')
                                     .classed('style-scope', true)
                                     .classed('device-svg', true);
-
-      // set style for resizing
-      this._svg.attr('preserveAspectRatio', 'xMinYMin meet')
-               .attr('height', null)
-               .attr('width', null)
-               .call(this._d3Zoom);
+      this._initZoom();
 
       // All nodes needs to be grouped in one main group for zooming
       this._mainG = this._svg.select('g')
@@ -412,6 +403,18 @@
       this.async( this._selectableItemsChanged.bind(this), 100);
       this.debounce('select', this._selectSelected, 100);
       this.debounce('select-exceeds', this._selectExceeds, 100);
+    },
+
+    _initZoom: function() {
+      // register zoom function
+      this._d3Zoom = d3.zoom()
+                       .scaleExtent([this.minZoom, this.maxZoom])
+                       .on('zoom', this._zoom.bind(this));
+      // set style for resizing
+      this._svg.attr('preserveAspectRatio', 'xMinYMin meet')
+               .attr('height', null)
+               .attr('width', null)
+               .call(this._d3Zoom);
     },
 
     _selectedItemsChanged: function() {
@@ -471,6 +474,16 @@
                         }
                       });
         }
+        if (this.selectableItems.minZoom !== undefined) {
+          this.minZoom = this.selectableItems.minZoom;
+        }
+        if (this.selectableItems.maxZoom !== undefined) {
+          this.maxZoom = this.selectableItems.maxZoom;
+        }
+        if (this.selectableItems.zoomPartition !== undefined) {
+          this.zoomPartition = this.selectableItems.zoomPartition;
+        }
+        this._initZoom();
         this._inialized = true;
       }
     },
@@ -589,7 +602,7 @@
         return {x: 0, y: 0, k: 1};
 
       // calculate scale based on partioned view and dimensions of the element
-      var boundE, bboxE, ratio = view.width/view.height;
+      var boundE, bboxE, ratio = view.height/view.width;
       if (elem.nodeType !== undefined)
         boundE = elem.getBoundingClientRect();
       else boundE = elem;
@@ -606,22 +619,18 @@
       // scaling and centering
       // view height/width in comparison tho viewboxheight/-width is important because of resizing by the browser
 
-      // if (ratio > 1) {
-        var scale = Math.max(this._width/(this.zoomPartition*vs*boundE.width), this._height/(this.zoomPartition*vs*boundE.height));
-      // } else {
-      //   var scale = Math.max(this._width/(this.zoomPartition*vs*boundE.width), this._height/(this.zoomPartition*vs*boundE.height));
-      // }
+      scale = Math.min(this._width/(this.zoomPartition*boundE.width*vs), this._width/(this.zoomPartition*boundE.height*vs));
 
       if (scale < this.minZoom) scale = this.minZoom;
       else if (scale > this.maxZoom) scale = this.maxZoom;
 
-      if (ratio > this._width/this._height) {
-        x = -scale*x + (this._height*ratio - scale*boundE.width*vs)/2;
+      if (ratio < this._height/this._width) {
+        x = -scale*x + (this._height/ratio - scale*boundE.width*vs)/2;
         y = -scale*y + (this._height - scale*boundE.height*vs)/2;
       }
       else {
         x = -scale*x + (this._width - scale*boundE.width*vs)/2;
-        y = -scale*y + (this._width/ratio - scale*boundE.height*vs)/2;
+        y = -scale*y + (this._width*ratio - scale*boundE.height*vs)/2;
       }
 
       if (isNaN(x) || isNaN(y) || isNaN(scale))

@@ -12,6 +12,11 @@
         visibility: hidden;
         transition-property: visibility;
         pointer-events: none;
+        --drawer-shadow: {
+          box-shadow: 0 6px 10px 0 rgba(0, 0, 0, 0.14),
+                      0 1px 18px 0 rgba(0, 0, 0, 0.12),
+                      0 3px 5px -1px rgba(0, 0, 0, 0.4);
+        };
       }
       :host([opened]) {
         visibility: visible;
@@ -33,7 +38,19 @@
       :host([horizontal]) > #contentContainer {
         @apply(--layout-horizontal);
         @apply(--layout-center-center);
-        @apply(--drawer-content);
+      }
+      :host([shadow]) > #contentContainer::before {
+        position: absolute;
+        bottom: 0; left: 0; top: 0; right: 0;
+        content: "";
+        transition: opacity 0.4s;
+        pointer-events: none;
+        opacity: 0;
+        will-change: opacity;
+        @apply(--drawer-shadow);
+      }
+      :host([shadow][opened]) > #contentContainer::before {
+        opacity: 1;
       }
       :host([align=bottom]) > #contentContainer {
         bottom: 0; left: 50%; top: auto; right: auto;
@@ -239,6 +256,12 @@
         },
 
         stretch: {
+          type: Boolean,
+          value: false,
+          reflectToAttribute: true
+        },
+
+        shadow: {
           type: Boolean,
           value: false,
           reflectToAttribute: true
