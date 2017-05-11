@@ -184,12 +184,16 @@ class Router extends EventEmitter {
         this.passport.authenticate('activedirectory-login') :
           this.passport.authenticate('dummy'),
       (req, res) => {
-        res.status(200).send(req.user);
+          res.status(200).send(req.user);
       });
 
     // Auth Test
     this.app.use('/auth', this.settings.server.auth.required ? ensureLoggedIn.isRequired : ensureLoggedIn.notRequired, (req, res) => {
-      res.status(200).send(req.session.passport.user);
+      if (req.session.passport) {
+        res.status(200).send(req.session.passport.user);
+      } else {
+        res.sendStatus(200);
+      }
     });
 
     // Signout
