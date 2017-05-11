@@ -85,11 +85,12 @@
       requestAnimationFrame( function() {
         if (this.isFullscreen) {
           this.fullscreen = true;
-          this.style.position = 'absolute';
+          this.style.position = 'fixed';
           this.style.top = '0';
           this.style.left = '0';
           this.style.right = '0';
           this.style.bottom = '0';
+          this.style.zIndex = '1000';
           this.style['border-radius'] = '0px';
           document.body.style.overflow = 'hidden';
           this.parent.classList.add('fullscreen');
@@ -100,6 +101,7 @@
           this.style.left = '';
           this.style.right = '';
           this.style.bottom = '';
+          this.style.zIndex = '';
           this.style['border-radius'] = '';
           document.body.style.overflow = '';
           this.parent.classList.remove('fullscreen');

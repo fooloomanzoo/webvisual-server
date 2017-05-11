@@ -7,8 +7,7 @@
       --dark-primary-color: #345475; /* Primary Colors */
       --bright-primary-color: #669DB4;
       --very-bright-primary-color: #E5EEf2;
-      --saturated-primary-color: #398ED4;
-      --unsaturated-primary-color: #243241;
+      --saturated-primary-color: #4ca8f5;
 
       --device-color: #12B8C3;
       --device-text-color: #252525;
@@ -50,7 +49,7 @@
         --notification-color: #FCFFBB;
         --warning-color: #ffdae4;
 
-        --highlight-color: var(--very-bright-primary-color);
+        --highlight-color: var(--saturated-primary-color);
 
         --caption-background: #fff;
         --caption-color: var(--primary-text-color);
@@ -72,7 +71,6 @@
       :host([dark]) {
         --primary-text-color: #000;
         --bright-text-color: #ddd;
-        --highlight-color: #6CBDFF;
 
         --active-link-color: #00FF9C;
         --warning-color: #FF9D9D;
@@ -117,7 +115,7 @@
         --grid-border-color: #555;
       }
       :host([plain]) {
-        --group-card-background: rgba(255,255,255, 0.15);
+        --group-card-background: linear-gradient(to top, rgba(255,255,255,0.0078125) 38%,rgba(255,255,255,0.125) 100%);
         --group-card-header-border: currentColor;
         --group-card-header-shim: transparent;
         --group-card-header-background: transparent;
@@ -156,6 +154,13 @@
         font-size: inherit;
         padding: 0;
         margin: 0;
+      }
+
+      :-webkit-full-screen-ancestor > *:not([fullscreen]) {
+        z-index: auto !important;
+        overflow: hidden !important;
+        will-change: auto !important;
+        transition: none !important;
       }
 
     </style>

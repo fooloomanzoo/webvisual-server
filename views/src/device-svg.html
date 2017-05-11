@@ -102,6 +102,9 @@
       @apply(--svg-text);
       mix-blend-mode: exclusion;
     }
+    svg * {
+      pointer-events: none;
+    }
     .selectable {
       pointer-events: all;
       cursor: pointer;
@@ -319,7 +322,7 @@
       this._srcChanged();
       if (!this._inialized)
         this._initialize();
-      this.debounce('resetZoom', this._resetZoom, 1000);
+      this.debounce('resetZoom', this._resetZoom, 500);
     },
 
     open: function(e) {
@@ -449,7 +452,7 @@
 
     _initialChanged: function(initial) {
       if (!this.src || !initial) return;
-      this.debounce('resetZoom', this._resetZoom, 250);
+      this.debounce('resetZoom', this._resetZoom, 50);
     },
 
     _selectableItemsChanged: function() {
@@ -672,21 +675,7 @@
 
     _fullScreenChanged: function() {
       WebvisualBehaviors.FullscreenBehavior._fullScreenChanged.call(this);
-      if (this.isFullscreen) {
-        if (!this._old) {
-          this._old = { zoomPartition: this.zoomPartition,
-                        maxZoom: this.maxZoom,
-                        minZoom: this.minZoom }
-        }
-        this.zoomPartition *= 6;
-        this.maxZoom *= 1.25;
-        this.minZoom = 0.98;
-      } else if (this._old) {
-        this.zoomPartition = this._old.zoomPartition;
-        this.maxZoom = this._old.maxZoom;
-        this.minZoom = this._old.minZoom;
-      }
-      this.debounce('resetZoom', this._resetZoom, 500);
+      this.debounce('resetZoom', this._resetZoom, 50);
     }
   });
 </script>

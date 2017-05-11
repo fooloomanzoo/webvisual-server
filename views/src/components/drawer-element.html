@@ -8,7 +8,7 @@
       :host {
         position: fixed;
         left: 0; top: 0; right: 0; bottom: 0;
-        z-index: 1;
+        z-index: 2;
         visibility: hidden;
         transition-property: visibility;
         pointer-events: none;
@@ -22,7 +22,7 @@
         visibility: visible;
       }
       #contentContainer {
-        position: fixed;
+        position: absolute;
         box-sizing: border-box;
         font-size: 1em;
         text-align: center;
@@ -113,26 +113,26 @@
         transform: translate3d(0, -50%, 0);
       }
       :host([swipe-open]) > #contentContainer::after {
-        position: fixed;
+        position: absolute;
         visibility: visible;
         content: '';
         cursor: pointer;
       }
       :host([swipe-open][align=bottom]) > #contentContainer::after {
         top: auto; bottom: 100%; left: 0; right: 0;
-        height: 24px;
+        height: 20px;
       }
       :host([swipe-open][align=top]) > #contentContainer::after {
         top: 100%; bottom: auto; left: 0; right: 0;
-        height: 24px;
+        height: 20px;
       }
       :host([swipe-open][align=left]) > #contentContainer::after {
         top: 0; bottom: 0; left: 100%; right: auto;
-        width: 24px;
+        width: 20px;
       }
       :host([swipe-open][align=right]) > #contentContainer::after {
         top: 0; bottom: 0; left: auto; right: 100%;
-        width: 24px;
+        width: 20px;
       }
       :host ::content > iron-icon {
         position: absolute;

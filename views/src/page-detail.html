@@ -9,6 +9,7 @@
   <template strip-whitespace>
     <style include="shared-style">
       :host {
+        padding-top: inherit;
         --drawer-width: 16em;
         --drawer-background: rgba(255,255,255, 0.15);
         --drawer-content: {
@@ -38,6 +39,10 @@
         -webkit-flex-basis: 50%;
         flex-basis: 50%;
         color: var(--bright-text-color);
+      }
+      .spacer {
+        flex: 0 0 auto;
+        padding: 0.25em;
       }
       #currentSelected {
         flex: 0 0 auto;
@@ -69,7 +74,7 @@
         position: absolute;
       }
       :host(.fullscreen) #elementDrawer {
-        position: fixed;
+        display: none;
       }
       #svg {
         overflow: hidden;
@@ -178,6 +183,7 @@
           exceeding="[[exceeding]]"></device-svg>
       </template>
 
+      <div class="spacer" hidden$="[[narrowLayout]]"></div>
       <template is="dom-if" if="[[narrowLayout]]">
         <device-caption id="currentSelected" class="caption" keys="[[selectedElement.keys]]"></device-caption>
       </template>
