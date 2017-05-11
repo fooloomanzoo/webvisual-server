@@ -98,7 +98,7 @@ class Router extends EventEmitter {
       saveUninitialized: false,
       cookie: {
         secure: true,
-        maxAge: 24*3600*1000*180
+        maxAge: 7*24*3600*1000
       }
     } );
 
@@ -188,7 +188,9 @@ class Router extends EventEmitter {
       });
 
     // Auth Test
-    this.app.use('/auth', this.settings.server.auth.required ? ensureLoggedIn.isRequired : ensureLoggedIn.notRequired );
+    this.app.use('/auth', this.settings.server.auth.required ? ensureLoggedIn.isRequired : ensureLoggedIn.notRequired, (req, res) => {
+      res.status(200).send(req.session.passport.user);
+    });
 
     // Signout
     this.app.use('/logout', (req, res) => {

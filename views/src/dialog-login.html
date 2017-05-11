@@ -175,66 +175,67 @@
                 if (cred.type === 'password') {
                   cred.idName = 'username';
                   //Return Promise from `signIn`
-                  return this.signIn.call(this, cred);
+                  return this.signIn.call(this, this.signInUrl, cred);
                 }
               } else {
                 // console.log('auto sign-in not performed');
                 // Resolve if credential object is not available
-                this.loggedIn = false;
-                return Promise.resolve();
+                // Fallback to server to check, if session-cookies are valid
+                return this.signIn.call(this, '/auth');
               }
             }.bind(this))
             .catch(this.notSignedIn.bind(this));
         } else {
           // Resolve if Credential Management API is not available
+          // Fallback to server to check, if session-cookies are valid
           console.log('auto sign-in not available');
+          p = this.signIn.call(this, '/auth');
         }
         Promise.resolve(p)
           .then( function(profile) {
           // When auto sign-in didn't resolve with a profile
           // it's failed to get credential information.
-          if (!profile) {
+            if (!profile) {
+              this.loggedIn = false;
+              if (!this.offline) {
+                this.open();
+              }
+              this.dispatchEvent(new CustomEvent('announce', {
+                detail: this.localize ? this.localize('notification', 'loggedIn', false) : 'You are not signed in'
+              }), {
+                bubbles: true
+              });
+            } else {
+              this.dispatchEvent(new CustomEvent('announce', {
+                detail: this.localize ? this.localize('notification', 'loggedIn', true) : 'You are signed in'
+              }), {
+                bubbles: true
+              });
+            }
+          }.bind(this), function() {
             this.loggedIn = false;
             if (!this.offline) {
               this.open();
             }
+            // When rejected, authentication was performed but failed.
             this.dispatchEvent(new CustomEvent('announce', {
               detail: this.localize ? this.localize('notification', 'loggedIn', false) : 'You are not signed in'
             }), {
               bubbles: true
             });
-          } else {
+          }.bind(this))
+          .catch(function(err) {
+            if (err)
+              console.log(err);
             this.dispatchEvent(new CustomEvent('announce', {
-              detail: this.localize ? this.localize('notification', 'loggedIn', true) : 'You are signed in'
+              detail: this.localize ? this.localize('notification', 'loggedIn', false) : 'You are not signed in'
             }), {
               bubbles: true
             });
-          }
-        }.bind(this), function() {
-          this.loggedIn = false;
-          if (!this.offline) {
-            this.open();
-          }
-          // When rejected, authentication was performed but failed.
-          this.dispatchEvent(new CustomEvent('announce', {
-            detail: this.localize ? this.localize('notification', 'loggedIn', false) : 'You are not signed in'
-          }), {
-            bubbles: true
+            if (!this.offline) {
+              this.open();
+            }
           });
-        }.bind(this))
-        .catch(function(err) {
-          if (err)
-            console.log(err);
-          this.dispatchEvent(new CustomEvent('announce', {
-            detail: this.localize ? this.localize('notification', 'loggedIn', false) : 'You are not signed in'
-          }), {
-            bubbles: true
-          });
-          if (!this.offline) {
-            this.open();
-          }
-        });
-
       },
 
       /**
@@ -259,7 +260,7 @@
           // Construct `FormData` object from actual `form`
           var cred = new PasswordCredential(signinForm);
           // Sign-In with our own server
-          this.signIn(cred)
+          this.signIn(this.signInUrl, cred)
             .then(function(profile) {
               navigator.credentials.store(cred);
               this.dispatchEvent(new CustomEvent('announce', {
@@ -312,13 +313,14 @@
        * @param  {CredentialObject} cred FormData or CredentialObject
        * @return {Promise} Returns result of `noCredApiSignIn()`
        */
-      signIn: function(cred) {
+      signIn: function(url, cred) {
         // POST-ing credential object will be converted to FormData object
-
-        return fetch(this.signInUrl, { // convert multipart-formdata to urlencoded
-            method: 'POST',
-            credentials: cred
-          }).then(function(res) {
+        var options = {
+          method: 'POST',
+          credentials: cred || 'include'
+        };
+        return fetch(url, options)
+          .then(function(res) {
             // Convert JSON string to an object
             if (res.status === 200) {
               return res.json();
