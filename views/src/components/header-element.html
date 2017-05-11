@@ -1,0 +1,361 @@
+<!--
+Simplification of Polymer's app-header
+-->
+
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
+<link rel="import" href="../../bower_components/iron-scroll-target-behavior/iron-scroll-target-behavior.html">
+
+<dom-module id="header-element">
+  <template>
+    <style>
+      :host {
+        position: relative;
+        display: block;
+        transition-timing-function: linear;
+        transition-property: -webkit-transform;
+        transition-property: transform;
+      }
+
+      :host::before {
+        position: absolute;
+        right: 0px;
+        bottom: -5px;
+        left: 0px;
+        width: 100%;
+        height: 5px;
+        content: "";
+        transition: opacity 0.4s;
+        pointer-events: none;
+        opacity: 0;
+        box-shadow: inset 0px 5px 6px -3px rgba(0, 0, 0, 0.4);
+        will-change: opacity;
+        @apply(--header-shadow);
+      }
+
+      :host([shadow])::before {
+        opacity: 1;
+      }
+
+      #background {
+        @apply(--layout-fit);
+        overflow: hidden;
+      }
+
+      #contentContainer {
+        position: relative;
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+    <div id="contentContainer">
+      <content id="content"></content>
+    </div>
+  </template>
+
+  <script>
+    Polymer({
+      is: 'header-element',
+
+      behaviors: [
+        Polymer.IronScrollTargetBehavior,
+        Polymer.IronResizableBehavior
+      ],
+
+      properties: {
+        /**
+         * Slides back the header when scrolling back up.
+         */
+        reveals: {
+          type: Boolean,
+          value: false
+        },
+
+        isRevealed: {
+          type: Boolean,
+          value: true,
+          reflectToAttribute: true
+        },
+
+        /**
+         * Displays a shadow below the header.
+         */
+        shadow: {
+          type: Boolean,
+          reflectToAttribute: true,
+          value: false
+        },
+
+        threshold: {
+          type: Number,
+          value: 0
+        },
+
+        /**
+         * True if the `scrollTop` threshold (set in `scrollTopThreshold`) has
+         * been reached.
+         */
+        thresholdTriggered: {
+          type: Boolean,
+          notify: true,
+          readOnly: true,
+          reflectToAttribute: true
+        }
+      },
+
+      observers: [
+        'resetLayout(isAttached)'
+      ],
+
+      listeners: {
+        'iron-resize': '_resizeHandler'
+      },
+
+      /**
+       * A cached offsetHeight of the current element.
+       *
+       * @type {number}
+       */
+      _height: 0,
+
+      /**
+       * The distance in pixels the header will be translated to when scrolling.
+       *
+       * @type {number}
+       */
+      _dHeight: 0,
+
+
+      /**
+       * The header's top value used for the `transformY`
+       *
+       * @type {number}
+       */
+      _top: 0,
+
+      /**
+       * The current scroll progress.
+       *
+       * @type {number}
+       */
+      _progress: 0,
+
+      _wasScrollingDown: false,
+      _initScrollTop: 0,
+      _initTimestamp: 0,
+      _lastTimestamp: 0,
+      _lastScrollTop: 0,
+
+      /**
+       * Resets the layout. If you changed the size of header-element via CSS
+       * you can notify the changes by either firing the `iron-resize` event
+       * or calling `resetLayout` directly.
+       *
+       * @method resetLayout
+       */
+      resetLayout: function() {
+        this.debounce('_resetLayout', function() {
+          // noop if the header isn't visible
+          if (this.offsetWidth === 0 && this.offsetHeight === 0) {
+            return;
+          }
+
+          var scrollTop = this._clampedScrollTop;
+          var firstSetup = this._height === 0 || scrollTop === 0;
+          var currentDisabled = this.disabled;
+
+          this._height = this.offsetHeight;
+          this.disabled = true;
+
+          // prepare for measurement
+          if  (!firstSetup) {
+            this._updateScrollState(0, true);
+          }
+
+          this._dHeight = 0;
+
+          if (this.scrollTarget) {
+            this.scrollTarget.style.paddingTop = '';
+            this.scrollTarget.style.marginTop = this._height + 'px';
+            this.scrollTarget._triggered = true;
+          }
+
+          if (firstSetup) {
+            this._updateScrollState(scrollTop, true);
+          } else {
+            this._updateScrollState(this._lastScrollTop, true);
+            this._layoutIfDirty();
+          }
+          // restore no transition
+          this.disabled = currentDisabled;
+          this.fire('header-reset-layout');
+        });
+      },
+
+      /**
+       * Updates the scroll state.
+       *
+       * @param {number} scrollTop
+       * @param {boolean=} forceUpdate (default: false)
+       */
+      _updateScrollState: function(scrollTop, forceUpdate) {
+        if (this._height === 0) {
+          return;
+        }
+        var progress = 0;
+        var top = 0;
+        var lastTop = this._top;
+        var lastScrollTop = this._lastScrollTop;
+        var maxHeaderTop = this._height + 5;
+        var dScrollTop = scrollTop - this._lastScrollTop;
+        var absDScrollTop = Math.abs(dScrollTop);
+        var isScrollingDown = scrollTop > this._lastScrollTop;
+        var scrollTarget = this.scrollTarget;
+        var now = performance.now();
+
+        top = this._clamp(this.reveals ? lastTop + dScrollTop : scrollTop, 0, maxHeaderTop);
+
+        if (scrollTop >= this._dHeight) {
+          this.style.transitionDuration = '0ms';
+        }
+
+        if (this.reveals && !this.disabled && absDScrollTop < 100) {
+          // set the initial scroll position
+          if (now - this._initTimestamp > 300 || this._wasScrollingDown !== isScrollingDown) {
+            this._initScrollTop = scrollTop;
+            this._initTimestamp = now;
+          }
+
+          if (scrollTop >= maxHeaderTop) {
+            // check if the header is allowed to snap
+            if (Math.abs(this._initScrollTop - scrollTop) > 30 || absDScrollTop > 10) {
+              if (isScrollingDown && scrollTop >= maxHeaderTop) {
+                top = maxHeaderTop;
+                this.isRevealed = false;
+                if (scrollTarget && scrollTarget._triggered) {
+                  scrollTarget.style.paddingTop = this._height + 'px';
+                  scrollTarget.style.marginTop = '';
+                  scrollTarget._triggered = false;
+                }
+              } else if (!isScrollingDown && scrollTop >= this._dHeight) {
+                top = 0;
+                this.isRevealed = true;
+                if (scrollTarget && !scrollTarget._triggered) {
+                  scrollTarget.style.paddingTop = '';
+                  scrollTarget.style.marginTop = this._height + 'px';
+                  scrollTarget._triggered = true;
+                }
+              }
+              var scrollVelocity = dScrollTop / (now - this._lastTimestamp);
+              this.style.transitionDuration = this._clamp((top - lastTop) / scrollVelocity, 0, 300) + 'ms';
+            } else {
+              top = this._top;
+            }
+          }
+        }
+
+        if (this._dHeight === 0) {
+          progress = scrollTop > 0 ? 1 : 0;
+        } else {
+          progress = top / this._dHeight;
+        }
+
+        if (!forceUpdate) {
+          this._lastScrollTop = scrollTop;
+          this._top = top;
+          this._wasScrollingDown = isScrollingDown;
+          this._lastTimestamp = now;
+        }
+
+        if (forceUpdate || progress !== this._progress || lastTop !== top || scrollTop === 0) {
+          this._progress = progress;
+          this._transformHeader(top);
+        }
+      },
+
+      /**
+       * The clamped value of `_scrollTop`.
+       * @type number
+       */
+      get _clampedScrollTop() {
+        return Math.max(0, this._scrollTop);
+      },
+
+      /**
+       * Overrides the `_scrollHandler`.
+       */
+      _scrollHandler: function() {
+        var scrollTop = this._clampedScrollTop;
+        this._updateScrollState(scrollTop);
+        if (this.threshold > 0) {
+          this._setThresholdTriggered(scrollTop >= this.threshold);
+        }
+      },
+      /**
+       * Forces layout
+       */
+      _layoutIfDirty: function() {
+        return this.offsetWidth;
+      },
+
+      /**
+       * Returns true if the current element is on the screen.
+       * That is, visible in the current viewport.
+       *
+       * @method isOnScreen
+       * @return {boolean}
+       */
+      isOnScreen: function() {
+        return this._height !== 0 && this._top < this._height;
+      },
+
+      /**
+       * Returns true if there's content below the current element.
+       *
+       * @method isContentBelow
+       * @return {boolean}
+       */
+      isContentBelow: function() {
+        if (this._top === 0) {
+          return this._clampedScrollTop > 0;
+        }
+        return this._clampedScrollTop - this._height + 5 >= 0;
+      },
+
+      /**
+       * Transforms the header.
+       *
+       * @param {number} y
+       */
+      _transformHeader: function(y) {
+        this.translate3d(0, (-y) + 'px', 0);
+      },
+
+      _resizeHandler: function() {
+        this.resetLayout();
+      },
+
+      _clamp: function(v, min, max) {
+        return Math.min(max, Math.max(min, v));
+      },
+
+      /**
+       * Returns an object containing the progress value of the scroll effects
+       * and the top position of the header.
+       *
+       * @method getScrollState
+       * @return {Object}
+       */
+      getScrollState: function() {
+        return { progress: this._progress, top: this._top };
+      }
+
+      /**
+       * Fires when the layout of `app-header` changed.
+       *
+       * @event app-header-reset-layout
+       */
+    });
+  </script>
+</dom-module>

@@ -433,12 +433,12 @@
       },
 
       _trackEnd: function(event) {
-        var dd = this.horizontal ? event.detail.dy : event.detail.dx;
-        var d = dd + this._translateOffset;
+        var d = this.horizontal ? event.detail.dy : event.detail.dx;
+        var dd = d + this._translateOffset;
         var drawerExpandedSide = this._getExpandedLength();
 
-        var isInEndState = this.endPositioned ? (d <= 0 || -d >= drawerExpandedSide) :
-          (d <= 0 || d >= drawerExpandedSide);
+        var isInEndState = !this.endPositioned ? (dd >= 0 || dd <= -drawerExpandedSide) :
+          (dd <= 0 || dd >= drawerExpandedSide);
 
         if (!isInEndState) {
           // No longer need the track events after this method returns - allow them to be GC'd.
@@ -455,9 +455,9 @@
         // the drawer.
         var conditionalDragLength = drawerExpandedSide * this._CONDITION_PARTS;
 
-        if (dd < -conditionalDragLength) {
+        if (d < -conditionalDragLength) {
           this.opened = this.endPositioned;
-        } else if (dd > conditionalDragLength) {
+        } else if (d > conditionalDragLength) {
           this.opened = !this.endPositioned;
         }
 
@@ -471,7 +471,7 @@
         this._resetDrawerTranslate();
         this.style.visibility = '';
       },
-
+      
       _calculateVelocity: function(event, trackDetails) {
         if (!(trackDetails && trackDetails.length)) {
           return 0;

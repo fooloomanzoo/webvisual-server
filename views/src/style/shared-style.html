@@ -6,17 +6,8 @@
       --primary-color: #005B82;
       --dark-primary-color: #345475; /* Primary Colors */
       --bright-primary-color: #669DB4;
-      --very-bright-primary-color: #E5EEf2;
-      --saturated-primary-color: #4ca8f5;
-
-      --device-color: #12B8C3;
-      --device-text-color: #252525;
-      --device-state-inrange-color: #51cc41;
-      --device-state-deceeds-color: #920bad;
-      --device-state-exceeds-color: #D91B1B;
-      --device-state-inrange-text-color: var(--primary-text-color);
-      --device-state-deceeds-text-color: var(--bright-text-color);
-      --device-state-exceeds-text-color: var(--bright-text-color);
+      --secondary-color: #4EA7E8;
+      --bright-secondary-color: #E5EEf2;
     }
   </style>
 </custom-style>
@@ -49,7 +40,7 @@
         --notification-color: #FCFFBB;
         --warning-color: #ffdae4;
 
-        --highlight-color: var(--saturated-primary-color);
+        --highlight-color: var(--bright-secondary-color);
 
         --caption-background: #fff;
         --caption-color: var(--primary-text-color);
@@ -75,7 +66,7 @@
         --active-link-color: #00FF9C;
         --warning-color: #FF9D9D;
 
-        --highlight-color: var(--saturated-primary-color);
+        --highlight-color: var(--secondary-color);
 
         --dialog-background-color: #454545;
         --dialog-color: var(--bright-text-color);
@@ -90,7 +81,7 @@
         --checkbox-checked-background: rgba(255,255,255, 0.25);
         --table-background: rgba(255,255,255, 0.35);
         --table-color: #000;
-        --group-card-background: rgba(255,255,255, 0.25);
+        --group-card-background: rgba(255,255,255, 0.2);
 
         --fullscreen-background-color: #080808;
 
@@ -109,13 +100,16 @@
         --group-card-header-color: var(--bright-text-color);
         --grid-border-color: #888;
       }
+      :host([dark]) {
+        --highlight-color: var(--secondary-color);
+      }
       :host(:not([plain])[dark]) {
         --group-card-header-background: var(--dark-primary-color);
         --group-card-header-color: var(--bright-text-color);
         --grid-border-color: #555;
       }
       :host([plain]) {
-        --group-card-background: linear-gradient(to top, rgba(255,255,255,0.0078125) 38%,rgba(255,255,255,0.125) 100%);
+        --group-card-background: linear-gradient(to top, rgba(255,255,255,0.03125) 0%, rgba(255,255,255,0.03125) 62%,rgba(255,255,255,0.0625) 100%);
         --group-card-header-border: currentColor;
         --group-card-header-shim: transparent;
         --group-card-header-background: transparent;
@@ -127,7 +121,7 @@
         --toggle-button-unchecked-ink-color: var(--bright-primary-color);
       }
       :host([plain][dark]) {
-        --checkbox-checked-background: var(--saturated-primary-color);
+        --checkbox-checked-background: var(--secondary-color);
       }
 
       paper-ripple {

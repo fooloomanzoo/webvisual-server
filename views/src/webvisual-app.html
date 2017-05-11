@@ -2,30 +2,30 @@
 <script src="../polyfills/polyfills.js" type="text/javascript"></script>
 
 <link rel="import" href="behaviors/localize-behavior.html"/>
+<link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html"/>
 
-<link rel="import" href="../bower_components/app-layout/app-header/app-header.html"/>
+<link rel="import" href="../bower_components/app-route/app-location.html"/>
+<link rel="import" href="../bower_components/app-route/app-route.html"/>
 <link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html"/>
-<link rel="import" href="../bower_components/iron-media-query/iron-media-query.html">
+
+<link rel="import" href="../bower_components/iron-media-query/iron-media-query.html"/>
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html"/>
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html"/>
 <link rel="import" href="../bower_components/iron-a11y-keys-behavior/iron-a11y-keys-behavior.html"/>
 <link rel="import" href="../bower_components/paper-ripple/paper-ripple.html"/>
-<link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
 
-<link rel="import" href="../bower_components/app-route/app-location.html"/>
-<link rel="import" href="../bower_components/app-route/app-route.html"/>
-
-<link rel="import" href="components/drawer-element.html">
+<link rel="import" href="components/header-element.html"/>
+<link rel="import" href="components/drawer-element.html"/>
 <link rel="import" href="dialog-login.html"/>
 <link rel="import" href="page-home.html"/>
 
 <link rel="import" href="components/logo-element.html"/>
 <link rel="import" href="components/icon-button.html"/>
 
-<link rel="import" href="style/shared-style.html">
-<link rel="import" href="style/selectbox-style.html">
-<link rel="import" href="style/button-style.html">
-<link rel="import" href="style/app-style.html">
+<link rel="import" href="style/shared-style.html"/>
+<link rel="import" href="style/selectbox-style.html"/>
+<link rel="import" href="style/button-style.html"/>
+<link rel="import" href="style/app-style.html"/>
 
 <link rel="import" href="data/facility-data.html"/>
 
@@ -34,8 +34,8 @@
   <template strip-whitespace>
 
     <style include="shared-style selectbox-style button-style app-style">
-      app-header {
-        @apply(--app-header);
+      header-element {
+        @apply(--header-element);
         @apply(--layout-fixed-top);
         z-index: 1;
         position: absolute;
@@ -106,7 +106,7 @@
         --tab-overlay: {
           background-color: rgba(255, 255, 255, 0.1);
           border-left: none;
-          border-bottom: medium solid var(--highlight-color, var(--saturated-primary-color));
+          border-bottom: medium solid var(--highlight-color, var(--secondary-color));
         }
       }
       .tab {
@@ -119,14 +119,15 @@
       #pageSelector {
         @apply(--layout-fit);
         overflow-y: auto;
+        overflow-x: hidden;
         -webkit-overflow-scrolling: touch;
         @apply(--layout-vertical);
         @apply(--layout-flex);
         background-color: var(--primary-background);
         transition: background 500ms cubic-bezier(0.6, 0, 0.3, 1);
-        padding-top: 4em;
-        padding-bottom: 2.5em;
-        /*margin-top: 4em;*/
+        /*padding-top: 4em;*/
+        /*padding-bottom: 2.5em;
+        margin-top: 4em;*/
         /*margin-bottom: 0;*/
       }
       :host([page="home"]) #pageSelector {
@@ -233,7 +234,7 @@
 
     <template is="dom-if" if="[[_isContentPage]]">
       <!-- Toolbar -->
-      <app-header role="header" id="header" reveals threshold="64" threshold-triggered="{{thresholdTriggered}}" shadow$="{{thresholdTriggered}}" scroll-target="pageSelector">
+      <header-element role="header" id="header" reveals threshold="64" threshold-triggered="{{thresholdTriggered}}" shadow$="{{thresholdTriggered}}" scroll-target="pageSelector">
         <app-toolbar>
           <icon-button icon="menu" class="menu-icon" title="menu" on-tap="_toggleDrawer"></icon-button>
           <logo-element id="logo" href="/home" main-title title$="[[localize('home', 'name')]]"></logo-element>
@@ -279,7 +280,7 @@
           <icon-button icon="more-vert" title="{{localize('view')}}" on-tap="toggleShowTabs"></icon-button>
         </app-toolbar>
 
-      </app-header>
+      </header-element>
     </template>
     <!-- Pages-->
     <iron-pages id="pageSelector" role="main" selected="{{page}}" attr-for-selected="name" selected-attribute="visible" fallback-selection="home">
@@ -606,15 +607,13 @@
       listeners: {
         'detail-request': '_openDetailRequestDialog',
         'login-request': '_openLoginDialog',
-        'announce': '_notifyAnnouncement',
-        'iron-resize': '_headerTriggered',
-        'app-header-reset-layout': '_headerTriggered'
+        'announce': '_notifyAnnouncement'
       },
 
       observers: [
         '_routePageChanged(routeData.page)',
         '_subrouteChanged(subroute)',
-        '_headerTriggered(thresholdTriggered)',
+        '_headerTriggered(thresholdTriggered, showTabsOnBottom)',
         '_setGroupingSelectBoxes(_shouldRenderGroupingKeys)'
       ],
 
@@ -646,32 +645,30 @@
       },
 
       _resetScroll: function() {
-        this.async( function () {
+        this.debounce( '_resetScroll', function () {
           if (!this.$.pageSelector) {
             this.$.pageSelector = Polymer.dom(this.root).querySelector('#pageSelector');
+          }
+          if (!this.$.header) {
+            this.$.header = Polymer.dom(this.root).querySelector('#header');
           }
           this.$.pageSelector.scrollTop = 0;
-        }.bind(this))
+          this.$.header.resetLayout();
+          this._headerTriggered(null, this.showTabsOnBottom);
+        });
       },
 
-      _headerTriggered: function() {
-        this.async( function () {
+      _headerTriggered: function(thresholdTriggered, showTabsOnBottom) {
+        this.debounce( '_headerTriggered', function () {
           if (!this.$.pageSelector) {
             this.$.pageSelector = Polymer.dom(this.root).querySelector('#pageSelector');
           }
-          // if (!this.$.header) {
-          //   this.$.header = Polymer.dom(this.root).querySelector('#header');
-          // }
-          // if (this.$.header.fixed && !this.$.header.willCondense() && this.$.header.scrollingRegion) {
-          //   this.$.pageSelector.style.paddingTop = '4em';
-          //   this.$.pageSelector.style.marginTop = '';
-          //   this.$.pageSelector.style.marginBottom = '2.5em';
-          // } else {
-            // this.$.pageSelector.style.paddingTop = '';
-            // this.$.pageSelector.style.marginTop = '4em';
-            // this.$.pageSelector.style.marginBottom = '';
-          // }
-        }.bind(this))
+          if (thresholdTriggered || showTabsOnBottom) {
+            this.$.pageSelector.style.marginBottom = '2.5em';
+          } else {
+            this.$.pageSelector.style.marginBottom = '';
+          }
+        });
       },
 
       _nextPage: function() {

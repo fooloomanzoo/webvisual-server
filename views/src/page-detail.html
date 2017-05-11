@@ -63,7 +63,7 @@
         padding-bottom: 0.3em;
         --tab-vertical-overlay: {
           background-color: rgba(255, 255, 255, 0.8);
-          border-left: medium solid var(--saturated-primary-color, white);
+          border-left: medium solid var(--secondary-color, white);
           border-bottom: none;
         }
       }
@@ -123,12 +123,16 @@
         opacity: 1;
       }
       @media (max-width: 600px) {
+        #content {
+          padding-right: 10px;
+        }
         #elementTabs {
           background-color: rgba(255,255,255,0.25);
         }
       }
       @media (min-width: 601px) {
         #content {
+          padding: 0;
           margin-right: 16em;
         }
         #elementDrawer {
@@ -268,7 +272,8 @@
 
         narrowLayout: {
           type: Boolean,
-          notify: true
+          notify: true,
+          reflectToAttribute: true
         },
 
         showToggleIcon: {
