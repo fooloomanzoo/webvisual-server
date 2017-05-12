@@ -178,7 +178,9 @@ class WebvisualServer {
           this.router.setSettings(this.config, this.http2Server);
 
           this.dataHandler = new DataModule();
-          this.dataHandler.on('error', (err) => { process.send( { error: err } ); });
+          this.dataHandler.on('error', (err) => { 
+            process.send( { error: err } ); 
+          });
           this.dataHandler.on('info', (msg) => { process.send( { info: msg } ); });
           this.dataHandler.on('log', (msg) => { process.send( { log: msg } ); });
 

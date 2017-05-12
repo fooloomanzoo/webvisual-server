@@ -10,8 +10,8 @@
         left: 0; top: 0; right: 0; bottom: 0;
         z-index: 2;
         visibility: hidden;
-        transition-property: visibility;
         pointer-events: none;
+        transition-property: visibility;
         --drawer-shadow: {
           box-shadow: 0 6px 10px 0 rgba(0, 0, 0, 0.14),
                       0 1px 18px 0 rgba(0, 0, 0, 0.12),
@@ -116,6 +116,7 @@
         position: absolute;
         visibility: visible;
         content: '';
+        pointer-events: all;
         cursor: pointer;
       }
       :host([swipe-open][align=bottom]) > #contentContainer::after {
@@ -133,6 +134,9 @@
       :host([swipe-open][align=right]) > #contentContainer::after {
         top: 0; bottom: 0; left: auto; right: 100%;
         width: 20px;
+      }
+      :host([opened]) > #contentContainer::after {
+        pointer-events: none;
       }
       :host ::content > iron-icon {
         position: absolute;
@@ -153,12 +157,12 @@
         -webkit-transform: translateZ(0);
         transform:  translateZ(0);
         opacity: 0;
-        pointer-events: all;
         cursor: pointer;
         background: var(--drawer-scrim-background, rgba(0, 0, 0, 0.4));
       }
       :host([opened]) > #scrim {
         opacity: 1;
+        pointer-events: all;
       }
       :host(:not([scrim])) > #scrim,
       :host([opened][persistent]) > #scrim {
@@ -471,7 +475,7 @@
         this._resetDrawerTranslate();
         this.style.visibility = '';
       },
-      
+
       _calculateVelocity: function(event, trackDetails) {
         if (!(trackDetails && trackDetails.length)) {
           return 0;

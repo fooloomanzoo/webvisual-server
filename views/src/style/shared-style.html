@@ -31,6 +31,15 @@
         --highlight-color: #D28741;
         --select-color: #CCF2DD;
 
+        --device-color: #86CAEC;
+        --device-text-color: #252525;
+        --device-state-inrange-color: #51cc41;
+        --device-state-deceeds-color: #920bad;
+        --device-state-exceeds-color: #D91B1B;
+        --device-state-inrange-text-color: var(--primary-text-color);
+        --device-state-deceeds-text-color: var(--bright-text-color);
+        --device-state-exceeds-text-color: var(--bright-text-color);
+
         --selectbox-color: var(--primary-text-color);
         --selectbox-background: rgba(255,255,255,0.5);
         --option-color: var(--primary-text-color);
@@ -52,11 +61,11 @@
         --dialog-background-color: #eee;
         --dialog-color: var(--primary-text-color);
 
+        --fullscreen-background-color: var(--primary-background);
         --svg-text: {
           fill: var(--bright-text-color) !important;
           font-family: inherit !important;
         };
-        --fullscreen-background-color: #151515;
       }
 
       :host([dark]) {
@@ -89,8 +98,13 @@
         --toggle-button-unchecked-button-color: #BDE2F1;
         --toggle-button-unchecked-ink-color: #454545;
 
-        --device-state-inrange-text-color: #000;
+        --device-color: #4a86a3;
         --device-text-color: #000;
+        --device-state-inrange-color: #3bb82b;
+        --device-state-deceeds-color: #85199a;
+        --device-state-exceeds-color: #bb1616;
+        --device-state-inrange-text-color: #000;
+
       }
 
       :host(:not([plain])) {

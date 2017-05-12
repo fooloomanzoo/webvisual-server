@@ -4,8 +4,6 @@
 
 <link rel="import" href="components/icon-button.html"/>
 
-<link rel="import" href="style/device-shared-style.html"/>
-
 <script type="text/javascript" src="../bower_components/d3/d3.min.js"></script>
 
 <!--
@@ -37,7 +35,7 @@
 
 <dom-module id="device-svg">
 <template strip-whitespace>
-  <style include="device-shared-style">
+  <style>
     :host {
       border-radius: inherit;
       -webkit-overflow-scrolling: touch;
@@ -54,8 +52,6 @@
       color: currentColor;
       isolation: isolate;
       z-index: auto;
-      --control-bottom: 0;
-      --control-right: 0;
     }
     :host([opened]) {
       pointer-events: all;
@@ -64,6 +60,9 @@
       background-color: var(--fullscreen-background-color);
       min-height: 100%;
       min-width: 100%;
+      --control-bottom: 8px;
+      --control-right: 16px;
+      --control-button-distance: 8px;
     }
     :host(:-webkit-full-screen) {
       background-color: var(--fullscreen-background-color);
@@ -87,10 +86,16 @@
     }
     #control {
       position: absolute;
-      bottom: var(--control-bottom, 0);
-      right: var(--control-right, 0);
+      bottom: var(--control-bottom, 0px);
+      right: var(--control-right, 0px);
       background: rgba(255,255,255,0.0625);
       mix-blend-mode: exclusion;
+    }
+    #control > *:not(:first-of-type) {
+      margin-left: var(--control-button-distance, 0px);
+    }
+    #control > * {
+      background: rgba(255,255,255,0.0625);
     }
     text {
       pointer-events: none !important;
@@ -421,12 +426,15 @@
     },
 
     _selectedItemsChanged: function() {
-      if ((this.item && Object.keys(this.item).length) || (this.items && this.items.length)) {
+      var item = this.item;
+      var items = this.items;
+
+      if ((item && Object.keys(item).length) || (items && items.length)) {
         if (!this.src) {
-          if (this.item && this.item.svg && this.item.svg.path) {
-            this.src = this.item.svg.path;
-          } else if (this.items.length > 0 && this.items[this.items.length-1].svg && this.items[this.items.length-1].svg.path) {
-            this.src = this.items[this.items.length-1].svg.path;
+          if (item && item.svg && item.svg.path) {
+            this.src = item.svg.path;
+          } else if (items.length > 0 && items[items.length-1].svg && items[items.length-1].svg.path) {
+            this.src = items[items.length-1].svg.path;
           }
         }
         this.opened = this.src && (this.opened || this.forceOpened || this.openOnSelect);
@@ -438,9 +446,11 @@
     },
 
     _exceedingChanged: function() {
-      if (this.exceeding && this.exceeding.length) {
-        if (!this.src && this.exceeding[this.exceeding.length-1].svg && this.exceeding[this.exceeding.length-1].svg.path) {
-          this.src = this.exceeding[this.exceeding.length-1].svg.path;
+      var exceeding = this.exceeding;
+
+      if (exceeding && exceeding.length) {
+        if (!this.src && exceeding[exceeding.length-1].svg && exceeding[exceeding.length-1].svg.path) {
+          this.src = exceeding[exceeding.length-1].svg.path;
         }
         this.opened = this.src && (this.opened || this.forceOpened || this.openOnExceed);
         this.debounce('select-exceeds', this._selectExceeds, 50);
@@ -605,7 +615,7 @@
         return {x: 0, y: 0, k: 1};
 
       // calculate scale based on partioned view and dimensions of the element
-      var boundE, bboxE, ratio = view.height/view.width;
+      var boundE, bboxE, viewRatio = view.height/view.width;
       if (elem.nodeType !== undefined)
         boundE = elem.getBoundingClientRect();
       else boundE = elem;
@@ -617,27 +627,30 @@
       var vs = bboxG.width/boundG.width || 1; // view scale
       var x = (boundE.left - boundG.left)*vs + bboxG.x;
       var y = (boundE.top - boundG.top)*vs + bboxG.y;
+      var svgHeight = this._height;
+      var svgWidth = this._width;
+      var svgRatio = this._ratio;
+      var zoomPartition = this.zoomPartition;
 
       // calculate zoom based on partions or minZoom or maxZoom
       // scaling and centering
       // paths are scaled by the width od the containing svg
-      if (ratio < this._ratio) {
-        scale = Math.min(this._width/(this.zoomPartition*boundE.width*vs*this._ratio), this._height/(this.zoomPartition*boundE.height*vs));
+      if (viewRatio < svgRatio) {
+        scale = Math.min(svgWidth/(zoomPartition*boundE.width*vs*viewRatio), svgHeight/(zoomPartition*boundE.height*vs));
       } else {
-        scale = Math.min(this._width/(this.zoomPartition*boundE.width*vs), this._width*ratio/(this.zoomPartition*boundE.height*vs));
+        scale = Math.min(svgWidth/(zoomPartition*boundE.width*vs), svgWidth*viewRatio/(zoomPartition*boundE.height*vs));
       }
 
-      console.log(scale, ratio, this._ratio);
       if (scale < this.minZoom) scale = this.minZoom;
       else if (scale > this.maxZoom) scale = this.maxZoom;
 
-      if (ratio < this._ratio) {
-        x = -scale*x + (this._height/ratio - scale*boundE.width*vs)/2;
-        y = -scale*y + (this._height - scale*boundE.height*vs)/2;
+      if (viewRatio < svgRatio) {
+        x = -scale*x + (svgHeight/viewRatio - scale*boundE.width*vs)/2;
+        y = -scale*y + (svgHeight - scale*boundE.height*vs)/2;
       }
       else {
-        x = -scale*x + (this._width - scale*boundE.width*vs)/2;
-        y = -scale*y + (this._width*ratio - scale*boundE.height*vs)/2;
+        x = -scale*x + (svgWidth - scale*boundE.width*vs)/2;
+        y = -scale*y + (svgWidth*viewRatio - scale*boundE.height*vs)/2;
       }
 
       if (isNaN(x) || isNaN(y) || isNaN(scale))

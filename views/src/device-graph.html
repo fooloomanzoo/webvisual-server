@@ -2,17 +2,13 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 
 <link rel="import" href="behaviors/color-behavior.html" />
-<!-- <link rel="import" href="behaviors/checked-and-select-behavior.html"/> -->
 <link rel="import" href="behaviors/device-behavior.html" />
 
-<link rel="import" href="style/device-shared-style.html" />
-
 <script type="text/javascript" src="../bower_components/d3/d3.min.js"></script>
-<!-- <script type="text/javascript" src="/scripts/d3-interpolate-path.min.js"></script> -->
 
 <dom-module id="device-graph">
     <template>
-    <style include="device-shared-style"></style>
+    <style></style>
   </template>
     <script>
         DiagramGraph = Polymer({
@@ -20,7 +16,6 @@
 
             behaviors: [
                 WebvisualBehaviors.ColorBehavior,
-                // WebvisualBehaviors.CheckedAndSelectBehavior,
                 WebvisualBehaviors.DeviceBehavior
             ],
 
