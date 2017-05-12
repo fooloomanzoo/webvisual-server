@@ -346,9 +346,13 @@
           type: Boolean
         },
 
-        item: Object,
+        item: {
+          type: Object
+        },
 
-        items: Array,
+        items: {
+          type: Array
+        },
 
         multi: {
           type: Boolean,
@@ -358,9 +362,7 @@
         showControl: {
           type: Boolean,
           value: false
-        },
-
-        uniqueid: String
+        }
 
       },
 
@@ -438,16 +440,6 @@
         this.format.Week = d3.timeFormat('%d.%m');
         this.format.Month = d3.timeFormat('%d. %b');
         this.format.Year = d3.timeFormat('%Y');
-      },
-
-      ready: function() {
-        var sel, uniqueid;
-        while (true) {
-          uniqueid = String(Math.random().toString(16).slice(2));
-          sel = document.querySelector("[uniqueid='" + uniqueid + "']");
-          if (!sel) break;
-        }
-        this.setAttribute('uniqueid', uniqueid);
       },
 
       attached: function() {

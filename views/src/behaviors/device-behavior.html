@@ -30,16 +30,13 @@
         value: false
       },
 
-      storeInside: Boolean,
+      storeInside: {
+        type: Boolean
+      },
 
       viewLength: {
         type: Number,
         value: 1
-      },
-
-      uniqueid: {
-        type: String,
-        reflectToAttribute: true
       },
 
       noLink: {
@@ -47,7 +44,9 @@
         value: false
       },
 
-      _initialized: Boolean
+      _initialized: {
+        type: Boolean
+      },
 
     },
 
@@ -62,16 +61,6 @@
 
     hostAttributes: {
       element: true
-    },
-
-    ready: function() {
-      var sel, uniqueid;
-      while (true) { // TODO: not valid in ShadowDOM
-        uniqueid = String(Math.random().toString(16).slice(2));
-        sel = document.querySelector("[uniqueid='" + uniqueid + "']");
-        if (!sel) break;
-      }
-      this.set('uniqueid', uniqueid);
     },
 
     factoryImpl: function(obj, properties) {
@@ -240,7 +229,6 @@
 
     requestRange: function(key, attempts) {
       var mount = this.mount;
-      var uniqueid = this.uniqueid;
       messageCount = this._messageCount++;
       if (!this.storeInside && window.Webvisual && window.Webvisual.webworker) {
         return new Promise( function (resolve, reject) {
