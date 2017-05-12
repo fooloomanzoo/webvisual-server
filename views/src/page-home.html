@@ -96,17 +96,19 @@
         color: var(--active-link-color);
       }
       .login {
+        position: absolute;
+        bottom: auto; top: 0; left: 50%; right: auto;
+        -webkit-transform: translate3d(-50%, 0, 0);
+        transform: translate3d(-50%, 0, 0);
         @apply(--layout-inline);
         @apply(--layout-center-center);
-        @apply(--layout-horizontal);
-        position: absolute;
         color: var(--notification-color);
-        top: 1em;
+        box-sizing: border-box;
+        margin-top: 16px;
         opacity: 0.5;
-        width: auto;
         font-size: 1em;
         background-color: #252525;
-        border-radius: 8px;
+        border-radius: 6px;
         border: thin solid currentColor;
         transition: opacity 300ms cubic-bezier(0.6,0,0.3,1);
         padding: 0 12px;
