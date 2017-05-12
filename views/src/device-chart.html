@@ -215,16 +215,9 @@
               <option value="log₁₀">log₁₀</option>
             </select>
           </div>
-          <div class="button" on-tap="toggleFullscreen">
-            <iron-icon icon="[[fullscreenIcon]]" class="left"></iron-icon>
-            Fullscreen
-          </div>
-          <!-- <section class="buttons">
-            <icon-button title="fullscreen" icon="[[fullscreenIcon]]" on-tap="toggleFullscreen"></icon-button>
-            <icon-button title="refresh" icon="refresh" on-tap="_refresh"></icon-button>
-          </section> -->
         </iron-collapse>
         <icon-button title="settings" icon="tune" checked="{{showControl}}"></icon-button>
+        <icon-button icon="[[fullscreenIcon]]" on-tap="toggleFullscreen"></icon-button>
       </section>
   	</div>
 

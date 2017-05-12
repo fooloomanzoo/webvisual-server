@@ -49,7 +49,7 @@
       app-toolbar icon-button {
         transform: scale(1);
       }
-      #drawerPanel .drawer-content {
+      #sidePanel .drawer-content {
         display: block;
         height: calc(100% - 8em);
         padding: 0 1em;
@@ -57,17 +57,17 @@
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
       }
-      #drawerPanel app-toolbar {
+      #sidePanel app-toolbar {
         @apply(--drawer-toolbar);
       }
-      #drawerPanel .top {
+      #sidePanel .top {
         justify-content: space-between;
         margin-bottom: 1em;
       }
-      #drawerPanel .bottom {
+      #sidePanel .bottom {
         justify-content: flex-end;
       }
-      #drawerPanel .spacer {
+      #sidePanel .spacer {
         margin-bottom: 1em;
       }
       .drawer-content .selectbox,
@@ -77,9 +77,9 @@
         padding: 1em;
       }
       .drawer-content iron-collapse > .collapse-content {
+        @apply(--layout-vertical);
         padding: 0.5em 1em;
         width: 100%;
-        @apply(--layout-vertical);
         box-sizing: border-box;
         border-left: thin solid rgba(255,255,255,0.1);
         border-right: thin solid rgba(255,255,255,0.1);
@@ -92,11 +92,11 @@
       }
       #pageSelector {
         @apply(--layout-fit);
+        @apply(--layout-vertical);
+        @apply(--layout-flex);
         overflow-y: auto;
         overflow-x: hidden;
         -webkit-overflow-scrolling: touch;
-        @apply(--layout-vertical);
-        @apply(--layout-flex);
         background-color: var(--primary-background);
         transition: background 500ms cubic-bezier(0.6, 0, 0.3, 1);
       }
@@ -125,11 +125,11 @@
         padding: 0 1em;
       }
       .viewSelect {
+        @apply(--layout-inline);
+        @apply(--layout-center-center);
         position: relative;
         height: 2.75em;
         width: 100%;
-        @apply(--layout-inline);
-        @apply(--layout-center-center);
       }
       .viewSelect.top {
         padding-right: 0.5em;
@@ -146,21 +146,21 @@
         }
       }
       .tab {
-        padding: 0 1em;
         @apply(--layout-inline);
         @apply(--layout-center-justified);
         @apply(--layout-center);
         position: relative;
+        padding: 0 1em;
       }
       .tab > .left {
         margin-right: 0.5em;
         color: currentColor;
       }
       .toolbar.grouping {
-        position: absolute;
+        position: relative;
+        left: 0;
         bottom: 0;
         top: 0;
-        left: 1em;
         @apply(--layout-inline);
         @apply(--layout-center-center);
         background: url(data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22%3E%3Cg%3E%3Cpath d=%22M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z%22 fill=%22%23FFFFFF%22%3E%3C/path%3E%3C/g%3E%3C/svg%3E);
@@ -168,11 +168,11 @@
         background-position: 0.33em center;
         background-size: 1.33em 1.33em;
         padding: 0;
-        margin: 0;
+        margin: 0 0.5em;
       }
-      .toolbar.grouping.bottom:not([hidden]) ~ .tabs {
-        margin-left: 3.25em;
-      }
+      /*.toolbar.grouping.bottom:not([hidden]) ~ .tabs {
+        padding-left: 3.25em;
+      }*/
       .toolbar.grouping > select {
         height: 2.5em;
         padding-left: 1.75em;
@@ -185,11 +185,6 @@
       }
       .toolbar.grouping > select:hover {
         background-color: rgba(255,255,255,0.25);
-      }
-      .toolbar.grouping.top {
-        position: relative;
-        left: 0;
-        margin: 0 0.5em;
       }
       :-webkit-full-screen-ancestor > [swipe-open] {
         display: none !important;
@@ -324,9 +319,6 @@
 
     <drawer-element opened="{{showTabsOnBottom}}" id="toolbarBottom" swipe-open auto-close-period="8000" shadow auto-close="[[!thresholdTriggered]]">
       <div class="viewSelect">
-        <div class="selectbox toolbar grouping bottom" title="[[groupedKey]]" hidden$="[[hideGroupSelect]]">
-          <select value="{{groupedKey::change}}"></select>
-        </div>
         <tabs-container class="tabs"
           role="tablist"
           selected="{{page}}"
@@ -352,7 +344,7 @@
 
     <!-- SIDEMENU -->
     <template is="dom-if" if="[[_shouldRenderDrawer]]">
-      <drawer-element id="drawerPanel" opened="{{drawerOpened}}" align="left" swipe-open tabindex="0" scrim stretch>
+      <drawer-element id="sidePanel" opened="{{drawerOpened}}" align="left" swipe-open tabindex="0" scrim stretch>
         <app-toolbar class="top">
           <icon-button icon="close" title="close" on-tap="_toggleDrawer"></icon-button>
           <icon-button icon="[[loginIcon]]" title="{{localize('notification', 'loggedIn', loggedIn)}}" on-tap="_openLoginDialog"></icon-button>

@@ -5,9 +5,9 @@
     <style>
       :host {
         background: var(--primary-background);
-        --toggle-button-unchecked-bar-color: #005B82;
-        --toggle-button-unchecked-button-color: #f1f1f1;
-        --toggle-button-unchecked-ink-color: #005B82;
+        --toggle-button-unchecked-bar-color: var(--bright-primary-color);
+        --toggle-button-unchecked-button-color: var(--bright-text-color);
+        --toggle-button-unchecked-ink-color: var(--bright-primary-color);
         --toggle-button-checked-bar-color:	#68D97B;
         --toggle-button-checked-button-color:	#68D97B;
         --toggle-button-checked-ink-color:	#68D97B;
@@ -18,13 +18,9 @@
         --radio-button-system-color: currentColor;
 
         --drawer-color: var(--bright-text-color);
-
         --drawer-width: 20em;
         --drawer-scim-background: rgba(0, 0, 0, 0.25);
-        --drawer-background: var(--bright-primary-color);
-        --drawer-content: {
-          color: var(--primary-text-color);
-        };
+        --drawer-background: var(--primary-color);
         --drawer-toolbar: {
           background-color: rgba(255,255,255,0.1);
           color: currentColor;
@@ -43,10 +39,6 @@
         --toggle-button-unchecked-ink-color: var(--bright-primary-color);
 
         --drawer-background: var(--dark-primary-color);
-
-        --drawer-content: {
-          color: var(--bright-text-color);
-        };
         --app-toolbar: {
           background-color: var(--bright-primary-color);
           color: var(--bright-text-color);
@@ -71,9 +63,6 @@
       }
       :host([dark]) {
         --drawer-background: #222;
-        --drawer-content: {
-          color: var(--bright-text-color);
-        };
       }
       tabs > button {
         height: 100%;
