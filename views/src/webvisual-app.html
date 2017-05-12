@@ -111,11 +111,15 @@
         }
       }
       .tab {
-        padding: 0 1.5em;
+        padding: 0 1em;
         @apply(--layout-inline);
         @apply(--layout-center-justified);
         @apply(--layout-center);
         position: relative;
+      }
+      .tab > .left {
+        margin-right: 0.5em;
+        color: currentColor;
       }
       #pageSelector {
         @apply(--layout-fit);
@@ -250,13 +254,19 @@
                 selected="{{page}}"
                 attr-for-selected="name">
                 <a href$="/list/[[facilitySystem]]" class="tab" name="list">
-                  <paper-ripple id="ripple" recenters></paper-ripple>{{localize('list', 'name')}}
+                  <paper-ripple id="ripple" recenters></paper-ripple>
+                  <iron-icon icon="list" class="left"></iron-icon>
+                  {{localize('list', 'name')}}
                 </a>
                 <a href$="/groups/[[facilitySystem]]" class="tab" name="groups">
-                  <paper-ripple id="ripple" recenters></paper-ripple>{{localize('groups', 'name')}}
+                  <paper-ripple id="ripple" recenters></paper-ripple>
+                  <iron-icon icon="grid-on" class="left"></iron-icon>
+                  {{localize('groups', 'name')}}
                 </a>
                 <a href$="/detail/[[facilitySystem]]" class="tab" name="detail">
-                  <paper-ripple id="ripple" recenters></paper-ripple>{{localize('detail', 'name')}}
+                  <paper-ripple id="ripple" recenters></paper-ripple>
+                  <iron-icon icon="chrome-reader-mode" class="left"></iron-icon>
+                  {{localize('detail', 'name')}}
                 </a>
               </tabs-container>
             </div>
@@ -330,13 +340,19 @@
           selected="{{page}}"
           attr-for-selected="name">
           <a href$="/list/[[facilitySystem]]" class="tab" name="list">
-            <paper-ripple id="ripple" recenters></paper-ripple>{{localize('list', 'name')}}
+            <paper-ripple id="ripple" recenters></paper-ripple>
+            <iron-icon icon="list" class="left"></iron-icon>
+            {{localize('list', 'name')}}
           </a>
           <a href$="/groups/[[facilitySystem]]" class="tab" name="groups">
-            <paper-ripple id="ripple" recenters></paper-ripple>{{localize('groups', 'name')}}
+            <paper-ripple id="ripple" recenters></paper-ripple>
+            <iron-icon icon="grid-on" class="left"></iron-icon>
+            {{localize('groups', 'name')}}
           </a>
           <a href$="/detail/[[facilitySystem]]" class="tab" name="detail">
-            <paper-ripple id="ripple" recenters></paper-ripple>{{localize('detail', 'name')}}
+            <paper-ripple id="ripple" recenters></paper-ripple>
+            <iron-icon icon="chrome-reader-mode" class="left"></iron-icon>
+            {{localize('detail', 'name')}}
           </a>
         </tabs-container>
       </div>
@@ -358,7 +374,7 @@
             <iron-icon icon="expand-more" class="right"></iron-icon>
           </div>
 
-          <iron-collapse id="route-collapse">
+          <iron-collapse id="route-collapse" opened>
             <div class="collapse-content">
               <a href="/home" class="button" name="home">
                   <paper-ripple id="ripple" recenters></paper-ripple>

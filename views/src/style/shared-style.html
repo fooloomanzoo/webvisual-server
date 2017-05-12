@@ -61,6 +61,7 @@
         --dialog-background-color: #eee;
         --dialog-color: var(--primary-text-color);
 
+        --fullscreen-color: #fff;
         --fullscreen-background-color: var(--primary-background);
         --svg-text: {
           fill: var(--bright-text-color) !important;
@@ -92,8 +93,6 @@
         --table-color: #000;
         --group-card-background: rgba(255,255,255, 0.2);
 
-        --fullscreen-background-color: #080808;
-
         --toggle-button-unchecked-bar-color: #454545;
         --toggle-button-unchecked-button-color: #BDE2F1;
         --toggle-button-unchecked-ink-color: #454545;
@@ -105,6 +104,7 @@
         --device-state-exceeds-color: #bb1616;
         --device-state-inrange-text-color: #000;
 
+        --fullscreen-color: #eee;
       }
 
       :host(:not([plain])) {
@@ -166,6 +166,7 @@
       }
 
       :-webkit-full-screen-ancestor > *:not([fullscreen]) {
+        position: static;
         z-index: auto !important;
         overflow: hidden !important;
         will-change: auto !important;
