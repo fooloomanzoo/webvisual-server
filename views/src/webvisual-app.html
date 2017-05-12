@@ -248,18 +248,15 @@
                 role="tablist"
                 selected="{{page}}"
                 attr-for-selected="name">
-                <div class="tab" name="list">
-                  <paper-ripple id="ripple" recenters></paper-ripple>
-                  <a href="/list/[[facilitySystem]]">{{localize('list', 'name')}}</a>
-                </div>
-                <div class="tab" name="groups">
-                  <paper-ripple id="ripple" recenters></paper-ripple>
-                  <a href="/groups/[[facilitySystem]]">{{localize('groups', 'name')}}</a>
-                </div>
-                <div class="tab" name="detail">
-                  <paper-ripple id="ripple" recenters></paper-ripple>
-                  <a href="/detail/[[facilitySystem]]">{{localize('detail', 'name')}}</a>
-                </div>
+                <a href$="/list/[[facilitySystem]]" class="tab" name="list">
+                  <paper-ripple id="ripple" recenters></paper-ripple>{{localize('list', 'name')}}
+                </a>
+                <a href$="/groups/[[facilitySystem]]" class="tab" name="groups">
+                  <paper-ripple id="ripple" recenters></paper-ripple>{{localize('groups', 'name')}}
+                </a>
+                <a href$="/detail/[[facilitySystem]]" class="tab" name="detail">
+                  <paper-ripple id="ripple" recenters></paper-ripple>{{localize('detail', 'name')}}
+                </a>
               </tabs-container>
             </div>
           </iron-collapse>
@@ -331,18 +328,15 @@
           role="tablist"
           selected="{{page}}"
           attr-for-selected="name">
-          <div class="tab" name="list">
-            <paper-ripple id="ripple" recenters></paper-ripple>
-            <a href="/list/[[facilitySystem]]">{{localize('list', 'name')}}</a>
-          </div>
-          <div class="tab" name="groups">
-            <paper-ripple id="ripple" recenters></paper-ripple>
-            <a href="/groups/[[facilitySystem]]">{{localize('groups', 'name')}}</a>
-          </div>
-          <div class="tab" name="detail">
-            <paper-ripple id="ripple" recenters></paper-ripple>
-            <a href="/detail/[[facilitySystem]]">{{localize('detail', 'name')}}</a>
-          </div>
+          <a href$="/list/[[facilitySystem]]" class="tab" name="list">
+            <paper-ripple id="ripple" recenters></paper-ripple>{{localize('list', 'name')}}
+          </a>
+          <a href$="/groups/[[facilitySystem]]" class="tab" name="groups">
+            <paper-ripple id="ripple" recenters></paper-ripple>{{localize('groups', 'name')}}
+          </a>
+          <a href$="/detail/[[facilitySystem]]" class="tab" name="detail">
+            <paper-ripple id="ripple" recenters></paper-ripple>{{localize('detail', 'name')}}
+          </a>
         </tabs-container>
       </div>
     </drawer-element>
@@ -648,8 +642,12 @@
           if (!this.$.header) {
             this.$.header = Polymer.dom(this.root).querySelector('#header');
           }
-          this.$.pageSelector.scrollTop = 0;
-          this.$.header.resetLayout();
+          if (this.$.pageSelector) {
+            this.$.pageSelector.scrollTop = 0;
+          }
+          if (this.$.header) {
+            this.$.header.resetLayout();
+          }
           this._headerTriggered(null, this.showTabsOnBottom);
         });
       },
@@ -659,7 +657,10 @@
           if (!this.$.pageSelector) {
             this.$.pageSelector = Polymer.dom(this.root).querySelector('#pageSelector');
           }
-          if (!wideLayout && (thresholdTriggered || showTabsOnBottom) && (this.page !== 'detail')) {
+          if (this.page === 'home') {
+            this.$.pageSelector.style.marginTop = '';
+            this.$.pageSelector.style.marginBottom = '';
+          } else if (!wideLayout && (thresholdTriggered || showTabsOnBottom) && (this.page !== 'detail')) {
             this.$.pageSelector.style.marginBottom = '2.5em';
           } else {
             this.$.pageSelector.style.marginBottom = '';

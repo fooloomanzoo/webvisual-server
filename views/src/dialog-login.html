@@ -37,6 +37,12 @@
       .input > iron-icon {
         margin-right: 0.25em;
       }
+      .input:not(:last-of-type)::after {
+        position: relative;
+        display: block;
+        content: "";
+        height: 0.5em;
+      }
       [hidden] {
         display: none !important;
       }
@@ -179,9 +185,9 @@
                 }
               } else {
                 // console.log('auto sign-in not performed');
-                // Resolve if credential object is not available
-                // Fallback to server to check, if session-cookies are valid
-                return this.signIn.call(this, '/auth');
+                // Reject if credential object is not available
+                return Promise.reject();
+                // return this.signIn.call(this, '/auth');
               }
             }.bind(this))
             .catch(this.notSignedIn.bind(this));

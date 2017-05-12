@@ -325,24 +325,21 @@
         if (!(visible && elements && elements.length && path)) {
           return;
         }
-        var facility, system, mount;
-        var pathData = path.split('/').filter(function (str) { return str !== ''; });;
+        var mount;
+        var pathData = path.split('/').filter(function (str) { return str !== ''; });
+
         if (pathData.length < 2) {
-          if (this.facilitySystem) {
-            facility = this.facilitySystem.split('/')[0];
-            system = this.facilitySystem.split('/')[1];
-          }
-          if (!facility || !system) {
+          if (this.elements && this.elements[0] && this.elements[0].mount) {
+            mount = this.elements[0].mount;
+          } else {
             return;
           }
         } else {
-          facility = pathData[0];
-          system = pathData[1];
+          mount = pathData.join('/');
         }
-        if (!pathData[2]) {
-          mount = this._recentElementMount || this.elements[0].mount;
-        } else {
-          mount = facility + '/' + system + '/' + pathData[2];
+        if (this.route.prefix !== '/detail') {
+          this.route.prefix = '/detail';
+          this.notifyPath('route.prefix');
         }
 
         for (var i = 0; i < this.elements.length; i++) {
@@ -353,8 +350,8 @@
               this.set('selectedElement', this.elements[i]);
             }
             if (path !== '/' + mount) {
-              this.set('route.prefix', '/detail');
-              this.set('route.path', '/' + mount);
+              this.route.path = '/' + mount;
+              this.notifyPath('route.path');
               this._debounceResize();
             }
             return;
@@ -366,16 +363,17 @@
       _setInitialElement: function() {
         if (this.elements && this.elements.length) {
           if (this._recentElementMount) {
+            var mount = this._recentElementMount;
             for (var i = 0; i < this.elements.length; i++) {
-              if (this.elements[i].mount && (this._recentElementMount === this.elements[i].mount)) {
-                this.set('route.prefix', '/detail');
-                this.set('route.path', '/' + this._recentElementMount);
+              if (this.elements[i].mount && (mount === this.elements[i].mount)) {
+                this.route.path = '/' + mount;
+                this.notifyPath('route.path');
                 return;
               }
             }
           }
-          this.set('route.prefix', '/detail');
-          this.set('route.path', '/' + this.elements[0].mount);
+          this.route.path = '/' + this.elements[0].mount;
+          this.notifyPath('route.path');
         }
       },
 
