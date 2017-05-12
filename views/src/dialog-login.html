@@ -29,6 +29,7 @@
         @apply(--layout-horizontal);
         @apply(--layout-center-center);
         padding: 0.75em 1em;
+        margin: 0.5em 0;
         background: rgba(0,0,0,0.1);
       }
       iron-icon {
@@ -41,7 +42,7 @@
         position: relative;
         display: block;
         content: "";
-        height: 0.5em;
+        height: 1em;
       }
       [hidden] {
         display: none !important;
@@ -347,7 +348,8 @@
         // POST-ing credential object will be converted to FormData object
         return fetch(this.signOutUrl, { // convert multipart-formdata to urlencoded
             method: 'POST',
-            body: JSON.stringify(this.userProfile)
+            body: JSON.stringify(this.userProfile),
+            credentials: 'include'
           }).then(function(res) {
             // Convert JSON string to an object
             if (res.status !== 200) {

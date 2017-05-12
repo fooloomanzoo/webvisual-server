@@ -35,7 +35,6 @@
 
     <style include="shared-style selectbox-style button-style app-style">
       header-element {
-        @apply(--header-element);
         @apply(--layout-fixed-top);
         z-index: 1;
         position: absolute;
@@ -45,6 +44,7 @@
         height: 4em;
         padding-left: 1em;
         padding-right: 1em;
+        @apply(--app-toolbar);
       }
       app-toolbar icon-button {
         transform: scale(1);
@@ -58,10 +58,11 @@
         -webkit-overflow-scrolling: touch;
       }
       #drawerPanel app-toolbar {
-        @apply(--drawer-header);
+        @apply(--drawer-toolbar);
       }
       #drawerPanel .top {
         justify-content: space-between;
+        margin-bottom: 1em;
       }
       #drawerPanel .bottom {
         justify-content: flex-end;
@@ -233,7 +234,7 @@
       <header-element role="header" id="header" reveals threshold="64" threshold-triggered="{{thresholdTriggered}}" shadow$="{{thresholdTriggered}}" scroll-target="pageSelector">
         <app-toolbar>
           <icon-button icon="menu" class="menu-icon" title="menu" on-tap="_toggleDrawer"></icon-button>
-          <logo-element id="logo" href="/home" main-title title$="[[localize('home', 'name')]]"></logo-element>
+          <logo-element id="logo" href="/home" title$="[[localize('home', 'name')]]"></logo-element>
 
           <iron-collapse opened="[[showTabs]]" hidden$="[[!wideLayout]]" horizontal style="align-self: flex-end;">
             <div class="viewSelect top">
@@ -884,7 +885,7 @@
                 var option = document.createElement('option');
                 option.textContent = item;
                 option.value = item;
-                sel.appendChild(option);
+                Polymer.dom(sel).appendChild(option);
               });
               sel.value = groupedKey;
             }
