@@ -40,11 +40,8 @@
       border-radius: inherit;
       -webkit-overflow-scrolling: touch;
       -webkit-tap-highlight-color:rgba(0,0,0,0);
-      display: block;
       box-sizing: border-box;
       position: relative;
-      width: 100%;
-      height: 100%;
       font-family: 'FiraSans-Regular';
       letter-spacing: normal;
       user-select: none !important;
@@ -73,18 +70,16 @@
       user-select: none !important;
     }
     #svgContainer {
+      position: absolute;
+      top: 0; bottom: 0; left: 0; right: 0;
       border-radius: inherit;
-      position: relative;
-      display: block;
-      width: 100%;
-      height: 100%;
       isolation: isolate;
     }
     #svgContainer svg {
       position: relative;
       width: 100%;
       height: 100%;
-      display: block;
+      font-family: inherit;
     }
     #control {
       position: absolute;

@@ -1,6 +1,7 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/iron-pages/iron-pages.html">
 <link rel="import" href="../bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html"/>
 
 <link rel="import" href="behaviors/container-behavior.html">
 
@@ -16,9 +17,8 @@
         background: var(--group-card-background, #e5e5e5);
       }
       #header {
-        position: absolute;
+        @apply(--layout-fit);
         -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
-        top: 0; bottom: 0; left: 0; right: 0;
         padding-top: 0;
         height: 3em;
         width: 100%;
@@ -42,10 +42,7 @@
         cursor: pointer;
       }
       #headerContent {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
+        @apply(--layout-fit);
         display: inline-flex;
         flex-direction: column;
         box-sizing: border-box;
@@ -62,12 +59,12 @@
         isolation: unset;
       }
       #title {
+        @apply(--layout-fit);
+        bottom: auto;
         @apply(--layout-inline);
         @apply(--layout-center);
         @apply(--layout-justified);
-        position: absolute;
         pointer-events: none;
-        top: 0; left: 0; right: 0;
         border-top-left-radius: inherit;
         border-top-right-radius: inherit;
         height: 3em;
@@ -98,9 +95,8 @@
         padding-top: 3.4em;
       }
       :host(:not([opened])) #header::before {
-        position: absolute;
+        @apply(--layout-fit);
         content: '';
-        left: 0; top: 0; right: 0; bottom: 0;
         border-top-left-radius: inherit;
         border-top-right-radius: inherit;
         pointer-events: none;
@@ -123,6 +119,8 @@
       }
       #addons > * {
         overflow: hidden;
+        position: absolute;
+        left: 0; top: 0; right: 0; bottom: 0;
       }
       icon-button.iron-selected {
         opacity: 1;
@@ -135,39 +133,32 @@
       #title:hover .expand-button {
         opacity: 1;
       }
-      #select {
+      #control {
         position: absolute;
-        visibility: hidden;
-        pointer-events: visible;
-        -webkit-overflow-scrolling: touch;
-        display: inline-block;
-        left: 0; bottom: 0;
-        box-sizing: border-box;
-        transition: visibility 300ms cubic-bezier(0.6, 0, 0.2, 1);
-        background: rgba(255,255,255,0.0625);
+        opacity: 0;
+        pointer-events: none;
+        display: block;
+        left: 0; bottom: 0; right: auto; top: auto;
+        transition: opacity 300ms cubic-bezier(0.6, 0, 0.2, 1);
         mix-blend-mode: exclusion;
       }
-      :host([opened]) #select {
-        visibility: visible;
+      #control icon-button {
+        background: rgba(255,255,255,0.0625);
+      }
+      #control icon-button.iron-selected {
+        background: rgba(255,255,255,0.25);
+      }
+      :host([opened]) #control {
+        opacity: 1;
+      }
+      device-table-group[opened] {
+        margin: 3em 0 2.5em 0;
+      }
+      device-chart[opened] {
+        margin-top: 3em;
       }
       [hidden] {
         display: none !important;
-      }
-      device-svg {
-        height: 100%;
-        width: 100%;
-      }
-      device-table-group[opened] {
-        padding: 3em 0 2.5em 0;
-        height: 100%;
-        width: 100%;
-        box-sizing: border-box;
-      }
-      device-chart[opened] {
-        height: calc(100% - 3em);
-        width: 100%;
-        margin-top: 3em;
-        box-sizing: border-box;
       }
     </style>
 
@@ -193,21 +184,18 @@
           </template>
         </iron-pages>
 
-        <section id='title'>
+        <section id="title">
           <span class="title-text" on-tap="toggle">[[title]]</span>
-
           <icon-button title="expand" on-tap="toggle" class="expand-button" icon="[[expandIcon]]"></icon-button>
         </section>
 
-        <iron-selector id="select" selected="{{view}}" selectable=".button">
-          <template is="dom-if" if="[[_shouldRenderExtensions]]">
-            <template is="dom-if" if="[[svgSrcPath]]">
-              <icon-button title="map" icon="map" class="button"></icon-button>
-            </template>
-            <icon-button title="chart" icon="show-chart" class="button"></icon-button>
-            <icon-button title="table" icon="list" class="button"></icon-button>
-          </template>
-        </iron-selector>
+        <section id="control">
+          <iron-selector selected="{{view}}" selectable=".button">
+            <icon-button title="map" icon="map" class="button" hidden$="[[!svgSrcPath]]"></icon-button>
+            <icon-button title="chart" icon="show-chart" class="button"  hidden$="[[!_shouldRenderExtensions]]"></icon-button>
+            <icon-button title="table" icon="list" class="button"  hidden$="[[!_shouldRenderExtensions]]"></icon-button>
+          </iron-selector>
+        </section>
       </section>
 
     </section>
@@ -248,13 +236,21 @@
           computed: '_computeExpandIcon(opened)'
         },
 
-        svgUrlPrefix: String,
+        svgUrlPrefix: {
+          type: String
+        },
 
-        svgSrcPath: String,
+        svgSrcPath: {
+          type: String
+        },
 
-        svgSelectable: Object,
+        svgSelectable: {
+          type: Object
+        },
 
-        view: Number,
+        view: {
+          type: Number
+        },
 
         _shouldRenderExtensions: {
           type: Boolean,
@@ -262,6 +258,7 @@
         },
 
         _shouldRenderSvg: {
+          type: Boolean,
           computed: '_computeShouldRenderSvg(opened, svgSrcPath)'
         }
 

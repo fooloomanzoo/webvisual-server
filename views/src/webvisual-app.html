@@ -90,37 +90,6 @@
         width: 100%;
         font-size: 0.8em;
       }
-      .viewSelect {
-        position: relative;
-        height: 2.75em;
-        width: 100%;
-        @apply(--layout-inline);
-        @apply(--layout-center-center);
-      }
-      .viewSelect.top {
-        padding-right: 0.5em;
-        width: auto;
-      }
-      .tabs {
-        position: relative;
-        height: 100%;
-        --tab-overlay: {
-          background-color: rgba(255, 255, 255, 0.1);
-          border-left: none;
-          border-bottom: medium solid var(--highlight-color, var(--secondary-color));
-        }
-      }
-      .tab {
-        padding: 0 1em;
-        @apply(--layout-inline);
-        @apply(--layout-center-justified);
-        @apply(--layout-center);
-        position: relative;
-      }
-      .tab > .left {
-        margin-right: 0.5em;
-        color: currentColor;
-      }
       #pageSelector {
         @apply(--layout-fit);
         overflow-y: auto;
@@ -155,7 +124,39 @@
       .notification > .message {
         padding: 0 1em;
       }
-      .selectbox.toolbar.grouping {
+      .viewSelect {
+        position: relative;
+        height: 2.75em;
+        width: 100%;
+        @apply(--layout-inline);
+        @apply(--layout-center-center);
+      }
+      .viewSelect.top {
+        padding-right: 0.5em;
+        padding-left: 0;
+        width: auto;
+      }
+      .tabs {
+        position: relative;
+        height: 100%;
+        --tab-overlay: {
+          background-color: rgba(255, 255, 255, 0.1);
+          border-left: none;
+          border-bottom: medium solid var(--highlight-color, var(--secondary-color));
+        }
+      }
+      .tab {
+        padding: 0 1em;
+        @apply(--layout-inline);
+        @apply(--layout-center-justified);
+        @apply(--layout-center);
+        position: relative;
+      }
+      .tab > .left {
+        margin-right: 0.5em;
+        color: currentColor;
+      }
+      .toolbar.grouping {
         position: absolute;
         bottom: 0;
         top: 0;
@@ -169,7 +170,10 @@
         padding: 0;
         margin: 0;
       }
-      .selectbox.toolbar > select {
+      .toolbar.grouping.bottom:not([hidden]) ~ .tabs {
+        margin-left: 3.25em;
+      }
+      .toolbar.grouping > select {
         height: 2.5em;
         padding-left: 1.75em;
         max-width: 2.5em;
@@ -179,19 +183,13 @@
         transition: background 0.2s linear;
         border-color: rgba(255,255,255,0.5);
       }
-      .selectbox.toolbar > select:hover {
+      .toolbar.grouping > select:hover {
         background-color: rgba(255,255,255,0.25);
       }
-      @media (min-width: 768px) {
-        .selectbox.toolbar.grouping {
-          position: relative;
-          left: 0;
-          margin: 0 0.5em;
-        }
-        .viewSelect {
-          width: auto;
-          padding-left: 0;
-        }
+      .toolbar.grouping.top {
+        position: relative;
+        left: 0;
+        margin: 0 0.5em;
       }
       :-webkit-full-screen-ancestor > [swipe-open] {
         display: none !important;
@@ -243,12 +241,9 @@
           <iron-collapse opened="[[showTabs]]" hidden$="[[!wideLayout]]" horizontal style="align-self: flex-end;">
             <div class="viewSelect top">
 
-              <template is="dom-if" if="[[_shouldRenderGroupingKeys]]">
-                <div class="selectbox toolbar grouping" title="[[groupedKey]]">
-                  <select value="{{groupedKey::change}}"></select>
-                </div>
-              </template>
-
+              <div class="selectbox toolbar grouping top" title="[[groupedKey]]" hidden$="[[hideGroupSelect]]">
+                <select value="{{groupedKey::change}}"></select>
+              </div>
               <tabs-container class="tabs"
                 role="tablist"
                 selected="{{page}}"
@@ -329,12 +324,9 @@
 
     <drawer-element opened="{{showTabsOnBottom}}" id="toolbarBottom" swipe-open auto-close-period="8000" shadow auto-close="[[!thresholdTriggered]]">
       <div class="viewSelect">
-        <template is="dom-if" if="[[_shouldRenderGroupingKeys]]">
-          <div class="selectbox toolbar grouping" title="[[groupedKey]]">
-            <select value="{{groupedKey::change}}"></select>
-          </div>
-        </template>
-
+        <div class="selectbox toolbar grouping bottom" title="[[groupedKey]]" hidden$="[[hideGroupSelect]]">
+          <select value="{{groupedKey::change}}"></select>
+        </div>
         <tabs-container class="tabs"
           role="tablist"
           selected="{{page}}"
@@ -438,13 +430,11 @@
             </select>
           </div>
 
-          <template is="dom-if" if="[[_shouldRenderGroupingKeys]]">
-            <div class="selectbox grouping" title="[[groupedKey]]">
-              <iron-icon icon="filter-list"></iron-icon>
-              <span>{{localize('groupedKey')}}</span>
-              <select value="{{groupedKey::change}}"></select>
-            </div>
-          </template>
+          <div class="selectbox grouping" title="[[groupedKey]]" hidden$="[[hideGroupSelect]]">
+            <iron-icon icon="filter-list"></iron-icon>
+            <span>{{localize('groupedKey')}}</span>
+            <select value="{{groupedKey::change}}"></select>
+          </div>
         </div>
 
         <app-toolbar class="bottom">
@@ -486,6 +476,9 @@
 
         groupingKeys: {
           type: Array,
+          value: function() {
+            return [];
+          },
           notify: true
         },
 
@@ -576,22 +569,27 @@
         },
 
         socketStatusIcon: {
+          type: String,
           computed: '_computeStatusIcon(socketStatus)'
         },
 
+        hideGroupSelect: {
+          type: Boolean,
+          computed: '_computeHideGroupSelect(page, loadComplete, groupingKeys)'
+        },
+
         _isContentPage: {
+          type: Boolean,
           computed: '_computeIsContentPage(page)'
         },
 
         _shouldRenderDrawer: {
+          type: Boolean,
           computed: '_computeShouldRenderDrawer(_isContentPage, loadComplete)'
         },
 
-        _shouldRenderGroupingKeys: {
-          computed: '_computeShouldRenderGroupingKeys(page, loadComplete, groupingKeys)'
-        },
-
         _shouldLogin: {
+          type: Boolean,
           computed: '_computeShouldLogin(loggedIn, offline)'
         },
 
@@ -613,7 +611,7 @@
         '_routePageChanged(routeData.page)',
         '_subrouteChanged(subroute)',
         '_headerTriggered(wideLayout, thresholdTriggered, showTabsOnBottom)',
-        '_setGroupingSelectBoxes(_shouldRenderGroupingKeys)'
+        '_setGroupingSelectBoxes(hideGroupSelect)'
       ],
 
       keyBindings: {
@@ -876,9 +874,12 @@
         this.debounce('update-styles', this.updateStyles);
       },
 
-      _setGroupingSelectBoxes: function() {
+      _setGroupingSelectBoxes: function(hideGroupSelect) {
+        if (hideGroupSelect) {
+          return;
+        }
         // Hack: initial binding to native select value property is not bound
-        this.async(function() {
+        this.debounce('_setGroupingSelectBoxes', function() {
           var groupedKey = this.groupedKey;
           var groupingSelectors = Polymer.dom(this.root).querySelectorAll('.selectbox.grouping');
           var groupingKeys = this.groupingKeys;
@@ -898,7 +899,7 @@
               sel.value = groupedKey;
             }
           })
-        },1);
+        },5);
       },
 
       _debouncedHideTabs: function(showTabs) {
@@ -922,8 +923,8 @@
         return isContentPage && loadComplete;
       },
 
-      _computeShouldRenderGroupingKeys: function(page, loadComplete, groupingKeys) {
-        return page === 'groups' && loadComplete && groupingKeys && groupingKeys.length;
+      _computeHideGroupSelect: function(page, loadComplete, groupingKeys) {
+        return page !== 'groups' || !loadComplete || !groupingKeys || !groupingKeys.length;
       },
 
       _computeStatusIcon: function(status) {

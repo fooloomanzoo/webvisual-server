@@ -164,6 +164,7 @@ Simplification of Polymer's app-header
           var scrollTop = this._clampedScrollTop;
           var firstSetup = this._height === 0 || scrollTop === 0;
           var currentDisabled = this.disabled;
+          var scrollTarget = this.scrollTarget;
 
           this._height = this.offsetHeight;
           this.disabled = true;
@@ -175,7 +176,7 @@ Simplification of Polymer's app-header
 
           this._dHeight = 0;
 
-          if (this.scrollTarget) {
+          if (scrollTarget && typeof scrollTarget !== 'string') {
             this.scrollTarget.style.paddingTop = '';
             this.scrollTarget.style.marginTop = this._height + 'px';
             this.scrollTarget._triggered = true;
@@ -233,7 +234,7 @@ Simplification of Polymer's app-header
               if (isScrollingDown && scrollTop >= maxHeaderTop) {
                 top = maxHeaderTop;
                 this.isRevealed = false;
-                if (scrollTarget && scrollTarget._triggered) {
+                if (scrollTarget && scrollTarget.style && scrollTarget._triggered) {
                   scrollTarget.style.paddingTop = this._height + 'px';
                   scrollTarget.style.marginTop = '';
                   scrollTarget._triggered = false;
@@ -241,7 +242,7 @@ Simplification of Polymer's app-header
               } else if (!isScrollingDown && scrollTop >= this._dHeight) {
                 top = 0;
                 this.isRevealed = true;
-                if (scrollTarget && !scrollTarget._triggered) {
+                if (scrollTarget && scrollTarget.style && !scrollTarget._triggered) {
                   scrollTarget.style.paddingTop = '';
                   scrollTarget.style.marginTop = this._height + 'px';
                   scrollTarget._triggered = true;

@@ -58,7 +58,7 @@
       } else if (this.msRequestFullscreen) {
         this.requestFullscreen = this.msRequestFullscreen.bind(this);
         this.exitFullscreen = document.msExitFullscreen.bind(document);
-        this.addEventListener('msfullscreenchange', this.fullScreenChanged.bind(this));
+        document.addEventListener('MSFullscreenChange', this.fullScreenChanged.bind(this));
       }
     },
 
@@ -66,15 +66,16 @@
       this.removeEventListener('fullscreenchange', this.fullScreenChanged.bind(this), false);
       this.removeEventListener('webkitfullscreenchange', this.fullScreenChanged.bind(this), false);
       this.removeEventListener('mozfullscreenchange', this.fullScreenChanged.bind(this), false);
-      this.removeEventListener('msfullscreenchange', this.fullScreenChanged.bind(this), false);
+      this.removeEventListener('MSFullscreenChange', this.fullScreenChanged.bind(this), false);
     },
 
     toggleFullscreen: function(e) {
       e.stopPropagation()
       if (this.isFullscreen) {
         this.exitFullscreen();
+      } else {
+        this.requestFullscreen();
       }
-      this.requestFullscreen();
     },
 
     fullScreenChanged: function() {

@@ -1,5 +1,6 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html"/>
 
 <link rel="import" href="behaviors/color-behavior.html"/>
 <link rel="import" href="behaviors/checked-and-select-behavior.html"/>
@@ -9,9 +10,9 @@
   <template strip-whitespace>
     <style>
       :host {
-        font-family: 'FiraSans-Regular', sans-serif;
-        position: relative;
         @apply(--layout-vertical);
+        position: relative;
+        font-family: 'FiraSans-Regular', sans-serif;
         cursor: pointer;
         pointer-events: all;
         outline: none;
@@ -43,24 +44,16 @@
         color: var(--device-state-deceeds-text-color);
       }
       .value {
-        position: absolute;
+        @apply(--layout-fit);
         @apply(--layout-inline);
         @apply(--layout-center-center);
-        top: 0;
-        bottom: 0;
-        right: 0;
-        left: 0;
         padding: 0.3em 0.3em 0.5em 0.3em;
         box-sizing: border-box;
         overflow: hidden;
       }
       .value::before {
-        position: absolute;
+        @apply(--layout-fit);
         content: "";
-        top: 0;
-        bottom: 0;
-        right: 0;
-        left: 0;
         pointer-events: none;
         background: linear-gradient(180deg,rgba(255,255,255,0),rgba(255,255,255,0.12),rgba(255,255,255,0));
       }
