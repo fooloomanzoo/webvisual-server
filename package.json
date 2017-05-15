@@ -17,7 +17,7 @@
     "build": "node build_www.js",
     "test": "node debug.js redis",
     "stop": "taskkill /IM node.exe /F",
-    "postinstall": "views/bower update && node build_www.js"
+    "postinstall": "cd views && bower update && cd .. && node build_www.js"
   },
   "dependencies": {
     "activedirectory": "^0.7.1",
