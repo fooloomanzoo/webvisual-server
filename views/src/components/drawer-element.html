@@ -18,6 +18,7 @@
                       0 3px 5px -1px rgba(0, 0, 0, 0.4);
         };
       }
+      :host([persistent]),
       :host([opened]) {
         visibility: visible;
       }
@@ -32,12 +33,12 @@
         pointer-events: all;
         background-color: var(--drawer-background, --primary-background);
         color: var(--drawer-color, --primary-text-color);
-        @apply(--layout-vertical);
-        @apply(--drawer-content);
+        @apply --layout-vertical;
+        @apply --drawer-content;
       }
       :host([horizontal]) > #contentContainer {
-        @apply(--layout-horizontal);
-        @apply(--layout-center-center);
+        @apply --layout-horizontal;
+        @apply --layout-center-center;
       }
       :host([shadow]) > #contentContainer::before {
         position: absolute;
@@ -47,7 +48,7 @@
         pointer-events: none;
         opacity: 0;
         will-change: opacity;
-        @apply(--drawer-shadow);
+        @apply --drawer-shadow;
       }
       :host([shadow][opened]) > #contentContainer::before {
         opacity: 1;
@@ -99,14 +100,19 @@
       :host([stretch][align=right]) > #contentContainer {
         height: 100%;
       }
+      :host([persistent]) > #contentContainer,
       :host([opened]) > #contentContainer {
         visibility: visible;
       }
+      :host([persistent][align=bottom]) > #contentContainer,
+      :host([persistent][align=top]) > #contentContainer,
       :host([opened][align=bottom]) > #contentContainer,
       :host([opened][align=top]) > #contentContainer {
         -webkit-transform: translate3d(-50%, 0, 0);
         transform: translate3d(-50%, 0, 0);
       }
+      :host([persistent][align=left]) > #contentContainer,
+      :host([persistent][align=right]) > #contentContainer,
       :host([opened][align=left]) > #contentContainer,
       :host([opened][align=right]) > #contentContainer {
         -webkit-transform: translate3d(0, -50%, 0);
@@ -138,18 +144,6 @@
       :host([opened]) > #contentContainer::after {
         pointer-events: none;
       }
-      :host ::content > iron-icon {
-        position: absolute;
-        color: currentColor;
-        height: var(--icon-size, 1.5em);
-        width: var(--icon-size, 1.5em);
-        padding: var(--icon-padding, 0.5em);
-        left: 0.25em;
-        bottom: 0;
-      }
-      :host ::content > iron-icon ~ * {
-        margin-left: calc(2*var(--icon-padding, 0.5em) + var(--icon-size, 1.5em) - 0.5em);
-      }
       #scrim {
         position: absolute;
         top: 0; right: 0; bottom: 0; left: 0;
@@ -165,7 +159,7 @@
         pointer-events: all;
       }
       :host(:not([scrim])) > #scrim,
-      :host([opened][persistent]) > #scrim {
+      :host([persistent]) > #scrim {
         visibility: hidden;
         opacity: 0;
         pointer-events: none;
@@ -183,13 +177,25 @@
           height: 100%;
         }
       }
+      ::slotted(.prop) {
+        position: absolute;
+        color: currentColor;
+        height: var(--icon-size, 1.5em);
+        width: var(--icon-size, 1.5em);
+        padding: var(--icon-padding, 0.5em);
+        left: 0.25em;
+        bottom: 0;
+      }
+      ::slotted(.message) {
+        margin-left: calc(2*var(--icon-padding, 0.5em) + var(--icon-size, 1.5em) - 0.5em);
+      }
     </style>
 
     <div id="scrim" on-tap="close"></div>
 
     <div id="contentContainer">
-      <content select="iron-icon"></content>
-      <content></content>
+      <slot name="icon"></slot>
+      <slot></slot>
     </div>
 
   </template>
@@ -213,7 +219,6 @@
 
         opened: {
           type: Boolean,
-          value: false,
           reflectToAttribute: true,
           notify: true
         },

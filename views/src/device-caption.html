@@ -5,10 +5,10 @@
     <style>
       :host {
         font-family: "FiraSans-Regular", sans-serif;
-        @apply(--layout-horizontal);
-        @apply(--layout-wrap);
-        @apply(--layout-center);
-        @apply(--layout-self-stretch);
+        @apply --layout-horizontal;
+        @apply --layout-wrap;
+        @apply --layout-center;
+        @apply --layout-self-stretch;
         box-sizing: border-box;
         height: auto;
         width: auto;
@@ -44,18 +44,17 @@
         font-size: 0.7em;
       }
       :host([vertical]) {
-        @apply(--layout-vertical);
-        @apply(--layout-center-justified);
-        @apply(--layout-start);
-        pointer-events: all;
+        @apply --layout-vertical;
+        @apply --layout-center-justified;
+        @apply --layout-start;
       }
       :host(:not([vertical])) .captions {
         margin-left: 0.35em;
-        @apply(--layout-self-baseline);
+        @apply --layout-self-baseline;
       }
       :host([vertical]) .captions {
         width: 100%;
-        @apply(--layout-self-start);
+        @apply --layout-self-start;
       }
       [hidden] {
         display: none !important;
@@ -127,7 +126,7 @@
       },
 
       _computeReducedCaptionKeys: function(groupedKey, keys, onlyGroupedKey, withoutGroupedKey) {
-        var captionKeys = Object.keys(keys);
+        var captionKeys = Object.keys(keys || {});
         if (captionKeys.length === 0) return [];
 
         var reducedCaptionKeys = [];

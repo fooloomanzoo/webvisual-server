@@ -2,7 +2,7 @@
 <link rel="import" href="../../bower_components/paper-dialog-behavior/paper-dialog-behavior.html">
 <link rel="import" href="../../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
 <link rel="import" href="../style/dialog-style.html">
-<link rel="import" href="../components/icon-button.html">
+<link rel="import" href="icon-button.html">
 
 <dom-module id="dialog-element">
   <template>
@@ -18,7 +18,7 @@
         display: none;
       }
     </style>
-    <content></content>
+    <slot></slot>
     <icon-button id="exitButton" icon="close" on-tap="close"></icon-button>
   </template>
 

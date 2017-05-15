@@ -28,6 +28,14 @@
 
     resetColor: function() {
       this.setColor( this.item ? this.item.color || '' : '' );
+    },
+
+    getComputedStyleValue: function(property) {
+      if (window.ShadyCSS) {
+        return ShadyCSS.getComputedStyleValue(this, property);
+      } else {
+        return getComputedStyle(this).getPropertyValue(property);
+      }
     }
   };
 </script>

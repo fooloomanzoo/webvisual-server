@@ -1,32 +1,20 @@
 <link rel="import" href="../bower_components/polymer/polymer.html"/>
-<script src="../polyfills/polyfills.js" type="text/javascript"></script>
 
 <link rel="import" href="behaviors/localize-behavior.html"/>
 <link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html"/>
-
+<link rel="import" href="../bower_components/iron-a11y-keys-behavior/iron-a11y-keys-behavior.html"/>
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html"/>
 <link rel="import" href="../bower_components/app-route/app-location.html"/>
 <link rel="import" href="../bower_components/app-route/app-route.html"/>
-<link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html"/>
-
-<link rel="import" href="../bower_components/iron-media-query/iron-media-query.html"/>
-<link rel="import" href="../bower_components/iron-pages/iron-pages.html"/>
-<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html"/>
-<link rel="import" href="../bower_components/iron-a11y-keys-behavior/iron-a11y-keys-behavior.html"/>
-<link rel="import" href="../bower_components/paper-ripple/paper-ripple.html"/>
-
-<link rel="import" href="components/header-element.html"/>
-<link rel="import" href="components/drawer-element.html"/>
-<link rel="import" href="dialog-login.html"/>
-<link rel="import" href="page-home.html"/>
-
-<link rel="import" href="components/logo-element.html"/>
-<link rel="import" href="components/icon-button.html"/>
 
 <link rel="import" href="style/shared-style.html"/>
 <link rel="import" href="style/selectbox-style.html"/>
 <link rel="import" href="style/button-style.html"/>
 <link rel="import" href="style/app-style.html"/>
 
+<link rel="import" href="components/icon-button.html"/>
+<link rel="import" href="dialog-login.html"/>
+<link rel="import" href="page-home.html"/>
 <link rel="import" href="data/facility-data.html"/>
 
 <dom-module id="webvisual-app">
@@ -35,7 +23,7 @@
 
     <style include="shared-style selectbox-style button-style app-style">
       header-element {
-        @apply(--layout-fixed-top);
+        @apply --layout-fixed-top;
         z-index: 1;
         position: absolute;
       }
@@ -44,7 +32,7 @@
         height: 4em;
         padding-left: 1em;
         padding-right: 1em;
-        @apply(--app-toolbar);
+        @apply --app-toolbar;
       }
       app-toolbar icon-button {
         transform: scale(1);
@@ -58,7 +46,7 @@
         -webkit-overflow-scrolling: touch;
       }
       #sidePanel app-toolbar {
-        @apply(--drawer-toolbar);
+        @apply --drawer-toolbar;
       }
       #sidePanel .top {
         justify-content: space-between;
@@ -77,7 +65,7 @@
         padding: 1em;
       }
       .drawer-content iron-collapse > .collapse-content {
-        @apply(--layout-vertical);
+        @apply --layout-vertical;
         padding: 0.5em 1em;
         width: 100%;
         box-sizing: border-box;
@@ -91,9 +79,10 @@
         font-size: 0.8em;
       }
       #pageSelector {
-        @apply(--layout-fit);
-        @apply(--layout-vertical);
-        @apply(--layout-flex);
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        @apply --layout-vertical;
+        @apply --layout-flex;
         overflow-y: auto;
         overflow-x: hidden;
         -webkit-overflow-scrolling: touch;
@@ -107,9 +96,14 @@
         background-color: var(--dark-primary-color);
       }
       #pageSelector > .fullbleed {
-        @apply(--layout-fit);
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
         box-sizing: border-box;
         overflow: hidden;
+        visibility: hidden;
+      }
+      #pageSelector > [visible] {
+        visibility: visible;
       }
       .login-icon {
         opacity: 0.5;
@@ -117,16 +111,17 @@
       .login-icon:hover {
         opacity: 1;
       }
-      #logo {
+      logo-element#logo {
         padding-left: 1em;
-        flex: 1;
+        margin-right: auto;
       }
       .notification > .message {
-        padding: 0 1em;
+        padding-left: 3em;
+        padding-right: 1em;
       }
       .viewSelect {
-        @apply(--layout-inline);
-        @apply(--layout-center-center);
+        @apply --layout-inline;
+        @apply --layout-center-center;
         position: relative;
         height: 2.75em;
         width: 100%;
@@ -145,12 +140,15 @@
           border-bottom: medium solid var(--highlight-color, var(--secondary-color));
         }
       }
+      tab-element {
+        height: 100%;
+      }
       .tab {
-        @apply(--layout-inline);
-        @apply(--layout-center-justified);
-        @apply(--layout-center);
+        @apply --layout-inline;
+        @apply --layout-center-center;
         position: relative;
         padding: 0 1em;
+        height: 100%;
       }
       .tab > .left {
         margin-right: 0.5em;
@@ -161,8 +159,8 @@
         left: 0;
         bottom: 0;
         top: 0;
-        @apply(--layout-inline);
-        @apply(--layout-center-center);
+        @apply --layout-inline;
+        @apply --layout-center-center;
         background: url(data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22%3E%3Cg%3E%3Cpath d=%22M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z%22 fill=%22%23FFFFFF%22%3E%3C/path%3E%3C/g%3E%3C/svg%3E);
         background-repeat: no-repeat;
         background-position: 0.33em center;
@@ -226,56 +224,58 @@
 
     <iron-media-query query="(min-width: 768px)" query-matches="{{wideLayout}}"></iron-media-query>
 
-    <template is="dom-if" if="[[_isContentPage]]">
-      <!-- Toolbar -->
-      <header-element role="header" id="header" reveals threshold="64" threshold-triggered="{{thresholdTriggered}}" shadow$="{{thresholdTriggered}}" scroll-target="pageSelector">
-        <app-toolbar>
-          <icon-button icon="menu" class="menu-icon" title="menu" on-tap="_toggleDrawer"></icon-button>
-          <logo-element id="logo" href="/home" title$="[[localize('home', 'name')]]"></logo-element>
+    <!-- Toolbar -->
+    <header-element role="header" id="header" hidden$="[[!_isContentPage]]" reveals threshold="64" threshold-triggered="{{thresholdTriggered}}" shadow$="{{thresholdTriggered}}" scroll-target="pageSelector">
+      <app-toolbar>
+        <icon-button icon="menu" class="menu-icon" title="menu" on-tap="_toggleDrawer"></icon-button>
+        <logo-element id="logo" href="/home" title$="[[localize('home', 'name')]]"></logo-element>
 
-          <iron-collapse opened="[[showTabs]]" hidden$="[[!wideLayout]]" horizontal style="align-self: flex-end;">
-            <div class="viewSelect top">
+        <iron-collapse opened="[[showTabs]]" hidden$="[[!wideLayout]]" horizontal style="align-self: flex-end;">
+          <div class="viewSelect top">
 
-              <div class="selectbox toolbar grouping top" title="[[groupedKey]]" hidden$="[[hideGroupSelect]]">
-                <select value="{{groupedKey::change}}"></select>
-              </div>
-              <tabs-container class="tabs"
-                role="tablist"
-                selected="{{page}}"
-                attr-for-selected="name">
-                <a href$="/list/[[facilitySystem]]" class="tab" name="list">
-                  <paper-ripple id="ripple" recenters></paper-ripple>
+            <div class="selectbox toolbar grouping top" title="[[groupedKey]]" hidden$="[[hideGroupSelect]]">
+              <select value="{{groupedKey::change}}"></select>
+            </div>
+            <tabs-container class="tabs"
+              role="tablist"
+              selected="{{page}}"
+              attr-for-selected="name">
+              <tab-element name="list">
+                <a href$="/list/[[facilitySystem]]" class="tab">
                   <iron-icon icon="list" class="left"></iron-icon>
                   {{localize('list', 'name')}}
                 </a>
-                <a href$="/groups/[[facilitySystem]]" class="tab" name="groups">
-                  <paper-ripple id="ripple" recenters></paper-ripple>
+              </tab-element>
+              <tab-element name="groups">
+                <a href$="/groups/[[facilitySystem]]" class="tab">
                   <iron-icon icon="grid-on" class="left"></iron-icon>
                   {{localize('groups', 'name')}}
                 </a>
-                <a href$="/detail/[[facilitySystem]]" class="tab" name="detail">
-                  <paper-ripple id="ripple" recenters></paper-ripple>
+              </tab-element>
+              <tab-element name="detail">
+                <a href$="/detail/[[facilitySystem]]" class="tab">
                   <iron-icon icon="chrome-reader-mode" class="left"></iron-icon>
                   {{localize('detail', 'name')}}
                 </a>
-              </tabs-container>
-            </div>
-          </iron-collapse>
+              </tab-element>
+            </tabs-container>
+          </div>
+        </iron-collapse>
 
-          <template is="dom-if" if="[[_shouldLogin]]">
-            <icon-button icon="[[loginIcon]]" class="login-icon" title="{{localize('login', 'name')}}" on-click="_openLoginDialog"></icon-button>
-          </template>
+        <template is="dom-if" if="[[_shouldLogin]]">
+          <icon-button icon="[[loginIcon]]" class="login-icon" title="{{localize('login', 'name')}}" on-click="_openLoginDialog"></icon-button>
+        </template>
 
-          <template is="dom-if" if="[[detailHasDrawer]]">
-            <icon-button icon="subject" title="items" on-tap="_toggleDetailControlDrawer">
-            </icon-button>
-          </template>
+        <template is="dom-if" if="[[detailHasDrawer]]">
+          <icon-button icon="subject" title="items" on-tap="_toggleDetailControlDrawer">
+          </icon-button>
+        </template>
 
-          <icon-button icon="more-vert" title="{{localize('view')}}" on-tap="toggleShowTabs"></icon-button>
-        </app-toolbar>
+        <icon-button icon="more-vert" title="{{localize('view')}}" on-tap="toggleShowTabs"></icon-button>
+      </app-toolbar>
 
-      </header-element>
-    </template>
+    </header-element>
+
     <!-- Pages-->
     <iron-pages id="pageSelector" role="main" selected="{{page}}" attr-for-selected="name" selected-attribute="visible" fallback-selection="home">
       <!-- home view for selecting the facility -->
@@ -284,14 +284,14 @@
         logged-in="[[loggedIn]]"
         language="[[language]]"
         language-resources="[[languageResources]]">
-        <content></content>
+        <slot></slot>
       </page-home>
       <!-- list view of items in a facility -->
-      <page-list disable-upgrade$="[[!loadComplete]]" name="list" dark$="[[dark]]" plain$="[[plain]]"
+      <page-list name="list" dark$="[[dark]]" plain$="[[plain]]"
         elements="[[elements]]">
       </page-list>
       <!-- group view of items -->
-      <page-groups disable-upgrade$="[[!loadComplete]]" name="groups" dark$="[[dark]]" plain$="[[plain]]"
+      <page-groups name="groups" dark$="[[dark]]" plain$="[[plain]]"
         facility-system="[[facilitySystem]]"
         logged-in="[[loggedIn]]"
         elements="[[elements]]"
@@ -299,7 +299,7 @@
         grouping-keys="{{groupingKeys}}">
       </page-groups>
       <!-- detail view of one item -->
-      <page-detail disable-upgrade$="[[!loadComplete]]" id="detailpage" name="detail" dark$="[[dark]]" plain$="[[plain]]" class="fullbleed"
+      <page-detail id="detailpage" name="detail" dark$="[[dark]]" plain$="[[plain]]" class="fullbleed"
         route="{{subroute}}"
         logged-in="[[loggedIn]]"
         facility-system="[[facilitySystem]]"
@@ -309,11 +309,11 @@
     </iron-pages>
 
     <drawer-element id="networkNotification" class="notification" align="bottom" shadow auto-close auto-close-period="4000">
-      <iron-icon icon="[[socketStatusIcon]]"></iron-icon>
+      <iron-icon class="prop" icon="[[socketStatusIcon]]" slot="icon"></iron-icon>
       <span class="message"></span>
     </drawer-element>
     <drawer-element id="announceNotification" class="notification" align="bottom" shadow auto-close auto-close-period="5000">
-      <iron-icon icon="event"></iron-icon>
+      <iron-icon class="prop" icon="event" slot="icon"></iron-icon>
       <span class="message"></span>
     </drawer-element>
 
@@ -323,21 +323,24 @@
           role="tablist"
           selected="{{page}}"
           attr-for-selected="name">
-          <a href$="/list/[[facilitySystem]]" class="tab" name="list">
-            <paper-ripple id="ripple" recenters></paper-ripple>
-            <iron-icon icon="list" class="left"></iron-icon>
-            {{localize('list', 'name')}}
-          </a>
-          <a href$="/groups/[[facilitySystem]]" class="tab" name="groups">
-            <paper-ripple id="ripple" recenters></paper-ripple>
-            <iron-icon icon="grid-on" class="left"></iron-icon>
-            {{localize('groups', 'name')}}
-          </a>
-          <a href$="/detail/[[facilitySystem]]" class="tab" name="detail">
-            <paper-ripple id="ripple" recenters></paper-ripple>
-            <iron-icon icon="chrome-reader-mode" class="left"></iron-icon>
-            {{localize('detail', 'name')}}
-          </a>
+          <tab-element name="list">
+            <a href$="/list/[[facilitySystem]]" class="tab">
+              <iron-icon icon="list" class="left"></iron-icon>
+              {{localize('list', 'name')}}
+            </a>
+          </tab-element>
+          <tab-element name="groups">
+            <a href$="/groups/[[facilitySystem]]" class="tab">
+              <iron-icon icon="grid-on" class="left"></iron-icon>
+              {{localize('groups', 'name')}}
+            </a>
+          </tab-element>
+          <tab-element name="detail">
+            <a href$="/detail/[[facilitySystem]]" class="tab">
+              <iron-icon icon="chrome-reader-mode" class="left"></iron-icon>
+              {{localize('detail', 'name')}}
+            </a>
+          </tab-element>
         </tabs-container>
       </div>
     </drawer-element>
@@ -395,11 +398,11 @@
           <iron-collapse id="layout-collapse">
             <div class="collapse-content">
               <toggle-button checked="{{plain}}">
-                <iron-icon icon="border-style"></iron-icon>
+                <iron-icon slot="icon" icon="border-style"></iron-icon>
                 {{localize('plain', plain)}}
               </toggle-button>
               <toggle-button checked="{{dark}}">
-                <iron-icon icon="invert-colors"></iron-icon>
+                <iron-icon slot="icon" icon="invert-colors"></iron-icon>
                 {{localize('dark', dark)}}
               </toggle-button>
             </div>
@@ -533,6 +536,10 @@
           type: Boolean
         },
 
+        loadExtraComplete: {
+          type: Boolean
+        },
+
         detailHasDrawer: {
           type: Boolean
         },
@@ -602,7 +609,7 @@
       observers: [
         '_routePageChanged(routeData.page)',
         '_subrouteChanged(subroute)',
-        '_headerTriggered(wideLayout, thresholdTriggered, showTabsOnBottom)',
+        '_resetLayout(showTabsOnBottom, wideLayout, thresholdTriggered)',
         '_setGroupingSelectBoxes(hideGroupSelect)'
       ],
 
@@ -626,8 +633,7 @@
 
       _routePageChanged: function(route) {
         this.page = route || 'home';
-        // Scroll to the top of the page on every *route* change. Use 'Polymer.AppLayout.scroll'
-        // with 'behavior: 'silent'' to disable header scroll effects during the scroll.
+        // Scroll to the top of the page on every *route* change
         this._resetScroll();
         // Close the drawer - in case the *route* change came from a link in the drawer.
         this.drawerOpened = false;
@@ -644,25 +650,25 @@
           if (this.$.pageSelector) {
             this.$.pageSelector.scrollTop = 0;
           }
-          if (this.$.header) {
+          if (this.$.header && this.$.header.resetLayout) {
             this.$.header.resetLayout();
           }
-          this._headerTriggered(null, this.showTabsOnBottom);
+          this._resetLayout(this.showTabsOnBottom);
         });
       },
 
-      _headerTriggered: function(wideLayout, thresholdTriggered, showTabsOnBottom) {
-        this.debounce( '_headerTriggered', function () {
+      _resetLayout: function(showTabsOnBottom, wideLayout, thresholdTriggered) {
+        Polymer.RenderStatus.afterNextRender(this, function() {
           if (!this.$.pageSelector) {
             this.$.pageSelector = Polymer.dom(this.root).querySelector('#pageSelector');
           }
           if (this.page === 'home') {
-            this.$.pageSelector.style.marginTop = '';
-            this.$.pageSelector.style.marginBottom = '';
+            this.$.pageSelector.style.marginTop = '0';
+            this.$.pageSelector.style.marginBottom = '0';
           } else if (!wideLayout && (thresholdTriggered || showTabsOnBottom) && (this.page !== 'detail')) {
             this.$.pageSelector.style.marginBottom = '2.5em';
           } else {
-            this.$.pageSelector.style.marginBottom = '';
+            this.$.pageSelector.style.marginBottom = '0';
           }
         });
       },
@@ -714,12 +720,8 @@
         this.showTabs = !this.showTabs;
       },
 
-      _computeShowTabsOnBottom: function(thresholdTriggered, wideLayout, showTabs) {
-        return thresholdTriggered || (!wideLayout && showTabs);
-      },
-
       _pageChanged: function(page, oldPage) {
-        if (page != null) {
+        if (page) {
           // home route is eagerly loaded
           if (page === 'home') {
             this._pageLoaded(Boolean(oldPage));
@@ -730,11 +732,9 @@
               function() {
                 this._pageLoaded(Boolean(oldPage));
                 var item;
-                if ((item = this.$.pageSelector.selectedItem).assignParentResizable) {
-                  item.assignParentResizable(this);
-                }
                 this._debouncedHideTabs();
               }, function() {
+                console.log('fallback',page);
                 this.page = 'home'; // Fallback
               }, true);
           }
@@ -770,8 +770,7 @@
             this.importHref(this.resolveUrl('lazy-resources.html'), function() {
               // Register service worker if supported.
               if ('serviceWorker' in navigator) {
-                window.WebvisualServiceWorker = window.WebvisualServiceWorker || {};
-                window.WebvisualServiceWorker = navigator.serviceWorker.register('/service-worker.js');
+                navigator.serviceWorker.register('/service-worker.js');
               }
               this._notifyNetworkStatus();
               this.loadComplete = true;
@@ -901,6 +900,10 @@
             this.async(this.notifyResize, 500);
           }, 10000);
         }
+      },
+
+      _computeShowTabsOnBottom: function(thresholdTriggered, wideLayout, showTabs) {
+        return thresholdTriggered || (!wideLayout && showTabs);
       },
 
       _computeShouldLogin: function(loggedIn, offline) {

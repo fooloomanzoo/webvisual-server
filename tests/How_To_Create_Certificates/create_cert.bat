@@ -56,7 +56,8 @@ openssl x509 -passin pass:%pass% ^
             -days %days% ^
             -in %output_dir%\%domain%.csr ^
             -signkey %output_dir%\ca.key ^
-            -out %output_dir%\ca.ss.crt
+            -out %output_dir%\ca.crt ^
+            -extfile v3.ext
 
 rem pkcs12-format file
 rem without password
@@ -64,16 +65,16 @@ openssl pkcs12 -export ^
             -passin pass:%pass% ^
             -passout pass: ^
             -inkey %output_dir%\ca.key ^
-            -in %output_dir%\ca.ss.crt ^
-            -out %output_dir%\ca.ss.np.p12
+            -in %output_dir%\ca.crt ^
+            -out %output_dir%\ca.np.p12
 
 rem including same password
 openssl pkcs12 -export ^
             -passin pass:%pass% ^
             -passout pass:%pass% ^
             -inkey %output_dir%\ca.key ^
-            -in %output_dir%\ca.ss.crt ^
-            -out %output_dir%\ca.ss.p12
+            -in %output_dir%\ca.crt ^
+            -out %output_dir%\ca.p12
 
 rem Remove temporary Files
 if exist "%RANDFILE%" ( del "%RANDFILE%" )

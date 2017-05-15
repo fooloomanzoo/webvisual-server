@@ -1,7 +1,7 @@
 @echo off
 
 echo Build Polymer Project ...
-cmd /C "cd %~dp0/views & npm run build"
+cmd /C "npm run build"
 
 pause
 goto:eof

@@ -36,6 +36,11 @@
       }
       #chart {
         color: inherit;
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
       }
       .button {
         flex: 0;
@@ -45,7 +50,7 @@
         fill: currentColor;
       }
       [dialog-bottom] {
-        @apply(--layout-center-center);
+        @apply --layout-center-center;
         font-size: 0.9em !important;
         padding-left: 2em !important;
         padding-right: 2em !important;
@@ -56,8 +61,8 @@
         height: 2.5em;
       }
       .date {
-        @apply(--layout-inline);
-        @apply(--layout-center-center);
+        @apply --layout-inline;
+        @apply --layout-center-center;
       }
       .date > * {
         margin: 0 0.25em;

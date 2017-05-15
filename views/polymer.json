@@ -6,34 +6,51 @@
     "src/page-list.html",
     "src/page-groups.html",
     "src/page-detail.html",
-    "src/lazy-resources.html"
+    "src/lazy-resources.html",
+    "src/lazy-d3.html"
   ],
   "sources": [
     "src/**/*",
     "scripts/**/*",
     "polyfills/**/*",
     "fonts/**/*",
-    "icons/**/*",
-    "bower.json",
-    "manifest.json",
-    "locales.json",
-    "app.yaml"
+    "icons/**/*"
   ],
   "extraDependencies": [
-    "bower_components/webcomponentsjs/webcomponents-lite.min.js"
-  ],
-  "sourceGlobs": [
-    "src/**/*",
-    "scripts/**/*",
-    "polyfills/**/*",
-    "fonts/**/*",
-    "icons/**/*",
-    "bower.json",
+    "bower_components/webcomponentsjs/*",
     "manifest.json",
     "locales.json",
     "app.yaml"
   ],
-  "includeDependencies": [
-    "bower_components/webcomponentsjs/webcomponents-lite.min.js"
-  ]
+  "builds": [{
+    "name": "bundled",
+    "bundle": true,
+    "js": {
+      "minify": true
+    },
+    "css": {
+      "minify": true
+    },
+    "html": {
+      "minify": true
+    },
+    "addServiceWorker": true
+  },{
+    "name": "compiled",
+    "bundle": true,
+    "js": {
+      "minify": true,
+      "compile": true
+    },
+    "css": {
+      "minify": true
+    },
+    "html": {
+      "minify": true
+    },
+    "addServiceWorker": true
+  }],
+  "lint": {
+    "rules": ["polymer-2-hybrid"]
+  }
 }

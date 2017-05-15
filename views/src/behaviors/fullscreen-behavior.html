@@ -108,7 +108,7 @@
           this.parent.classList.remove('fullscreen');
         }
         if (this.notifyResize) {
-          this.notifyResize();
+          this.debounce('resize', this.notifyResize);
         }
       }.bind(this));
     },

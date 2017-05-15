@@ -1,4 +1,4 @@
-<!-- Modification of polymers paper-toggle-button because of conflicts with paper-style -->
+<!-- Modification of polymers paper-toggle-button because of conflicts with paper-style and simplifications (no form support needed)-->
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/paper-ripple/paper-ripple.html">
 <link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html"/>
@@ -7,9 +7,9 @@
   <template strip-whitespace>
     <style>
       :host {
-        @apply(--layout-inline);
-        @apply(--layout-start-justified);
-        @apply(--layout-center);
+        @apply --layout-inline;
+        @apply --layout-start-justified;
+        @apply --layout-center;
         position: relative;
         outline:none;
         margin: 0em;
@@ -34,7 +34,7 @@
         opacity: 0.75;
         transition: background-color linear 100ms;
         background-color: var(--toggle-button-unchecked-bar-color, #000000);
-        @apply(--toggle-button-unchecked-bar);
+        @apply --toggle-button-unchecked-bar);
       }
 
       .button {
@@ -50,7 +50,7 @@
         will-change: transform;
         background-color: var(--toggle-button-unchecked-button-color, --paper-grey-50);
 
-        @apply(--toggle-button-unchecked-button);
+        @apply --toggle-button-unchecked-button;
       }
 
       .button.dragging {
@@ -62,7 +62,7 @@
         opacity: 0.5;
         background-color: var(--toggle-button-checked-bar-color, --primary-color);
 
-        @apply(--toggle-button-checked-bar);
+        @apply --toggle-button-checked-bar;
       }
 
       :host([disabled]) .bar {
@@ -77,7 +77,7 @@
 
       :host([checked]:not([disabled])) .button {
         background-color: var(--toggle-button-checked-button-color, --primary-color);
-        @apply(--toggle-button-checked-button);
+        @apply --toggle-button-checked-button;
       }
 
       :host([disabled]) .button {
@@ -122,19 +122,21 @@
         color: inherit;
       }
 
-      ::content iron-icon {
+      ::slotted(iron-icon) {
         margin-right: 0.75em;
       }
     </style>
 
-    <content select="iron-icon"></content>
+    <slot name="icon"></slot>
     <section class="container">
       <paper-ripple id="ink" class="circle"></paper-ripple>
       <section id="toggleBar" class="bar"></section>
       <section id="toggleButton" class="button"></section>
     </section>
 
-    <section class="content"><content></content></section>
+    <section class="content">
+      <slot></slot>
+    </section>
 
   </template>
 
@@ -182,7 +184,6 @@
         this._x = Math.min(this._width,
             Math.max(0, this._trackChecked ? this._width + dx : dx));
         this.translate3d(this._x + 'px', 0, 0, this.$.toggleButton);
-        this._userActivate(this._x > (this._width / 2));
       },
 
       _trackEnd: function(track) {

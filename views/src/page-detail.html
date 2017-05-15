@@ -1,5 +1,4 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
-<link rel="import" href="../bower_components/iron-media-query/iron-media-query.html">
 <link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
 <link rel="import" href="../bower_components/app-route/app-route.html"/>
 
@@ -15,14 +14,11 @@
         --control-bottom: 4px;
         --control-button-distance: 4px;
         --drawer-width: 16em;
-        --drawer-background: rgba(255,255,255, 0.15);
+        --drawer-background: transparent;
         --drawer-content: {
           padding: 0;
           position: absolute;
         };
-      }
-      :host([plain]) {
-        --drawer-background: rgba(255,255,255, 0.25);
       }
       #content {
         display: flex;
@@ -56,19 +52,20 @@
         color: var(--bright-text-color);
       }
       #elementTable,
-      #elementTabs {
+      #deviceTabs {
         height: 50%;
         width: 100%;
         position: relative;
         box-sizing: border-box;
       }
-      #elementTabs {
+      #deviceTabs {
         padding-bottom: 0.3em;
-        --tab-vertical-overlay: {
-          background-color: rgba(255, 255, 255, 0.8);
+        --tab-overlay: {
+          background-color: rgba(255, 255, 255, 0.75);
           border-left: medium solid var(--secondary-color, white);
           border-bottom: none;
-        }
+        };
+        --highlight-color: var(--secondary-color, white);
       }
       #elementTable {
         padding-top: 0.3em;
@@ -90,18 +87,19 @@
         flex-grow: 1;
       }
       .checkbox {
-        flex-shrink: 0;
+        width: 100%;
         --checkbox-unchecked: {
-          background: transparent;
+          background: rgba(255,255,255,0.25);
           color: var(--bright-text-color);
-        }
+        };
         --checkbox-checked: {
-          background: transparent;
+          background: rgba(255,255,255,0.25);
           color: var(--primary-text-color);
-        }
+        };
       }
       .caption {
-        flex: auto;
+        width: 100%;
+        pointer-events: none;
         --caption-background: transparent;
         --caption-color: currentColor;
       }
@@ -126,7 +124,7 @@
         opacity: 1;
       }
       @media (max-width: 600px) {
-        #elementTabs {
+        #deviceTabs {
           background-color: rgba(255,255,255,0.25);
         }
       }
@@ -192,21 +190,22 @@
         <device-caption id="currentSelected" class="caption" keys="[[selectedElement.keys]]"></device-caption>
       </template>
 
-      <drawer-element id="elementDrawer" opened="[[_ensureOpened(narrowLayout)]]" swipe-open="[[narrowLayout]]" scrim persistent="[[!narrowLayout]]" align="right" stretch>
+      <drawer-element id="elementDrawer" opened$="[[_ensureOpened(narrowLayout)]]" swipe-open$="[[narrowLayout]]" scrim persistent$="[[!narrowLayout]]" align="right" stretch>
 
-        <tabs-container id="elementTabs" vertical selected="{{route.path}}" attr-for-selected="item-mount" selected-attribute="checked">
-          <svg id="requestMoreDetailButton" class="overlay-addon" on-tap="requestMoreDetail" viewBox="0 0 24 24">
+        <tabs-container id="deviceTabs" vertical selected="{{route.path}}" attr-for-selected="mount" selected-item="{{selectedTab}}">
+          <svg id="requestMoreDetailButton" slot="addon" class="overlay-addon" on-tap="requestMoreDetail" viewBox="0 0 24 24">
             <g><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></g>
           </svg>
 
           <template is="dom-repeat" items="[[_getListItems(elements)]]">
-            <device-checkbox class="checkbox tab"
-              item="[[item]]"
-              item-mount="/[[item.mount]]"
-              selectable>
-              <device-caption class="caption"
-                keys="[[item.keys]]"></device-caption>
-            </device-checkbox>
+            <tab-element mount="/[[item.mount]]">
+              <device-checkbox class="checkbox"
+                item="[[item]]"
+                selectable>
+                <device-caption class="caption"
+                  keys="[[item.keys]]"></device-caption>
+              </device-checkbox>
+            </tab-element>
           </template>
         </tabs-container>
 
@@ -255,6 +254,11 @@
           notify: true
         },
 
+        selectedTab: {
+          type: Object,
+          observer: '_checkedTabChanged'
+        },
+
         svgPaths: {
           type: Object
         },
@@ -271,8 +275,8 @@
 
         narrowLayout: {
           type: Boolean,
-          notify: true,
-          reflectToAttribute: true
+          value: false,
+          notify: true
         },
 
         showToggleIcon: {
@@ -280,6 +284,7 @@
           notify: true,
           computed: '_computeShowToggleIcon(narrowLayout, visible)'
         }
+
       },
 
       listeners: {
@@ -345,8 +350,7 @@
         for (var i = 0; i < this.elements.length; i++) {
           if (this.elements[i].mount && (mount === this.elements[i].mount)) {
             this.cancelDebouncer('initial-element');
-            if (this._recentElementMount !== this.elements[i].mount) {
-              this._recentElementMount = this.elements[i].mount;
+            if (this._selectedCheckbox && this._selectedCheckbox.mount !== this.elements[i].mount) {
               this.set('selectedElement', this.elements[i]);
             }
             if (path !== '/' + mount) {
@@ -362,8 +366,8 @@
 
       _setInitialElement: function() {
         if (this.elements && this.elements.length) {
-          if (this._recentElementMount) {
-            var mount = this._recentElementMount;
+          if (this._selectedCheckbox && this._selectedCheckbox.mount) {
+            var mount = this._selectedCheckbox.mount;
             for (var i = 0; i < this.elements.length; i++) {
               if (this.elements[i].mount && (mount === this.elements[i].mount)) {
                 this.route.path = '/' + mount;
@@ -374,6 +378,17 @@
           }
           this.route.path = '/' + this.elements[0].mount;
           this.notifyPath('route.path');
+        }
+      },
+
+      _checkedTabChanged: function(el) {
+        if (this._selectedCheckbox) {
+          this._selectedCheckbox.checked = false;
+        }
+        if (el) {
+          this._selectedCheckbox = el.querySelector('device-checkbox');
+          this._selectedCheckbox.checked = true;
+          el.scrollIntoViewIfNeeded(true);
         }
       },
 
@@ -418,6 +433,9 @@
             if (drawer) {
               drawer.open();
             }
+          }
+          if (this.selectedTab) {
+            this.selectedTab.scrollIntoViewIfNeeded(true);
           }
         }.bind(this), 15);
       }

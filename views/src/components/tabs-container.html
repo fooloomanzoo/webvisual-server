@@ -1,31 +1,24 @@
+<!--
+Modification from Polymer Shop Demo App
+-->
+
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/iron-selector/iron-selectable.html">
+
+<link rel="import" href="tabs-overlay.html">
 
 <dom-module id="tabs-container">
   <template strip-whitespace>
     <style>
       :host {
-        display: flex;
-        justify-content: center;
-        align-items: center;
+        @apply --layout;
+        @apply --layout-center-center;
         box-sizing: border-box;
         position: relative;
         white-space: nowrap;
         overflow: hidden;
         -webkit-overflow-scrolling: touch;
         -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
-
-        --tab-overlay: {
-          background-color: rgba(255, 255, 255, 0.25);
-          border-left: none;
-          border-bottom: 2px solid var(--highlight-color, var(--primary-color));
-        }
-
-        --tab-vertical-overlay: {
-          background-color: rgba(255, 255, 255, 0.25);
-          border-left: 2px solid var(--highlight-color, var(--primary-color));
-          border-bottom: none;
-        }
       }
 
       #container {
@@ -41,20 +34,7 @@
       }
 
       #overlay {
-        position: absolute;
-        display: none;
-        pointer-events: none;
-        opacity: 0;
-        transition-property: top, right, bottom, left, opacity;
-        @apply(--tab-overlay);
-      }
-
-      :host([vertical]) #overlay {
-        @apply(--tab-vertical-overlay);
-      }
-
-      ::content .overlay-addon {
-        transition: opacity 300ms cubic-bezier(0.6, 0, 0.2, 1);
+        @apply --tab-overlay;
       }
 
       :host([vertical]) #container {
@@ -62,76 +42,52 @@
         width: 100%;
       }
 
-      ::content .tab.overlay-above::before {
-        position: absolute;
-        content: "";
-        pointer-events: none;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
-        @apply(--tab-overlay);
-      }
-      :host([vertical]) ::content .tab.overlay-above::before {
-        @apply(--tab-vertical-overlay);
-      }
-
     </style>
 
-    <content select=".overlay-addon"></content>
     <nav id="container" on-track="_onscroll" on-wheel="_onwheel">
-      <div id="overlay" vertical="[[vertical]]" on-transitionend="_onTransitionend"></div>
-      <content select=".tab"></content>
+      <tabs-overlay id="overlay"></tabs-overlay>
+      <slot></slot>
+      <tabs-overlay id="addon" persistent>
+        <slot name="addon"></slot>
+      </tabs-overlay>
     </nav>
 
   </template>
   <script>
-    Polymer({
-      is: 'tabs-container',
 
-      properties: {
-        /**
-         * If true, the tabs are vertically aligned.
-         */
-        vertical: {
-          type: Boolean,
-          value: false,
-          reflectToAttribute: true
-        },
+    class TabsContainer extends Polymer.mixinBehaviors(
+    [Polymer.IronSelectableBehavior], Polymer.Element) {
 
-        multi: {
-          type: Boolean,
-          value: false,
-          readOnly: true
-        }
+      static get is() { return 'tabs-container'; }
 
-      },
+      static get properties() { return {
+         vertical: {
+           type: Boolean,
+           value: false,
+           reflectToAttribute: true
+         },
 
-      behaviors: [
-        Polymer.IronSelectableBehavior
-      ],
+         multi: {
+           type: Boolean,
+           value: false,
+           readOnly: true
+         }
+      }}
 
-      created: function() {
-        this._lastTarget = undefined;
-        this._transitionsInFlight = [];
-      },
-
-      listeners: {
-        'transitionend': '_onTransitionend'
-      },
-
-      observers: [
+      static get observers() { return [
         '_onSelectedItemChanged(selectedItem)'
-      ],
+      ]}
 
-      _onSelectedItemChanged: function(selectedItem) {
-        if (selectedItem) {
-          this.target = selectedItem;
-        }
-        this._targetChanged(selectedItem, this._lastTarget);
-      },
+      _onSelectedItemChanged(selectedItem) {
+        if (selectedItem === undefined && this.selected) return;
+        // requestAnimationFrame( () => {
+        //   selectedItem.scrollIntoViewIfNeeded(true);
+          this.$.overlay.target = selectedItem;
+          this.$.addon.target = selectedItem;
+        // });
+      }
 
-      _onwheel: function (e) {
+      _onwheel(e) {
         if (!e) {
           return;
         }
@@ -158,9 +114,9 @@
           scrollChange = e.deltaX || 0;
           this.$.container.scrollLeft += scrollChange * mult;
         }
-      },
+      }
 
-      _onscroll: function(e, detail) {
+      _onscroll(e, detail) {
         var scrollChange;
         if (this.vertical) {
           scrollChange = (detail && -detail.ddy) || 0;
@@ -169,145 +125,10 @@
           scrollChange = (detail && -detail.ddx) || 0;
           this.$.container.scrollLeft += scrollChange;
         }
-      },
-
-      _onTransitionend: function(event) {
-        var index = this._transitionsInFlight.indexOf(event.propertyName);
-        if (index >= 0) {
-          this._transitionsInFlight.splice(index, 1);
-        }
-
-        if (!this._transitionsInFlight.length) {
-          this._moveComplete();
-        }
-      },
-
-      _targetChanged: function(newTarget, oldTarget) {
-        if (this._transitionsInFlight.length) {
-          this._moveComplete();
-        }
-
-          if (oldTarget) {
-            oldTarget.classList.remove('overlay-above');
-          }
-          if (!this._addon) {
-            this._addon = this.queryEffectiveChildren('.overlay-addon')
-          }
-        if (newTarget) {
-          this._move(oldTarget, newTarget);
-          this._lastTarget = newTarget;
-        }
-      },
-
-      _moveComplete: function() {
-        if (this._lastTarget !== this.target) {
-          this._move(this._lastTarget, this.target);
-        } else if (this.target) {
-          requestAnimationFrame( function () {
-            this.target.classList.add('overlay-above');
-            this.$.overlay.style.display = 'none';
-            this.$.overlay.style.willChange = '';
-            if (this._addon) {
-              Polymer.dom(this.target).appendChild(this._addon);
-              this._addon.style.opacity = '';
-            }
-            this._lastTarget = this.target;
-          }.bind(this));
-        }
-      },
-
-      _move: function(oldTarget, newTarget) {
-        requestAnimationFrame(function () {
-          this.$.overlay.style.willChange = 'top, right, bottom, left, opacity';
-          this.$.overlay.style.display = 'block';
-          if (this._addon && oldTarget) {
-            this._addon.style.opacity = '0';
-          }
-          var from = oldTarget || newTarget;
-          var to = newTarget || oldTarget;
-          if (!from && !to) return;
-
-          to.scrollIntoViewIfNeeded(true);
-
-          var fromOpacity = oldTarget ? 1 : 0;
-          var toOpacity = newTarget ? 1 : 0;
-
-          Polymer.dom.flush();
-          var thisStyle = window.getComputedStyle(this);
-
-          if (to.offsetWidth === 0 && to.offsetHeight === 0) {
-            this.$.overlay.style.transitionProperty = 'none';
-            this.$.overlay.style.opacity = toOpacity;
-            this.$.overlay.style.willChange = '';
-            this._transitionsInFlight = [];
-            this.async(this._moveComplete);
-            return;
-          } else {
-            this.$.overlay.style.transitionProperty = '';
-          }
-
-          var top = parseFloat(thisStyle.top || '0') + (from.offsetTop);
-          var right = parseFloat(thisStyle.right || '0') + (this.$.container.offsetWidth - from.offsetLeft - from.offsetWidth);
-          var bottom = parseFloat(thisStyle.bottom || '0') + (this.$.container.offsetHeight - from.offsetTop - from.offsetHeight);
-          var left = parseFloat(thisStyle.left || '0') + (from.offsetLeft);
-
-          this.$.overlay.style.transitionDuration = '0s';
-          this.$.overlay.style.transitionDelay = '0s';
-          var startValues = [
-            this.$.overlay.style.top = top + 'px',
-            this.$.overlay.style.right = right + 'px',
-            this.$.overlay.style.bottom = bottom + 'px',
-            this.$.overlay.style.left = left + 'px',
-            this.$.overlay.style.opacity = String(fromOpacity)
-          ];
-
-          top = parseFloat(thisStyle.top || '0') + to.offsetTop;
-          right = parseFloat(thisStyle.right || '0') + this.$.container.offsetWidth - to.offsetLeft - to.offsetWidth;
-          bottom = parseFloat(thisStyle.bottom || '0') + this.$.container.offsetHeight - to.offsetTop - to.offsetHeight;
-          left = parseFloat(thisStyle.left || '0') + to.offsetLeft;
-
-          var durations = [0.3, 0.3, 0.3, 0.3, 0.3];
-          var delays = [0, 0, 0, 0, 0];
-          // Delay left / right transitions if element is left / right of the target.
-          if (from.offsetLeft < to.offsetLeft) {
-            delays[3] = 0.15;
-          } else if (from.offsetLeft > to.offsetLeft) {
-            delays[1] = 0.15;
-          }
-
-          // Delay top / bottom transitions if element is above / below the target.
-          if (from.offsetTop < to.offsetTop) {
-            delays[0] = 0.15;
-          } else if (from.offsetTop > to.offsetTop) {
-            delays[2] = 0.15;
-          }
-
-          var endValues = [
-            top + 'px',
-            right + 'px',
-            bottom + 'px',
-            left + 'px',
-            String(toOpacity)
-          ];
-
-          var names = ['top', 'right', 'bottom', 'left', 'opacity'];
-          for (var i = 0; i < startValues.length; i++) {
-            if (startValues[i] === endValues[i]) continue;
-            if (durations[i] === 0 && delays[i] === 0) continue;
-            this._transitionsInFlight.push(names[i]);
-          }
-
-          requestAnimationFrame(function() {
-            this.$.overlay.style.transitionDuration = durations.map(function(x) { return x + 's'; }).join(', ');
-            this.$.overlay.style.transitionDelay = delays.map(function(x) { return x + 's'; }).join(', ');
-            this.$.overlay.style.top = top + 'px';
-            this.$.overlay.style.right = right + 'px';
-            this.$.overlay.style.bottom = bottom + 'px';
-            this.$.overlay.style.left = left + 'px';
-            this.$.overlay.style.opacity = String(toOpacity);
-          }.bind(this));
-        }.bind(this));
       }
-    });
+    }
+
+    customElements.define(TabsContainer.is, TabsContainer);
+
   </script>
 </dom-module>

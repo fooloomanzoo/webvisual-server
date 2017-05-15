@@ -8,7 +8,7 @@
   <template strip-whitespace>
     <style>
       :host {
-        @apply(--layout-inline);
+        display: inline-flex;
         position: relative;
         line-height: 0;
         --calculated-box-size: var(--box-size, 20px);
@@ -17,7 +17,6 @@
         transition: background-color 200ms ease;
         box-sizing: border-box;
         cursor: pointer;
-        pointer-events: all;
       }
 
       #boxContainer {
@@ -44,7 +43,6 @@
         height: var(--calculated-box-ink-size);
         color: var(--box-unchecked-ink-color, var(--primary-text-color));
         opacity: 0.6;
-        pointer-events: none;
       }
 
       #box {
@@ -57,7 +55,6 @@
         border-color: var(--checkbox-border, var(--primary-text-color));
         border-radius: 2px;
         background-color: rgba(255, 255, 255, 0.9);
-        pointer-events: none;
         -webkit-transition: background-color 150ms, border-color 150ms, opacity 150ms;
         transition: background-color 150ms, border-color 150ms, opacity 150ms;
       }
@@ -77,35 +74,35 @@
         box-sizing: content-box; /* protect against page-level box-sizing */
       }
 
-      #boxContainer #box {
+      #box {
         background-color: var(--device-color);
       }
-      #boxContainer[state="0"] #box {
+      :host([state="0"]) #box {
         background-color: var(--device-state-inrange-color, var(--device-color));
       }
-      :host([checked]) #boxContainer[state="1"] #box {
+      :host([checked][state="1"]) #box {
         border-color: var(--device-state-exceeds-color);
       }
-      :host([checked]) #boxContainer[state="-1"] #box {
+      :host([checked][state="-1"]) #box {
         border-color: var(--device-state-deceeds-color);
       }
-      :host(:not([checked])) #boxContainer[state="1"] #box {
+      :host(:not([checked])[state="1"]) #box {
         background-color: var(--device-state-exceeds-color);
       }
-      :host(:not([checked])) #boxContainer[state="-1"] #box {
+      :host(:not([checked])[state="-1"]) #box {
         background-color: var(--device-state-deceeds-color);
       }
 
-      #boxContainer #ripple {
+      #ripple {
         color: var(--device-color);
       }
-      #boxContainer[state="0"] #ripple {
+      :host([state="0"]) #ripple {
         color: var(--device-state-inrange-color);
       }
-      #boxContainer[state="1"] #ripple {
+      :host([state="1"]) #ripple {
         color: var(--device-state-exceeds-color);
       }
-      #boxContainer[state="-1"] #ripple {
+      :host([state="-1"]) #ripple {
         color: var(--device-state-deceeds-color);
       }
 
@@ -114,11 +111,11 @@
       }
 
       :host {
-        @apply(--checkbox-unchecked);
+        @apply --checkbox-unchecked;
       }
 
       :host([checked]) {
-        @apply(--checkbox-checked);
+        @apply --checkbox-checked;
       }
 
       :host(:focus) {
@@ -157,25 +154,12 @@
         background-color: var(--disabled-text-color, --primary-text-color);
         opacity: 0.5;
       }
-
-      #dropdown {
-        --dropdown-background: rgba(0, 0, 0, 0.75);
-        border-radius: 4px;
-        border: thin solid #333;
-        min-height: 3em;
-        min-width: 3em;
-      }
-      #value {
-        --device-color: transparent;
-        --device-state-inrange-color: transparent;
-        --device-state-inrange-text-color: var(--bright-text-color);
-      }
       [hidden] {
         display: none !important;
       }
     </style>
 
-    <section id="boxContainer" state$="[[state]]">
+    <section id="boxContainer">
       <template is="dom-if" if="[[selectable]]">
         <paper-ripple id="ripple" center class="circle"></paper-ripple>
       </template>
@@ -185,21 +169,6 @@
     </section>
 
     <slot></slot>
-
-    <template is="dom-if" if="[[_dropdownValue]]">
-      <dropdown id="dropdown"
-        hiding-event="tap"
-        position="bottom"
-        align="center"
-        offset="8"
-        autoclose="4000">
-          <device-sign id="value"
-            state="{{state}}"
-            item="[[item]]"
-            show-date="[[showDate]]">
-          </device-sign>
-      </dropdown>
-    </template>
 
   </template>
 
@@ -220,28 +189,25 @@
           value: 1
         },
 
-        checked: {
-          type: Boolean,
-          reflectToAttribute: true,
-          notify: true,
-          observer: 'checkedChanged'
+        showDate: {
+          type: Boolean
         },
 
-        showDate: Boolean,
-
-        dropdownValue: Boolean,
-
-        _dropdownValue: Boolean
+        noPointerEvents: {
+          type: Boolean,
+          value: false,
+          observer: '_addTapListener'
+        }
 
       },
 
-      listeners: {
-        'tap': 'select'
+      _addTapListener: function(noPointerEvents) {
+        if (noPointerEvents) {
+          this.addEventListener('tap', this.select.bind(this));
+        } else {
+          this.removeEventListener('tap', this.select.bind(this));
+        }
       },
-
-      observers: [
-        '_setDropdown(dropdownValue)'
-      ],
 
       insertValues: function(values) {
         if (values && values.length) {
@@ -267,57 +233,23 @@
       },
 
       attached: function() {
-        var inkSize = this.getComputedStyleValue('--calculated-box-ink-size').trim();
-        // If unset, compute and set the default `--box-ink-size`.
-        if (inkSize === '-1px') {
-          var checkboxSize = parseFloat(this.getComputedStyleValue('--calculated-box-size').trim());
-          var defaultInkSize = Math.floor((8 / 3) * checkboxSize);
+        Polymer.RenderStatus.afterNextRender(this, function() {
+          var inkSize = this.getComputedStyleValue('--calculated-box-ink-size').trim();
+          // If unset, compute and set the default `--box-ink-size`.
+          if (inkSize === '-1px') {
+            var checkboxSize = parseFloat(this.getComputedStyleValue('--calculated-box-size').trim()) || 1;
+            var defaultInkSize = Math.floor((8 / 3) * checkboxSize);
 
-          // The checkbox and ripple need to have the same parity so that their
-          // centers align.
-          if (defaultInkSize % 2 !== checkboxSize % 2) {
-            defaultInkSize++;
+            // The checkbox and ripple need to have the same parity so that their
+            // centers align.
+            if (defaultInkSize % 2 !== checkboxSize % 2) {
+              defaultInkSize++;
+            }
+            this.updateStyles({
+              '--box-ink-size': defaultInkSize + 'px'
+            });
           }
-
-          this.customStyle['--box-ink-size'] = defaultInkSize + 'px';
-          this.updateStyles();
-        }
-      },
-
-      _setDropdown: function(hasDropdown, old) {
-        if (!hasDropdown) {
-          this.$.boxContainer.removeEventListener('mouseenter', this._openDropdown, {passive: true});
-          this.$.boxContainer.removeEventListener('mouseleave', this._closeDropdown, {passive: true});
-          this._dropdown = null;
-          this._dropdownValue = false;
-        } else {
-          this.importHref(
-            this.resolveUrl('components/dropdown.html'),
-            function() {
-              this._dropdownValue = true;
-              this.importHref(
-                this.resolveUrl('sign.html'),
-                function() {
-                  this.$.boxContainer.addEventListener('mouseenter', this._openDropdown, {passive: true});
-                  this.$.boxContainer.addEventListener('mouseleave', this._closeDropdown, {passive: true});
-                  this._dropdown = null;
-                }.bind(this), null, true);
-            }.bind(this), null, true);
-        }
-      },
-
-      _openDropdown: function() {
-        if (!this._dropdown)
-          this._dropdown = Polymer.dom(this.root).querySelector('#dropdown');
-
-        this._dropdown.open(this.$.boxContainer.getBoundingClientRect());
-      },
-
-      _closeDropdown: function() {
-        if (!this._dropdown)
-          this._dropdown = Polymer.dom(this.root).querySelector('#dropdown');
-
-        this._dropdown.close();
+        });
       }
 
     });

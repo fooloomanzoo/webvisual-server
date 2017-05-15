@@ -1,7 +1,7 @@
 const dir = {
-  dist: '/public',
-  data: '/public/data',
-  img: '/public/images',
+  dist: '/views/build/compiled',
+  data: '/views/build/compiled/data',
+  img: '/views/build/compiled/images',
 };
 
 const devDir = {

@@ -43,11 +43,11 @@
 
         mix-blend-mode: hard-light;
         pointer-events: all;
-        @apply(--icon-button);
+        @apply --icon-button;
       }
 
       :host([checked]) {
-        @apply(--checked-icon-button);
+        @apply --checked-icon-button;
       }
       :host([disabled]) {
         color: var(--disabled-text-color);
@@ -55,7 +55,7 @@
         border-color: var(--disabled-text-color);
         cursor: auto;
         pointer-events: none;
-        @apply(--disabled-icon-button);
+        @apply --disabled-icon-button;
       }
 
       :host(:hover),
@@ -63,14 +63,12 @@
         background-color: var(--hover-background, transparent);
         opacity: 1;
         transform: scale(1);
-        @apply(--hovered-icon-button);
+        @apply --hovered-icon-button;
       }
 
       iron-icon {
         --iron-icon-width: var(--calculated-icon-size);
         --iron-icon-height: var(--calculated-icon-size);
-        /*stroke: #000;
-        stroke-width: 0.1px;*/
       }
 
       #ripple {

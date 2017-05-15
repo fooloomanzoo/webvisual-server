@@ -1,6 +1,4 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
-<link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
-<link rel="import" href="../bower_components/iron-selector/iron-selector.html">
 <link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
 
 <link rel="import" href="behaviors/localize-behavior.html">
@@ -15,8 +13,8 @@
   <template strip-whitespace>
     <style include="shared-style button-style">
       :host {
-        @apply(--layout-vertical);
-        @apply(--layout-center-center);
+        @apply --layout-vertical;
+        @apply --layout-center-center;
         color: var(--bright-text-color);
         margin-top: 0 !important;
         padding-top: 0 !important;
@@ -24,8 +22,8 @@
         overflow-x: hidden;
       }
       .box {
-        @apply(--layout-vertical);
-        @apply(--layout-center-center);
+        @apply --layout-vertical;
+        @apply --layout-center-center;
         box-sizing: border-box;
         font-size: 1em;
         line-height: 1.4;
@@ -36,8 +34,8 @@
         width: 100%;
       }
       .item {
-        @apply(--layout-vertical);
-        @apply(--layout-center-center);
+        @apply --layout-vertical;
+        @apply --layout-center-center;
         color: var(--bright-secondary-color);
         font-size: 1em;
         white-space: pre-line;
@@ -53,8 +51,8 @@
         white-space: normal;
       }
       a {
-        @apply(--layout-vertical);
-        @apply(--layout-center-center);
+        @apply --layout-vertical;
+        @apply --layout-center-center;
         text-decoration: none;
       }
       .item.facility {
@@ -81,8 +79,8 @@
         margin-bottom: 1.5em;
       }
       .collapse-content {
-        @apply(--layout-vertical);
-        @apply(--layout-center-justified);
+        @apply --layout-vertical;
+        @apply --layout-center-justified;
         -ms-flex-align: stretch;
         -webkit-align-items: stretch;
         align-items: stretch;
@@ -100,8 +98,8 @@
         bottom: auto; top: 0; left: 50%; right: auto;
         -webkit-transform: translate3d(-50%, 0, 0);
         transform: translate3d(-50%, 0, 0);
-        @apply(--layout-inline);
-        @apply(--layout-center-center);
+        @apply --layout-inline;
+        @apply --layout-center-center;
         color: var(--notification-color);
         box-sizing: border-box;
         margin-top: 16px;
@@ -135,7 +133,7 @@
 
     <div class="box">
       <template is="dom-if" if="[[_gotFacilityItems]]">
-        <content></content>
+        <slot></slot>
       </template>
       <template is="dom-if" if="[[_gotFacilityItems]]">
         <header>
@@ -189,8 +187,7 @@
         },
 
         visible: {
-          type: Boolean,
-          observer: '_visibleChanged'
+          type: Boolean
         },
 
         loggedIn: {
@@ -199,13 +196,7 @@
 
         _gotFacilityItems: {
           type: Boolean,
-          computed: '_computeGotFacilityItems(facilities)'
-        }
-      },
-
-      _visibleChanged: function(visible) {
-        if (visible) {
-          this.fire('change-page', { title: 'Home' });
+          computed: '_computeFacilityItems(facilities)'
         }
       },
 
@@ -217,8 +208,7 @@
         return (name === selected);
       },
 
-      _computeGotFacilityItems: function(facilities) {
-        this.loggedIn = (facilities && facilities.length > 0) ? this.loggedIn : false;
+      _computeFacilityItems: function(facilities) {
         return facilities && facilities.length > 0;
       },
 

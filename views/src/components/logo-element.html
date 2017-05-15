@@ -12,9 +12,6 @@
       padding: var(--calculated-icon-padding);
       transition: color 0.3s cubic-bezier(0.6, 0, 0.3, 1);
     }
-    :host([dark]) {
-      color: var(--highlight-color);
-    }
     a.link {
       pointer-events: all;
     }
@@ -167,6 +164,12 @@
 <script>
   Polymer({
     is: 'logo-element',
+
+    properties: {
+      href: {
+        type: String
+      }
+    },
 
     listeners: {
       'mouseenter': '_addClass',

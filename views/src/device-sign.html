@@ -10,7 +10,7 @@
   <template strip-whitespace>
     <style>
       :host {
-        @apply(--layout-vertical);
+        @apply --layout-vertical;
         position: relative;
         font-family: 'FiraSans-Regular', sans-serif;
         cursor: pointer;
@@ -44,15 +44,15 @@
         color: var(--device-state-deceeds-text-color);
       }
       .value {
-        @apply(--layout-fit);
-        @apply(--layout-inline);
-        @apply(--layout-center-center);
+        @apply --layout-fit;
+        @apply --layout-inline;
+        @apply --layout-center-center;
         padding: 0.3em 0.3em 0.5em 0.3em;
         box-sizing: border-box;
         overflow: hidden;
       }
       .value::before {
-        @apply(--layout-fit);
+        @apply --layout-fit;
         content: "";
         pointer-events: none;
         background: linear-gradient(180deg,rgba(255,255,255,0),rgba(255,255,255,0.12),rgba(255,255,255,0));
@@ -70,8 +70,8 @@
         100% { transform: rotate(360deg); }
       }
       #valueSection {
-        @apply(--layout-inline);
-        @apply(--layout-center-center);
+        @apply --layout-inline;
+        @apply --layout-center-center;
         max-width: 100%;
         text-align: center;
       }
@@ -87,8 +87,8 @@
       }
       #dateSection {
         position: absolute;
-        @apply(--layout-inline);
-        @apply(--layout-center-center);
+        @apply --layout-inline;
+        @apply --layout-center-center;
         pointer-events: none;
         font-size: 0.55em;
         bottom: 0;

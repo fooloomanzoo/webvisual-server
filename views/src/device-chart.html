@@ -2,15 +2,13 @@
 <link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
 <link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
 
-<link rel="import" href="behaviors/fullscreen-behavior.html"/>
+<link rel="import" href="behaviors/fullscreen-behavior.html" />
 
-<link rel="import" href="components/icon-button.html"/>
-<link rel="import" href="style/selectbox-style.html"/>
-<link rel="import" href="style/button-style.html"/>
+<link rel="import" href="components/icon-button.html" />
+<link rel="import" href="style/selectbox-style.html" />
+<link rel="import" href="style/button-style.html" />
 
-<link rel="import" href="device-graph.html"/>
-
-<script type="text/javascript" src="../bower_components/d3/d3.min.js"></script>
+<link rel="import" href="device-graph.html" />
 
 <dom-module id="device-chart">
   <template strip-whitespace>
@@ -101,12 +99,12 @@
       }
       #graphs .area {
         fill-opacity: 0.3;
-        @apply(--chart-area);
+        @apply --chart-area;
       }
       #graphs .line {
         cursor: pointer;
         stroke-opacity: 0.7;
-        @apply(--chart-line);
+        @apply --chart-line;
       }
       #focus > * {
         stroke: currentColor;
@@ -168,7 +166,7 @@
       }
     </style>
 
-    <div id="svgContainer">
+    <div id="svgContainer" on-contextmenu="_resetZoom">
       <svg id="svgChart" version="1.1" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet">
         <g id="chart">
           <clipPath id="clip">
@@ -230,9 +228,9 @@
           no-link="[[noLink]]">
         </device-graph>
       </template>
-    </template>
+  </template>
 
-    <template is="dom-if" if="[[!multi]]" restamp>
+  <template is="dom-if" if="[[!multi]]" restamp>
       <device-graph
         item="[[item]]"
         interpolation="[[interpolation]]"
@@ -242,25 +240,7 @@
     </template>
 
   </template>
-
   <script>
-    d3.timeFormatDefaultLocale({
-      'dateTime': '%x %X',
-      'date': '%d.%m.%Y',
-      'time': '%H:%M:%S',
-      'periods': ['', ''],
-      'days': ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'],
-      'shortDays': ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'],
-      'months': ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
-      'shortMonths': ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Dez']
-    });
-    d3.formatDefaultLocale({
-      'decimal': ',',
-      'thousands': '.',
-      'grouping': [3],
-      'currency': ['', '\u00a0€']
-    });
-
     Polymer({
       is: 'device-chart',
 
@@ -356,7 +336,6 @@
           type: Boolean,
           value: false
         }
-
       },
 
       _width: 0,
@@ -413,8 +392,7 @@
       },
 
       listeners: {
-        'iron-resize': '_sizeChanged',
-        'contextmenu': '_resetZoom'
+        'iron-resize': '_sizeChanged'
       },
 
       observers: [
@@ -423,143 +401,171 @@
 
       created: function() {
         this._graphs = new Set();
-        this.format.Millisecond = d3.timeFormat(':%S,%L');
-        this.format.LongSecond = d3.timeFormat(':%M:%S,%L');
-        this.format.Second = d3.timeFormat(':%M:%S');
-        this.format.LongMinute = d3.timeFormat('%H:%M:%S');
-        this.format.Minute = d3.timeFormat('%H:%M');
-        this.format.Hour = d3.timeFormat('%X');
-        this.format.Day = d3.timeFormat('%d.%m');
-        this.format.Week = d3.timeFormat('%d.%m');
-        this.format.Month = d3.timeFormat('%d. %b');
-        this.format.Year = d3.timeFormat('%Y');
+        this._enshureD3().then(() => {
+          d3.timeFormatDefaultLocale({
+            'dateTime': '%x %X',
+            'date': '%d.%m.%Y',
+            'time': '%H:%M:%S',
+            'periods': ['', ''],
+            'days': ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'],
+            'shortDays': ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'],
+            'months': ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
+            'shortMonths': ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Dez']
+          });
+          d3.formatDefaultLocale({
+            'decimal': ',',
+            'thousands': '.',
+            'grouping': [3],
+            'currency': ['', '\u00a0€']
+          });
+          this.format.Millisecond = d3.timeFormat(':%S,%L');
+          this.format.LongSecond = d3.timeFormat(':%M:%S,%L');
+          this.format.Second = d3.timeFormat(':%M:%S');
+          this.format.LongMinute = d3.timeFormat('%H:%M:%S');
+          this.format.Minute = d3.timeFormat('%H:%M');
+          this.format.Hour = d3.timeFormat('%X');
+          this.format.Day = d3.timeFormat('%d.%m');
+          this.format.Week = d3.timeFormat('%d.%m');
+          this.format.Month = d3.timeFormat('%d. %b');
+          this.format.Year = d3.timeFormat('%Y');
+        });
+      },
+
+      _enshureD3: function() {
+        return new Promise((resolve, reject) => {
+          if (!window.hasOwnProperty('d3')) {
+            Polymer.importHref(this.resolveUrl('lazy-d3.html'), resolve.bind(this));
+          } else {
+            resolve();
+          }
+        });
       },
 
       attached: function() {
         this._buildLayout();
-        this.async( function() {
-          this._sizeChanged();
-        })
       },
 
       _sizeChanged: function() {
-        // only resize if opened attribute is set
-        if (this._initialized) {
-          this.debounce('resize', this._sizeLayout);
+        // only resize if initialized & opened
+        if (this._initialized && this.opened) {
+          this.debounce('sizeLayout', this._sizeLayout, 15);
         }
       },
 
       _buildLayout: function() {
+        this._enshureD3().then(() => {
+          this._svg = d3.select(this.$.svgChart)
+            .attr('height', null)
+            .attr('width', null);
+          this._x = this._createScale(this.xScale);
+          this._y = this._createScale(this.yScale);
 
-        this._svg = d3.select(this.$.svgChart)
-          .attr('height', null)
-          .attr('width', null);
-        this._x = this._createScale(this.xScale);
-        this._y = this._createScale(this.yScale);
+          this._chart = d3.select(this.$.chart);
 
-        this._chart = d3.select(this.$.chart);
+          this._areas = d3.select(this.$.areas);
+          this._dots = d3.select(this.$.dots);
+          this._bounderies = d3.select(this.$.bounderies);
 
-        this._areas = d3.select(this.$.areas);
-        this._dots = d3.select(this.$.dots);
-        this._bounderies = d3.select(this.$.bounderies);
-
-        this._info = d3.select(this.$.info);
-        this._focus = d3.select(this.$.focus);
-        this._focusX = d3.select(this.$.focusX);
-        this._focusY = d3.select(this.$.focusY);
-        this._focusDot = d3.select(this.$.focusDot);
-        this._focusDot
-          .on('mouseenter', function() {
+          this._info = d3.select(this.$.info);
+          this._focus = d3.select(this.$.focus);
+          this._focusX = d3.select(this.$.focusX);
+          this._focusY = d3.select(this.$.focusY);
+          this._focusDot = d3.select(this.$.focusDot);
+          this._focusDot
+            .on('mouseenter', function() {
               this.cancelDebouncer('hideinfo');
-          }.bind(this))
-          .on('mouseleave', this._hideInfo.bind(this))
-          .on('click', function(d) {
-              var offsetX = (this._x(this._x.domain()[1]) - this._x(this._x.domain()[0]))/4
-                , offsetY = (this._y(this._y.domain()[0]) - this._y(this._y.domain()[1]))/4
-                , x = this._x(+this._info.x)
-                , y = this._y(+this._info.y) || 0;
+            }.bind(this))
+            .on('mouseleave', this._hideInfo.bind(this))
+            .on('click', function(d) {
+              var offsetX = (this._x(this._x.domain()[1]) - this._x(this._x.domain()[0])) / 4,
+                offsetY = (this._y(this._y.domain()[0]) - this._y(this._y.domain()[1])) / 4,
+                x = this._x(+this._info.x),
+                y = this._y(+this._info.y) || 0;
               d3.event.selection = [
-                  [x - offsetX, y - offsetY],
-                  [x + offsetX, y + offsetY]
+                [x - offsetX, y - offsetY],
+                [x + offsetX, y + offsetY]
               ];
               this.brushed();
-          }.bind(this));
+            }.bind(this));
 
-        this._brushBehavior = d3.brush()
-          .on('end', this.brushed.bind(this._self));
-        this._brush = d3.select(this.$.brush);
-        this._brush
-          .on('mouseenter touchstart', this._showInfo.bind(this))
-          .on('mouseleave touchend', this._hideInfo.bind(this))
-          .on('mousemove', function() {
-            // this.setAttribute('r', self.dotRadius * 1.5);
-            var mx = d3.mouse(this._chart.node())[0],
+          this._brushBehavior = d3.brush()
+            .on('end', this.brushed.bind(this._self));
+          this._brush = d3.select(this.$.brush);
+          this._brush
+            .on('mouseenter touchstart', this._showInfo.bind(this))
+            .on('mouseleave touchend', this._hideInfo.bind(this))
+            .on('mousemove', function() {
+              // this.setAttribute('r', self.dotRadius * 1.5);
+              var mx = d3.mouse(this._chart.node())[0],
                 my = d3.mouse(this._chart.node())[1],
                 x0 = this._x.invert(mx);
-            requestAnimationFrame( function() {
-              var closestGraph, closestPoint, closestDistance;
-              this._graphs.forEach(
-                function(g) {
-                  if (g.values && g.values.length) {
-                    var i = g.bisectDate(g.values, x0, 1);
+              requestAnimationFrame(function() {
+                var closestGraph, closestPoint, closestDistance;
+                this._graphs.forEach(
+                  function(g) {
+                    if (g.values && g.values.length) {
+                      var i = g.bisectDate(g.values, x0, 1);
 
-                    if (i < 0) {
-                      i = 1;
-                    } else if (i >= g.values.length) {
-                      i = g.values.length - 1;
+                      if (i < 0) {
+                        i = 1;
+                      } else if (i >= g.values.length) {
+                        i = g.values.length - 1;
+                      }
+                      var d0 = g.values[i - 1],
+                        d1 = g.values[i];
+                      if (d0 && d1) {
+                        var dd0 = Math.pow(mx - this._x(d0.x), 2) + Math.pow(my - this._y(d0.y), 2),
+                          dd1 = Math.pow(mx - this._x(d1.x), 2) + Math.pow(my - this._y(d1.y), 2),
+                          currentMin, currentClosest;
+                        if (dd0 < dd1) {
+                          currentMin = dd0;
+                          currentClosest = d0;
+                        } else {
+                          currentMin = dd1;
+                          currentClosest = d1;
+                        }
+                        if (closestDistance === undefined || currentMin < closestDistance) {
+                          closestDistance = currentMin;
+                          closestPoint = currentClosest;
+                          closestGraph = g;
+                        }
+                      }
                     }
-                    var d0 = g.values[i - 1],
-                      d1 = g.values[i];
-                    if (d0 && d1) {
-                      var dd0 = Math.pow(mx - this._x(d0.x), 2) + Math.pow(my - this._y(d0.y), 2),
-                        dd1 = Math.pow(mx - this._x(d1.x), 2) + Math.pow(my - this._y(d1.y), 2),
-                        currentMin, currentClosest;
-                      if (dd0 < dd1) {
-                        currentMin = dd0;
-                        currentClosest = d0;
-                      } else {
-                        currentMin = dd1;
-                        currentClosest = d1;
-                      }
-                      if (closestDistance === undefined || currentMin < closestDistance) {
-                        closestDistance = currentMin;
-                        closestPoint = currentClosest;
-                        closestGraph = g;
-                      }
+                  }.bind(this));
+                if (closestPoint) {
+                  var fill = '#000';
+                  if (closestGraph.item.threshold) {
+                    switch (closestPoint.state) {
+                      case 1:
+                        fill = closestGraph.getComputedStyleValue('--device-state-exceeds-color') || '#F20C0C';
+                        break;
+                      case -1:
+                        fill = closestGraph.getComputedStyleValue('device-state-deceeds-color') || '#F20C0C';
+                        break;
                     }
                   }
-                }.bind(this));
-              if (closestPoint) {
-                var fill = '#000';
-                if (closestGraph.item.threshold) {
-                  switch (closestPoint.state) {
-                    case 1:
-                      fill = closestGraph.customStyle['device-state-exceeds-color'] || '#F20C0C';
-                      break;
-                    case -1:
-                      fill = closestGraph.customStyle['device-state-deceeds-color'] || '#F20C0C';
-                      break;
-                  }
+                  this._focusDot.attr('fill', fill)
+                    .attr('r', closestGraph.dotRadius);
+                  this.debounce('move-info', this._moveInfo.bind(this, closestPoint), 5);
+                } else {
+                  this._hideInfo();
                 }
-                this._focusDot.attr('fill', fill)
-                              .attr('r', closestGraph.dotRadius);
-                this.debounce('move-info', this._moveInfo.bind(this, closestPoint), 5);
-              } else {
-                this._hideInfo();
-              }
-            }.bind(this));
-          }.bind(this))
-          .on('touchmove', this._resetZoom.bind(this));
+              }.bind(this));
+            }.bind(this))
+            .on('touchmove', this._resetZoom.bind(this));
 
-        this._svg.selectAll('g,line,text,path,rect')
-          .classed('style-scope', true)
-          .classed('device-chart', true);
+          this._svg.selectAll('g,line,text,path,rect')
+            .classed('style-scope', true)
+            .classed('device-chart', true);
 
-        this._initialized = true;
-        this._sizeChanged();
+          this._initialized = true;
+          this._sizeChanged();
+        });
       },
 
       _sizeLayout: function() {
+        if (!this._initialized) return;
+
         var bRect = this.$.svgChart.getBoundingClientRect();
 
         if (bRect.height === 0 || bRect.width === 0) return;
@@ -623,7 +629,7 @@
           .classed('device-chart', true);
         this._focusY.attr('y1', this._height);
 
-        this._redraw();
+        this._redraw(true);
       },
 
       _createScale: function(option) {
@@ -672,7 +678,7 @@
           axis.ticks(ticks * tickmult)
           .tickFormat(this.timeFormat.bind(this));
         else if (scale.base && scale.base() === Math.E)
-          axis.tickFormat( function(d) {
+          axis.tickFormat(function(d) {
             return (d < 1 || d > 1000 ? (Math.log(d)).toExponential(3) : (Math.log(d)).toFixed(2));
           })
 
@@ -706,13 +712,13 @@
       redraw: function() {
         if (!(this.opened && this._chart && this._chart.select)) return;
 
-        Promise.resolve( this.setDomains.call(this) )
-              .then( this._redraw.bind(this) )
-              .catch( function(err) {
-                if (err) {
-                  console.warn(err);
-                }
-              });
+        Promise.resolve(this.setDomains.call(this))
+          .then(this._redraw.bind(this))
+          .catch(function(err) {
+            if (err) {
+              console.warn(err);
+            }
+          });
       },
 
       _redraw: function(force) {
@@ -723,7 +729,7 @@
           return;
         }
         if (this._graphs.size > 0) {
-          this._graphs.forEach( function(g) {
+          this._graphs.forEach(function(g) {
             if (g.redraw)
               g.redraw();
           });
@@ -761,7 +767,7 @@
       },
 
       setDomains: function() {
-        return new Promise( function(resolve, reject) {
+        return new Promise(function(resolve, reject) {
           if (!this._graphs.size)
             reject('No Graphs are attached');
           if (this._isZoomed === true || this._isBrushed === true) {
@@ -769,95 +775,95 @@
           }
 
           this.requestRange('x')
-              .then( function(rangeX) {
-                var domainX = rangeX;
-                this.requestRange('y')
-                    .then( function(rangeY) {
+            .then(function(rangeX) {
+              var domainX = rangeX;
+              this.requestRange('y')
+                .then(function(rangeY) {
 
-                      var domainY = rangeY;
+                  var domainY = rangeY;
 
-                      // if min, max are equal, add a little space
-                      if (domainY[0] !== undefined && domainY[1] !== undefined && domainY[0] === domainY[1]) {
-                        domainY[0] -= 0.5;
-                        domainY[1] += 0.5;
-                      }
+                  // if min, max are equal, add a little space
+                  if (domainY[0] !== undefined && domainY[1] !== undefined && domainY[0] === domainY[1]) {
+                    domainY[0] -= 0.5;
+                    domainY[1] += 0.5;
+                  }
 
-                      if (this.yScale === 'ln' || this.yScale === 'log₁₀') {
-                        if (domainY[0] <= 0) {
-                          domainY[0] = Number.EPSILON;
-                        }
-                        if (domainY[1] <= 0) {
-                          domainY[1] = Number.EPSILON;
-                        }
-                      }
+                  if (this.yScale === 'ln' || this.yScale === 'log₁₀') {
+                    if (domainY[0] <= 0) {
+                      domainY[0] = Number.EPSILON;
+                    }
+                    if (domainY[1] <= 0) {
+                      domainY[1] = Number.EPSILON;
+                    }
+                  }
 
-                      this._x.domain(domainX);
-                      this.set('domainX', domainX);
-                      this._y.domain(domainY).nice(this.yTicks);
+                  this._x.domain(domainX);
+                  this.set('domainX', domainX);
+                  this._y.domain(domainY).nice(this.yTicks);
 
-                      // if domain is on the edge of data, add a little space
-                      domainY = this._y.domain();
-                      if (domainY[0] === rangeY[0]) {
-                        domainY[0] -= (rangeY[1] - rangeY[0]) / this.yTicks;
-                      }
-                      if (domainY[1] === rangeY[1]) {
-                        domainY[1] += (rangeY[1] - rangeY[0]) / this.yTicks;
-                      }
-                      this._y.domain(domainY);
-                      this.set('domainY', domainY);
-                      resolve();
+                  // if domain is on the edge of data, add a little space
+                  domainY = this._y.domain();
+                  if (domainY[0] === rangeY[0]) {
+                    domainY[0] -= (rangeY[1] - rangeY[0]) / this.yTicks;
+                  }
+                  if (domainY[1] === rangeY[1]) {
+                    domainY[1] += (rangeY[1] - rangeY[0]) / this.yTicks;
+                  }
+                  this._y.domain(domainY);
+                  this.set('domainY', domainY);
+                  resolve();
 
-                    }.bind(this))
-                    .catch( function(err) {
-                      reject(err);
-                    });
-              }.bind(this))
-              .catch( function(err) {
-                reject(err);
-              });
+                }.bind(this))
+                .catch(function(err) {
+                  reject(err);
+                });
+            }.bind(this))
+            .catch(function(err) {
+              reject(err);
+            });
         }.bind(this));
       },
 
       insertValues: function(data) {
-        this._graphs.forEach( function(g) {
+        this._graphs.forEach(function(g) {
           if (g.item && g.item.mount && data[g.item.mount])
             g.insertValues(data[g.item.mount]);
         });
       },
 
       clearValues: function() {
-        this._graphs.forEach( function(g) {
+        this._graphs.forEach(function(g) {
           if (g.item && g.item.mount)
             g.clearValues();
         });
       },
 
       requestRange: function(key) {
-        return new Promise( function(resolve, reject) {
+        return new Promise(function(resolve, reject) {
           var p = [];
-          this._graphs.forEach( function(g) {
+          this._graphs.forEach(function(g) {
             if (g.item && g.item.mount)
-              p.push( g.requestRange(key) );
+              p.push(g.requestRange(key));
           });
           Promise.all(p)
-                 .then( function(res) {
-                   var min, max;
-                   for (var i = 0; i < res.length; i++) {
-                     min = (min === undefined || min > res[i][0]) ? res[i][0] : min;
-                     max = (max === undefined || max < res[i][1]) ? res[i][1] : max;
-                   }
-                   if (min === undefined || max === undefined) {
-                     reject();
-                   }
-                   resolve([min, max]);
-                 })
-                 .catch( function(err) {
-                  //  reject(err);
-                  //  if (err) {
-                  //    console.log(err);
-                  //  }
-                 });
-        }.bind(this) );
+            .then(function(res) {
+              var min, max;
+              for (var i = 0; i < res.length; i++) {
+                min = (min === undefined || min > res[i][0]) ? res[i][0] : min;
+                max = (max === undefined || max < res[i][1]) ? res[i][1] : max;
+              }
+              if (min === undefined || max === undefined) {
+                reject();
+              }
+              resolve([min, max]);
+            })
+            .catch(function(err) {
+              //  reject(err);
+              //  if (err) {
+              //    console.log(err);
+              //  }
+            });
+        }.bind(this));
       },
 
       _moveInfo: function(d) {
@@ -966,7 +972,7 @@
         this._y = this._createScale(this.yScale);
         this._y.domain(domainY).nice(this.yTicks);
         this.set('domainY', domainY);
-        this.debounce('resize', this._sizeLayout);
+        this.debounce('sizeLayout', this._sizeLayout);
       },
 
       // changeDots: function(e) {
@@ -1014,19 +1020,19 @@
           function(g) {
             g.clearValues(true);
             g.requestValues(null, null, this.viewLength)
-                .then( function(data) {
-                  for (var mount in data) {
-                    if (mount === this.item.mount) {
-                      this.insertValues(data[mount]);
-                      break;
-                    }
+              .then(function(data) {
+                for (var mount in data) {
+                  if (mount === this.item.mount) {
+                    this.insertValues(data[mount]);
+                    break;
                   }
-                }.bind(g))
-                .catch( function(err) {
-                  if (err) {
-                    console.log(err);
-                  }
-                }.bind(this) );
+                }
+              }.bind(g))
+              .catch(function(err) {
+                if (err) {
+                  console.log(err);
+                }
+              }.bind(this));
           }.bind(this));
         this._isZoomed = false;
         this.redraw();

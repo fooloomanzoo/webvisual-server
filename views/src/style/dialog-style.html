@@ -5,8 +5,8 @@
   <template>
     <style>
       :host {
-        @apply(--layout-vertical);
-        @apply(--layout-start);
+        @apply --layout-vertical;
+        @apply --layout-start;
         padding: 0.75em;
         margin: 0.75em;
         border-radius: 8px;
@@ -17,7 +17,7 @@
         opacity: 0;
         will-change: opacity;
         transition: opacity 300ms cubic-bezier(0.6, 0, 0.2, 1);
-        @apply(--dialog-style);
+        @apply --dialog-style;
       }
       :host([opened]) {
         opacity: 1;
@@ -25,52 +25,31 @@
       .no-margin {
         margin: 0;
       }
-      :host > ::content > * {
+      ::slotted(*) {
         position: relative;
         box-sizing: border-box;
         align-self: stretch;
       }
-      :host > ::content > [dialog-title] {
-        @apply(--layout-vertical);
-        @apply(--layout-center-center);
+      ::slotted([dialog-title]) {
+        @apply --layout-vertical;
+        @apply --layout-center-center;
         margin: 0.5em 0 1em 0;
-        @apply(--dialog-title);
-      }
-      :host > ::content > [dialog-title] > * {
-        font-size: 1.1em;
-        position: relative;
         padding: 0 2em;
+        @apply --dialog-title;
       }
-      :host > ::content > [dialog-title] > *:first-child:not(:only-child) {
-        font-size: 1.25em;
-        font-weight: bold;
-        margin-bottom: 0.9em;
-      }
-      :host > ::content > [dialog-title] > *:only-child {
-        font-size: 1em;
-      }
-      :host > ::content > [dialog-content] {
+      ::slotted([dialog-content]) {
         flex: 1 0 auto;
-        @apply(--layout-vertical);
+        @apply --layout-vertical;
         border-top: thin solid var(--grid-border-color, #aaa);
         border-bottom: thin solid var(--grid-border-color, #aaa);
       }
-      :host > ::content > [dialog-content] > * {
-        position: relative;
-        flex: 1 0 auto;
-      }
-      :host > ::content > [dialog-bottom],
-      :host > ::content > .button {
-        @apply(--layout-horizontal);
-        @apply(--layout-center-center);
+      ::slotted([dialog-bottom]),
+      ::slotted(.button) {
+        @apply --layout-horizontal;
+        @apply --layout-center-center;
         padding: 1em 0.5em 0;
         flex-wrap: wrap;
-      }
-      :host > ::content > [dialog-bottom] > * {
-        align-self: center;
-      }
-      :host > ::content > [dialog-bottom] > *:not(:last-child) {
-        margin-right: 0.5em;
+        margin-left: 0.5em;
       }
     </style>
   </template>

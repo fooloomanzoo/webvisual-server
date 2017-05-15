@@ -17,20 +17,15 @@
         background: var(--group-card-background, #e5e5e5);
       }
       #header {
-        @apply(--layout-fit);
+        @apply --layout-fit;
         -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
-        padding-top: 0;
         height: 3em;
-        width: 100%;
         border-top-left-radius: inherit;
         border-top-right-radius: inherit;
-        border-bottom-style: solid;
-        border-bottom-width: thin;
-        border-color: var(--group-card-header-border, inherit);
         color: var(--group-card-header-color, var(--bright-text-color));
-        background-color: var(--group-card-header-background, var(--bright-primary-color));
-        will-change: padding-top;
-        transition: padding-top 500ms cubic-bezier(0.6, 0, 0.2, 1);
+      }
+      #header.opened {
+        height: calc(15vh + 120px);
       }
       #header .title-text {
         margin-left: 1em;
@@ -41,32 +36,13 @@
         white-space: nowrap;
         cursor: pointer;
       }
-      #headerContent {
-        @apply(--layout-fit);
-        display: inline-flex;
-        flex-direction: column;
-        box-sizing: border-box;
-        border-color: inherit;
-        border-top-left-radius: inherit;
-        border-top-right-radius: inherit;
-        height: auto;
-        perspective: calc(15vh + 120px);
-        perspective-origin: center top;
-        isolation: isolate;
-      }
-      :host(.fullscreen) #headerContent {
-        /* blink mistake */
-        isolation: unset;
-      }
       #title {
-        @apply(--layout-fit);
+        @apply --layout-fit;
         bottom: auto;
-        @apply(--layout-inline);
-        @apply(--layout-center);
-        @apply(--layout-justified);
+        @apply --layout-inline;
+        @apply --layout-center;
+        @apply --layout-justified;
         pointer-events: none;
-        border-top-left-radius: inherit;
-        border-top-right-radius: inherit;
         height: 3em;
         width: 100%;
         mix-blend-mode: exclusion;
@@ -75,58 +51,72 @@
         pointer-events: all;
       }
       #mainContent {
-        @apply(--layout-horizontal);
-        @apply(--layout-wrap);
-        @apply(--layout-start);
-        @apply(--layout-start-justified);
+        @apply --layout-horizontal;
+        @apply --layout-wrap;
+        @apply --layout-start;
+        @apply --layout-start-justified;
         pointer-events: none;
+        border-color: inherit;
         border-radius: inherit;
         position: relative;
         box-sizing: border-box;
-        padding-left: 0.4em;
-        will-change: padding-top;
-        transition: padding-top 500ms cubic-bezier(0.6, 0, 0.2, 1);
       }
-      #mainContent ::content > * {
-        margin: 0 0.5em 0.5em 0;
-        pointer-events: auto;
+      #headerBackground {
+        position: relative;
+        width: 100%;
+        border-top-left-radius: inherit;
+        border-top-right-radius: inherit;
+        border-bottom-style: solid;
+        border-bottom-width: thin;
+        color: var(--group-card-header-color, var(--bright-text-color));
+        border-color: var(--group-card-header-border, inherit);
+        background-color: var(--group-card-header-background, var(--bright-primary-color));
+        padding-top: 3em;
+        transition: padding-top 500ms cubic-bezier(0.6,0,0.2,1);
       }
-      :host(:not([opened])) #mainContent {
-        padding-top: 3.4em;
+      #headerBackground.opened {
+        bottom: 0;
+        padding-top: calc(15vh + 120px);
       }
-      :host(:not([opened])) #header::before {
-        @apply(--layout-fit);
+      #headerBackground:not(.opened)::before {
+        @apply --layout-fit;
         content: '';
         border-top-left-radius: inherit;
         border-top-right-radius: inherit;
         pointer-events: none;
         background: var(--group-card-header-shim);
       }
-      :host([opened]) #mainContent {
-        padding-top: calc(15vh + 120px + 0.4em);
-      }
-      :host([opened]) #header {
-        padding-top: calc(15vh + 120px - 3em);
+      ::slotted(*) {
+        pointer-events: auto;
       }
       #addons {
-        height: calc(15vh + 120px);
-        width: 100%;
-        position: relative;
-        box-sizing: border-box;
+        @apply --layout-fit;
         transform-origin: top center;
         transform: rotateX(90deg) scale(0.5);
-        transition: transform 500ms cubic-bezier(0.6, 0, 0.2, 1);
+        transition: transform 500ms cubic-bezier(0.6,0,0.2,1);
+      }
+      #addons.opened {
+        transform: rotateX(0deg) scale(1);
       }
       #addons > * {
         overflow: hidden;
-        position: absolute;
-        left: 0; top: 0; right: 0; bottom: 0;
+        @apply --layout-fit;
+      }
+      #headerContent {
+        @apply --layout-fit;
+        isolation: isolate;
+        perspective: calc(15vh + 120px);
+        perspective-origin: center top;
+      }
+      :host(.fullscreen) #headerContent {
+        /* blink mistake */
+        isolation: unset;
       }
       icon-button.iron-selected {
         opacity: 1;
         background-color: rgba(255,255,255, 0.125);
       }
-      #header .expand-button {
+      .expand-button {
         margin-right: 0.5em;
         flex-shrink: 0;
       }
@@ -134,13 +124,13 @@
         opacity: 1;
       }
       #control {
-        position: absolute;
-        opacity: 0;
-        pointer-events: none;
-        display: block;
+        position: static;
         left: 0; bottom: 0; right: auto; top: auto;
-        transition: opacity 300ms cubic-bezier(0.6, 0, 0.2, 1);
+        pointer-events: none;
+        will-change: opacity;
+        transition: opacity 500ms cubic-bezier(0.6,0,0.2,1);
         mix-blend-mode: exclusion;
+        opacity: 0;
       }
       #control icon-button {
         background: rgba(255,255,255,0.0625);
@@ -148,7 +138,8 @@
       #control icon-button.iron-selected {
         background: rgba(255,255,255,0.25);
       }
-      :host([opened]) #control {
+      #control.opened {
+        position: absolute;
         opacity: 1;
       }
       device-table-group[opened] {
@@ -162,17 +153,20 @@
       }
     </style>
 
-    <section id='header'>
+    <section id="mainContent">
+      <section id="headerBackground" on-transitionend="_transitionEnd"></section>
+      <slot></slot>
+    </section>
 
-      <section id='headerContent'>
-        <iron-pages id="addons" selected="[[view]]" selectable=".view" selected-attribute="opened" on-transitionend="_transitionEnd">
-          <template is="dom-if" if="[[_shouldRenderSvg]]">
+    <section id="header">
+      <section id="headerContent">
+        <iron-pages id="addons" selected="[[view]]" selectable=".view"  selected-attribute="opened">
+          <template is="dom-if" if="[[svgSrcPath]]">
             <device-svg class="view"
               url-prefix="[[svgUrlPrefix]]"
               src="[[svgSrcPath]]"
-              multi
               selectable-items="[[svgSelectable]]"
-              items="[[items]]"
+              item="[[item]]"
               exceeding="[[exceeding]]"></device-svg>
           </template>
           <template is="dom-if" if="[[_shouldRenderExtensions]]">
@@ -197,13 +191,7 @@
           </iron-selector>
         </section>
       </section>
-
     </section>
-
-    <section id="mainContent">
-      <content></content>
-    </section>
-
 
   </template>
 
@@ -249,66 +237,104 @@
         },
 
         view: {
-          type: Number
+          type: Number,
+          value: 0,
+          observer: '_viewChanged'
         },
 
         _shouldRenderExtensions: {
           type: Boolean,
           computed: '_computeShouldRenderExtensions(items.length)'
-        },
-
-        _shouldRenderSvg: {
-          type: Boolean,
-          computed: '_computeShouldRenderSvg(opened, svgSrcPath)'
         }
 
       },
 
+      _state: 0,
+
       toggle: function() {
         if (!this.opened) {
-          this.opened = true;
+          this.open();
         }
         else {
-            this.opened = false;
+          this.close();
         }
       },
 
       open: function() {
-        this.opened = true;
+        this._state = this._STATE.OPENING;
+        this._transitionStart();
       },
 
       close: function() {
-        this.opened = false;
+        this._state = this._STATE.CLOSING;
+        this._transitionStart();
       },
 
       _openedChanged: function(opened, old) {
         if (old === undefined) {
           this.view = 0;
         }
+        if (opened && this._state !== this._STATE.OPENING) {
+          this.open();
+        } else if (opened === false && this._state !== this._STATE.CLOSING) {
+          this.close();
+        }
+      },
+
+      _resetTransitionState: function() {
+        this.$.control.style['will-change'] = '';
+        this.$.control.style['transition'] = 'none';
+        this.$.addons.style['will-change'] = '';
+        this.$.addons.style['transition'] = 'none';
+        this.$.headerBackground.style['will-change'] = '';
+        this.$.headerBackground.style['transition'] = 'none';
+        this.$.control.classList.remove('opened');
+        this.$.addons.classList.remove('opened');
+        this.$.header.classList.remove('opened');
+        this.$.headerBackground.classList.remove('opened');
+        this.$.addons.style['display'] = 'none';
+        this.opened = false;
+        this._state = this._STATE.STATIC;
+      },
+
+      _transitionStart: function() {
+        this.$.addons.style['display'] = '';
+        this.$.addons.style['transition'] = '';
+        this.$.addons.style['will-change'] = 'transform';
         requestAnimationFrame( function() {
-          if (opened) {
-            this.$.addons.style.cssText = 'will-change: transform; transform: rotateX(0deg) scale(1);';
-            if (this.$.addons.selectedItem) {
-              this.$.addons.selectedItem.style.display = '';
-            }
-          } else {
-            this.$.addons.style.cssText = 'will-change: transform; transform: rotateX(90deg) scale(0.5);';
+          this.$.headerBackground.style['transition'] = '';
+          this.$.headerBackground.style['will-change'] = 'padding-top';
+          if (this._state === this._STATE.OPENING) {
+            this.$.control.style['transition'] = '';
+            this.$.control.style['will-change'] = 'opacity';
+            this.$.addons.classList.add('opened');
+            this.$.header.classList.add('opened');
+            this.$.headerBackground.classList.add('opened');
+          } else if (this._state === this._STATE.CLOSING) {
+            this.$.control.style['transition'] = 'none';
+            this.$.control.style['will-change'] = '';
+            this.$.control.classList.remove('opened');
+            this.$.addons.classList.remove('opened');
+            this.$.headerBackground.classList.remove('opened');
           }
         }.bind(this));
       },
 
       _transitionEnd: function() {
         requestAnimationFrame( function() {
-          if (!this.opened) {
-            if (this.$.addons.selectedItem) {
-              this.$.addons.selectedItem.style.display = 'none';
-            }
-          } else {
-            this.$.addons.style['will-change'] = '';
-            if (this.$.addons.selectedItem && this.$.addons.selectedItem.notifyResize) {
-              this.$.addons.selectedItem.notifyResize();
-            }
+          if (this._state === this._STATE.CLOSING) {
+            this.$.addons.style['display'] = 'none';
+            this.$.header.classList.remove('opened');
+            this.opened = false;
+          } else if (this._state === this._STATE.OPENING) {
+            this.$.control.classList.add('opened');
+            this.opened = true;
+            this._viewChanged();
           }
+          this.$.addons.style['will-change'] = '';
+          this.$.addons.style['transition'] = '';
+          this.$.headerBackground.style['will-change'] = '';
+          this._state = this._STATE.STATIC;
         }.bind(this));
       },
 
@@ -320,8 +346,16 @@
 			  return length > 0;
 			},
 
-      _computeShouldRenderSvg: function(opened, svgSrcPath) {
-        return opened && Boolean(svgSrcPath);
+      _viewChanged: function() {
+        if (this.opened && this.$.addons.selectedItem && this.$.addons.selectedItem.notifyResize) {
+          this.$.addons.selectedItem.notifyResize();
+        }
+      },
+
+      _STATE: {
+        STATIC: 0,
+        OPENING: 1,
+        CLOSING: 2
       }
 
     });

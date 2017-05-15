@@ -14,8 +14,10 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
+    "build": "node build_www.js",
     "test": "node debug.js redis",
-    "stop": "taskkill /IM node.exe /F"
+    "stop": "taskkill /IM node.exe /F",
+    "postinstall": "views/bower update && node build_www.js"
   },
   "dependencies": {
     "activedirectory": "^0.7.1",
@@ -43,7 +45,10 @@
     "spdy": "*",
     "svgo": "*",
     "underscore": "*",
-    "x-frame-options": "*"
+    "x-frame-options": "*",
+    "del": "^2.2.2",
+    "ncp": "^2.0.0",
+    "polymer-cli": "^0.18.3"
   },
   "engines": {
     "node": ">= 6.0",

@@ -3,7 +3,6 @@ Simplification of Polymer's app-header
 -->
 
 <link rel="import" href="../../bower_components/polymer/polymer.html">
-<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout.html">
 <link rel="import" href="../../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
 <link rel="import" href="../../bower_components/iron-scroll-target-behavior/iron-scroll-target-behavior.html">
 
@@ -11,7 +10,8 @@ Simplification of Polymer's app-header
   <template>
     <style>
       :host {
-        position: relative;
+        position: fixed;
+        top: 0; bottom: auto; left: 0; right: 0;
         display: block;
         transition-timing-function: linear;
         transition-property: -webkit-transform;
@@ -31,16 +31,11 @@ Simplification of Polymer's app-header
         opacity: 0;
         box-shadow: inset 0px 5px 6px -3px rgba(0, 0, 0, 0.4);
         will-change: opacity;
-        @apply(--header-shadow);
+        @apply --header-shadow;
       }
 
       :host([shadow])::before {
         opacity: 1;
-      }
-
-      #background {
-        @apply(--layout-fit);
-        overflow: hidden;
       }
 
       #contentContainer {
@@ -50,7 +45,7 @@ Simplification of Polymer's app-header
       }
     </style>
     <div id="contentContainer">
-      <content id="content"></content>
+      <slot></slot>
     </div>
   </template>
 
