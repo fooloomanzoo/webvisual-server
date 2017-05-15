@@ -12,6 +12,11 @@
 <link rel="import" href="style/button-style.html"/>
 <link rel="import" href="style/app-style.html"/>
 
+<link rel="import" href="../bower_components/app-layout/app-header-layout/app-header-layout.html"/>
+<link rel="import" href="../bower_components/app-layout/app-header/app-header.html"/>
+<link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html"/>
+<link rel="import" href="../bower_components/iron-collapse/iron-collapse.html"/>
+
 <link rel="import" href="components/icon-button.html"/>
 <link rel="import" href="dialog-login.html"/>
 <link rel="import" href="page-home.html"/>
@@ -22,11 +27,6 @@
   <template strip-whitespace>
 
     <style include="shared-style selectbox-style button-style app-style">
-      header-element {
-        @apply --layout-fixed-top;
-        z-index: 1;
-        position: absolute;
-      }
       app-toolbar {
         font-size: 1em;
         height: 4em;
@@ -79,21 +79,21 @@
         font-size: 0.8em;
       }
       #pageSelector {
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        @apply --layout-vertical;
-        @apply --layout-flex;
-        overflow-y: auto;
-        overflow-x: hidden;
-        -webkit-overflow-scrolling: touch;
-        background-color: var(--primary-background);
-        transition: background 500ms cubic-bezier(0.6, 0, 0.3, 1);
+        box-sizing: border-box;
+        margin-bottom: 2.5em;
       }
-      :host([page="home"]) #pageSelector {
+      #headerLayout {
+        background-color: var(--primary-background);
+        transition: background 300ms cubic-bezier(0.6, 0, 0.3, 1);
+      }
+      :host([page="home"]) #headerLayout {
         background-color: var(--primary-color);
       }
-      :host([dark][page="home"]) #pageSelector {
+      :host([dark][page="home"]) #headerLayout {
         background-color: var(--dark-primary-color);
+      }
+      #pageSelector > * {
+        flex: 1;
       }
       #pageSelector > .fullbleed {
         position: absolute;
@@ -101,6 +101,8 @@
         box-sizing: border-box;
         overflow: hidden;
         visibility: hidden;
+        margin: 0;
+        padding: 0;
       }
       #pageSelector > [visible] {
         visibility: visible;
@@ -224,89 +226,92 @@
 
     <iron-media-query query="(min-width: 768px)" query-matches="{{wideLayout}}"></iron-media-query>
 
-    <!-- Toolbar -->
-    <header-element role="header" id="header" hidden$="[[!_isContentPage]]" reveals threshold="64" threshold-triggered="{{thresholdTriggered}}" shadow$="{{thresholdTriggered}}" scroll-target="pageSelector">
-      <app-toolbar>
-        <icon-button icon="menu" class="menu-icon" title="menu" on-tap="_toggleDrawer"></icon-button>
-        <logo-element id="logo" href="/home" title$="[[localize('home', 'name')]]"></logo-element>
+    <app-header-layout id="headerLayout" fullbleed has-scrolling-region>
+      <!-- Toolbar -->
+      <app-header slot="header" id="header" hidden$="[[!_isContentPage]]" reveals fixed="[[_isFullbleedPage]]" threshold="64" threshold-triggered="{{thresholdTriggered}}" shadow$="[[thresholdTriggered]]">
+        <app-toolbar>
+          <icon-button icon="menu" class="menu-icon" title="menu" on-tap="_toggleDrawer"></icon-button>
 
-        <iron-collapse opened="[[showTabs]]" hidden$="[[!wideLayout]]" horizontal style="align-self: flex-end;">
-          <div class="viewSelect top">
+          <logo-element id="logo" href="/home" title$="[[localize('home', 'name')]]"></logo-element>
 
-            <div class="selectbox toolbar grouping top" title="[[groupedKey]]" hidden$="[[hideGroupSelect]]">
-              <select value="{{groupedKey::change}}"></select>
+          <iron-collapse opened="[[showTabs]]" hidden$="[[!wideLayout]]" horizontal style="align-self: flex-end;">
+            <div class="viewSelect top">
+
+              <div class="selectbox toolbar grouping top" title="[[groupedKey]]" hidden$="[[hideGroupSelect]]">
+                <select value="{{groupedKey::change}}"></select>
+              </div>
+              <tabs-container class="tabs"
+                role="tablist"
+                selected="{{page}}"
+                attr-for-selected="name">
+                <tab-element name="list">
+                  <a href$="/list/[[facilitySystem]]" class="tab">
+                    <iron-icon icon="list" class="left"></iron-icon>
+                    {{localize('list', 'name')}}
+                  </a>
+                </tab-element>
+                <tab-element name="groups">
+                  <a href$="/groups/[[facilitySystem]]" class="tab">
+                    <iron-icon icon="grid-on" class="left"></iron-icon>
+                    {{localize('groups', 'name')}}
+                  </a>
+                </tab-element>
+                <tab-element name="detail">
+                  <a href$="/detail/[[facilitySystem]]" class="tab">
+                    <iron-icon icon="chrome-reader-mode" class="left"></iron-icon>
+                    {{localize('detail', 'name')}}
+                  </a>
+                </tab-element>
+              </tabs-container>
             </div>
-            <tabs-container class="tabs"
-              role="tablist"
-              selected="{{page}}"
-              attr-for-selected="name">
-              <tab-element name="list">
-                <a href$="/list/[[facilitySystem]]" class="tab">
-                  <iron-icon icon="list" class="left"></iron-icon>
-                  {{localize('list', 'name')}}
-                </a>
-              </tab-element>
-              <tab-element name="groups">
-                <a href$="/groups/[[facilitySystem]]" class="tab">
-                  <iron-icon icon="grid-on" class="left"></iron-icon>
-                  {{localize('groups', 'name')}}
-                </a>
-              </tab-element>
-              <tab-element name="detail">
-                <a href$="/detail/[[facilitySystem]]" class="tab">
-                  <iron-icon icon="chrome-reader-mode" class="left"></iron-icon>
-                  {{localize('detail', 'name')}}
-                </a>
-              </tab-element>
-            </tabs-container>
-          </div>
-        </iron-collapse>
+          </iron-collapse>
 
-        <template is="dom-if" if="[[_shouldLogin]]">
-          <icon-button icon="[[loginIcon]]" class="login-icon" title="{{localize('login', 'name')}}" on-click="_openLoginDialog"></icon-button>
-        </template>
+          <template is="dom-if" if="[[_shouldLogin]]">
+            <icon-button icon="[[loginIcon]]" class="login-icon" title="{{localize('login', 'name')}}" on-click="_openLoginDialog"></icon-button>
+          </template>
 
-        <template is="dom-if" if="[[detailHasDrawer]]">
-          <icon-button icon="subject" title="items" on-tap="_toggleDetailControlDrawer">
-          </icon-button>
-        </template>
+          <template is="dom-if" if="[[detailHasDrawer]]">
+            <icon-button icon="subject" title="items" on-tap="_toggleDetailControlDrawer">
+            </icon-button>
+          </template>
 
-        <icon-button icon="more-vert" title="{{localize('view')}}" on-tap="toggleShowTabs"></icon-button>
-      </app-toolbar>
+          <icon-button icon="more-vert" title="{{localize('view')}}" on-tap="toggleShowTabs"></icon-button>
+        </app-toolbar>
 
-    </header-element>
+      </app-header>
 
-    <!-- Pages-->
-    <iron-pages id="pageSelector" role="main" selected="{{page}}" attr-for-selected="name" selected-attribute="visible" fallback-selection="home">
-      <!-- home view for selecting the facility -->
-      <page-home name="home" dark$="[[dark]]" plain$="[[plain]]" class="fullbleed"
-        facilities="[[facilities]]"
-        logged-in="[[loggedIn]]"
-        language="[[language]]"
-        language-resources="[[languageResources]]">
-        <slot></slot>
-      </page-home>
-      <!-- list view of items in a facility -->
-      <page-list name="list" dark$="[[dark]]" plain$="[[plain]]"
-        elements="[[elements]]">
-      </page-list>
-      <!-- group view of items -->
-      <page-groups name="groups" dark$="[[dark]]" plain$="[[plain]]"
-        facility-system="[[facilitySystem]]"
-        logged-in="[[loggedIn]]"
-        elements="[[elements]]"
-        grouped-key="{{groupedKey}}"
-        grouping-keys="{{groupingKeys}}">
-      </page-groups>
-      <!-- detail view of one item -->
-      <page-detail id="detailpage" name="detail" dark$="[[dark]]" plain$="[[plain]]" class="fullbleed"
-        route="{{subroute}}"
-        logged-in="[[loggedIn]]"
-        facility-system="[[facilitySystem]]"
-        elements="[[elements]]"
-        show-toggle-icon="{{detailHasDrawer}}">
-      </page-detail>
-    </iron-pages>
+      <!-- Pages-->
+      <iron-pages id="pageSelector" role="main" selected="{{page}}" attr-for-selected="name" selected-attribute="visible" fallback-selection="home">
+        <!-- home view for selecting the facility -->
+        <page-home name="home" dark$="[[dark]]" plain$="[[plain]]" class="fullbleed"
+          facilities="[[facilities]]"
+          logged-in="[[loggedIn]]"
+          language="[[language]]"
+          language-resources="[[languageResources]]">
+          <slot></slot>
+        </page-home>
+        <!-- list view of items in a facility -->
+        <page-list name="list" dark$="[[dark]]" plain$="[[plain]]"
+          elements="[[elements]]">
+        </page-list>
+        <!-- group view of items -->
+        <page-groups name="groups" dark$="[[dark]]" plain$="[[plain]]"
+          facility-system="[[facilitySystem]]"
+          logged-in="[[loggedIn]]"
+          elements="[[elements]]"
+          grouped-key="{{groupedKey}}"
+          grouping-keys="{{groupingKeys}}">
+        </page-groups>
+        <!-- detail view of one item -->
+        <page-detail id="detailpage" name="detail" dark$="[[dark]]" plain$="[[plain]]" class="fullbleed"
+          route="{{subroute}}"
+          logged-in="[[loggedIn]]"
+          facility-system="[[facilitySystem]]"
+          elements="[[elements]]"
+          show-toggle-icon="{{detailHasDrawer}}">
+        </page-detail>
+      </iron-pages>
+    </app-header-layout>
 
     <drawer-element id="networkNotification" class="notification" align="bottom" shadow auto-close auto-close-period="4000">
       <iron-icon class="prop" icon="[[socketStatusIcon]]" slot="icon"></iron-icon>
@@ -582,6 +587,11 @@
           computed: '_computeIsContentPage(page)'
         },
 
+        _isFullbleedPage: {
+          type: Boolean,
+          computed: '_computeIsFullbleedPage(page)'
+        },
+
         _shouldRenderDrawer: {
           type: Boolean,
           computed: '_computeShouldRenderDrawer(_isContentPage, loadComplete)'
@@ -641,36 +651,20 @@
 
       _resetScroll: function() {
         this.debounce( '_resetScroll', function () {
-          if (!this.$.pageSelector) {
-            this.$.pageSelector = Polymer.dom(this.root).querySelector('#pageSelector');
-          }
-          if (!this.$.header) {
-            this.$.header = Polymer.dom(this.root).querySelector('#header');
-          }
-          if (this.$.pageSelector) {
-            this.$.pageSelector.scrollTop = 0;
-          }
-          if (this.$.header && this.$.header.resetLayout) {
-            this.$.header.resetLayout();
-          }
-          this._resetLayout(this.showTabsOnBottom);
+          this.$.pageSelector.scrollTop = 0;
+          this.$.headerLayout.resetLayout();
+          // this._resetLayout(this.showTabsOnBottom, this.wideLayout, this.thresholdTriggered);
         });
       },
 
       _resetLayout: function(showTabsOnBottom, wideLayout, thresholdTriggered) {
-        Polymer.RenderStatus.afterNextRender(this, function() {
-          if (!this.$.pageSelector) {
-            this.$.pageSelector = Polymer.dom(this.root).querySelector('#pageSelector');
-          }
-          if (this.page === 'home') {
-            this.$.pageSelector.style.marginTop = '0';
-            this.$.pageSelector.style.marginBottom = '0';
-          } else if (!wideLayout && (thresholdTriggered || showTabsOnBottom) && (this.page !== 'detail')) {
-            this.$.pageSelector.style.marginBottom = '2.5em';
-          } else {
-            this.$.pageSelector.style.marginBottom = '0';
-          }
-        });
+        // Polymer.RenderStatus.afterNextRender(this, function() {
+        //   if (!wideLayout && (thresholdTriggered || showTabsOnBottom) && !this._isFullbleedPage) {
+        //     this.$.pageSelector.style.marginBottom = '2.5em';
+        //   } else {
+        //     this.$.pageSelector.style.marginBottom = '0';
+        //   }
+        // });
       },
 
       _nextPage: function() {
@@ -757,7 +751,7 @@
           // do not appear), so reset the header's layout only when switching pages.
           this.async(function() {
             // console.log('reset layout');
-            // this.$$('#header').resetLayout();
+            this.$.header.resetLayout();
             this._resetScroll();
           }, 25);
         }
@@ -912,6 +906,10 @@
 
       _computeIsContentPage: function(page) {
         return page !== 'home';
+      },
+
+      _computeIsFullbleedPage: function(page) {
+        return page === 'detail';
       },
 
       _computeShouldRenderDrawer: function(isContentPage, loadComplete) {

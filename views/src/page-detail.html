@@ -8,13 +8,11 @@
   <template strip-whitespace>
     <style include="shared-style">
       :host {
-        padding-top: inherit;
-        margin-top: 0 !important;
         --control-right: 16px;
         --control-bottom: 4px;
         --control-button-distance: 4px;
         --drawer-width: 16em;
-        --drawer-background: transparent;
+        --drawer-background: rgba(255,255,255,0.25);
         --drawer-content: {
           padding: 0;
           position: absolute;
@@ -89,11 +87,9 @@
       .checkbox {
         width: 100%;
         --checkbox-unchecked: {
-          background: rgba(255,255,255,0.25);
           color: var(--bright-text-color);
         };
         --checkbox-checked: {
-          background: rgba(255,255,255,0.25);
           color: var(--primary-text-color);
         };
       }
@@ -295,6 +291,10 @@
         '_getCurrentElement(elements, route.path, visible)'
       ],
 
+      attached: function() {
+        this._debounceResize();
+      },
+
       _setExceeding: function(e) {
         if (e && e.detail && e.detail.item) {
           if (e.detail.value === true)
@@ -437,7 +437,7 @@
           if (this.selectedTab) {
             this.selectedTab.scrollIntoViewIfNeeded(true);
           }
-        }.bind(this), 15);
+        }.bind(this), 5);
       }
     });
   </script>
