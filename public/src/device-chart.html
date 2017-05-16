@@ -1,0 +1,249 @@
+<html><head><link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
+<link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
+
+<link rel="import" href="behaviors/fullscreen-behavior.html">
+
+<link rel="import" href="components/icon-button.html">
+<link rel="import" href="style/selectbox-style.html">
+<link rel="import" href="style/button-style.html">
+
+<link rel="import" href="device-graph.html">
+
+<script type="text/javascript" src="../bower_components/d3/d3.min.js"></script>
+
+</head><body><dom-module id="device-chart">
+  <template strip-whitespace="">
+    <style include="selectbox-style button-style">
+      :host {
+        display: flex;
+        /*width: 100%;
+        height: 100%;*/
+        box-sizing: border-box;
+        position: relative;
+        font-family: inherit;
+        color: white;
+        letter-spacing: normal !important;
+        user-select: none !important;
+        z-index: auto;
+        isolation: isolate;
+      }
+      :host([fullscreen]) {
+        background-color: var(--fullscreen-background-color);
+        max-height: 100% !important;
+        max-width: 100% !important;
+        height: 100% !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        z-index: 1000;
+      }
+      :host(:-webkit-full-screen) {
+        background-color: var(--fullscreen-background-color);
+      }
+      #svgContainer {
+        border-radius: inherit;
+        position: relative;
+        display: flex;
+        flex-grow: 1;
+        flex-shrink: 0;
+        box-sizing: border-box;
+        width: 100%;
+        /*height: 100%;*/
+        padding-bottom: 2.5em;
+      }
+      :host([fullscreen]) > #svgContainer {
+        padding: 1em 3em 3em 1em !important;
+      }
+      #svgChart {
+        /*overflow: hidden;*/
+        position: relative;
+        flex-grow: 1;
+        /*flex-shrink: 1;*/
+        /*width: 100%;
+        height: 100%;
+        display: block;*/
+        font-family: inherit;
+      }
+      text {
+        fill: currentColor;
+        letter-spacing: normal !important;
+        font-family: inherit !important;
+        -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
+        mix-blend-mode: hard-light;
+      }
+      g#chart .axis {
+        font-size: inherit;
+      }
+      g#chart text {
+        font-size: 0.6em;
+      }
+      g#brush .selection {
+        stroke: currentColor;
+        stroke-opacity: 0.7;
+      }
+      rect#plot {
+        fill: var(--chart-plot-background, #fff);
+        stroke: currentColor;
+        fill-opacity: 0.2;
+        stroke-opacity: 0.5;
+        stroke-width: 1px;
+      }
+      :host[fullscreen] #plot,
+      :host([fullscreen]) #plot {
+        fill: var(--chart-plot-background, #ccc);
+      }
+      .grid .tick line {
+        stroke: currentColor;
+        stroke-opacity: 0.15;
+      }
+      .grid path {
+        stroke-width: 0;
+      }
+      .axis path, .axis line {
+        fill: none;
+        stroke: currentColor;
+        stroke-opacity: 0.5;
+        stroke-width: 1.5px;
+      }
+      .axis {
+        font-family: inherit;
+      }
+      #graphs .area {
+        fill-opacity: 0.3;
+        @apply(--chart-area);
+      }
+      #graphs .line {
+        cursor: pointer;
+        stroke-opacity: 0.7;
+        @apply(--chart-line);
+      }
+      #focus > * {
+        stroke: currentColor;
+        stroke-opacity: 0.5;
+        stroke-width: 1.5px;
+      }
+      #focus .focus.line {
+        pointer-events: none;
+        stroke-dasharray: 2;
+      }
+      .dot {
+        fill-opacity: 0.9;
+        cursor: pointer;
+      }
+      .selectbox > * {
+        flex: 1 0 auto;
+        padding: 0.6em 0.3em;
+        font-size: inherit !important;
+      }
+      .selectbox {
+        padding: 0;
+      }
+      #control {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+      }
+      .selectbox,
+      .button {
+        font-size: 12px;
+        margin-top: 0.25em;
+        margin-left: 0.25em;
+        margin-right: 0.25em;
+        color: var(--primary-text-color);
+      }
+      .button {
+        padding: 0.3em;
+      }
+      #controlcontent {
+        transform: translateY(-100%);
+        position: absolute;
+        top: 0;
+        right: 0;
+        display: flex;
+        flex-direction: column;
+        background-color: rgba(255, 255, 255, 0.25);
+      }
+      icon-button {
+        mix-blend-mode: exclusion;
+      }
+      [hidden] {
+        display: none !important;
+      }
+    </style>
+
+    <div id="svgContainer">
+      <svg id="svgChart" version="1.1" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet">
+        <g id="chart">
+          <clipPath id="clip">
+            <rect x="0" y="0"></rect>
+          </clipPath>
+          <rect id="plot" clip-path="url(#clip)"></rect>
+          
+          <g id="yGrid" class="grid" clip-path="url(#clip)"></g>
+          <g id="graphs" clip-path="url(#clip)">
+            <g id="areas"></g>
+            <g id="dots"></g>
+            <g id="bounderies"></g>
+            <g id="brush"></g>
+          </g>
+          <g id="focus" clip-path="url(#clip)" hidden="">
+            <line id="focusX" class="focus line x" x1="0"></line>
+            <line id="focusY" class="focus line y"></line>
+            <circle id="focusDot" class="focus dot"></circle>
+          </g>
+          <g id="xAxis" class="axis" on-tap="_resetZoom"></g>
+          <g id="yAxis" class="axis" on-tap="_resetZoom"></g>
+          <text id="info" x="0" y="0" hidden=""></text>
+        </g>
+      </svg>
+      <section id="control">
+        <iron-collapse id="controlcontent" opened="[[showControl]]">
+          <div class="selectbox">
+            <select value="{{interpolation::change}}">
+              <option value="Lineare Verbindung">Lineare Verbindung</option>
+              <option value="Basis Spline">Basis Spline</option>
+              <option value="Kubischer Spline">Kubischer Spline</option>
+              <option value="Cardinaler Spline">Cardinaler Spline</option>
+              <option value="Catmull-Rom-Spline">Catmull-Rom-Spline</option>
+              <option value="Stufe (mitte)">Stufe (mitte)</option>
+              <option value="Stufe (davor)">Stufe (davor)</option>
+              <option value="Stufe (danach)">Stufe (danach)</option>
+            </select>
+          </div>
+          <div class="selectbox">
+            <select value="{{yScale::change}}">
+              <option value="linear">linear</option>
+              <option value="√">√</option>
+              <option value="ln">ln</option>
+              <option value="log₁₀">log₁₀</option>
+            </select>
+          </div>
+          <div class="button" on-tap="toggleFullscreen">
+            <iron-icon icon="[[fullscreenIcon]]" class="left"></iron-icon>
+            Fullscreen
+          </div>
+          
+        </iron-collapse>
+        <icon-button title="settings" icon="tune" checked="{{showControl}}"></icon-button>
+      </section>
+  	</div>
+
+    <template is="dom-if" if="[[multi]]" restamp="">
+      <template is="dom-repeat" items="[[items]]">
+        <device-graph item="[[item]]" interpolation="[[interpolation]]" store-inside="" no-link="[[noLink]]">
+        </device-graph>
+      </template>
+    </template>
+
+    <template is="dom-if" if="[[!multi]]" restamp="">
+      <device-graph item="[[item]]" interpolation="[[interpolation]]" store-inside="" no-link="[[noLink]]">
+      </device-graph>
+    </template>
+
+  </template>
+
+  <script>d3.timeFormatDefaultLocale({dateTime:"%x %X",date:"%d.%m.%Y",time:"%H:%M:%S",periods:["",""],days:["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"],shortDays:["So","Mo","Di","Mi","Do","Fr","Sa"],months:["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"],shortMonths:["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Agu","Sep","Okt","Nov","Dez"]}),d3.formatDefaultLocale({decimal:",",thousands:".",grouping:[3],currency:[""," €"]}),Polymer({is:"device-chart",behaviors:[Polymer.IronResizableBehavior,WebvisualBehaviors.FullscreenBehavior],properties:{opened:{type:Boolean,reflectToAttribute:!0},openOnSelect:{type:Boolean,value:!0},gridMult:{type:Number,value:2},xScale:{type:String,value:"time",observer:"changeScale"},yScale:{type:String,value:"linear",observer:"changeScale"},domainX:{type:Array,value:function(){return[null,null]},notify:!0},domainY:{type:Array,value:function(){return[null,null]},notify:!0},interpolation:{type:String,value:"Lineare Verbindung",observer:"changeInterpolation"},noDots:{type:Boolean,value:!1},noLine:{type:Boolean,value:!1},noArea:{type:Boolean,value:!1},noLink:{type:Boolean},item:Object,items:Array,multi:{type:Boolean,value:!1},showControl:{type:Boolean,value:!1},uniqueid:String},_width:0,_height:0,_margin:{top:10,right:15,bottom:20,left:50},_yGrid:Object,_brush:Object,_chart:Object,_svg:Object,_info:Object,_focus:Object,_focusX:Object,_focusY:Object,_focusDot:Object,_areas:Object,_dots:Object,_bounderies:Object,_x:Function,_y:Function,_xAxis:Object,_yAxis:Object,_isBrushed:!1,_isZoomed:!1,format:{Millisecond:Function,Second:Function,LongSecond:Function,Minute:Function,LongMinute:Function,Hour:Function,Day:Function,Week:Function,Month:Function,Year:Function},_brushBehavior:Function,_messageCount:0,get _self(){return this},listeners:{"iron-resize":"_sizeChanged",contextmenu:"_resetZoom"},observers:["_sizeChanged(opened)"],created:function(){this._graphs=new Set,this.format.Millisecond=d3.timeFormat(":%S,%L"),this.format.LongSecond=d3.timeFormat(":%M:%S,%L"),this.format.Second=d3.timeFormat(":%M:%S"),this.format.LongMinute=d3.timeFormat("%H:%M:%S"),this.format.Minute=d3.timeFormat("%H:%M"),this.format.Hour=d3.timeFormat("%X"),this.format.Day=d3.timeFormat("%d.%m"),this.format.Week=d3.timeFormat("%d.%m"),this.format.Month=d3.timeFormat("%d. %b"),this.format.Year=d3.timeFormat("%Y")},ready:function(){for(var t,i;;)if(i=String(Math.random().toString(16).slice(2)),t=document.querySelector("[uniqueid='"+i+"']"),!t)break;this.setAttribute("uniqueid",i)},attached:function(){this._buildLayout(),this.async(function(){this._sizeChanged()})},_sizeChanged:function(){this._initialized&&this.debounce("resize",this._sizeLayout)},_buildLayout:function(){this._svg=d3.select(this.$.svgChart).attr("height",null).attr("width",null),this._x=this._createScale(this.xScale),this._y=this._createScale(this.yScale),this._chart=d3.select(this.$.chart),this._areas=d3.select(this.$.areas),this._dots=d3.select(this.$.dots),this._bounderies=d3.select(this.$.bounderies),this._info=d3.select(this.$.info),this._focus=d3.select(this.$.focus),this._focusX=d3.select(this.$.focusX),this._focusY=d3.select(this.$.focusY),this._focusDot=d3.select(this.$.focusDot),this._focusDot.on("mouseenter",function(){this.cancelDebouncer("hideinfo")}.bind(this)).on("mouseleave",this._hideInfo.bind(this)).on("click",function(t){var i=(this._x(this._x.domain()[1])-this._x(this._x.domain()[0]))/4,e=(this._y(this._y.domain()[0])-this._y(this._y.domain()[1]))/4,s=this._x(+this._info.x),h=this._y(+this._info.y)||0;d3.event.selection=[[s-i,h-e],[s+i,h+e]],this.brushed()}.bind(this)),this._brushBehavior=d3.brush().on("end",this.brushed.bind(this._self)),this._brush=d3.select(this.$.brush),this._brush.on("mouseenter touchstart",this._showInfo.bind(this)).on("mouseleave touchend",this._hideInfo.bind(this)).on("mousemove",function(){var t=d3.mouse(this._chart.node())[0],i=d3.mouse(this._chart.node())[1],e=this._x.invert(t);requestAnimationFrame(function(){var s,h,o;if(this._graphs.forEach(function(n){if(n.values&&n.values.length){var a=n.bisectDate(n.values,e,1);a<0?a=1:a>=n.values.length&&(a=n.values.length-1);var r=n.values[a-1],c=n.values[a];if(r&&c){var d,u,l=Math.pow(t-this._x(r.x),2)+Math.pow(i-this._y(r.y),2),_=Math.pow(t-this._x(c.x),2)+Math.pow(i-this._y(c.y),2);l<_?(d=l,u=r):(d=_,u=c),(void 0===o||d<o)&&(o=d,h=u,s=n)}}}.bind(this)),h){var n="#000";if(s.item.threshold)switch(h.state){case 1:n=s.customStyle["device-state-exceeds-color"]||"#F20C0C";break;case-1:n=s.customStyle["device-state-deceeds-color"]||"#F20C0C"}this._focusDot.attr("fill",n).attr("r",s.dotRadius),this.debounce("move-info",this._moveInfo.bind(this,h),5)}else this._hideInfo()}.bind(this))}.bind(this)).on("touchmove",this._resetZoom.bind(this)),this._svg.selectAll("g,line,text,path,rect").classed("style-scope",!0).classed("device-chart",!0),this._initialized=!0,this._sizeChanged()},_sizeLayout:function(){var t=this.$.svgChart.getBoundingClientRect();0!==t.height&&0!==t.width&&(this._height=t.height,this._width=t.width,this._width=this._width-this._margin.left-this._margin.right,this._height=this._height-this._margin.bottom-this._margin.top,this.xTicks=Math.ceil(this._width/150),this.yTicks=Math.ceil(this._height/50),this._x.range([0,this._width]),this._y.range([this._height,0]),this._chart.attr("transform","translate("+this._margin.left+","+this._margin.top+")"),this._chart.select("clipPath#clip rect").attr("width",this._width).attr("height",this._height),this._chart.select("rect#plot").attr("width",this._width).attr("height",this._height),this._xAxis=this._createAxis(this._x,"bottom",this.xScale),this._yAxis=this._createAxis(this._y,"left",this.yScale),this._yGrid=this._createAxis(this._y,"left",this.yScale,this.gridMult).tickSize(-this._width).tickFormat(""),this._chart.select("#xAxis").call(this._xAxis).attr("transform","translate(0,"+this._height+")"),this._chart.select("#yAxis").call(this._yAxis).attr("transform","translate(0,0)"),this._chart.select("#yGrid").call(this._yGrid).attr("transform","translate(0,0)"),this._isBrushed===!0&&this._isZoomed===!0||(this._brushBehavior.extent([[0,0],[this._width,this._height]]),this._brush.call(this._brushBehavior)),this._svg.selectAll("g,line,text,path,rect").classed("style-scope",!0).classed("device-chart",!0),this._focusY.attr("y1",this._height),this._redraw())},_createScale:function(t){switch(t){case"time":return d3.scaleTime();case"ln":return d3.scaleLog().base(Math.E);case"log₁₀":return d3.scaleLog();case"√":return d3.scaleSqrt();default:return d3.scaleLinear()}},_createAxis:function(t,i,e,s){var h,o;switch(s=s||1,i){case"top":h=d3.axisTop(),o=this.xTicks;break;case"bottom":h=d3.axisBottom(),o=this.xTicks;break;case"left":h=d3.axisLeft(),o=this.yTicks;break;case"right":h=d3.axisRight(),o=this.yTicks}return h.scale(t).ticks(o*s),"time"===e?h.ticks(o*s).tickFormat(this.timeFormat.bind(this)):t.base&&t.base()===Math.E&&h.tickFormat(function(t){return t<1||t>1e3?Math.log(t).toExponential(3):Math.log(t).toFixed(2)}),h},timeFormat:function(t){return(d3.timeSecond(t)<t?this.format.Millisecond:d3.timeMinute(t)<t?this.format.Second:d3.timeHour(t)<t?this.format.Minute:d3.timeDay(t)<t?this.format.Hour:d3.timeMonth(t)<t?d3.timeWeek(t)<t?this.format.Day:this.format.Week:d3.timeYear(t)<t?this.format.Month:this.format.Year)(t)},timeFormatRange:function(t,i,e){var s=(i[1]-i[0]).valueOf()/e;return(s<100?this.format.Millisecond:s<500?this.format.LongSecond:s<5e3?this.format.Second:s<2e4?this.format.LongMinute:s<6e4?this.format.Minute:s<36e5?this.format.Hour:s<864e5?this.format.Day:s<6048e5?this.format.Week:s<24192e5?this.format.Month:this.format.Year)(t)},redraw:function(){this.opened&&this._chart&&this._chart.select&&Promise.resolve(this.setDomains.call(this)).then(this._redraw.bind(this)).catch(function(t){t&&console.warn(t)})},_redraw:function(t){if(this.opened&&this._chart&&this._chart.select){if(t||!this.domainY||!this.domainX)return void this.redraw();this._graphs.size>0&&this._graphs.forEach(function(t){t.redraw&&t.redraw()}),this._chart.select("#xAxis").call(this._xAxis),this._chart.select("#yAxis").call(this._yAxis),this._chart.transition(50).select("#yGrid").call(this._yGrid),this._svg.selectAll("g,line,text,path,rect").classed("style-scope",!0).classed("device-chart",!0),this._updateInfo()}},brushed:function(){var t=d3.event.selection;return this._hideInfo(),t?(this._isBrushed=!0,this._isZoomed=!0,this._x.domain([t[0][0],t[1][0]].map(this._x.invert,this._x)).nice(this.xTicks),this._y.domain([t[1][1],t[0][1]].map(this._y.invert,this._y)).nice(this.yTicks),void this._brush.call(this._brushBehavior.move,null)):this._isBrushed!==!0?(this._isZoomed=!1,void this.redraw()):(this._isBrushed=!1,void this._redraw())},setDomains:function(){return new Promise(function(t,i){this._graphs.size||i("No Graphs are attached"),this._isZoomed!==!0&&this._isBrushed!==!0||t(),this.requestRange("x").then(function(e){var s=e;this.requestRange("y").then(function(i){var e=i;void 0!==e[0]&&void 0!==e[1]&&e[0]===e[1]&&(e[0]-=.5,e[1]+=.5),"ln"!==this.yScale&&"log₁₀"!==this.yScale||(e[0]<=0&&(e[0]=Number.EPSILON),e[1]<=0&&(e[1]=Number.EPSILON)),this._x.domain(s),this.set("domainX",s),this._y.domain(e).nice(this.yTicks),e=this._y.domain(),e[0]===i[0]&&(e[0]-=(i[1]-i[0])/this.yTicks),e[1]===i[1]&&(e[1]+=(i[1]-i[0])/this.yTicks),this._y.domain(e),this.set("domainY",e),t()}.bind(this)).catch(function(t){i(t)})}.bind(this)).catch(function(t){i(t)})}.bind(this))},insertValues:function(t){this._graphs.forEach(function(i){i.item&&i.item.mount&&t[i.item.mount]&&i.insertValues(t[i.item.mount])})},clearValues:function(){this._graphs.forEach(function(t){t.item&&t.item.mount&&t.clearValues()})},requestRange:function(t){return new Promise(function(i,e){var s=[];this._graphs.forEach(function(i){i.item&&i.item.mount&&s.push(i.requestRange(t))}),Promise.all(s).then(function(t){for(var s,h,o=0;o<t.length;o++)s=void 0===s||s>t[o][0]?t[o][0]:s,h=void 0===h||h<t[o][1]?t[o][1]:h;void 0!==s&&void 0!==h||e(),i([s,h])}).catch(function(t){})}.bind(this))},_moveInfo:function(t){if(Number.isFinite(this._y(t.y))){var i=this.timeFormatRange.call(this,t.x,this._x.domain(),this._width);this._info.text(i+" , "+t.y),this._info.x=t.x,this._info.y=t.y,this._info.attr("hidden",null),this._focus.attr("hidden",null),this._updateInfo()}},_showInfo:function(){this.cancelDebouncer("hideinfo"),this._focus.attr("hidden",null)},_hideInfo:function(){this.debounce("hideinfo",this._debounceHideInfo,1500)},_debounceHideInfo:function(){this._xAxis=this._createAxis(this._x,"bottom",this.xScale),this._yAxis=this._createAxis(this._y,"left",this.yScale),this._chart.select("#xAxis").call(this._xAxis),this._chart.select("#yAxis").call(this._yAxis),this._info.attr("hidden",""),this._focus.attr("hidden",""),this._svg.selectAll("g,line,text,path,rect").classed("style-scope",!0).classed("device-chart",!0)},_updateInfo:function(){if(""!==this._info.attr("hidden")&&void 0!==this._info.x&&void 0!==this._info.y){var t=this._x(+this._info.x),i=this._y(+this._info.y);if(t&&i){var e=this._info.node().getBBox();this._info.attr("x",t+4+e.width>this._width?t-4-e.width<0?0:t-4-e.width:t+4).attr("y",i>e.height+4?i-4:e.height),this._focusX.attr("x2",t).attr("y2",i).attr("y1",i),this._focusY.attr("y2",i).attr("x2",t).attr("x1",t),this._focusDot.attr("cy",i).attr("cx",t),this._xAxis.tickValues([this._info.x]),this._yAxis.tickValues([this._info.y]),this._chart.select("#xAxis").call(this._xAxis),this._chart.select("#yAxis").call(this._yAxis),this._svg.selectAll("g,line,text,path,rect").classed("style-scope",!0).classed("device-chart",!0)}}},toggleMenu:function(){this.$.menu.hasAttribute("hidden")?this.$.menu.removeAttribute("hidden"):this.$.menu.setAttribute("hidden","")},changeInterpolation:function(t,i){this._graphs.size&&this._graphs.forEach(function(i){i.set("interpolation",t)})},changeScale:function(t,i){if(void 0!==i){var e=this._y.domain();"ln"!==this.yScale&&"log₁₀"!==this.yScale||(e[0]<=0&&(e[0]=Number.EPSILON),e[1]<=0&&(e[1]=Number.EPSILON)),this._hideInfo(),this._y=this._createScale(this.yScale),this._y.domain(e).nice(this.yTicks),this.set("domainY",e),this.debounce("resize",this._sizeLayout)}},_resetZoom:function(t){d3.event?d3.event.preventDefault():t&&t.preventDefault&&t.preventDefault(),this._isZoomed=!1,this._hideInfo(),this.redraw()},_refresh:function(){this._buildLayout(),this._graphs.size&&(this._graphs.forEach(function(t){t.clearValues(!0),t.requestValues(null,null,this.viewLength).then(function(t){for(var i in t)if(i===this.item.mount){this.insertValues(t[i]);break}}.bind(t)).catch(function(t){t&&console.log(t)}.bind(this))}.bind(this)),this._isZoomed=!1,this.redraw())}});</script>
+
+</dom-module>
+</body></html>

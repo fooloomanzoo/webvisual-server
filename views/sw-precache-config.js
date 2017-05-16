@@ -51,7 +51,7 @@ module.exports = {
     handler: 'cacheFirst',
     options: {
       cache: {
-        maxEntries: 1,
+        maxEntries: 2,
         name: 'socket.io'
       }
     }

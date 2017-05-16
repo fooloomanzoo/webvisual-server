@@ -14,7 +14,9 @@
           value: window.location.origin
         },
 
-        socketName: String,
+        nameSpace: {
+          type: String
+        },
 
         socketRoom: {
           type: String,
@@ -47,18 +49,18 @@
 
       _connect: function(loggedIn, offline, lazyConnect) {
         if (loggedIn && !offline && lazyConnect) {
-          this._createSocketConnection(this.locationHost, this.socketName);
+          this._createSocketConnection(this.locationHost, this.nameSpace);
         } else {
           this.socketStatus = 'sync-problem';
           Webvisual.disconnect();
         }
       },
 
-      _createSocketConnection: function(locationHost, socketName) {
-        if (!locationHost || !socketName || this.socketStatus === 'sync-disabled') return;
+      _createSocketConnection: function(locationHost, nameSpace) {
+        if (!locationHost || this.socketStatus === 'sync-disabled') return;
 
         Webvisual.assignStatusNotifications(this);
-        Webvisual.createSocketConnection(locationHost, socketName);
+        Webvisual.createSocketConnection(locationHost, nameSpace);
 
         if (this.socketRoom) {
           if (this.socketRoom.substring(0, 1) === '/') {

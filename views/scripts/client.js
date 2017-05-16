@@ -3,7 +3,7 @@ function WebvisualClient() {
   this.mobile = this._testMobile();
 
   this.locationHost = '';
-  this.socketName = '';
+  this.nameSpace = '';
   this.socketRoom = '';
 
   this.messageId = 0;
@@ -12,11 +12,11 @@ function WebvisualClient() {
 
 WebvisualClient.prototype = {
 
-  createSocketConnection: function(locationHost, socketName) {
-    if (locationHost && socketName) {
+  createSocketConnection: function(locationHost, nameSpace) {
+    if (locationHost) {
 
       this.locationHost = locationHost;
-      this.socketName = socketName;
+      this.nameSpace = nameSpace;
 
       if (!this.webworker) {
         this.webworker = new Worker('/scripts/worker.js');
@@ -53,7 +53,7 @@ WebvisualClient.prototype = {
         operation: 'connect',
         args: {
           locationHost: this.locationHost,
-          socketName: this.socketName
+          nameSpace: this.nameSpace
         }
       })
     }

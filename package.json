@@ -41,7 +41,7 @@
     "passport-socketio-redis": "^1.0.2",
     "redis": "^2.6.3",
     "serve-static": "^1.11.1",
-    "socket.io": "*",
+    "socket.io": "^1.7.4",
     "spdy": "*",
     "svgo": "*",
     "underscore": "*",

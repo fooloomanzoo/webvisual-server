@@ -1,0 +1,202 @@
+<html><head><link rel="import" href="../bower_components/polymer/polymer.html">
+
+<link rel="import" href="behaviors/color-behavior.html">
+<link rel="import" href="behaviors/checked-and-select-behavior.html">
+<link rel="import" href="behaviors/device-behavior.html">
+
+<link rel="import" href="./style/device-shared-style.html">
+
+</head><body><dom-module id="device-checkbox">
+  <template strip-whitespace="">
+    <style include="device-shared-style">
+      :host {
+        @apply(--layout-inline);
+        position: relative;
+        line-height: 0;
+        --calculated-box-size: var(--box-size, 20px);
+        --calculated-box-ink-size: var(--box-ink-size, -1px);
+        padding: 0.25em 0.5em;
+        transition: background-color 200ms ease;
+        box-sizing: border-box;
+        cursor: pointer;
+        pointer-events: all;
+      }
+
+      #boxContainer {
+        display: inline-block;
+				align-self: center;
+        position: relative;
+        line-height: 0;
+        -webkit-tap-highlight-color: transparent;
+        width: var(--calculated-box-size);
+        height: var(--calculated-box-size);
+        min-width: var(--calculated-box-size);
+        margin: var(--box-margin, initial);
+        vertical-align: var(--box-vertical-align, middle);
+        background-color: var(--box-unchecked-background-color, transparent);
+      }
+
+      #ripple {
+        position: absolute;
+        /* Center the ripple in the checkbox by negative offsetting it by
+         * (inkWidth - rippleWidth) / 2 */
+        top: calc(0px - (var(--calculated-box-ink-size) - var(--calculated-box-size)) / 2);
+        left: calc(0px - (var(--calculated-box-ink-size) - var(--calculated-box-size)) / 2);
+        width: var(--calculated-box-ink-size);
+        height: var(--calculated-box-ink-size);
+        color: var(--box-unchecked-ink-color, var(--primary-text-color));
+        opacity: 0.6;
+        pointer-events: none;
+      }
+
+      #box {
+        opacity: 0.75;
+        position: relative;
+        box-sizing: border-box;
+        position: relative;
+        height: 100%;
+        border: solid 2px;
+        border-color: var(--checkbox-border, var(--primary-text-color));
+        border-radius: 2px;
+        background-color: rgba(255, 255, 255, 0.9);
+        pointer-events: none;
+        -webkit-transition: background-color 150ms, border-color 150ms, opacity 150ms;
+        transition: background-color 150ms, border-color 150ms, opacity 150ms;
+      }
+
+      #arrow {
+        position: absolute;
+        width: 36%;
+        height: 70%;
+        border-style: solid;
+        border-top: none;
+        border-left: none;
+        border-right-width: calc(2/15 * var(--calculated-box-size));
+        border-bottom-width: calc(2/15 * var(--calculated-box-size));
+        border-color: var(--box-arrow-color, white);
+        -webkit-transform-origin: 97% 87%;
+        transform-origin: 97% 87%;
+        box-sizing: content-box; /* protect against page-level box-sizing */
+      }
+
+      #boxContainer #box {
+        background-color: var(--device-color);
+      }
+      #boxContainer[state="0"] #box {
+        background-color: var(--device-state-inrange-color, var(--device-color));
+      }
+      :host([checked]) #boxContainer[state="1"] #box {
+        border-color: var(--device-state-exceeds-color);
+      }
+      :host([checked]) #boxContainer[state="-1"] #box {
+        border-color: var(--device-state-deceeds-color);
+      }
+      :host(:not([checked])) #boxContainer[state="1"] #box {
+        background-color: var(--device-state-exceeds-color);
+      }
+      :host(:not([checked])) #boxContainer[state="-1"] #box {
+        background-color: var(--device-state-deceeds-color);
+      }
+
+      #boxContainer #ripple {
+        color: var(--device-color);
+      }
+      #boxContainer[state="0"] #ripple {
+        color: var(--device-state-inrange-color);
+      }
+      #boxContainer[state="1"] #ripple {
+        color: var(--device-state-exceeds-color);
+      }
+      #boxContainer[state="-1"] #ripple {
+        color: var(--device-state-deceeds-color);
+      }
+
+      :host([checked]) #box {
+        opacity: 1;
+      }
+
+      :host {
+        @apply(--checkbox-unchecked);
+      }
+
+      :host([checked]) {
+        @apply(--checkbox-checked);
+      }
+
+      :host(:focus) {
+        outline: 1px solid var(--bright-primary-color);
+      }
+
+      /* box checked animations */
+      :host([checked]) #arrow {
+        -webkit-animation: arrow-expand 250ms ease-out forwards;
+        animation: arrow-expand 250ms ease-out forwards;
+      }
+
+      @-webkit-keyframes arrow-expand {
+        0% {
+          -webkit-transform: scale(0, 0) rotate(45deg);
+        }
+        100% {
+          -webkit-transform: scale(1, 1) rotate(45deg);
+        }
+      }
+
+      @keyframes arrow-expand {
+        0% {
+          transform: scale(0, 0) rotate(45deg);
+        }
+        100% {
+          transform: scale(1, 1) rotate(45deg);
+        }
+      }
+
+      :host([disabled]) #box {
+        opacity: 0.5;
+        border-color: var(--box-unchecked-color, --primary-text-color);
+      }
+      :host([disabled][checked]) #box {
+        background-color: var(--disabled-text-color, --primary-text-color);
+        opacity: 0.5;
+      }
+
+      #dropdown {
+        --dropdown-background: rgba(0, 0, 0, 0.75);
+        border-radius: 4px;
+        border: thin solid #333;
+        min-height: 3em;
+        min-width: 3em;
+      }
+      #value {
+        --device-color: transparent;
+        --device-state-inrange-color: transparent;
+        --device-state-inrange-text-color: var(--bright-text-color);
+      }
+      [hidden] {
+        display: none !important;
+      }
+    </style>
+
+    <section id="boxContainer" state$="[[state]]">
+      <template is="dom-if" if="[[selectable]]">
+        <paper-ripple id="ripple" center="" class="circle"></paper-ripple>
+      </template>
+      <section id="box">
+        <section id="arrow" hidden$="[[!checked]]"></section>
+      </section>
+    </section>
+
+    <slot></slot>
+
+    <template is="dom-if" if="[[_dropdownValue]]">
+      <dropdown id="dropdown" hiding-event="tap" position="bottom" align="center" offset="8" autoclose="4000">
+          <device-sign id="value" state="{{state}}" item="[[item]]" show-date="[[showDate]]">
+          </device-sign>
+      </dropdown>
+    </template>
+
+  </template>
+
+  <script>Polymer({is:"device-checkbox",behaviors:[WebvisualBehaviors.ColorBehavior,WebvisualBehaviors.CheckedAndSelectBehavior,WebvisualBehaviors.DeviceBehavior],properties:{viewLength:{type:Number,value:1},checked:{type:Boolean,reflectToAttribute:!0,notify:!0,observer:"checkedChanged"},showDate:Boolean,dropdownValue:Boolean,_dropdownValue:Boolean},listeners:{tap:"select"},observers:["_setDropdown(dropdownValue)"],insertValues:function(e){if(e&&e.length){this._initialized||(this._initialized=!0);var t=e[e.length-1];this.item.exceedable&&(this.checkExceedingState(t),this.hasAttribute("state")&&this.state===t.state||this.setAttribute("state",t.state))}else this.renderClearing()},renderClearing:function(){this._initialized=!1,this.setAttribute("state",null)},attached:function(){var e=this.getComputedStyleValue("--calculated-box-ink-size").trim();if("-1px"===e){var t=parseFloat(this.getComputedStyleValue("--calculated-box-size").trim()),o=Math.floor(8/3*t);o%2!==t%2&&o++,this.customStyle["--box-ink-size"]=o+"px",this.updateStyles()}},_setDropdown:function(e,t){e?this.importHref(this.resolveUrl("components/dropdown.html"),function(){this._dropdownValue=!0,this.importHref(this.resolveUrl("sign.html"),function(){this.$.boxContainer.addEventListener("mouseenter",this._openDropdown,{passive:!0}),this.$.boxContainer.addEventListener("mouseleave",this._closeDropdown,{passive:!0}),this._dropdown=null}.bind(this),null,!0)}.bind(this),null,!0):(this.$.boxContainer.removeEventListener("mouseenter",this._openDropdown,{passive:!0}),this.$.boxContainer.removeEventListener("mouseleave",this._closeDropdown,{passive:!0}),this._dropdown=null,this._dropdownValue=!1)},_openDropdown:function(){this._dropdown||(this._dropdown=Polymer.dom(this.root).querySelector("#dropdown")),this._dropdown.open(this.$.boxContainer.getBoundingClientRect())},_closeDropdown:function(){this._dropdown||(this._dropdown=Polymer.dom(this.root).querySelector("#dropdown")),this._dropdown.close()}});</script>
+</dom-module>
+</body></html>

@@ -4,12 +4,6 @@
 # certs
 defaults/ssl/*
 
-# build
-public/build/*
-public/**
-public/data/**
-**/build/**
-
 # Logs
 logs
 *.log
@@ -17,6 +11,10 @@ npm-debug.log*
 
 # Datafiles
 *.txt
+
+# Views
+views/tmp
+views/build
 
 # Tests
 views/data

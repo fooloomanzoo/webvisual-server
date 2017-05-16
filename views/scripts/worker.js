@@ -12,7 +12,7 @@ try {
 self.IOSocket = function () {
   this.socket = null;
   this.locationHost = '';
-  this.socketName = '';
+  this.nameSpace = '';
   this.socketRoom = '';
   this.mobile = false;
 }
@@ -22,12 +22,12 @@ self.IOSocket.prototype = {
   connect: function(opt) {
     if (!this.socket) {
       this.locationHost = opt.locationHost || this.locationHost;
-      this.socketName = opt.socketName || this.socketName;
+      this.nameSpace = opt.nameSpace || this.nameSpace;
 
-      if (!this.locationHost || !this.socketName) {
+      if (!this.locationHost) {
         return;
       }
-      this.socket = io.connect(this.locationHost + '/' + this.socketName, {
+      this.socket = io.connect(this.locationHost + '/' + this.nameSpace, {
         multiplex: false
       });
 
