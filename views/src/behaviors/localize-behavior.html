@@ -80,8 +80,15 @@
       return function() {
         var fallbackLanguage = fallback;
 
-        if (!arguments[0] || !languageResources || !language)
-          return;
+        if (!arguments[0])
+          return '';
+
+        if (!languageResources) {
+          return arguments[0];
+        }
+
+        if (!(language && languageResources[language]))
+          language = fallbackLanguage;
 
         var translatedValue = languageResources[language];
 

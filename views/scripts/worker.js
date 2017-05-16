@@ -1,22 +1,12 @@
 try {
   importScripts('/socket.io/socket.io.js');
-} catch (e) {
-  console.log(e);
-}
-try {
   importScripts('/polyfills/polyfills.js');
-} catch (e) {
-  console.log(e);
-}
-try {
   importScripts('/scripts/store.js');
+  if (!self.Promise) {
+    importScripts('/polyfills/promise.js');
+  }
 } catch (e) {
   console.log(e);
-}
-
-
-if (!self.Promise) {
-  importScripts('/polyfills/promise.js');
 }
 
 self.IOSocket = function () {
@@ -47,9 +37,13 @@ self.IOSocket.prototype = {
           type: 'status',
           status: 'connected'
         })
+        if (this._connectionLostAt) {
+          this.request({from: this._connectionLostAt});
+        }
       }.bind(this));
       this.socket.on('disconnect', function() {
         console.warn('clientSocket disconnected to: ' + this.locationHost);
+        this._connectionLostAt = +(new Date());
         self.postMessage( {
           type: 'status',
           status: 'disconnected'
@@ -64,6 +58,7 @@ self.IOSocket.prototype = {
       }.bind(this));
       this.socket.on('error', function(err) {
         console.error('clientSocket error: ', err);
+        this._connectionLostAt = +(new Date());
         self.postMessage( {
           type: 'status',
           status: 'sync-problem'
@@ -71,17 +66,17 @@ self.IOSocket.prototype = {
       }.bind(this));
 
       this.socket.on('initial', function(message) {
-        // reset cache and clear database on initial data
-        // if (self.navigator && self.navigator.onLine === true) {
-        //   self._clearDatabase();
-        //   self._clearCache();
-        // }
         this.initialized = true;
         self._updateData(message, 'initial');
       }.bind(this));
 
       this.socket.on('update', function(message) {
         self._updateData(message, 'update');
+      });
+
+      this.socket.on('reset', function() {
+        self._clearCache();
+        self._clearDatabase();
       });
 
       this.socket.on('request', function(message) {
@@ -268,6 +263,10 @@ self._updateData = function(message, type) {
 
 self._updateCache = function(message) {
   CacheStore.place(message.values);
+}
+
+self._clearCache = function() {
+  CacheStore.clear();
 }
 
 self._updateClient = function(message, type) {

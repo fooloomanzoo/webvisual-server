@@ -41,7 +41,7 @@
         position: absolute;
         top: 0; bottom: 0; left: 0; right: 0;
         border-radius: inherit;
-        padding-bottom: 2.5em;
+        padding-bottom: calc(var(--icon-size, 1.5em) + 2*var(--icon-padding, 0.5em) + var(--control-bottom, 0px));
         isolation: isolate;
       }
       :host([fullscreen]) > #svgContainer {
@@ -55,6 +55,7 @@
       }
       text {
         fill: currentColor;
+        font-size: 8px;
         letter-spacing: normal !important;
         font-family: inherit !important;
         -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
@@ -261,6 +262,18 @@
           value: true
         },
 
+        margin: {
+          type: Object,
+          value: function() {
+            return {
+              top: 4,
+              right: 12,
+              bottom: 16,
+              left: 48
+            }
+          }
+        },
+
         gridMult: {
           type: Number,
           value: 2
@@ -340,12 +353,6 @@
 
       _width: 0,
       _height: 0,
-      _margin: {
-        top: 10,
-        right: 15,
-        bottom: 20,
-        left: 50
-      },
 
       // _xGrid: Object,
       _yGrid: Object,
@@ -570,11 +577,8 @@
 
         if (bRect.height === 0 || bRect.width === 0) return;
 
-        this._height = bRect.height;
-        this._width = bRect.width;
-
-        this._width = this._width - this._margin.left - this._margin.right;
-        this._height = this._height - this._margin.bottom - this._margin.top;
+        this._width = bRect.width - (this.margin.left || 0) - (this.margin.right || 0);
+        this._height = bRect.height - (this.margin.bottom || 0) - (this.margin.top || 0);
 
         this.xTicks = Math.ceil(this._width / 150);
         this.yTicks = Math.ceil(this._height / 50);
@@ -582,7 +586,7 @@
         this._x.range([0, this._width]);
         this._y.range([this._height, 0]);
 
-        this._chart.attr('transform', 'translate(' + this._margin.left + ',' + (this._margin.top) + ')');
+        this._chart.attr('transform', 'translate(' + (this.margin.left || 0) + ',' + (this.margin.top || 0) + ')');
 
         // Limiting Projection to Margin
         this._chart.select('clipPath#clip rect')
@@ -609,6 +613,7 @@
         this._chart.select('#yAxis')
           .call(this._yAxis)
           .attr('transform', 'translate(0,' + 0 + ')');
+
         // this._chart.select('#xGrid')
         //   .attr('transform', 'translate(0,' + this._height + ')')
         //   .call(this._xGrid);

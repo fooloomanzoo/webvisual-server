@@ -363,7 +363,7 @@
             <paper-ripple id="ripple" recenters></paper-ripple>
             <iron-icon icon="more-vert" class="left"></iron-icon>
             <span>{{localize('view')}}</span>
-            <iron-icon icon="expand-more" class="right"></iron-icon>
+            <iron-icon icon="expand-less" class="right"></iron-icon>
           </div>
 
           <iron-collapse id="route-collapse" opened>
@@ -705,8 +705,9 @@
                             .filter(function (str) { return str !== ''; });
 
         if (names.length >= 2) {
+          var page = subroute.prefix.slice(1);
           this.facilitySystem = names[0] + '/' + names[1];
-          document.title = names.join('/')  + ' - ' + (this.localize ? this.localize(this.page, 'name') : subroute.prefix.slice(1));
+          document.title = names.join('/')  + ' - ' + (this.localize ? this.localize(page, 'name') : page);
         }
       },
 
@@ -949,7 +950,7 @@
             if (iconbutton.icon === 'expand-more')
               iconbutton.set('icon', 'expand-less');
             else
-              iconbutton.set('icon', 'expand-less');
+              iconbutton.set('icon', 'expand-more');
           }
         }
       },
