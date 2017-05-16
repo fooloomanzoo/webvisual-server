@@ -13,12 +13,12 @@ npm-debug.log*
 *.txt
 
 # Views
+views/build/**
 views/tmp
-views/build
 
 # Tests
-views/data
-views/images
+views/**/data
+views/**/images
 
 # Runtime data
 pids
