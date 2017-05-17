@@ -315,15 +315,13 @@ class Router extends EventEmitter {
                 resolve(data);
                 });
               }).then( data => {
-                // svgo.optimize(data, result => {
-                  fs.writeFile(dpath, data, 'utf8', (err) => { // .replace(/\s+/g, ' ') trim all whitespaces for data reduction
+                  fs.writeFile(dpath, data, 'utf8', (err) => {
                     if (err) {
                       console.error(`Transfer SVG-File failed \n from ${opath} \n ${err}`);
                       return;
                     }
                     console.log(`Transfer SVG-File successful \n from ${opath} \n to ${dpath}`);
                   });
-                // });
               }).catch( err => {
                 console.error(`Transfer SVG-File failed \n from ${opath} \n ${err}`);
               });

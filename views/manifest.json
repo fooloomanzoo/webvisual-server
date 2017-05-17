@@ -3,7 +3,7 @@
   "short_name": "Webvisual",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#669DB4",
+  "background_color": "#005B82",
   "theme_color": "#345475",
   "icons": [
     {

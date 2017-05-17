@@ -3,7 +3,6 @@
 <link rel="import" href="behaviors/fullscreen-behavior.html" />
 
 <link rel="import" href="components/icon-button.html" />
-
 <!--
 'device-svg' provides rendering a svg in a container.
 
@@ -104,7 +103,7 @@
       pointer-events: none;
     }
     .selectable {
-      pointer-events: all;
+      pointer-events: all !important;
       cursor: pointer;
       transform-origin: center center;
       -moz-transform-origin: 50% 50%;
@@ -311,19 +310,19 @@
         '_exceedingChanged(exceeding.length)'
       ],
 
-      created: function() {
-        this._enshureD3();
-      },
+      // created: function() {
+      //   this._enshureD3();
+      // },
 
-      _enshureD3: function() {
-        return new Promise((resolve, reject) => {
-          if (!window.hasOwnProperty('d3')) {
-            Polymer.importHref(this.resolveUrl('lazy-d3.html'), resolve.bind(this));
-          } else {
-            resolve();
-          }
-        });
-      },
+      // _enshureD3: function() {
+      //   return new Promise((resolve, reject) => {
+      //     if (!window.hasOwnProperty('d3')) {
+      //       importScripts('/scripts/d3.bundle.js', resolve.bind(this)); // importScripts --> in './scripts/polyfills.js'
+      //     } else {
+      //       resolve();
+      //     }
+      //   });
+      // },
 
       _openedChanged: function() {
         if (!this.src) return;
@@ -343,7 +342,7 @@
       },
 
       _srcChanged: function(src, urlPrefix) {
-        this._enshureD3().then( () => {
+        // this._enshureD3().then( () => {
           if (src && this._recentSrc !== src) {
             this._recentSrc = src;
             this._svg = d3.select(this.$.svgContainer).select('svg#main');
@@ -358,7 +357,7 @@
                 console.log('Failed to read source\n', req);
               });
           }
-        })
+        // })
       },
 
       _fetchResource: function(url) {

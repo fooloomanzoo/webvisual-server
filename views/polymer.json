@@ -6,8 +6,7 @@
     "src/page-list.html",
     "src/page-groups.html",
     "src/page-detail.html",
-    "src/lazy-resources.html",
-    "src/lazy-d3.html"
+    "src/lazy-resources.html"
   ],
   "sources": [
     "src/**/*",
@@ -22,7 +21,7 @@
     "locales.json",
     "app.yaml"
   ],
-  "builds": [{
+  "builds": [ {
     "name": "compiled",
     "bundle": true,
     "js": {
@@ -36,8 +35,8 @@
       "minify": true
     },
     "addServiceWorker": true
-  }],
+  } ],
   "lint": {
-    "rules": ["polymer-2-hybrid"]
+    "rules": [ "polymer-2-hybrid" ]
   }
 }

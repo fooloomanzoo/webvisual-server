@@ -32,11 +32,12 @@
   }
 
   // scrollIntoViewIfNeeded
-  if (!(typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope) && !Element.prototype.scrollIntoViewIfNeeded) {
-    Element.prototype.scrollIntoViewIfNeeded = function (centerIfNeeded) {
-      centerIfNeeded = arguments.length === 0 ? true : !!centerIfNeeded;
+  if (!(typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope)) {
+    if (!Element.prototype.scrollIntoViewIfNeeded) {
+      Element.prototype.scrollIntoViewIfNeeded = function(centerIfNeeded) {
+        centerIfNeeded = arguments.length === 0 ? true : !!centerIfNeeded;
 
-      var parent = this.parentNode,
+        var parent = this.parentNode,
           parentComputedStyle = window.getComputedStyle(parent, null),
           parentBorderTopWidth = parseInt(parentComputedStyle.getPropertyValue('border-top-width')),
           parentBorderLeftWidth = parseInt(parentComputedStyle.getPropertyValue('border-left-width')),
@@ -46,20 +47,35 @@
           overRight = (this.offsetLeft - parent.offsetLeft + this.clientWidth - parentBorderLeftWidth) > (parent.scrollLeft + parent.clientWidth),
           alignWithTop = overTop && !overBottom;
 
-      if ((overTop || overBottom) && centerIfNeeded) {
-        parent.scrollTop = this.offsetTop - parent.offsetTop - parent.clientHeight / 2 - parentBorderTopWidth + this.clientHeight / 2;
-      }
+        if ((overTop || overBottom) && centerIfNeeded) {
+          parent.scrollTop = this.offsetTop - parent.offsetTop - parent.clientHeight / 2 - parentBorderTopWidth + this.clientHeight / 2;
+        }
 
-      if ((overLeft || overRight) && centerIfNeeded) {
-        parent.scrollLeft = this.offsetLeft - parent.offsetLeft - parent.clientWidth / 2 - parentBorderLeftWidth + this.clientWidth / 2;
-      }
+        if ((overLeft || overRight) && centerIfNeeded) {
+          parent.scrollLeft = this.offsetLeft - parent.offsetLeft - parent.clientWidth / 2 - parentBorderLeftWidth + this.clientWidth / 2;
+        }
 
-      if ((overTop || overBottom || overLeft || overRight) && !centerIfNeeded) {
-        this.scrollIntoView(alignWithTop);
+        if ((overTop || overBottom || overLeft || overRight) && !centerIfNeeded) {
+          this.scrollIntoView(alignWithTop);
+        }
+      };
+    }
+    if (!window.importScripts) {
+      window.loadError = function(e) {
+        throw new URIError("The script " + e.target.src + " is not accessible.");
       }
-    };
+      window.importScripts = function(src, callback) {
+        var script = document.createElement("script");
+        script.type = "text\/javascript";
+        script.onerror = loadError;
+        if (callback) {
+          script.onload = callback;
+        }
+        document.currentScript.parentNode.insertBefore(script, document.currentScript);
+        script.src = src;
+      }
+    }
   }
-
   // String.startsWith
 
   if (!String.prototype.startsWith) {
@@ -77,6 +93,6 @@
   // Number.isFinite
   Number.isFinite = Number.isFinite || function(value) {
     return typeof value === "number" && isFinite(value);
-}
+  }
 
 })();

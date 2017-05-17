@@ -229,9 +229,9 @@
           no-link="[[noLink]]">
         </device-graph>
       </template>
-  </template>
+    </template>
 
-  <template is="dom-if" if="[[!multi]]" restamp>
+    <template is="dom-if" if="[[!multi]]" restamp>
       <device-graph
         item="[[item]]"
         interpolation="[[interpolation]]"
@@ -266,9 +266,9 @@
           type: Object,
           value: function() {
             return {
-              top: 4,
-              right: 12,
-              bottom: 16,
+              top: 7,
+              right: 13,
+              bottom: 18,
               left: 48
             }
           }
@@ -408,7 +408,7 @@
 
       created: function() {
         this._graphs = new Set();
-        this._enshureD3().then(() => {
+        // this._enshureD3().then(() => {
           d3.timeFormatDefaultLocale({
             'dateTime': '%x %X',
             'date': '%d.%m.%Y',
@@ -435,18 +435,18 @@
           this.format.Week = d3.timeFormat('%d.%m');
           this.format.Month = d3.timeFormat('%d. %b');
           this.format.Year = d3.timeFormat('%Y');
-        });
+        // });
       },
 
-      _enshureD3: function() {
-        return new Promise((resolve, reject) => {
-          if (!window.hasOwnProperty('d3')) {
-            Polymer.importHref(this.resolveUrl('lazy-d3.html'), resolve.bind(this));
-          } else {
-            resolve();
-          }
-        });
-      },
+      // _enshureD3: function() {
+      //   return new Promise((resolve, reject) => {
+      //     if (!window.hasOwnProperty('d3')) {
+      //       importScripts('/scripts/d3.bundle.js', resolve.bind(this)); // importScripts --> in './scripts/polyfills.js'
+      //     } else {
+      //       resolve();
+      //     }
+      //   });
+      // },
 
       attached: function() {
         this._buildLayout();
@@ -460,7 +460,7 @@
       },
 
       _buildLayout: function() {
-        this._enshureD3().then(() => {
+        // this._enshureD3().then(() => {
           this._svg = d3.select(this.$.svgChart)
             .attr('height', null)
             .attr('width', null);
@@ -567,7 +567,7 @@
 
           this._initialized = true;
           this._sizeChanged();
-        });
+        // });
       },
 
       _sizeLayout: function() {
@@ -661,10 +661,10 @@
         tickmult = tickmult || 1;
 
         switch (orient) {
-          case 'top':
-            axis = d3.axisTop();
-            ticks = this.xTicks;
-            break;
+          // case 'top':
+          //   axis = d3.axisTop();
+          //   ticks = this.xTicks;
+          //   break;
           case 'bottom':
             axis = d3.axisBottom();
             ticks = this.xTicks;
@@ -673,10 +673,10 @@
             axis = d3.axisLeft();
             ticks = this.yTicks;
             break;
-          case 'right':
-            axis = d3.axisRight();
-            ticks = this.yTicks;
-            break;
+          // case 'right':
+          //   axis = d3.axisRight();
+          //   ticks = this.yTicks;
+          //   break;
         }
         axis.scale(scale).ticks(ticks * tickmult);
         if (kind === 'time')

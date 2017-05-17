@@ -1,4 +1,4 @@
-(function (root) {
+(function(root) {
   'use strict';
 
   // Store setTimeout reference so promise-polyfill will be unaffected by
@@ -9,7 +9,7 @@
 
   // Polyfill for Function.prototype.bind
   function bind(fn, thisArg) {
-    return function () {
+    return function() {
       fn.apply(thisArg, arguments);
     };
   }
@@ -34,7 +34,7 @@
       return;
     }
     self._handled = true;
-    Promise._immediateFn(function () {
+    Promise._immediateFn(function() {
       var cb = self._state === 1 ? deferred.onFulfilled : deferred.onRejected;
       if (cb === null) {
         (self._state === 1 ? resolve : reject)(deferred.promise, self._value);
@@ -111,11 +111,11 @@
   function doResolve(fn, self) {
     var done = false;
     try {
-      fn(function (value) {
+      fn(function(value) {
         if (done) return;
         done = true;
         resolve(self, value);
-      }, function (reason) {
+      }, function(reason) {
         if (done) return;
         done = true;
         reject(self, reason);
@@ -127,21 +127,21 @@
     }
   }
 
-  Promise.prototype['catch'] = function (onRejected) {
+  Promise.prototype['catch'] = function(onRejected) {
     return this.then(null, onRejected);
   };
 
-  Promise.prototype.then = function (onFulfilled, onRejected) {
-    var prom = new (this.constructor)(noop);
+  Promise.prototype.then = function(onFulfilled, onRejected) {
+    var prom = new(this.constructor)(noop);
 
     handle(this, new Handler(onFulfilled, onRejected, prom));
     return prom;
   };
 
-  Promise.all = function (arr) {
+  Promise.all = function(arr) {
     var args = Array.prototype.slice.call(arr);
 
-    return new Promise(function (resolve, reject) {
+    return new Promise(function(resolve, reject) {
       if (args.length === 0) return resolve([]);
       var remaining = args.length;
 
@@ -150,7 +150,7 @@
           if (val && (typeof val === 'object' || typeof val === 'function')) {
             var then = val.then;
             if (typeof then === 'function') {
-              then.call(val, function (val) {
+              then.call(val, function(val) {
                 res(i, val);
               }, reject);
               return;
@@ -171,24 +171,24 @@
     });
   };
 
-  Promise.resolve = function (value) {
+  Promise.resolve = function(value) {
     if (value && typeof value === 'object' && value.constructor === Promise) {
       return value;
     }
 
-    return new Promise(function (resolve) {
+    return new Promise(function(resolve) {
       resolve(value);
     });
   };
 
-  Promise.reject = function (value) {
-    return new Promise(function (resolve, reject) {
+  Promise.reject = function(value) {
+    return new Promise(function(resolve, reject) {
       reject(value);
     });
   };
 
-  Promise.race = function (values) {
-    return new Promise(function (resolve, reject) {
+  Promise.race = function(values) {
+    return new Promise(function(resolve, reject) {
       for (var i = 0, len = values.length; i < len; i++) {
         values[i].then(resolve, reject);
       }
@@ -196,8 +196,10 @@
   };
 
   // Use polyfill for setImmediate for performance gains
-  Promise._immediateFn = (typeof setImmediate === 'function' && function (fn) { setImmediate(fn); }) ||
-    function (fn) {
+  Promise._immediateFn = (typeof setImmediate === 'function' && function(fn) {
+      setImmediate(fn);
+    }) ||
+    function(fn) {
       setTimeoutFunc(fn, 0);
     };
 

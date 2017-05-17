@@ -37,7 +37,7 @@
       app-toolbar icon-button {
         transform: scale(1);
       }
-      #sidePanel .drawer-content {
+      #drawer .drawer-content {
         display: block;
         height: calc(100% - 8em);
         padding: 0 1em;
@@ -45,17 +45,17 @@
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
       }
-      #sidePanel app-toolbar {
+      #drawer app-toolbar {
         @apply --drawer-toolbar;
       }
-      #sidePanel .top {
+      #drawer .top {
         justify-content: space-between;
         margin-bottom: 1em;
       }
-      #sidePanel .bottom {
+      #drawer .bottom {
         justify-content: flex-end;
       }
-      #sidePanel .spacer {
+      #drawer .spacer {
         margin-bottom: 1em;
       }
       .drawer-content .selectbox,
@@ -78,24 +78,24 @@
         width: 100%;
         font-size: 0.8em;
       }
-      #pageSelector {
+      #pages {
         box-sizing: border-box;
         margin-bottom: 2.5em;
       }
-      #headerLayout {
+      #layout {
         background-color: var(--primary-background);
         transition: background 300ms cubic-bezier(0.6, 0, 0.3, 1);
       }
-      :host([page="home"]) #headerLayout {
+      :host([page="home"]) #layout {
         background-color: var(--primary-color);
       }
-      :host([dark][page="home"]) #headerLayout {
+      :host([dark][page="home"]) #layout {
         background-color: var(--dark-primary-color);
       }
-      #pageSelector > * {
+      #pages > * {
         flex: 1;
       }
-      #pageSelector > .fullbleed {
+      #pages > .fullbleed {
         position: absolute;
         top: 0; left: 0; right: 0; bottom: 0;
         box-sizing: border-box;
@@ -104,7 +104,7 @@
         margin: 0;
         padding: 0;
       }
-      #pageSelector > [visible] {
+      #pages > [visible] {
         visibility: visible;
       }
       .login-icon {
@@ -121,14 +121,14 @@
         padding-left: 3em;
         padding-right: 1em;
       }
-      .viewSelect {
+      .tab-drawer {
         @apply --layout-inline;
         @apply --layout-center-center;
         position: relative;
         height: 2.75em;
         width: 100%;
       }
-      .viewSelect.top {
+      .tab-drawer.top {
         padding-right: 0.5em;
         padding-left: 0;
         width: auto;
@@ -226,7 +226,7 @@
 
     <iron-media-query query="(min-width: 768px)" query-matches="{{wideLayout}}"></iron-media-query>
 
-    <app-header-layout id="headerLayout" fullbleed has-scrolling-region>
+    <app-header-layout id="layout" fullbleed has-scrolling-region>
       <!-- Toolbar -->
       <app-header slot="header" id="header" hidden$="[[!_isContentPage]]" reveals fixed="[[_isFullbleedPage]]" threshold="64" threshold-triggered="{{thresholdTriggered}}" shadow$="[[thresholdTriggered]]">
         <app-toolbar>
@@ -235,7 +235,7 @@
           <logo-element id="logo" href="/home" title$="[[localize('home', 'name')]]"></logo-element>
 
           <iron-collapse opened="[[showTabs]]" hidden$="[[!wideLayout]]" horizontal style="align-self: flex-end;">
-            <div class="viewSelect top">
+            <div class="tab-drawer top">
 
               <div class="selectbox toolbar grouping top" title="[[groupedKey]]" hidden$="[[hideGroupSelect]]">
                 <select value="{{groupedKey::change}}"></select>
@@ -281,7 +281,7 @@
       </app-header>
 
       <!-- Pages-->
-      <iron-pages id="pageSelector" role="main" selected="{{page}}" attr-for-selected="name" selected-attribute="visible" fallback-selection="home">
+      <iron-pages id="pages" role="main" selected="{{page}}" attr-for-selected="name" selected-attribute="visible" fallback-selection="home">
         <!-- home view for selecting the facility -->
         <page-home name="home" dark$="[[dark]]" plain$="[[plain]]" class="fullbleed"
           facilities="[[facilities]]"
@@ -323,7 +323,7 @@
     </drawer-element>
 
     <drawer-element opened="{{showTabsOnBottom}}" id="toolbarBottom" swipe-open auto-close-period="8000" shadow auto-close="[[!thresholdTriggered]]">
-      <div class="viewSelect">
+      <div class="tab-drawer">
         <tabs-container class="tabs"
           role="tablist"
           selected="{{page}}"
@@ -352,7 +352,7 @@
 
     <!-- SIDEMENU -->
     <template is="dom-if" if="[[_shouldRenderDrawer]]">
-      <drawer-element id="sidePanel" opened="{{drawerOpened}}" align="left" swipe-open tabindex="0" scrim stretch>
+      <drawer-element id="drawer" opened="{{drawerOpened}}" align="left" swipe-open tabindex="0" scrim stretch>
         <app-toolbar class="top">
           <icon-button icon="close" title="close" on-tap="_toggleDrawer"></icon-button>
           <icon-button icon="[[loginIcon]]" title="{{localize('notification', 'loggedIn', loggedIn)}}" on-tap="_openLoginDialog"></icon-button>
@@ -651,8 +651,8 @@
 
       _resetScroll: function() {
         this.debounce( '_resetScroll', function () {
-          this.$.pageSelector.scrollTop = 0;
-          this.$.headerLayout.resetLayout();
+          this.$.pages.scrollTop = 0;
+          this.$.layout.resetLayout();
           // this._resetLayout(this.showTabsOnBottom, this.wideLayout, this.thresholdTriggered);
         });
       },
@@ -660,9 +660,9 @@
       _resetLayout: function(showTabsOnBottom, wideLayout, thresholdTriggered) {
         // Polymer.RenderStatus.afterNextRender(this, function() {
         //   if (!wideLayout && (thresholdTriggered || showTabsOnBottom) && !this._isFullbleedPage) {
-        //     this.$.pageSelector.style.marginBottom = '2.5em';
+        //     this.$.pages.style.marginBottom = '2.5em';
         //   } else {
-        //     this.$.pageSelector.style.marginBottom = '0';
+        //     this.$.pages.style.marginBottom = '0';
         //   }
         // });
       },

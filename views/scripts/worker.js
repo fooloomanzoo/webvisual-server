@@ -156,18 +156,18 @@ mountDB.getAll()
          ret.mounts.forEach( function(mount) {
            DatabaseStore.add(mount);
 
-           DatabaseStore.get(mount)
-              .getAll()
-              .then( function(ret) {
-                if (Socket && !Socket.initialized) {
-                  self._updateCache( { values: ret } );
-                  self._updateClient( { values: ret } );
-                }
-              } )
-              .catch( function(err) {
-                if (err)
-                  console.log(err);
-              });
+          //  DatabaseStore.get(mount)
+          //     .getAll()
+          //     .then( function(ret) {
+          //       if (Socket && !Socket.initialized) {
+          //         self._updateCache( { values: ret } );
+          //         self._updateClient( { values: ret } );
+          //       }
+          //     } )
+          //     .catch( function(err) {
+          //       if (err)
+          //         console.log(err);
+          //     });
          });
        })
       .catch( function(e) {
