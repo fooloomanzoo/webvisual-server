@@ -6,15 +6,15 @@ module.exports = {
     '../public': ''
   },
   staticFileGlobs: [
-    '/index.html',
     '/bower_components/webcomponentsjs/webcomponents-loader.js',
+    '/index.html',
     '/locales.json',
     '/manifest.json',
     '/app.yaml',
     '/scripts/*',
     '/polyfills/*',
-    '/fonts/*',
-    '/data/*'
+    '/data/**/*',
+    '/images/**/*'
   ],
   verbose: true,
   navigateFallback: '/index.html',
@@ -44,6 +44,15 @@ module.exports = {
       cache: {
         maxEntries: 100,
         name: 'icon-cache'
+      }
+    }
+  }, {
+    urlPattern: /\/fonts\/.*/,
+    handler: 'cacheFirst',
+    options: {
+      cache: {
+        maxEntries: 2,
+        name: 'font-cache'
       }
     }
   }, {
