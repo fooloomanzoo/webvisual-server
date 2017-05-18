@@ -22,7 +22,6 @@
         user-select: none !important;
         z-index: auto;
         transition: background 250ms linear;
-
       }
       :host([fullscreen]) {
         color: var(--fullscreen-color, white);
@@ -79,10 +78,6 @@
         fill-opacity: var(--chart-plot-background-opacity, 0.2);
         stroke-opacity: 0.5;
         stroke-width: 1px;
-      }
-      :host[fullscreen] #plot,
-      :host([fullscreen]) #plot {
-        fill: var(--chart-plot-background, #ccc);
       }
       .grid .tick line {
         stroke: currentColor;
