@@ -21,6 +21,8 @@
         letter-spacing: normal !important;
         user-select: none !important;
         z-index: auto;
+        transition: background 250ms linear;
+
       }
       :host([fullscreen]) {
         color: var(--fullscreen-color, white);
@@ -45,6 +47,7 @@
         isolation: isolate;
       }
       :host([fullscreen]) > #svgContainer {
+        position: fixed;
         padding: 1em 1em 3em 1em !important;
       }
       #svgChart {
@@ -59,7 +62,6 @@
         letter-spacing: normal !important;
         font-family: inherit !important;
         -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
-        mix-blend-mode: overlay;
       }
       g#chart .axis {
         font-size: inherit;
@@ -72,9 +74,9 @@
         stroke-opacity: 0.7;
       }
       rect#plot {
-        fill: var(--chart-plot-background, #fff);
+        fill: var(--chart-plot-background-color, #fff);
         stroke: currentColor;
-        fill-opacity: 0.2;
+        fill-opacity: var(--chart-plot-background-opacity, 0.2);
         stroke-opacity: 0.5;
         stroke-width: 1px;
       }
@@ -85,6 +87,9 @@
       .grid .tick line {
         stroke: currentColor;
         stroke-opacity: 0.15;
+      }
+      .grid {
+        mix-blend-mode: exclusion;
       }
       .grid path {
         stroke-width: 0;
@@ -98,6 +103,9 @@
       .axis {
         font-family: inherit;
       }
+      #graphs {
+        mix-blend-mode: darken;
+      }
       #graphs .area {
         fill-opacity: 0.3;
         @apply --chart-area;
@@ -106,6 +114,10 @@
         cursor: pointer;
         stroke-opacity: 0.7;
         @apply --chart-line;
+      }
+      #focus,
+      #info {
+        color: var(--focus-color, currentColor);
       }
       #focus > * {
         stroke: currentColor;
@@ -912,14 +924,14 @@
           return;
         }
         var bbox = this._info.node().getBBox();
-        this._info
-          .attr('x', (x + 4 + bbox.width > this._width ? (x - 4 - bbox.width < 0 ? 0 : x - 4 - bbox.width) : x + 4))
+        this._info.transition(5)
+          .attr('x', (x + 6 + bbox.width > this._width ? (x - 6 - bbox.width < 0 ? 0 : x - 6 - bbox.width) : x + 6))
           .attr('y', (y > bbox.height + 4 ? y - 4 : bbox.height));
-        this._focusX
+        this._focusX.transition(5)
           .attr('x2', x)
           .attr('y2', y)
           .attr('y1', y);
-        this._focusY
+        this._focusY.transition(5)
           .attr('y2', y)
           .attr('x2', x)
           .attr('x1', x);

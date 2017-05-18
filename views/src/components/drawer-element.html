@@ -11,6 +11,7 @@
         z-index: 2;
         visibility: hidden;
         pointer-events: none;
+        overflow: hidden;
         transition-property: visibility;
         --drawer-shadow: {
           box-shadow: 0 6px 10px 0 rgba(0, 0, 0, 0.14),
@@ -30,7 +31,7 @@
         will-change: transform;
         transition-property: -webkit-transform;
         transition-property: transform;
-        pointer-events: all;
+        pointer-events: auto;
         background-color: var(--drawer-background, --primary-background);
         color: var(--drawer-color, --primary-text-color);
         @apply --layout-vertical;
@@ -118,12 +119,11 @@
         -webkit-transform: translate3d(0, -50%, 0);
         transform: translate3d(0, -50%, 0);
       }
-      :host([swipe-open]) > #contentContainer::after {
+      :host([swipe-open]:not([opened])) > #contentContainer::after {
         position: absolute;
         visibility: visible;
         content: '';
-        pointer-events: all;
-        cursor: pointer;
+        pointer-events: auto;
       }
       :host([swipe-open][align=bottom]) > #contentContainer::after {
         top: auto; bottom: 100%; left: 0; right: 0;
@@ -142,7 +142,7 @@
         width: 20px;
       }
       :host([opened]) > #contentContainer::after {
-        pointer-events: none;
+        pointer-events: none !important;
       }
       #scrim {
         position: absolute;
@@ -151,7 +151,6 @@
         -webkit-transform: translateZ(0);
         transform:  translateZ(0);
         opacity: 0;
-        cursor: pointer;
         background: var(--drawer-scrim-background, rgba(0, 0, 0, 0.4));
       }
       :host([opened]) > #scrim {
@@ -162,7 +161,7 @@
       :host([persistent]) > #scrim {
         visibility: hidden;
         opacity: 0;
-        pointer-events: none;
+        pointer-events: none !important;
       }
       @media (max-width: 767px) {
         :host([align]) #contentContainer {

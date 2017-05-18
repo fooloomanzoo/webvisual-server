@@ -45,6 +45,7 @@
       background-color: transparent;
       color: currentColor;
       z-index: auto;
+      transition: background 250ms linear;
     }
     :host([opened]) {
       pointer-events: all;
@@ -52,8 +53,6 @@
     :host([fullscreen]) {
       color: var(--fullscreen-color, currentColor);
       background-color: var(--fullscreen-background-color);
-      min-height: 100%;
-      min-width: 100%;
       --control-bottom: 8px;
       --control-right: 16px;
       --control-button-distance: 8px;

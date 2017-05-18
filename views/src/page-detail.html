@@ -38,6 +38,26 @@
         flex-basis: 50%;
         color: var(--bright-text-color);
       }
+      #svg {
+        overflow: hidden;
+      }
+      #chart {
+        --chart-plot-background-color: #e1e1e1;
+        --chart-plot-background-opacity: 1;
+        --focus-color: var(--primary-text-color);
+      }
+      :host([plain]) #chart,
+      :host([dark]) #chart {
+        --chart-plot-background-opacity: 0.2;
+        --focus-color: currentColor;
+      }
+      #chart[fullheight] {
+        max-height: 100%;
+        -webkit-flex-basis: auto;
+        flex-basis: auto;
+        flex-grow: 1;
+        --chart-plot-background-opacity: 0.5;
+      }
       .spacer {
         flex: 0 0 auto;
         padding: 0.25em;
@@ -76,15 +96,6 @@
       }
       :host(.fullscreen) #elementDrawer {
         display: none;
-      }
-      #svg {
-        overflow: hidden;
-      }
-      #chart[fullheight] {
-        max-height: 100%;
-        -webkit-flex-basis: auto;
-        flex-basis: auto;
-        flex-grow: 1;
       }
       .checkbox {
         width: 100%;

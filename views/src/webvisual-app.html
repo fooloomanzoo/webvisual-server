@@ -81,10 +81,12 @@
       #pages {
         box-sizing: border-box;
         margin-bottom: 2.5em;
+        will-change: scroll-position;
       }
       #layout {
         background-color: var(--primary-background);
         transition: background 300ms cubic-bezier(0.6, 0, 0.3, 1);
+        overflow: hidden;
       }
       :host([page="home"]) #layout {
         background-color: var(--primary-color);
@@ -94,15 +96,18 @@
       }
       #pages > * {
         flex: 1;
+        overflow: hidden;
       }
       #pages > .fullbleed {
         position: absolute;
         top: 0; left: 0; right: 0; bottom: 0;
         box-sizing: border-box;
-        overflow: hidden;
         visibility: hidden;
         margin: 0;
         padding: 0;
+      }
+      #pages:-webkit-full-screen-ancestor {
+        overflow: hidden !important;
       }
       #pages > [visible] {
         visibility: visible;
@@ -170,9 +175,6 @@
         padding: 0;
         margin: 0 0.5em;
       }
-      /*.toolbar.grouping.bottom:not([hidden]) ~ .tabs {
-        padding-left: 3.25em;
-      }*/
       .toolbar.grouping > select {
         height: 2.5em;
         padding-left: 1.75em;
@@ -186,7 +188,8 @@
       .toolbar.grouping > select:hover {
         background-color: rgba(255,255,255,0.25);
       }
-      :-webkit-full-screen-ancestor > [swipe-open] {
+      [hidden],
+      :host(:-webkit-full-screen-ancestor) [swipe-open] {
         display: none !important;
       }
     </style>

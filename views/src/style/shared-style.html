@@ -9,6 +9,30 @@
       --secondary-color: #4EA7E8;
       --bright-secondary-color: #E5EEf2;
     }
+    :-webkit-full-screen-ancestor,
+    :-webkit-full-screen-ancestor::after,
+    :-webkit-full-screen-ancestor::before,
+    :-webkit-full-screen-ancestor *:not(:-webkit-full-screen),
+    :-webkit-full-screen-ancestor *:not(:-webkit-full-screen)::after,
+    :-webkit-full-screen-ancestor *:not(:-webkit-full-screen)::before {
+      position: static !important;
+      pointer-events: none;
+      isolation: unset;
+      visibility: hidden;
+      z-index: auto !important;
+    }
+    :-webkit-full-screen {
+      z-index: 1000;
+      position: fixed;
+      isolation: unset;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: all !important;
+      visibility: visible !important;
+    }
+    :-webkit-full-screen * {
+      visibility: visible !important;
+      pointer-events: auto;
+    }
   </style>
 </custom-style>
 
@@ -47,7 +71,6 @@
 
         --active-link-color: #68D97B;
         --notification-color: #FCFFBB;
-        --warning-color: #ffdae4;
 
         --highlight-color: var(--active-link-color);
 
@@ -164,15 +187,6 @@
         padding: 0;
         margin: 0;
       }
-
-      :-webkit-full-screen-ancestor > *:not([fullscreen]) {
-        position: static;
-        z-index: auto !important;
-        overflow: hidden !important;
-        will-change: auto !important;
-        transition: none !important;
-      }
-
     </style>
   </template>
 </dom-module>
