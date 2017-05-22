@@ -143,8 +143,8 @@ class Router extends EventEmitter {
     this.settings.server = opt;
 
     // Auth Methods
-    require('./auth/activedirectory.js')(this.passport, this.settings.server.auth.ldap); // register custom ldap-passport-stategy
-    require('./auth/dummy.js')(this.passport); // register dummy-stategy
+    require('./lib/auth/activedirectory.js')(this.passport, this.settings.server.auth.ldap); // register custom ldap-passport-stategy
+    require('./lib/auth/dummy.js')(this.passport); // register dummy-stategy
 
     this.io = require('socket.io')(server);
 
