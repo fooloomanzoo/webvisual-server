@@ -4,7 +4,9 @@
 const express = require('express')
     , fs = require('fs')
     , path = require('path')
-    , util = require('util')
+
+    // Process Controller
+    . Constroller = require('./lib/controller');
 
     // Processing Modules
     , DataModule = require('./lib/data_module')
@@ -29,12 +31,16 @@ else {
   config = JSON.parse(JSON.stringify(defaults));
 }
 
-class WebvisualServer {
+class WebvisualServer extends Controller {
 
-  constructor(settings) {
-    this.isRunning = false;
+  static get title() {
+    return 'Webvisual Server';
+  }
 
-    this.config = settings;
+  constructor(config) {
+    this.super(config)
+
+    this.id = 'startet: ' + (new Date()).toLocaleString();
 
     this.mode = process.argv[2] || config.mode;
 
@@ -47,7 +53,7 @@ class WebvisualServer {
     }
   }
 
-  createServerSettings(settings) {
+  setConfig(config) {
     return new Promise((resolve, reject) => {
       if (this.isRunning)
         this.disconnect();
@@ -55,7 +61,7 @@ class WebvisualServer {
       // ensuring (with defaults) that a ssl encrypting (by self-signed key-pairs)
       // is available for the http2 server
       let sslSettings = JSON.parse(JSON.stringify(defaults.server.ssl)); // defaults
-      sslSettings.port = settings.server.port || 443;
+      sslSettings.port = config.server.port || 443;
 
       let filepaths = {
         cert: '',
@@ -146,13 +152,13 @@ class WebvisualServer {
     });
   }
 
-  connect(settings) {
+  connect(config) {
     // connect the DATA-Module
-    if (settings)
-      this.config = settings;
+    if (config)
+      this.config = config;
     if (this.isRunning === false) {
       process.send( { info: 'WEBVISUAL SERVER is starting' } );
-      this.createServerSettings(this.config)
+      this.setConfig(this.config)
         .then((sslSettings) => {
           if (this.http2Server)
             this.http2Server.close();
@@ -178,16 +184,16 @@ class WebvisualServer {
           this.router.setSettings(this.config, this.http2Server);
 
           this.dataHandler = new DataModule();
-          this.dataHandler.on('error', (err) => { 
-            process.send( { error: err } ); 
+          this.dataHandler.on('error', (err) => {
+            process.send( { error: err } );
           });
           this.dataHandler.on('info', (msg) => { process.send( { info: msg } ); });
           this.dataHandler.on('log', (msg) => { process.send( { log: msg } ); });
 
           this.configFilesHandler = new ConfigFileProcessor();
           this.configFilesHandler.on('changed', (facility) => {
-            this.dataHandler.setConfiguration(this.configFilesHandler.settings[facility], facility);
-            this.router.setConfiguration(this.configFilesHandler.settings[facility], facility); // load Settings to Routen them to requests
+            this.dataHandler.setConfiguration(this.configFilesHandler.config[facility], facility);
+            this.router.setConfiguration(this.configFilesHandler.config[facility], facility); // load Settings to Routen them to requests
           });
           this.configFilesHandler.watch(this.config.userConfigFiles, this.config.database);
 
@@ -214,9 +220,9 @@ class WebvisualServer {
     process.send( { event: 'server-stop', info: 'WebvisualServer is closed' } );
   }
 
-  reconnect(settings) {
-    if (settings)
-      this.config = settings;
+  reconnect(config) {
+    if (config)
+      this.config = config;
     if (this.isRunning)
       this.disconnect();
     setTimeout(() => {
@@ -224,9 +230,9 @@ class WebvisualServer {
     }, 2500);
   }
 
-  toggle(settings) {
-    if (settings)
-      this.config = settings;
+  toggle(config) {
+    if (config)
+      this.config = config;
     if (activeErrorRestartJob) {
       clearTimeout( activeErrorRestartJob );
       activeErrorRestartJob = null;
