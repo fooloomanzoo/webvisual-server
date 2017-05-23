@@ -53,6 +53,7 @@ class Router extends EventEmitter {
     super();
 
     switch (mode) {
+      case 'develop':
       case 'development':
         this.dir = devDir;
         break;

@@ -6,7 +6,7 @@ const express = require('express')
     , path = require('path')
 
     // Process Controller
-    . Constroller = require('./lib/controller');
+    , Controller = require('./lib/controller')
 
     // Processing Modules
     , DataModule = require('./lib/data_module')
@@ -24,23 +24,10 @@ let server
 // Defaults
 const defaults = require('./defaults/config.json');
 
-if (process.env['WEBVISUALSERVER']) {
-  config = JSON.parse(process.env['WEBVISUALSERVER']);
-}
-else {
-  config = JSON.parse(JSON.stringify(defaults));
-}
-
 class WebvisualServer extends Controller {
 
-  static get title() {
-    return 'Webvisual Server';
-  }
-
   constructor(config) {
-    this.super(config)
-
-    this.id = 'startet: ' + (new Date()).toLocaleString();
+    super(config, 'WebvisualServer');
 
     this.mode = process.argv[2] || config.mode;
 
@@ -54,6 +41,7 @@ class WebvisualServer extends Controller {
   }
 
   setConfig(config) {
+    this.config = config = config || this.config;
     return new Promise((resolve, reject) => {
       if (this.isRunning)
         this.disconnect();
@@ -72,18 +60,18 @@ class WebvisualServer extends Controller {
       let ca = '';
 
       let p = new Promise( (res, rej) => {
-        if ( this.config.server
-          && this.config.server.ssl
-          && this.config.server.ssl.cert
-          && this.config.server.ssl.key
-          && this.config.server.ssl.passphrase) {
+        if ( config.server
+          && config.server.ssl
+          && config.server.ssl.cert
+          && config.server.ssl.key
+          && config.server.ssl.passphrase) {
 
-          filepaths.cert = path.resolve(this.config.server.ssl.cert);
-          filepaths.key = path.resolve(this.config.server.ssl.key);
-          filepaths.passphrase = path.resolve(this.config.server.ssl.passphrase);
+          filepaths.cert = path.resolve(config.server.ssl.cert);
+          filepaths.key = path.resolve(config.server.ssl.key);
+          filepaths.passphrase = path.resolve(config.server.ssl.passphrase);
 
-          if (this.config.server.ssl.ca) {
-            ca = path.resolve(this.config.server.ssl.ca);
+          if (config.server.ssl.ca) {
+            ca = path.resolve(config.server.ssl.ca);
           }
         } else {
           rej( 'Given Filepaths to certificate-files incomplete' );
@@ -154,11 +142,9 @@ class WebvisualServer extends Controller {
 
   connect(config) {
     // connect the DATA-Module
-    if (config)
-      this.config = config;
     if (this.isRunning === false) {
       process.send( { info: 'WEBVISUAL SERVER is starting' } );
-      this.setConfig(this.config)
+      this.setConfig(config)
         .then((sslSettings) => {
           if (this.http2Server)
             this.http2Server.close();
@@ -181,7 +167,7 @@ class WebvisualServer extends Controller {
           this.router.on('error', (err) => {
             process.send( { error: err } );
           });
-          this.router.setSettings(this.config, this.http2Server);
+          this.router.setSettings(config, this.http2Server);
 
           this.dataHandler = new DataModule();
           this.dataHandler.on('error', (err) => {
@@ -191,9 +177,9 @@ class WebvisualServer extends Controller {
           this.dataHandler.on('log', (msg) => { process.send( { log: msg } ); });
 
           this.configFilesHandler = new ConfigFileProcessor();
-          this.configFilesHandler.on('changed', (facility) => {
-            this.dataHandler.setConfiguration(this.configFilesHandler.config[facility], facility);
-            this.router.setConfiguration(this.configFilesHandler.config[facility], facility); // load Settings to Routen them to requests
+          this.configFilesHandler.on('change', (config, facility) => {
+            this.dataHandler.setConfiguration(config, facility);
+            this.router.setConfiguration(config, facility); // load Settings to Routen them to requests
           });
           this.configFilesHandler.watch(this.config.userConfigFiles, this.config.database);
 
@@ -221,8 +207,6 @@ class WebvisualServer extends Controller {
   }
 
   reconnect(config) {
-    if (config)
-      this.config = config;
     if (this.isRunning)
       this.disconnect();
     setTimeout(() => {
@@ -231,8 +215,6 @@ class WebvisualServer extends Controller {
   }
 
   toggle(config) {
-    if (config)
-      this.config = config;
     if (activeErrorRestartJob) {
       clearTimeout( activeErrorRestartJob );
       activeErrorRestartJob = null;
@@ -251,94 +233,11 @@ class WebvisualServer extends Controller {
   }
 };
 
-// if not started as child_process of GUI
-if (!process.send) {
-  console.log('Server opened as single process');
-  process.send = function(arg) {
-    for (var type in arg) {
-      switch (type) {
-        case 'event':
-          console.info( `${type}: ${arg[type]}` );
-          break;
-        case 'error':
-          console.error( `${type}: ${arg[type]}` );
-          break;
-        case 'warn':
-          console.warn( `${type}: ${arg[type]}` );
-          break;
-        case 'log':
-        default:
-          console.log( `${type}: ${arg[type]}` )
-      }
-    }
-  }
-} else {
-  console.log('Server opened as forked process');
-  console.log = function() {
-    process.send( { log: util.format.apply(null, arguments)} );
-  }
-  console.info = function() {
-    process.send( { info: util.format.apply(null, arguments)} );
-  }
-  console.error = function() {
-    process.send( { error: util.format.apply(null, arguments)} );
-  }
-  console.warn = function() {
-    process.send( { warn: util.format.apply(null, arguments)} );
-  }
+if (process.env['WEBVISUALSERVER']) {
+  config = JSON.parse(process.env['WEBVISUALSERVER']);
+}
+else {
+  config = JSON.parse(JSON.stringify(defaults));
 }
 
 server = new WebvisualServer(config);
-
-process.on('message', (arg) => {
-  if (arg.init === true && arg.config)
-    server = new WebvisualServer(arg.config);
-  else {
-    for (var func in arg) {
-      if (server && server[func]) {
-        server[func]( arg[func] );
-      }
-    }
-  }
-})
-
-process.on('uncaughtException', (err) => {
-  console.log('WEBVISUAL SERVER (uncaughtException)', err || '');
-  if (activeErrorRestartJob) {
-    clearTimeout(activeErrorRestartJob);
-    activeErrorRestartJob = null;
-  }
-  activeErrorRestartJob = setTimeout(() => {
-    server.reconnect();
-  }, 2000)
-});
-
-process.on('ECONNRESET', (err) => {
-  console.log('WEBVISUAL SERVER (ECONNRESET)', err || '');
-  if (activeErrorRestartJob) {
-    clearTimeout(activeErrorRestartJob);
-    activeErrorRestartJob = null;
-  }
-  activeErrorRestartJob = setTimeout(() => {
-    server.reconnect();
-  }, 2000)
-});
-
-process.on('SIGINT', (err) => {
-  console.log('WEBVISUAL SERVER (SIGINT)', err || '');
-  if (activeErrorRestartJob) {
-    clearTimeout(activeErrorRestartJob);
-    activeErrorRestartJob = null;
-  }
-  server.disconnect();
-  process.exit(0);
-});
-
-process.on('exit', (err) => {
-  console.log('WEBVISUAL SERVER (EXIT)', err || '');
-  if (activeErrorRestartJob) {
-    clearTimeout(activeErrorRestartJob);
-    activeErrorRestartJob = null;
-  }
-  server.disconnect();
-});

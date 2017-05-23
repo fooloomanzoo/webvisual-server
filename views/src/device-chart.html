@@ -193,6 +193,8 @@
             <line id="focusX" class="focus line x" x1="0"></line>
             <line id="focusY" class="focus line y"></line>
             <circle id="focusDot" class="focus dot"></circle>
+            <line id="deltaX" class="delta line x"></line>
+            <line id="deltaY" class="delta line y"></line>
           </g>
           <g id="xAxis" class="axis" on-tap="_resetZoom"></g>
           <g id="yAxis" class="axis" on-tap="_resetZoom"></g>
@@ -219,6 +221,13 @@
               <option value="√">√</option>
               <option value="ln">ln</option>
               <option value="log₁₀">log₁₀</option>
+            </select>
+          </div>
+          <div class="selectbox">
+            <select value="{{modus::change}}">
+              <option value="zoom">zoom</option>
+              <option value="delta">delta</option>
+              <option value="integral">integral</option>
             </select>
           </div>
         </iron-collapse>
@@ -355,31 +364,41 @@
         showControl: {
           type: Boolean,
           value: false
+        },
+
+        modus: {
+          type: String,
+          value: 'zoom',
+          observer: '_modusChanged'
         }
       },
 
       _width: 0,
       _height: 0,
 
-      // _xGrid: Object,
-      _yGrid: Object,
-      _brush: Object,
-      _chart: Object,
-      _svg: Object,
-      _info: Object,
-      _focus: Object,
-      _focusX: Object,
-      _focusY: Object,
-      _focusDot: Object,
-      _areas: Object,
-      _dots: Object,
-      _bounderies: Object,
+      // _xGrid: {},
+      _yGrid: {},
+      _brush: {},
+      _chart: {},
+      _svg: {},
+      _info: {},
+      _focus: {},
+      _focusX: {},
+      _focusY: {},
+      _focusDot: {},
+
+      _areas: {},
+      _dots: {},
+      _bounderies: {},
+
+      _focusedValue: {},
+      _fixedValues: [],
 
       _x: Function,
       _y: Function,
 
-      _xAxis: Object,
-      _yAxis: Object,
+      _xAxis: {},
+      _yAxis: {},
 
       _isBrushed: false,
       _isZoomed: false,
@@ -415,45 +434,33 @@
 
       created: function() {
         this._graphs = new Set();
-        // this._enshureD3().then(() => {
-          d3.timeFormatDefaultLocale({
-            'dateTime': '%x %X',
-            'date': '%d.%m.%Y',
-            'time': '%H:%M:%S',
-            'periods': ['', ''],
-            'days': ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'],
-            'shortDays': ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'],
-            'months': ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
-            'shortMonths': ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Dez']
-          });
-          d3.formatDefaultLocale({
-            'decimal': ',',
-            'thousands': '.',
-            'grouping': [3],
-            'currency': ['', '\u00a0€']
-          });
-          this.format.Millisecond = d3.timeFormat(':%S,%L');
-          this.format.LongSecond = d3.timeFormat(':%M:%S,%L');
-          this.format.Second = d3.timeFormat(':%M:%S');
-          this.format.LongMinute = d3.timeFormat('%H:%M:%S');
-          this.format.Minute = d3.timeFormat('%H:%M');
-          this.format.Hour = d3.timeFormat('%X');
-          this.format.Day = d3.timeFormat('%d.%m');
-          this.format.Week = d3.timeFormat('%d.%m');
-          this.format.Month = d3.timeFormat('%d. %b');
-          this.format.Year = d3.timeFormat('%Y');
-        // });
+        d3.timeFormatDefaultLocale({
+          'dateTime': '%x %X',
+          'date': '%d.%m.%Y',
+          'time': '%H:%M:%S',
+          'periods': ['', ''],
+          'days': ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'],
+          'shortDays': ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'],
+          'months': ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
+          'shortMonths': ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Dez']
+        });
+        d3.formatDefaultLocale({
+          'decimal': ',',
+          'thousands': '.',
+          'grouping': [3],
+          'currency': ['', '\u00a0€']
+        });
+        this.format.Millisecond = d3.timeFormat(':%S,%L');
+        this.format.LongSecond = d3.timeFormat(':%M:%S,%L');
+        this.format.Second = d3.timeFormat(':%M:%S');
+        this.format.LongMinute = d3.timeFormat('%H:%M:%S');
+        this.format.Minute = d3.timeFormat('%H:%M');
+        this.format.Hour = d3.timeFormat('%X');
+        this.format.Day = d3.timeFormat('%d.%m');
+        this.format.Week = d3.timeFormat('%d.%m');
+        this.format.Month = d3.timeFormat('%d. %b');
+        this.format.Year = d3.timeFormat('%Y');
       },
-
-      // _enshureD3: function() {
-      //   return new Promise((resolve, reject) => {
-      //     if (!window.hasOwnProperty('d3')) {
-      //       importScripts('/scripts/d3.bundle.js', resolve.bind(this)); // importScripts --> in './scripts/polyfills.js'
-      //     } else {
-      //       resolve();
-      //     }
-      //   });
-      // },
 
       attached: function() {
         this._buildLayout();
@@ -467,7 +474,6 @@
       },
 
       _buildLayout: function() {
-        // this._enshureD3().then(() => {
           this._svg = d3.select(this.$.svgChart)
             .attr('height', null)
             .attr('width', null);
@@ -490,17 +496,7 @@
               this.cancelDebouncer('hideinfo');
             }.bind(this))
             .on('mouseleave', this._hideInfo.bind(this))
-            .on('click', function(d) {
-              var offsetX = (this._x(this._x.domain()[1]) - this._x(this._x.domain()[0])) / 4,
-                offsetY = (this._y(this._y.domain()[0]) - this._y(this._y.domain()[1])) / 4,
-                x = this._x(+this._info.x),
-                y = this._y(+this._info.y) || 0;
-              d3.event.selection = [
-                [x - offsetX, y - offsetY],
-                [x + offsetX, y + offsetY]
-              ];
-              this.brushed();
-            }.bind(this));
+            .on('click', this._dotClicked.bind(this));
 
           this._brushBehavior = d3.brush()
             .on('end', this.brushed.bind(this._self));
@@ -518,31 +514,43 @@
                 this._graphs.forEach(
                   function(g) {
                     if (g.values && g.values.length) {
-                      var i = g.bisectDate(g.values, x0, 1);
-
+                      // var bisectDate = d3.bisector(function(d, x) { return d.x - x; });
+                      // var closestIndex = bisectDate.left(g.values, p.x);
+                      // var d = g.values[closestIndex];
+                      //
+                      // var distance = Math.sqrt(Math.pow(m.x - this._x(d.x), 2) + Math.pow(m.y - this._y(d.y), 2));
+                      // var timeDistance = this._x.invert(m.x - distance);
+                      // var valueDistance = this._y.invert(distance);
+                      //
+                      // var startIndex = bisectDate.left(g.values, timeDistance);
+                      // var endIndex = bisectDate.left(g.values, 2*p.x - timeDistance);
+                      // var values = g.values.slice(startIndex, endIndex);
+                      //
+                      // var tmp, currentMin = Math.pow(m.x - this._x(values[0].x), 2) + Math.pow(m.y - this._y(values[0].y), 2), currentClosest = values[0];
+                      // for (var i = 1; i < values.length; i++) {
+                      //   if (currentMin > (tmp = Math.pow(m.x - this._x(values[i].x), 2) + Math.pow(m.y - this._y(values[i].y), 2))) {
+                      //     currentClosest = values[i];
+                      //     currentMin = tmp;
+                      //   }
+                      // }
+                      //
+                      // if (closestDistance === undefined || currentMin < closestDistance) {
+                      //   closestDistance = currentMin;
+                      //   closestPoint = currentClosest;
+                      //   closestGraph = g;
+                      // }
+                      var i = g.bisectDate.left(g.values, x0, 1, g.values.length - 1);
                       if (i < 0) {
                         i = 1;
                       } else if (i >= g.values.length) {
                         i = g.values.length - 1;
                       }
-                      var d0 = g.values[i - 1],
-                        d1 = g.values[i];
-                      if (d0 && d1) {
-                        var dd0 = Math.pow(mx - this._x(d0.x), 2) + Math.pow(my - this._y(d0.y), 2),
-                          dd1 = Math.pow(mx - this._x(d1.x), 2) + Math.pow(my - this._y(d1.y), 2),
-                          currentMin, currentClosest;
-                        if (dd0 < dd1) {
-                          currentMin = dd0;
-                          currentClosest = d0;
-                        } else {
-                          currentMin = dd1;
-                          currentClosest = d1;
-                        }
-                        if (closestDistance === undefined || currentMin < closestDistance) {
-                          closestDistance = currentMin;
-                          closestPoint = currentClosest;
-                          closestGraph = g;
-                        }
+                      var d = g.values[i];
+                      var currentMin = Math.pow(mx - this._x(d.x), 2) + Math.pow(my - this._y(d.y), 2);
+                      if (closestDistance === undefined || currentMin < closestDistance) {
+                        closestDistance = currentMin;
+                        closestPoint = d;
+                        closestGraph = g;
                       }
                     }
                   }.bind(this));
@@ -558,9 +566,11 @@
                         break;
                     }
                   }
-                  this._focusDot.attr('fill', fill)
+                  this._focusedValue = closestPoint;
+                  this._focusDot.datum(closestPoint)
+                    .attr('fill', fill)
                     .attr('r', closestGraph.dotRadius);
-                  this.debounce('move-info', this._moveInfo.bind(this, closestPoint), 5);
+                  this.debounce('move-info', this._moveInfo.bind(this, closestPoint), 1);
                 } else {
                   this._hideInfo();
                 }
@@ -573,8 +583,9 @@
             .classed('device-chart', true);
 
           this._initialized = true;
+
+          this._modusChanged(this.modus);
           this._sizeChanged();
-        // });
       },
 
       _sizeLayout: function() {
@@ -881,9 +892,7 @@
       _moveInfo: function(d) {
         if (Number.isFinite(this._y(d.y))) {
           var x = this.timeFormatRange.call(this, d.x, this._x.domain(), this._width);
-          this._info.text(x + ' , ' + d.y);
-          this._info.x = d.x;
-          this._info.y = d.y;
+          this._info.datum(d).text( x + ' , ' + d.y );
           this._info.attr('hidden', null);
           this._focus.attr('hidden', null);
           this._updateInfo();
@@ -912,35 +921,121 @@
       },
 
       _updateInfo: function() {
-        if (this._info.attr('hidden') === '' || this._info.x === undefined || this._info.y === undefined) return;
-        var x = this._x(+this._info.x),
-          y = this._y(+this._info.y);
+        if (this._info.attr('hidden') === ''
+        // || this._info.x === undefined || this._info.y === undefined
+      ) return;
+        var x = this._x(+this._focusedValue.x),
+          y = this._y(+this._focusedValue.y);
         if (!x || !y) {
           return;
         }
         var bbox = this._info.node().getBBox();
-        this._info.transition(5)
+        this._info
           .attr('x', (x + 6 + bbox.width > this._width ? (x - 6 - bbox.width < 0 ? 0 : x - 6 - bbox.width) : x + 6))
           .attr('y', (y > bbox.height + 4 ? y - 4 : bbox.height));
-        this._focusX.transition(5)
-          .attr('x2', x)
-          .attr('y2', y)
-          .attr('y1', y);
-        this._focusY.transition(5)
-          .attr('y2', y)
-          .attr('x2', x)
-          .attr('x1', x);
-        this._focusDot
-          .attr('cy', y)
-          .attr('cx', x);
+        switch (this.modus) {
+          case 'delta':
+            if (this._fixedValues.length !== 2) {
+              break;
+            }
+            var deltaX = this._fixedValues[1].x - this._fixedValues[0].x;
+            var deltaY = this._fixedValues[1].y - this._fixedValues[0].y;
+            this._focus.select('.delta.line.x').attr('x1', this._x(this._fixedValues[0].x)).attr('x2', this._x(this._fixedValues[1].x)).attr('y2', this._x(this._fixedValues[0].y)).attr('y1', this._x(this._fixedValues[0].y)).attr('fill', 'red');
+            this._focus.select('.delta.line.y').attr('x1', this._x(this._fixedValues[1].x)).attr('x2', this._x(this._fixedValues[1].x)).attr('y2', this._x(this._fixedValues[0].y)).attr('y1', this._x(this._fixedValues[1].y));
+          case 'integral':
+          default:
+            this._focusX.attr('x1', 0).attr('x2', x).attr('y2', y).attr('y1', y);
+            this._focusY.attr('y1', this._height).attr('y2', y).attr('x2', x).attr('x1', x);
+            this._focusDot.attr('cy', y).attr('cx', x);
+            this._focus.selectAll('.dot.fixed')
+                .attr('cx', function(d) {
+                    return this._x(d.x)
+                }.bind(this))
+                .attr('cy', function(d) {
+                    return this._y(d.y)
+                }.bind(this));
+        }
 
-        this._xAxis.tickValues([this._info.x]);
-        this._yAxis.tickValues([this._info.y]);
+        this._xAxis.tickValues([this._focusedValue.x]);
+        this._yAxis.tickValues([this._focusedValue.y]);
         this._chart.select('#xAxis').call(this._xAxis);
         this._chart.select('#yAxis').call(this._yAxis);
         this._svg.selectAll('g,line,text,path,rect')
           .classed('style-scope', true)
           .classed('device-chart', true);
+      },
+
+      _modusChanged: function(modus) {
+        switch (modus) {
+          case 'zoom':
+
+            break;
+          case 'delta':
+
+            break;
+          case 'integral':
+
+            break;
+          default:
+
+        }
+      },
+
+      _dotClicked: function(d) {
+        switch (this.modus) {
+          case 'zoom':
+            var offsetX = (this._x(this._x.domain()[1]) - this._x(this._x.domain()[0])) / 4,
+              offsetY = (this._y(this._y.domain()[0]) - this._y(this._y.domain()[1])) / 4,
+              x = this._x(+d.x),
+              y = this._y(+d.y) || 0;
+            d3.event.selection = [
+              [x - offsetX, y - offsetY],
+              [x + offsetX, y + offsetY]
+            ];
+            this.brushed();
+            break;
+          case 'delta':
+            for (var i = 0; i < this._fixedValues.length; i++) {
+              if (this._fixedValues[i] && this._fixedValues[i].x && this._fixedValues[i].x === d.x) {
+                this._fixedValues.length = 0;
+                this._updateInfo();
+                return;
+              }
+            }
+            this._fixedValues.splice(1, this._fixedValues.length);
+            this._fixedValues.push(d);
+            var dots = this._focus.selectAll('.dot.fixed').data(this._fixedValues);
+
+            // update current dots
+            dots.attr('cx', function(d) {
+                    return this._x(d.x)
+                }.bind(this))
+                .attr('cy', function(d) {
+                    return this._y(d.y)
+                }.bind(this));
+            // enter new dots
+            dots.enter()
+                .append('circle')
+                .classed('dot style-scope device-chart fixed', true)
+                .attr('r', this._focusDot.attr('r'))
+                .attr('fill', this._focusDot.attr('fill'))
+                .attr('cx', function(d) {
+                    return this._x(d.x)
+                }.bind(this))
+                .attr('cy', function(d) {
+                    return this._y(d.y)
+                }.bind(this));
+            //  remove old dots
+            dots.exit()
+                .remove();
+
+            break;
+          case 'integral':
+
+            break;
+          default:
+
+        }
       },
 
       // openLegend: function() {
