@@ -1,8 +1,8 @@
 <!-- Dependent to be content of device-chart -->
 <link rel="import" href="../bower_components/polymer/polymer.html">
 
-<link rel="import" href="behaviors/color-behavior.html"/>
-<link rel="import" href="behaviors/device-behavior.html"/>
+<link rel="import" href="behaviors/color-behavior.html" />
+<link rel="import" href="behaviors/device-behavior.html" />
 
 <dom-module id="device-graph">
   <template>
@@ -46,7 +46,7 @@
         dotRadius: {
           type: Number,
           value: 3,
-          observer: '_dotRadiusChanged'
+          // observer: '_dotRadiusChanged'
         },
 
         viewLength: {
@@ -100,7 +100,18 @@
             return this.chartElement._y(d.y);
           }.bind(this));
 
-        this.bisectDate = d3.bisector((function(d, x) { return d.x - x; }));
+          // this.area = d3.line()
+          //   .defined(this._defined.bind(this))
+          //   .x(function(d) {
+          //     return this.chartElement._x(d.x);
+          //   }.bind(this))
+          //   .y(function(d) {
+          //     return this.chartElement._y(d.y);
+          //   }.bind(this));
+
+        this.bisectDate = d3.bisector((function(d, x) {
+          return d.x - x;
+        }));
         this._initialized = true;
         this._interpolationChanged(this.interpolation);
         if (this.item) {
@@ -122,7 +133,7 @@
         if (!containerRoot || containerRoot.nodeName !== 'DEVICE-CHART') {
           console.warn('No parentElement (chart) for graph found. Registration of Graph Element failed');
           return;
-        } else if (!containerRoot._initialized){
+        } else if (!containerRoot._initialized) {
           console.warn('Chart has not been initialized yet for adding a graph. Registration of Graph Element failed');
           return;
         } else {
@@ -178,16 +189,16 @@
           }
         }
         // group of dots
-        if (this.dots && this.dots.node) {
-          this.dots.attr('mount', this.item.mount)
-            .attr('hidden', this.noDots ? true : null);
-        } else {
-          this.dots = this.chartElement._dots
-            .append('svg:g')
-            .attr('mount', this.item.mount)
-            .attr('class', 'dots')
-            .attr('hidden', this.noDots ? true : null);
-        }
+        // if (this.dots && this.dots.node) {
+        //   this.dots.attr('mount', this.item.mount)
+        //     .attr('hidden', this.noDots ? true : null);
+        // } else {
+        //   this.dots = this.chartElement._dots
+        //     .append('svg:g')
+        //     .attr('mount', this.item.mount)
+        //     .attr('class', 'dots')
+        //     .attr('hidden', this.noDots ? true : null);
+        // }
 
         this._isAttached = true;
         this.chartElement.redraw();
@@ -201,12 +212,12 @@
             node.parentElement.removeChild(node);
           this.areaNode = null;
         }
-        if (this.dots && this.dots.node) {
-          node = this.dots.node();
-          if (node && node.parentElement)
-            node.parentElement.removeChild(node);
-          this.dots = null;
-        }
+        // if (this.dots && this.dots.node) {
+        //   node = this.dots.node();
+        //   if (node && node.parentElement)
+        //     node.parentElement.removeChild(node);
+        //   this.dots = null;
+        // }
         if (this.bounderyLineGradientNode && this.bounderyLineGradientNode.node) {
           node = this.bounderyLineGradientNode.node();
           if (node && node.parentElement)
@@ -425,15 +436,126 @@
           yScale = this.chartElement.yScale;
 
         if (!Number.isFinite(d.y))
-          return false;
+          return null;
         else if ((yScale === 'ln' || yScale === 'log₁₀') && d.y <= 0)
-          return false; // log- and sqrt-scales require larger than 0-Values
-        else if ((d.x >= domainX[0] && d.x <= domainX[1]) ||
-          (data[i + 1] && data[i + 1].x >= domainX[0] && data[i + 1].x <= domainX[1]) ||
-          (data[i - 1] && data[i - 1].x >= domainX[0] && data[i - 1].x <= domainX[1]))
-          return true; // only numbers in x-Domain are shown (and their successor and predecessor) (graph is a function by definition, so y-Domain is not relevant)
-        else
-          return false;
+          return null; // log- and sqrt-scales require larger than 0-Values
+        // else if ((d.x >= domainX[0] && d.x <= domainX[1]) ||
+        //   (data[i + 1] && data[i + 1].x >= domainX[0] && data[i + 1].x <= domainX[1]) ||
+        //   (data[i - 1] && data[i - 1].x >= domainX[0] && data[i - 1].x <= domainX[1]))
+        //   return true; // only numbers in x-Domain are shown (and their successor and predecessor) (graph is a function by definition, so y-Domain is not relevant)
+        // else
+        //   return false;
+        return true;
+      },
+
+      // finding the closest Point relativly to a mouse-Coordinate m (stabil)
+      // if looking just at to path (instabil): https://bl.ocks.org/mbostock/8027637 https://pomax.github.io/bezierinfo/#projections
+      _closestPoint: function(m) {
+        // find good prediction
+        var _x = this.chartElement._x,
+          _y = this.chartElement._y,
+          values = this.values,
+          x_0 = _x.invert(m[0]),
+          precision = Math.ceil(this.chartElement._width / values.length),
+          variance = Math.pow(Math.ceil(values.length / this.chartElement._width), 2),
+          mid = this.bisectDate.left(values, x_0, 0, values.length - 1),
+          r2 = pixdistance2(values[mid]),
+          searchRadius = Math.sqrt(r2) / variance;
+        var x_lo = _x.invert(m[0] - searchRadius),
+          lo = this.bisectDate.left(values, x_lo, 0, mid),
+          hi = 2*mid - lo;
+
+        if (lo < 0) lo = 0;
+        if (hi > values.length) hi = values.length;
+
+        // console.log(values[mid], lo, hi, precision, variance, searchRadius);
+        var minDist = r2,
+          currentDist,
+          pos = mid;
+        // var counter = 0;
+        // linear scan for coarse approximation
+        for (i = lo; i < hi; i += precision) {
+          // counter++;
+          if ((currentDist = pixdistance2(values[i])) < minDist) {
+            mid = i, minDist = currentDist;
+          }
+        }
+        pos = mid;
+
+        // linear search in positive prediction radius
+        for (var i = mid + 1; i < hi && i < mid + precision - 1; i++) {
+          // counter++;
+          if ((currentDist = pixdistance2(values[i])) < minDist) {
+            minDist = currentDist;
+            pos = i;
+          }
+        }
+
+        // linear search in negative prediction radius
+        for (var i = mid - 1; i > lo && i > mid - precision + 1; i--) {
+          // counter++;
+          if ((currentDist = pixdistance2(values[i])) < minDist) {
+            minDist = currentDist;
+            pos = i;
+          }
+        }
+
+        // console.log(lo, mid, hi, Math.sqrt(r2), precision, counter);
+        return values[pos];
+
+        function pixdistance2(p) {
+          // counter++;
+          var dx = _x(new Date(p.x)) - m[0],
+              dy = _y(p.y) - m[1];
+          return dx * dx + dy * dy;
+        }
+      },
+
+      // finding the closest interpolated Point relativly to a mouse-Coordinate m
+      // https://bl.ocks.org/mbostock/8027637
+      // https://pomax.github.io/bezierinfo/#projections
+      _closestInterpolatedPoint(point, pathNode) {
+        pathNode = pathNode || this.areaNode.node();
+        var pathLength = pathNode.getTotalLength(),
+            precision = Math.ceil(pathLength/this.chartElement._width/2.0)*2,
+            best,
+            bestLength,
+            bestDistance = Infinity;
+
+        // linear scan for coarse approximation
+        for (var scan, scanLength = 0, scanDistance; scanLength <= pathLength; scanLength += precision) {
+          if ((scanDistance = distance2(scan = pathNode.getPointAtLength(scanLength))) < bestDistance) {
+            best = scan, bestLength = scanLength, bestDistance = scanDistance;
+          }
+        }
+
+        // binary search for precise estimate
+        precision /= 2;
+        while (precision > 0.5) {
+          var before,
+              after,
+              beforeLength,
+              afterLength,
+              beforeDistance,
+              afterDistance;
+          if ((beforeLength = bestLength - precision) >= 0 && (beforeDistance = distance2(before = pathNode.getPointAtLength(beforeLength))) < bestDistance) {
+            best = before, bestLength = beforeLength, bestDistance = beforeDistance;
+          } else if ((afterLength = bestLength + precision) <= pathLength && (afterDistance = distance2(after = pathNode.getPointAtLength(afterLength))) < bestDistance) {
+            best = after, bestLength = afterLength, bestDistance = afterDistance;
+          } else {
+            precision /= 2;
+          }
+        }
+
+        best = {x: this.chartElement._x(best.x), y: this.chartElement._y(best.y)};
+        best.distance = Math.sqrt(bestDistance);
+        return best;
+
+        function distance2(p) {
+          var dx = p.x - point[0],
+              dy = p.y - point[1];
+          return dx * dx + dy * dy;
+        }
       },
 
       setColor: function(color) {
@@ -476,11 +598,11 @@
         }
       },
 
-      _dotRadiusChanged: function(dotRadius) {
-        if (this.dots && this.dots.selectAll) {
-          this.dots.selectAll('circle.dot').attr('r', dotRadius);
-        }
-      },
+      // _dotRadiusChanged: function(dotRadius) {
+      //   if (this.dots && this.dots.selectAll) {
+      //     this.dots.selectAll('circle.dot').attr('r', dotRadius);
+      //   }
+      // },
 
       _lineWidthChanged: function(lineWidth) {
         if (this.areaNode && this.areaNode.attr) {

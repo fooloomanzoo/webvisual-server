@@ -57,16 +57,16 @@
       }
       text {
         fill: currentColor;
-        font-size: 8px;
+        font-size: 10px;
         letter-spacing: normal !important;
         font-family: inherit !important;
         -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
       }
+      text.info {
+        fill: var(--primary-text-color);
+      }
       g#chart .axis {
         font-size: inherit;
-      }
-      g#chart text {
-        font-size: 0.6em;
       }
       g#brush .selection {
         stroke: currentColor;
@@ -110,22 +110,27 @@
         stroke-opacity: 0.7;
         @apply --chart-line;
       }
-      #focus,
-      #info {
+      .focus,
+      .delta {
         color: var(--focus-color, currentColor);
       }
-      #focus > * {
-        stroke: currentColor;
+      #focus > *,
+      #delta > * {
+        stroke: var(--focus-color, currentColor);
         stroke-opacity: 0.5;
         stroke-width: 1.5px;
       }
-      #focus .focus.line {
-        pointer-events: none;
+      marker {
+        fill: var(--focus-color, currentColor);
+      }
+      #focus .line {
         stroke-dasharray: 2;
+        mix-blend-mode: darken;
       }
       .dot {
         fill-opacity: 0.9;
         cursor: pointer;
+        pointer-events: all;
       }
       .selectbox > * {
         flex: 1 0 auto;
@@ -176,6 +181,24 @@
 
     <div id="svgContainer" on-contextmenu="_resetZoom">
       <svg id="svgChart" version="1.1" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet">
+        <defs>
+          <marker id="arrowToLeft" markerWidth="20" markerHeight="20" refX="0" refY="0" orient="auto" markerUnits="strokeWidth" viewBox="-10 0 15 10">
+            <path d="m 5.29167,-1.7197893 v 3.439581 L 0,2.6966667e-6 Z"/>
+          </marker>
+          <marker id="arrowToRight" markerWidth="20" markerHeight="20" refX="0" refY="0" orient="auto" markerUnits="strokeWidth" viewBox="-10 0 15 10">
+            <path d="m -5.2916667,-1.7197893 v 3.439581 L 3.3333333e-6,2.6966667e-6 Z"/>
+          </marker>
+          <marker id="stub" markerWidth="5" markerHeight="5" refX="0" refY="0" orient="auto" markerUnits="strokeWidth" viewBox="-1 -5 2 10">
+            <path d="M0,0 m-1,-5 L1,-5 L1,5 L-1,5 z"/>
+          </marker>
+          <filter x="0" y="0" width="1" height="1" id="solid">
+            <feFlood flood-color="white" id="flood"/>
+            <feMerge>
+              <feMergeNode in="flood" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
         <g id="chart">
           <clipPath id="clip">
             <rect x="0" y="0"></rect>
@@ -189,16 +212,21 @@
             <g id="bounderies"></g>
             <g id="brush"></g>
           </g>
+          <g id="delta" clip-path="url(#clip)" hidden>
+            <line id="deltaX" class="line x" marker-start="url(#arrowToLeft)" marker-end="url(#arrowToRight)"></line>
+            <line id="deltaY" class="line y" marker-start="url(#arrowToLeft)" marker-end="url(#arrowToRight)"></line>
+            <circle id="deltaDot" class="dot"></circle>
+          </g>
           <g id="focus" clip-path="url(#clip)" hidden>
-            <line id="focusX" class="focus line x" x1="0"></line>
-            <line id="focusY" class="focus line y"></line>
-            <circle id="focusDot" class="focus dot"></circle>
-            <line id="deltaX" class="delta line x"></line>
-            <line id="deltaY" class="delta line y"></line>
+            <line id="focusX" class="line x" x1="0" marker-start="url(#stub)" marker-end="url(#arrowToRight)"></line>
+            <line id="focusY" class="line y" marker-start="url(#stub)" marker-end="url(#arrowToRight)"></line>
+            <circle id="focusDot" class="dot"></circle>
           </g>
           <g id="xAxis" class="axis" on-tap="_resetZoom"></g>
           <g id="yAxis" class="axis" on-tap="_resetZoom"></g>
-          <text id="info" x="0" y="0" hidden></text>
+          <text id="info" class="focus info" x="0" y="0" filter="url(#solid)" hidden></text>
+          <text id="infoDeltaX" class="delta info" x="0" y="0" filter="url(#solid)" hidden></text>
+          <text id="infoDeltaY" class="delta info" x="0" y="0" filter="url(#solid)" hidden></text>
         </g>
       </svg>
       <section id="control">
@@ -227,7 +255,7 @@
             <select value="{{modus::change}}">
               <option value="zoom">zoom</option>
               <option value="delta">delta</option>
-              <option value="integral">integral</option>
+              <!-- <option value="integral">integral</option> -->
             </select>
           </div>
         </iron-collapse>
@@ -368,7 +396,7 @@
 
         modus: {
           type: String,
-          value: 'zoom',
+          value: 'delta',
           observer: '_modusChanged'
         }
       },
@@ -387,12 +415,19 @@
       _focusY: {},
       _focusDot: {},
 
+      _infoDeltaX: {},
+      _infoDeltaY: {},
+      _delta: {},
+      _deltaX: {},
+      _deltaY: {},
+      _deltaDot: {},
+
       _areas: {},
       _dots: {},
       _bounderies: {},
 
-      _focusedValue: {},
-      _fixedValues: [],
+      _focusedValue: null,
+      _fixedValue: null,
 
       _x: Function,
       _y: Function,
@@ -434,7 +469,7 @@
 
       created: function() {
         this._graphs = new Set();
-        d3.timeFormatDefaultLocale({
+        var localeDateFormat = {
           'dateTime': '%x %X',
           'date': '%d.%m.%Y',
           'time': '%H:%M:%S',
@@ -443,23 +478,55 @@
           'shortDays': ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'],
           'months': ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
           'shortMonths': ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Dez']
-        });
-        d3.formatDefaultLocale({
+        }
+        var localeNumberFormat = {
           'decimal': ',',
           'thousands': '.',
           'grouping': [3],
           'currency': ['', '\u00a0€']
-        });
-        this.format.Millisecond = d3.timeFormat(':%S,%L');
-        this.format.LongSecond = d3.timeFormat(':%M:%S,%L');
-        this.format.Second = d3.timeFormat(':%M:%S');
-        this.format.LongMinute = d3.timeFormat('%H:%M:%S');
-        this.format.Minute = d3.timeFormat('%H:%M');
-        this.format.Hour = d3.timeFormat('%X');
-        this.format.Day = d3.timeFormat('%d.%m');
-        this.format.Week = d3.timeFormat('%d.%m');
-        this.format.Month = d3.timeFormat('%d. %b');
-        this.format.Year = d3.timeFormat('%Y');
+        };
+        d3.timeFormatDefaultLocale(localeDateFormat);
+        d3.formatDefaultLocale(localeNumberFormat);
+        this.format = {
+          Millisecond: d3.timeFormat(':%S,%L'),
+          LongSecond: d3.timeFormat(':%M:%S,%L'),
+          Second: d3.timeFormat(':%M:%S'),
+          LongMinute: d3.timeFormat('%H:%M:%S'),
+          Minute: d3.timeFormat('%H:%M'),
+          Hour: d3.timeFormat('%X'),
+          Day: d3.timeFormat('%d.%m'),
+          Week: d3.timeFormat('%d.%m'),
+          Month: d3.timeFormat('%d. %b'),
+          Year: d3.timeFormat('%Y'),
+          timeDiff: function(date) {
+            // one year = 365.25 days = 315576E5ms (Julian Calendar)
+            var ry = date%315576E5
+              , y = (date - ry)/315576E5
+              , rd = ry%864E5
+              , d = (ry - rd)/864E5
+              , rh = rd%36E5
+              , h = (rd - rh)/36E5
+              , rm = rh%6E4
+              , m = (rh - rm)/6E4
+              , rs = rm%1E3
+              , s = (rm - rs)/1E3
+              , ret = '';
+            if (y)
+              ret += y + 'y ';
+            if (d)
+              ret += d + 'd ';
+            if (h)
+              ret += h + 'h ';
+            if (m)
+              ret += m + 'm ';
+            if (s)
+              ret += s + 's ';
+            if (rs)
+              ret += rs + 'ms';
+            return ret;
+          },
+          Number: d3.format(',')
+        }
       },
 
       attached: function() {
@@ -498,6 +565,13 @@
             .on('mouseleave', this._hideInfo.bind(this))
             .on('click', this._dotClicked.bind(this));
 
+          this._infoDeltaX = d3.select(this.$.infoDeltaX);
+          this._infoDeltaY = d3.select(this.$.infoDeltaY);
+          this._delta = d3.select(this.$.delta);
+          this._deltaX = d3.select(this.$.deltaX);
+          this._deltaY = d3.select(this.$.deltaY);
+          this._deltaDot = d3.select(this.$.deltaDot);
+
           this._brushBehavior = d3.brush()
             .on('end', this.brushed.bind(this._self));
           this._brush = d3.select(this.$.brush);
@@ -505,64 +579,30 @@
             .on('mouseenter touchstart', this._showInfo.bind(this))
             .on('mouseleave touchend', this._hideInfo.bind(this))
             .on('mousemove', function() {
-              // this.setAttribute('r', self.dotRadius * 1.5);
-              var mx = d3.mouse(this._chart.node())[0],
-                my = d3.mouse(this._chart.node())[1],
-                x0 = this._x.invert(mx);
+              var m = d3.mouse(this._chart.node());
               requestAnimationFrame(function() {
                 var closestGraph, closestPoint, closestDistance;
                 this._graphs.forEach(
                   function(g) {
                     if (g.values && g.values.length) {
-                      // var bisectDate = d3.bisector(function(d, x) { return d.x - x; });
-                      // var closestIndex = bisectDate.left(g.values, p.x);
-                      // var d = g.values[closestIndex];
-                      //
-                      // var distance = Math.sqrt(Math.pow(m.x - this._x(d.x), 2) + Math.pow(m.y - this._y(d.y), 2));
-                      // var timeDistance = this._x.invert(m.x - distance);
-                      // var valueDistance = this._y.invert(distance);
-                      //
-                      // var startIndex = bisectDate.left(g.values, timeDistance);
-                      // var endIndex = bisectDate.left(g.values, 2*p.x - timeDistance);
-                      // var values = g.values.slice(startIndex, endIndex);
-                      //
-                      // var tmp, currentMin = Math.pow(m.x - this._x(values[0].x), 2) + Math.pow(m.y - this._y(values[0].y), 2), currentClosest = values[0];
-                      // for (var i = 1; i < values.length; i++) {
-                      //   if (currentMin > (tmp = Math.pow(m.x - this._x(values[i].x), 2) + Math.pow(m.y - this._y(values[i].y), 2))) {
-                      //     currentClosest = values[i];
-                      //     currentMin = tmp;
-                      //   }
-                      // }
-                      //
-                      // if (closestDistance === undefined || currentMin < closestDistance) {
-                      //   closestDistance = currentMin;
-                      //   closestPoint = currentClosest;
-                      //   closestGraph = g;
-                      // }
-                      var i = g.bisectDate.left(g.values, x0, 1, g.values.length - 1);
-                      if (i < 0) {
-                        i = 1;
-                      } else if (i >= g.values.length) {
-                        i = g.values.length - 1;
-                      }
-                      var d = g.values[i];
-                      var currentMin = Math.pow(mx - this._x(d.x), 2) + Math.pow(my - this._y(d.y), 2);
-                      if (closestDistance === undefined || currentMin < closestDistance) {
-                        closestDistance = currentMin;
+                      var d = g._closestPoint( m );
+                      var currentMin2 = Math.pow(m[0] - this._x(d.x), 2) + Math.pow(m[1] - this._y(d.y), 2); // in px²
+                      if (closestDistance === undefined || currentMin2 < closestDistance) {
+                        closestDistance = currentMin2;
                         closestPoint = d;
                         closestGraph = g;
                       }
                     }
                   }.bind(this));
                 if (closestPoint) {
-                  var fill = '#000';
+                  var fill = closestGraph.getComputedStyleValue('--device-color') || '#000';
                   if (closestGraph.item.threshold) {
                     switch (closestPoint.state) {
                       case 1:
                         fill = closestGraph.getComputedStyleValue('--device-state-exceeds-color') || '#F20C0C';
                         break;
                       case -1:
-                        fill = closestGraph.getComputedStyleValue('device-state-deceeds-color') || '#F20C0C';
+                        fill = closestGraph.getComputedStyleValue('--device-state-deceeds-color') || '#F20C0C';
                         break;
                     }
                   }
@@ -570,7 +610,8 @@
                   this._focusDot.datum(closestPoint)
                     .attr('fill', fill)
                     .attr('r', closestGraph.dotRadius);
-                  this.debounce('move-info', this._moveInfo.bind(this, closestPoint), 1);
+                  this._showInfo();
+                  this._moveInfo(closestPoint);
                 } else {
                   this._hideInfo();
                 }
@@ -721,14 +762,14 @@
       timeFormatRange: function(date, r, pixels) {
         var rangeRatio = (r[1] - r[0]).valueOf() / pixels;
         return (rangeRatio < 100 ? this.format.Millisecond :
-          rangeRatio < 500 ? this.format.LongSecond :
-          rangeRatio < 5000 ? this.format.Second :
-          rangeRatio < 20000 ? this.format.LongMinute :
-          rangeRatio < 60000 ? this.format.Minute :
-          rangeRatio < 3600000 ? this.format.Hour :
-          rangeRatio < 86400000 ? this.format.Day :
-          rangeRatio < 604800000 ? this.format.Week :
-          rangeRatio < 2419200000 ? this.format.Month :
+          rangeRatio < 5E2 ? this.format.LongSecond :
+          rangeRatio < 5E3 ? this.format.Second :
+          rangeRatio < 2E4 ? this.format.LongMinute :
+          rangeRatio < 6E4 ? this.format.Minute :
+          rangeRatio < 36E5 ? this.format.Hour :
+          rangeRatio < 864E5 ? this.format.Day :
+          rangeRatio < 6048E5 ? this.format.Week :
+          rangeRatio < 24192E5 ? this.format.Month :
           this.format.Year)(date);
       },
 
@@ -892,20 +933,34 @@
       _moveInfo: function(d) {
         if (Number.isFinite(this._y(d.y))) {
           var x = this.timeFormatRange.call(this, d.x, this._x.domain(), this._width);
-          this._info.datum(d).text( x + ' , ' + d.y );
-          this._info.attr('hidden', null);
-          this._focus.attr('hidden', null);
+          var y = this.format.Number(d.y);
+          this._info.text( x + ' ' + y );
+          var fixP = this._fixedValue;
+          if (fixP) {
+            var diffX = Math.abs(fixP.x - d.x),
+                diffY = Math.abs(fixP.y - d.y);
+            diffX = this.format.timeDiff.call(this, diffX);
+            diffY = this.format.Number(diffY);
+            this._infoDeltaX.text( diffX );
+            this._infoDeltaY.text( diffY );
+          }
           this._updateInfo();
         }
       },
 
       _showInfo: function() {
         this.cancelDebouncer('hideinfo');
+        this._info.attr('hidden', null);
         this._focus.attr('hidden', null);
+        if (this._fixedValue) {
+          this._infoDeltaX.attr('hidden', null);
+          this._infoDeltaY.attr('hidden', null);
+          this._delta.attr('hidden', null);
+        }
       },
 
       _hideInfo: function() {
-        this.debounce('hideinfo', this._debounceHideInfo, 1500);
+        this.debounce('hideinfo', this._debounceHideInfo, 1000);
       },
 
       _debounceHideInfo: function() {
@@ -914,55 +969,108 @@
         this._chart.select('#xAxis').call(this._xAxis);
         this._chart.select('#yAxis').call(this._yAxis);
         this._info.attr('hidden', '');
+        this._infoDeltaX.attr('hidden', '');
+        this._infoDeltaY.attr('hidden', '');
         this._focus.attr('hidden', '');
+        this._delta.attr('hidden', '');
         this._svg.selectAll('g,line,text,path,rect')
           .classed('style-scope', true)
           .classed('device-chart', true);
       },
 
       _updateInfo: function() {
-        if (this._info.attr('hidden') === ''
-        // || this._info.x === undefined || this._info.y === undefined
-      ) return;
-        var x = this._x(+this._focusedValue.x),
-          y = this._y(+this._focusedValue.y);
+        if (!this._focusedValue || this._info.attr('hidden') === '') return;
+        var focP = this._focusedValue;
+        var x = this._x(+focP.x),
+          y = this._y(+focP.y);
         if (!x || !y) {
           return;
         }
-        var bbox = this._info.node().getBBox();
-        this._info
-          .attr('x', (x + 6 + bbox.width > this._width ? (x - 6 - bbox.width < 0 ? 0 : x - 6 - bbox.width) : x + 6))
-          .attr('y', (y > bbox.height + 4 ? y - 4 : bbox.height));
+
+        this._alignText(this._info.node(), x, y, null, 1.5*this._focusDot.attr('r'));
         switch (this.modus) {
           case 'delta':
-            if (this._fixedValues.length !== 2) {
-              break;
+            var fixP = this._fixedValue;
+            if (fixP && fixP.x && focP.x !== fixP.x && fixP.y && focP.y !== fixP.y ) {
+              var xFix = this._x(+fixP.x)
+                , yFix = this._y(+fixP.y);
+              var x1D, x2D, y1D, y2D;
+              this._deltaX.attr('x1', x).attr('x2', xFix).attr('y1', yFix).attr('y2', yFix);
+              this._deltaY.attr('y1', y).attr('y2', yFix);
+              if (yFix < y || x < xFix) {
+                this._deltaY.attr('x1', x).attr('x2', x);
+                this._alignText(this._infoDeltaY.node(), x, (yFix+y)/2, null, null, null, 'middle');
+              } else {
+                this._deltaY.attr('x1', xFix).attr('x2', xFix);
+                this._alignText(this._infoDeltaY.node(), xFix, (yFix+y)/2, null, null, null, 'middle');
+              }
+              this._deltaX
+              this._alignText(this._infoDeltaX.node(), (xFix+x)/2, yFix, null, null, null, 'middle');
+              this._deltaDot.attr('cy', yFix).attr('cx', xFix);
+            } else {
+              this._infoDeltaX.attr('hidden', '');
+              this._infoDeltaY.attr('hidden', '');
+              this._delta.attr('hidden', '');
             }
-            var deltaX = this._fixedValues[1].x - this._fixedValues[0].x;
-            var deltaY = this._fixedValues[1].y - this._fixedValues[0].y;
-            this._focus.select('.delta.line.x').attr('x1', this._x(this._fixedValues[0].x)).attr('x2', this._x(this._fixedValues[1].x)).attr('y2', this._x(this._fixedValues[0].y)).attr('y1', this._x(this._fixedValues[0].y)).attr('fill', 'red');
-            this._focus.select('.delta.line.y').attr('x1', this._x(this._fixedValues[1].x)).attr('x2', this._x(this._fixedValues[1].x)).attr('y2', this._x(this._fixedValues[0].y)).attr('y1', this._x(this._fixedValues[1].y));
           case 'integral':
           default:
             this._focusX.attr('x1', 0).attr('x2', x).attr('y2', y).attr('y1', y);
             this._focusY.attr('y1', this._height).attr('y2', y).attr('x2', x).attr('x1', x);
             this._focusDot.attr('cy', y).attr('cx', x);
-            this._focus.selectAll('.dot.fixed')
-                .attr('cx', function(d) {
-                    return this._x(d.x)
-                }.bind(this))
-                .attr('cy', function(d) {
-                    return this._y(d.y)
-                }.bind(this));
         }
 
         this._xAxis.tickValues([this._focusedValue.x]);
+        this._xAxis.tickFormat(null);
         this._yAxis.tickValues([this._focusedValue.y]);
+        this._yAxis.tickFormat(null);
         this._chart.select('#xAxis').call(this._xAxis);
         this._chart.select('#yAxis').call(this._yAxis);
         this._svg.selectAll('g,line,text,path,rect')
           .classed('style-scope', true)
           .classed('device-chart', true);
+      },
+
+      _alignText: function(node, x, y, marginLeft, marginBottom, textAnchor, alignmentBaseline) {
+        marginLeft = marginLeft || 0;
+        marginBottom = marginBottom || 0;
+        var bbox = node.getBBox()
+          , height = this._height
+          , width = this._width
+          , textAnchor = textAnchor || 'middle'
+          , alignmentBaseline = alignmentBaseline || 'ideographic'
+          , limitLeft = marginLeft
+          , limitBottom = marginBottom;
+
+        switch (textAnchor) { // list is not complete!
+          case 'middle':
+            limitLeft += bbox.width/2;
+          case 'end ':
+            limitLeft += bbox.width;
+        }
+        switch (alignmentBaseline) { // list is not complete!
+          case 'ideographic':
+            limitBottom += bbox.height;
+          case 'middle':
+            limitBottom += bbox.height/2;
+          case 'hanging':
+            limitBottom -= bbox.height;
+        }
+
+        if (y - limitBottom < 0) { // above top
+          alignmentBaseline = 'hanging';
+        } else if (y + limitBottom > height){
+          y = height - limitBottom;
+        }
+
+        if (x + limitLeft > width) { // beyond right
+          textAnchor = 'end';
+        } else if (x - limitLeft < 0) { // beyond left
+          textAnchor = 'start';
+        }
+        node.setAttribute('x', x + marginLeft);
+        node.setAttribute('y', y - marginBottom);
+        node.setAttribute('text-anchor', textAnchor);
+        node.setAttribute('alignment-baseline', alignmentBaseline);
       },
 
       _modusChanged: function(modus) {
@@ -995,40 +1103,25 @@
             this.brushed();
             break;
           case 'delta':
-            for (var i = 0; i < this._fixedValues.length; i++) {
-              if (this._fixedValues[i] && this._fixedValues[i].x && this._fixedValues[i].x === d.x) {
-                this._fixedValues.length = 0;
-                this._updateInfo();
-                return;
-              }
+            var fP = this._fixedValue;
+            if (fP && fP.x && fP.y && fP.x === d.x && fP.y === d.y) {
+              this._fixedValue = null;
+              this._infoDeltaX.attr('hidden', '');
+              this._infoDeltaY.attr('hidden', '');
+              this._delta.attr('hidden', '');
+              this._updateInfo();
+              return;
             }
-            this._fixedValues.splice(1, this._fixedValues.length);
-            this._fixedValues.push(d);
-            var dots = this._focus.selectAll('.dot.fixed').data(this._fixedValues);
-
-            // update current dots
-            dots.attr('cx', function(d) {
-                    return this._x(d.x)
-                }.bind(this))
-                .attr('cy', function(d) {
-                    return this._y(d.y)
-                }.bind(this));
-            // enter new dots
-            dots.enter()
-                .append('circle')
-                .classed('dot style-scope device-chart fixed', true)
-                .attr('r', this._focusDot.attr('r'))
-                .attr('fill', this._focusDot.attr('fill'))
+            this._fixedValue = d;
+            this._deltaDot.datum(this._fixedValue)
                 .attr('cx', function(d) {
                     return this._x(d.x)
                 }.bind(this))
                 .attr('cy', function(d) {
                     return this._y(d.y)
-                }.bind(this));
-            //  remove old dots
-            dots.exit()
-                .remove();
-
+                }.bind(this))
+                .attr('r', this._focusDot.attr('r'))
+                .attr('fill', this._focusDot.attr('fill'));
             break;
           case 'integral':
 
@@ -1048,12 +1141,8 @@
       //   this.fire('open-settings', { trigger: this, title: 'chart', settings: [ {title: 'graphs', entries: graphs} ]} );
       // },
 
-      toggleMenu: function() {
-        if (this.$.menu.hasAttribute('hidden')) {
-          this.$.menu.removeAttribute('hidden');
-        } else {
-          this.$.menu.setAttribute('hidden', '');
-        }
+      closeMenu: function() {
+        this.showMenu = false;
       },
 
       changeInterpolation: function(interpolation, oldValue) {
@@ -1116,7 +1205,9 @@
           e.preventDefault();
         }
         this._isZoomed = false;
-        this._hideInfo();
+        this._fixedValue = null;
+        this._focusedValue = null;
+        this._debounceHideInfo();
         this.redraw();
       },
 

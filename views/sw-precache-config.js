@@ -13,8 +13,8 @@ module.exports = {
     '/app.yaml',
     '/scripts/*',
     '/polyfills/*',
-    '/data/**/*',
-    '/images/**/*'
+    // '/data/**/*',
+    // '/images/**/*'
   ],
   verbose: true,
   navigateFallback: '/index.html',
