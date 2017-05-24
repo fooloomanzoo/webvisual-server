@@ -13,7 +13,9 @@
     "scripts/**/*",
     "polyfills/**/*",
     "fonts/**/*",
-    "icons/**/*"
+    "icons/**/*",
+    "data/**/*",
+    "images/**/*"
   ],
   "extraDependencies": [
     "bower_components/webcomponentsjs/*",
