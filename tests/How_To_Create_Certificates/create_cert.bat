@@ -9,19 +9,19 @@ rem BE CAREFUL WITH EQUAL SIGN! PLEASE NO SPACES ON BOTH SIDES!! (eg. "var=value
 
 rem -- Certificate Information --
 set "country=DE"&                         rem Country Name (2 letter code)
-set "state=Nordrhein-Westfalen"&          rem State or Province Name (full name)
-set "city=Juelich"&                       rem Locality Name (eg, city)
-set "company=Forschungszentrum Juelich"&  rem Organization Name (eg, company)
-set "company_unit=ICS-TAE"&               rem Organizational Unit Name (eg, section)
+set "state=Berlin"&                       rem State or Province Name (full name)
+set "city=Berlin"&                        rem Locality Name (eg, city)
+set "company=Localhost"&                  rem Organization Name (eg, company)
+set "company_unit=Localhost"&             rem Organizational Unit Name (eg, section)
 set "domain=localhost"&                   rem Domain Name (Address)
-set "email=example@localhost.de"&           rem Email Address
+set "email=example@localhost.de"&         rem Email Address
 set "days=1100"&                          rem Certificate validity duration in days
 
 rem Length of passphrase (min 4, max 1024)
 set pass_length=256;
 
 rem -- Paths --
-set output_dir=..\..\defaults\ssl&                    rem where to write output files
+set output_dir=..\..\defaults\ssl&        rem where to write output files
 set pass_json=%output_dir%\ca.pw.json&    rem where to store the password
 
 rem Check if outputdir exists. If not -> create it.

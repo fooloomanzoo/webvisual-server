@@ -34,7 +34,10 @@ const EventEmitter = require('events').EventEmitter
     , multer = require('multer')({ dest: 'uploads/' })
 
     // Session Store
-    , RedisStore = require('connect-redis')(session);
+    , RedisStore = require('connect-redis')(session)
+
+    // Development (Reload on change)
+    , chokidar = require('chokidar');
 
 function resolvePath() {
   let p = process.cwd();
@@ -60,6 +63,8 @@ class Router extends EventEmitter {
       default:
         this.dir = dir;
     }
+
+    this.mode = mode;
 
     this.staticMiddleware = serveStatic( resolvePath( this.dir.dist ) );
     this.staticDataMiddleware = serveStatic( resolvePath( this.dir.data ), { index: false });
@@ -179,6 +184,31 @@ class Router extends EventEmitter {
       });
     });
 
+    switch (this.mode) {
+      case 'develop':
+      case 'development':
+        let srcpath = resolvePath( this.dir.dist );
+        this.watcher = chokidar.watch( srcpath, {
+          ignored: /(^|[\/\\])\../,
+          persistent: true
+        });
+        // Add event listeners.
+        this.watcher
+          .on('change', path => {
+            this.emit('log', `${this.mode}: "${path}" changed`);
+            if (this.reloadJob) {
+              clearTimeout(this.reloadJob);
+              this.reloadJob = null;
+            }
+            this.reloadJob = setTimeout(() => {
+              this.io.sockets.emit('reload');
+            }, 1500);
+          });
+
+        this.emit('info', `Watch for changes in ${srcpath}. Clients reload on change.`);
+        break;
+    }
+
     // Signin
     this.app.post('/login', multer.fields([]),
       this.settings.server.auth.required ?
@@ -216,6 +246,7 @@ class Router extends EventEmitter {
 
     // Fallback (for in-app-page-routing neccessary)
     this.app.get('*', (req, res) => {
+      res.location(req.originalUrl);
       res.sendFile( resolvePath( this.dir.dist, 'index.html') );
     });
   }

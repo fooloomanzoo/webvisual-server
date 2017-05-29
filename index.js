@@ -164,16 +164,16 @@ class WebvisualServer extends Controller {
             });
 
           this.router = new Router(app, this.mode);
-          this.router.on('error', (err) => {
-            process.send( { error: err } );
-          });
+          this.router.on('error', (err) => { process.send( { error: msg } ); });
+          this.router.on('info', (msg) => { process.send( { info: msg } ); });
+          this.router.on('event', (msg) => { process.send( { event: msg } ); });
+          this.router.on('log', (msg) => { process.send( { log: msg } ); });
           this.router.setSettings(config, this.http2Server);
 
           this.dataHandler = new DataModule();
-          this.dataHandler.on('error', (err) => {
-            process.send( { error: err } );
-          });
+          this.dataHandler.on('error', (err) => { process.send( { error: err } ); });
           this.dataHandler.on('info', (msg) => { process.send( { info: msg } ); });
+          this.dataHandler.on('event', (msg) => { process.send( { event: msg } ); });
           this.dataHandler.on('log', (msg) => { process.send( { log: msg } ); });
 
           this.configFilesHandler = new ConfigFileProcessor();

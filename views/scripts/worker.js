@@ -79,6 +79,13 @@ self.IOSocket.prototype = {
         self._clearDatabase();
       });
 
+      this.socket.on('reload', function() {
+        console.info('page reload');
+        self.postMessage({
+          type: 'reload'
+        });
+      });
+
       this.socket.on('request', function(message) {
         if (message && message.messageId) {
           self.postMessage({

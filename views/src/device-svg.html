@@ -66,13 +66,16 @@
       user-select: none !important;
     }
     #svgContainer {
-      position: absolute;
-      top: 0; bottom: 0; left: 0; right: 0;
+      position: relative;
+      box-sizing: border-box;
+      width: 100%;
+      height: 100%;
       border-radius: inherit;
       isolation: isolate;
     }
     #svgContainer svg {
-      position: relative;
+      position: absolute;
+      top: 0; bottom: 0; left: 0; right: 0;
       width: 100%;
       height: 100%;
       font-family: inherit;
@@ -421,7 +424,7 @@
         // register zoom function
         this._d3Zoom = d3.zoom()
           .scaleExtent([this.minZoom, this.maxZoom])
-          .on('zoom', this._zoom.bind(this));
+          .on('zoom', this._zoom.bind(this), {passive: true});
         // set style for resizing
         this._svg.attr('preserveAspectRatio', 'xMinYMin meet')
           .attr('height', null)
@@ -489,7 +492,7 @@
                   if (!clicked) {
                     this.classList.add('clicked');
                   }
-                });
+                }, {passive: true});
           }
           if (this.selectableItems.minZoom !== undefined) {
             this.minZoom = this.selectableItems.minZoom;

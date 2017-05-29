@@ -52,7 +52,7 @@
       <ul class="grid">
         <template is="dom-repeat" items="[[_getListItems(elements)]]">
           <li>
-            <a href$="/detail/[[item.mount]]">
+            <a href$="/detail/[[facilitySystem]]/?m=[[item.mount]]">
               <device-sign
                 item="[[item]]"
                 show-date></device-sign>
@@ -72,6 +72,10 @@
       is: 'page-list',
 
       properties: {
+
+        facilitySystem: {
+          type: String
+        },
 
         elements: {
           type: Array,

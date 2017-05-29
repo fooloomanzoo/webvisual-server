@@ -39,10 +39,11 @@
         background-color: var(--fullscreen-background-color);
       }
       #svgContainer {
-        position: absolute;
-        top: 0; bottom: 0; left: 0; right: 0;
+        position: relative;
+        box-sizing: border-box;
+        width: 100%;
+        height: 100%;
         border-radius: inherit;
-        padding-bottom: calc(var(--icon-size, 1.5em) + 2*var(--icon-padding, 0.5em) + var(--control-bottom, 0px));
         isolation: isolate;
       }
       :host([fullscreen]) > #svgContainer {
@@ -50,9 +51,10 @@
         padding: 1em 1em 3em 1em !important;
       }
       #svgChart {
-        position: relative;
-        height: 100%;
-        width: 100%;
+        position: absolute;
+        top: 0; bottom: 0; left: 0; right: 0;
+        width: 100%; height: 100%;
+        overflow: visible;
         font-family: inherit;
       }
       text {
@@ -140,6 +142,18 @@
       .selectbox {
         padding: 0;
       }
+      g.x.axis > g.tick:first-of-type:not(:only-of-type) > text {
+        text-anchor: start;
+      }
+      g.x.axis > g.tick:last-of-type:not(:only-of-type) > text {
+        text-anchor: end;
+      }
+      g.y.axis > g.tick:first-of-type:not(:only-of-type) > text {
+        alignment-baseline: after-edge;
+      }
+      g.y.axis > g.tick:last-of-type:not(:only-of-type) > text {
+        alignment-baseline: before-edge;
+      }
       #control {
         position: absolute;
         bottom: var(--control-bottom, 0px);
@@ -208,7 +222,6 @@
           <g id="yGrid" class="grid" clip-path="url(#clip)"></g>
           <g id="graphs" clip-path="url(#clip)">
             <g id="areas"></g>
-            <g id="dots"></g>
             <g id="bounderies"></g>
             <g id="brush"></g>
           </g>
@@ -222,47 +235,47 @@
             <line id="focusY" class="line y" marker-start="url(#stub)" marker-end="url(#arrowToRight)"></line>
             <circle id="focusDot" class="dot"></circle>
           </g>
-          <g id="xAxis" class="axis" on-tap="_resetZoom"></g>
-          <g id="yAxis" class="axis" on-tap="_resetZoom"></g>
+          <g id="xAxes" on-tap="_resetZoom"></g>
+          <g id="yAxes" on-tap="_resetZoom"></g>
           <text id="info" class="focus info" x="0" y="0" filter="url(#solid)" hidden></text>
           <text id="infoDeltaX" class="delta info" x="0" y="0" filter="url(#solid)" hidden></text>
           <text id="infoDeltaY" class="delta info" x="0" y="0" filter="url(#solid)" hidden></text>
         </g>
       </svg>
-      <section id="control">
-        <iron-collapse id="controlcontent" opened="[[showControl]]">
-          <div class="selectbox">
-            <select value="{{interpolation::change}}">
-              <option value="Lineare Verbindung">Lineare Verbindung</option>
-              <option value="Basis Spline">Basis Spline</option>
-              <option value="Kubischer Spline">Kubischer Spline</option>
-              <option value="Cardinaler Spline">Cardinaler Spline</option>
-              <option value="Catmull-Rom-Spline">Catmull-Rom-Spline</option>
-              <option value="Stufe (mitte)">Stufe (mitte)</option>
-              <option value="Stufe (davor)">Stufe (davor)</option>
-              <option value="Stufe (danach)">Stufe (danach)</option>
-            </select>
-          </div>
-          <div class="selectbox">
-            <select value="{{yScale::change}}">
-              <option value="linear">linear</option>
-              <option value="√">√</option>
-              <option value="ln">ln</option>
-              <option value="log₁₀">log₁₀</option>
-            </select>
-          </div>
-          <div class="selectbox">
-            <select value="{{modus::change}}">
-              <option value="zoom">zoom</option>
-              <option value="delta">delta</option>
-              <!-- <option value="integral">integral</option> -->
-            </select>
-          </div>
-        </iron-collapse>
-        <icon-button title="settings" icon="tune" checked="{{showControl}}"></icon-button>
-        <icon-button icon="[[fullscreenIcon]]" on-tap="toggleFullscreen"></icon-button>
-      </section>
   	</div>
+    <section id="control">
+      <iron-collapse id="controlcontent" opened="[[showControl]]">
+        <div class="selectbox">
+          <select value="{{interpolation::change}}">
+            <option value="Lineare Verbindung">Lineare Verbindung</option>
+            <option value="Basis Spline">Basis Spline</option>
+            <option value="Kubischer Spline">Kubischer Spline</option>
+            <option value="Cardinaler Spline">Cardinaler Spline</option>
+            <option value="Catmull-Rom-Spline">Catmull-Rom-Spline</option>
+            <option value="Stufe (mitte)">Stufe (mitte)</option>
+            <option value="Stufe (davor)">Stufe (davor)</option>
+            <option value="Stufe (danach)">Stufe (danach)</option>
+          </select>
+        </div>
+        <div class="selectbox">
+          <select value="{{yScale::change}}">
+            <option value="linear">linear</option>
+            <option value="√">√</option>
+            <option value="ln">ln</option>
+            <option value="log₁₀">log₁₀</option>
+          </select>
+        </div>
+        <div class="selectbox">
+          <select value="{{modus::change}}">
+            <option value="zoom">zoom</option>
+            <option value="delta">delta</option>
+            <!-- <option value="integral">integral</option> -->
+          </select>
+        </div>
+      </iron-collapse>
+      <icon-button title="settings" icon="tune" checked="{{showControl}}"></icon-button>
+      <icon-button icon="[[fullscreenIcon]]" on-tap="toggleFullscreen"></icon-button>
+    </section>
 
     <template is="dom-if" if="[[multi]]" restamp>
       <template is="dom-repeat" items="[[items]]">
@@ -310,10 +323,10 @@
           type: Object,
           value: function() {
             return {
-              top: 7,
-              right: 13,
-              bottom: 18,
-              left: 48
+              top: 0,
+              right: 0,
+              bottom: 0,
+              left: 0
             }
           }
         },
@@ -423,7 +436,6 @@
       _deltaDot: {},
 
       _areas: {},
-      _dots: {},
       _bounderies: {},
 
       _focusedValue: null,
@@ -432,27 +444,17 @@
       _x: Function,
       _y: Function,
 
-      _xAxis: {},
-      _yAxis: {},
+      _xAxes: [],
+      _yAxes: [],
+      _xAxisFn: {},
+      _yAxisFn: {},
 
+      _initialized: false,
+      _isAttached: false,
       _isBrushed: false,
       _isZoomed: false,
 
-      format: {
-        Millisecond: Function,
-        Second: Function,
-        LongSecond: Function,
-        Minute: Function,
-        LongMinute: Function,
-        Hour: Function,
-        Day: Function,
-        Week: Function,
-        Month: Function,
-        Year: Function
-      },
-
       _brushBehavior: Function,
-
       _messageCount: 0,
 
       get _self() {
@@ -535,23 +537,38 @@
 
       _sizeChanged: function() {
         // only resize if initialized & opened
-        if (this._initialized && this.opened) {
+        if (this._isAttached && this.opened) {
           this.debounce('sizeLayout', this._sizeLayout, 15);
         }
       },
 
       _buildLayout: function() {
+        console.log('buildLayout');
           this._svg = d3.select(this.$.svgChart)
             .attr('height', null)
             .attr('width', null);
-          this._x = this._createScale(this.xScale);
-          this._y = this._createScale(this.yScale);
+          this._x = this._createScaleFn(this.xScale);
+          this._y = this._createScaleFn(this.yScale);
 
           this._chart = d3.select(this.$.chart);
 
+          this._xAxes = d3.select(this.$.xAxes);
+          this._yAxes = d3.select(this.$.yAxes);
+
           this._areas = d3.select(this.$.areas);
-          this._dots = d3.select(this.$.dots);
           this._bounderies = d3.select(this.$.bounderies);
+
+          // Test
+          this._xAxes
+            .append('svg:g')
+            .classed('x axis', true);
+          this._yAxes
+            .append('svg:g')
+            .classed('y axis', true);
+          this._yAxes
+            .append('svg:g')
+            .classed('y axis', true);
+          //
 
           this._info = d3.select(this.$.info);
           this._focus = d3.select(this.$.focus);
@@ -561,9 +578,9 @@
           this._focusDot
             .on('mouseenter', function() {
               this.cancelDebouncer('hideinfo');
-            }.bind(this))
-            .on('mouseleave', this._hideInfo.bind(this))
-            .on('click', this._dotClicked.bind(this));
+            }.bind(this), {passive: true})
+            .on('mouseleave', this._hideInfo.bind(this), {passive: true})
+            .on('click', this._dotClicked.bind(this), {passive: true});
 
           this._infoDeltaX = d3.select(this.$.infoDeltaX);
           this._infoDeltaY = d3.select(this.$.infoDeltaY);
@@ -576,8 +593,8 @@
             .on('end', this.brushed.bind(this._self));
           this._brush = d3.select(this.$.brush);
           this._brush
-            .on('mouseenter touchstart', this._showInfo.bind(this))
-            .on('mouseleave touchend', this._hideInfo.bind(this))
+            .on('mouseenter touchstart', this._showInfo.bind(this), {passive: true})
+            .on('mouseleave touchend', this._hideInfo.bind(this), {passive: true})
             .on('mousemove', function() {
               var m = d3.mouse(this._chart.node());
               requestAnimationFrame(function() {
@@ -616,22 +633,22 @@
                   this._hideInfo();
                 }
               }.bind(this));
-            }.bind(this))
-            .on('touchmove', this._resetZoom.bind(this));
+            }.bind(this), {passive: true})
+            .on('touchmove', this._resetZoom.bind(this), {passive: true});
 
           this._svg.selectAll('g,line,text,path,rect')
             .classed('style-scope', true)
             .classed('device-chart', true);
 
-          this._initialized = true;
+          this._isAttached = true;
 
           this._modusChanged(this.modus);
           this._sizeChanged();
       },
 
       _sizeLayout: function() {
-        if (!this._initialized) return;
-
+        if (!this._isAttached) return;
+        console.log('sizeLayout');
         var bRect = this.$.svgChart.getBoundingClientRect();
 
         if (bRect.height === 0 || bRect.width === 0) return;
@@ -639,7 +656,7 @@
         this._width = bRect.width - (this.margin.left || 0) - (this.margin.right || 0);
         this._height = bRect.height - (this.margin.bottom || 0) - (this.margin.top || 0);
 
-        this.xTicks = Math.ceil(this._width / 150);
+        this.xTicks = Math.ceil(this._width / 50);
         this.yTicks = Math.ceil(this._height / 50);
 
         this._x.range([0, this._width]);
@@ -656,21 +673,21 @@
           .attr('width', this._width)
           .attr('height', this._height);
 
-        this._xAxis = this._createAxis(this._x, 'bottom', this.xScale);
-        this._yAxis = this._createAxis(this._y, 'left', this.yScale);
+        this._xAxisFn = this._createAxisFn(this._x, 'bottom', this.xScale);
+        this._yAxisFn = this._createAxisFn(this._y, 'left', this.yScale);
 
-        // this._xGrid = this._createAxis(this._x, 'bottom', this.xScale, this.gridMult)
+        // this._xGrid = this._createAxisFn(this._x, 'bottom', this.xScale, this.gridMult)
         //   .tickSize(-this._height)
         //   .tickFormat('');
-        this._yGrid = this._createAxis(this._y, 'left', this.yScale, this.gridMult)
+        this._yGrid = this._createAxisFn(this._y, 'left', this.yScale, this.gridMult)
           .tickSize(-this._width)
           .tickFormat('');
 
-        this._chart.select('#xAxis')
-          .call(this._xAxis)
+        this._xAxes.selectAll('.x.axis')
+          .call(this._xAxisFn)
           .attr('transform', 'translate(0,' + this._height + ')');
-        this._chart.select('#yAxis')
-          .call(this._yAxis)
+        this._yAxes.selectAll('.y.axis')
+          .call(this._yAxisFn)
           .attr('transform', 'translate(0,' + 0 + ')');
 
         // this._chart.select('#xGrid')
@@ -696,7 +713,7 @@
         this._redraw(true);
       },
 
-      _createScale: function(option) {
+      _createScaleFn: function(option) {
         switch (option) {
           case 'time':
             return d3.scaleTime();
@@ -715,7 +732,7 @@
         }
       },
 
-      _createAxis: function(scale, orient, kind, tickmult) {
+      _createAxisFn: function(scale, orient, kind, tickmult) {
         var axis, ticks, horTicks, verTicks;
         tickmult = tickmult || 1;
 
@@ -739,7 +756,8 @@
         }
         axis.scale(scale).ticks(ticks * tickmult);
         if (kind === 'time')
-          axis.ticks(ticks * tickmult)
+          axis
+          // .ticks(ticks * tickmult)
           .tickFormat(this.timeFormat.bind(this));
         else if (scale.base && scale.base() === Math.E)
           axis.tickFormat(function(d) {
@@ -776,6 +794,9 @@
       redraw: function() {
         if (!(this.opened && this._chart && this._chart.select)) return;
 
+        // if (!this._initialized) {
+        //   this._sizeLayout();
+        // }
         Promise.resolve(this.setDomains.call(this))
           .then(this._redraw.bind(this))
           .catch(function(err) {
@@ -799,8 +820,8 @@
           });
         }
 
-        this._chart.select('#xAxis').call(this._xAxis);
-        this._chart.select('#yAxis').call(this._yAxis);
+        this._xAxes.select('.x.axis').call(this._xAxisFn);
+        this._yAxes.select('.y.axis').call(this._yAxisFn);
         // this._chart.transition(50).select('#xGrid').call(this._xGrid);
         this._chart.transition(50).select('#yGrid').call(this._yGrid);
 
@@ -953,10 +974,14 @@
         this._info.attr('hidden', null);
         this._focus.attr('hidden', null);
         if (this._fixedValue) {
-          this._infoDeltaX.attr('hidden', null);
-          this._infoDeltaY.attr('hidden', null);
-          this._delta.attr('hidden', null);
+          this._showDelta();
         }
+      },
+
+      _showDelta: function() {
+        this._infoDeltaX.attr('hidden', null);
+        this._infoDeltaY.attr('hidden', null);
+        this._delta.attr('hidden', null);
       },
 
       _hideInfo: function() {
@@ -964,18 +989,22 @@
       },
 
       _debounceHideInfo: function() {
-        this._xAxis = this._createAxis(this._x, 'bottom', this.xScale);
-        this._yAxis = this._createAxis(this._y, 'left', this.yScale);
-        this._chart.select('#xAxis').call(this._xAxis);
-        this._chart.select('#yAxis').call(this._yAxis);
         this._info.attr('hidden', '');
-        this._infoDeltaX.attr('hidden', '');
-        this._infoDeltaY.attr('hidden', '');
         this._focus.attr('hidden', '');
-        this._delta.attr('hidden', '');
+        this._hideDelta();
+        this._xAxisFn = this._createAxisFn(this._x, 'bottom', this.xScale);
+        this._yAxisFn = this._createAxisFn(this._y, 'left', this.yScale);
+        this._xAxes.select('.x.axis').call(this._xAxisFn);
+        this._yAxes.select('.y.axis').call(this._yAxisFn);
         this._svg.selectAll('g,line,text,path,rect')
           .classed('style-scope', true)
           .classed('device-chart', true);
+      },
+
+      _hideDelta: function() {
+        this._infoDeltaX.attr('hidden', '');
+        this._infoDeltaY.attr('hidden', '');
+        this._delta.attr('hidden', '');
       },
 
       _updateInfo: function() {
@@ -1008,9 +1037,7 @@
               this._alignText(this._infoDeltaX.node(), (xFix+x)/2, yFix, null, null, null, 'middle');
               this._deltaDot.attr('cy', yFix).attr('cx', xFix);
             } else {
-              this._infoDeltaX.attr('hidden', '');
-              this._infoDeltaY.attr('hidden', '');
-              this._delta.attr('hidden', '');
+              this._hideDelta();
             }
           case 'integral':
           default:
@@ -1019,12 +1046,12 @@
             this._focusDot.attr('cy', y).attr('cx', x);
         }
 
-        this._xAxis.tickValues([this._focusedValue.x]);
-        this._xAxis.tickFormat(null);
-        this._yAxis.tickValues([this._focusedValue.y]);
-        this._yAxis.tickFormat(null);
-        this._chart.select('#xAxis').call(this._xAxis);
-        this._chart.select('#yAxis').call(this._yAxis);
+        this._xAxisFn.tickValues([this._focusedValue.x]);
+        this._xAxisFn.tickFormat(null);
+        this._yAxisFn.tickValues([this._focusedValue.y]);
+        this._yAxisFn.tickFormat(null);
+        this._xAxes.select('.x.axis').call(this._xAxisFn);
+        this._yAxes.select('.y.axis').call(this._yAxisFn);
         this._svg.selectAll('g,line,text,path,rect')
           .classed('style-scope', true)
           .classed('device-chart', true);
@@ -1106,9 +1133,7 @@
             var fP = this._fixedValue;
             if (fP && fP.x && fP.y && fP.x === d.x && fP.y === d.y) {
               this._fixedValue = null;
-              this._infoDeltaX.attr('hidden', '');
-              this._infoDeltaY.attr('hidden', '');
-              this._delta.attr('hidden', '');
+              this._hideDelta();
               this._updateInfo();
               return;
             }
@@ -1165,7 +1190,7 @@
           }
         }
         this._hideInfo();
-        this._y = this._createScale(this.yScale);
+        this._y = this._createScaleFn(this.yScale);
         this._y.domain(domainY).nice(this.yTicks);
         this.set('domainY', domainY);
         this.debounce('sizeLayout', this._sizeLayout);

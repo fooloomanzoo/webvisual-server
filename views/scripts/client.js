@@ -43,6 +43,15 @@ WebvisualClient.prototype = {
                 case 'status':
                   this.updateStatus(e.data.status);
                   break;
+                case 'reload':
+                  if (this.reloadJob) {
+                    clearTimeout(this.reloadJob);
+                    this.reloadJob = null;
+                  }
+                  this.reloadJob = setTimeout(() => {
+                    window.location.reload();
+                  }, 1500);
+                  break;
               }
             }
           }

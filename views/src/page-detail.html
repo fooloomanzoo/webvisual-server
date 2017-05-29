@@ -8,9 +8,7 @@
   <template strip-whitespace>
     <style include="shared-style">
       :host {
-        --control-right: 16px;
-        --control-bottom: 4px;
-        --control-button-distance: 4px;
+        --control-button-distance: 2px;
         --drawer-width: 16em;
         --drawer-background: rgba(255,255,255,0.25);
         --drawer-content: {
@@ -40,11 +38,15 @@
       }
       #svg {
         overflow: hidden;
+        --control-bottom: 4px;
+        --control-right: 16px;
       }
       #chart {
         --chart-plot-background-color: #e1e1e1;
         --chart-plot-background-opacity: 1;
         --focus-color: var(--primary-text-color);
+        /*--control-bottom: 20px;*/
+        margin: 6px 20px;
       }
       :host([plain]) #chart,
       :host([dark]) #chart {
@@ -169,13 +171,10 @@
 
     </style>
 
-    <app-route
-      route="[[route]]"></app-route>
-
     <iron-media-query query="(max-width: 600px)" query-matches="{{narrowLayout}}"></iron-media-query>
 
     <svg-data hidden
-      facility-system="[[facilitySystem]]"
+      facility-system="[[routeData.facility]]/[[routeData.system]]"
       logged-in="[[loggedIn]]"
       paths="{{svgPaths}}"></svg-data>
 
@@ -187,7 +186,7 @@
       <template is="dom-if" if="[[_withSvg]]">
         <device-svg id="svg" disable-upgrade$="[[!visible]]"
           opened="[[visible]]"
-          url-prefix="/images/[[facilitySystem]]/"
+          url-prefix="/images/[[routeData.facility]]/[[routeData.system]]/"
           src="[[selectedElement.svg.path]]"
           selectable-items="[[_getSvgSelectable(selectedElement.svg.path, svgPaths)]]"
           item="[[selectedElement]]"
@@ -201,7 +200,7 @@
 
       <drawer-element id="elementDrawer" opened$="[[_ensureOpened(narrowLayout)]]" swipe-open$="[[narrowLayout]]" scrim persistent$="[[!narrowLayout]]" align="right" stretch>
 
-        <tabs-container id="deviceTabs" vertical selected="{{route.path}}" attr-for-selected="mount" selected-item="{{selectedTab}}">
+        <tabs-container id="deviceTabs" vertical selected="{{selectedMounts}}" attr-for-selected="mount" selected-item="{{selectedTab}}" activate-event="item-select" items="[[elements]]" multi>
           <svg id="requestMoreDetailButton" slot="addon" class="overlay-addon" on-tap="requestMoreDetail" viewBox="0 0 24 24">
             <g><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></g>
           </svg>
@@ -233,12 +232,8 @@
 
       properties: {
 
-        route: {
+        query: {
           type: Object
-        },
-
-        facilitySystem: {
-          type: String
         },
 
         loggedIn: {
@@ -256,6 +251,10 @@
             return [];
           },
           notify: true
+        },
+
+        selectedMounts: {
+          type: Array
         },
 
         selectedElement: {
@@ -301,11 +300,21 @@
       },
 
       observers: [
-        '_getCurrentElement(elements, route.path, visible)'
+        '_queryChanged(query)'
       ],
 
       attached: function() {
         this._debounceResize();
+      },
+
+      _queryChanged: function(query) {
+        console.log(query);
+        if (this.$.deviceTabs && this.$.deviceTabs.select) {
+          var ids = String.prototype.split.call(routeData.ids, ',');
+          for (var i = 0; i < ids.length; i++) {
+            this.$.deviceTabs.select(ids[i]);
+          }
+        }
       },
 
       _setExceeding: function(e) {
@@ -339,8 +348,9 @@
         return items || [{},{},{},{},{},{},{},{},{},{}];
       },
 
-      _getCurrentElement: function(elements, path, visible) {
-        if (!(visible && elements && elements.length && path)) {
+      _setCurrentElement: function(elements, path) {
+        console.log('setcurrentelement');
+        if (!(elements && elements.length && path)) {
           return;
         }
         var mount;
@@ -363,14 +373,15 @@
         for (var i = 0; i < this.elements.length; i++) {
           if (this.elements[i].mount && (mount === this.elements[i].mount)) {
             this.cancelDebouncer('initial-element');
-            if (this._selectedCheckbox && this._selectedCheckbox.mount !== this.elements[i].mount) {
+            if (!this._selectedCheckbox || this._selectedCheckbox.mount !== this.elements[i].mount) {
+              console.log('select from tab');
               this.set('selectedElement', this.elements[i]);
             }
             if (path !== '/' + mount) {
               this.route.path = '/' + mount;
               this.notifyPath('route.path');
-              this._debounceResize();
             }
+            // this._debounceResize();
             return;
           }
         }
@@ -391,6 +402,7 @@
           }
           this.route.path = '/' + this.elements[0].mount;
           this.notifyPath('route.path');
+          this._debounceResize();
         }
       },
 
@@ -427,10 +439,7 @@
       },
 
       toggleControlDrawer: function() {
-        var drawer = this.$$('#elementDrawer');
-        if (drawer) {
-          drawer.toggle();
-        }
+        this.$.elementDrawer.toggle();
       },
 
       requestMoreDetail: function(e) {
@@ -440,17 +449,14 @@
 
       _debounceResize: function() {
         this.debounce('resize', function() {
-          this.notifyResize();
           if (this.narrowLayout) {
-            var drawer = this.$$('#elementDrawer');
-            if (drawer) {
-              drawer.open();
-            }
+            this.$.elementDrawer.open();
           }
           if (this.selectedTab) {
             this.selectedTab.scrollIntoViewIfNeeded(true);
           }
-        }.bind(this), 5);
+          this.notifyResize();
+        }.bind(this), 15);
       }
     });
   </script>

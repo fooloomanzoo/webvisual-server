@@ -195,12 +195,7 @@
     </style>
 
     <!-- Routing-->
-    <app-location route="{{route}}"></app-location>
-    <app-route
-      route="{{route}}"
-      pattern="/:page"
-      data="{{routeData}}"
-      tail="{{subroute}}"></app-route>
+    <iron-location path="{{path}}" query="{{query}}"></iron-location>
 
     <!-- login dialog-->
     <dialog-login id="loginDialog"
@@ -260,7 +255,7 @@
                   </a>
                 </tab-element>
                 <tab-element name="detail">
-                  <a href$="/detail/[[facilitySystem]]" class="tab">
+                  <a href$="/detail/[[facilitySystem.path]]" class="tab">
                     <iron-icon icon="chrome-reader-mode" class="left"></iron-icon>
                     {{localize('detail', 'name')}}
                   </a>
@@ -295,6 +290,7 @@
         </page-home>
         <!-- list view of items in a facility -->
         <page-list name="list" dark$="[[dark]]" plain$="[[plain]]"
+          facility-system="[[facilitySystem]]"
           elements="[[elements]]">
         </page-list>
         <!-- group view of items -->
@@ -307,9 +303,9 @@
         </page-groups>
         <!-- detail view of one item -->
         <page-detail id="detailpage" name="detail" dark$="[[dark]]" plain$="[[plain]]" class="fullbleed"
-          route="{{subroute}}"
-          logged-in="[[loggedIn]]"
           facility-system="[[facilitySystem]]"
+          query="{{query}}"
+          logged-in="[[loggedIn]]"
           elements="[[elements]]"
           show-toggle-icon="{{detailHasDrawer}}">
         </page-detail>
@@ -465,12 +461,16 @@
           observer: '_pageChanged'
         },
 
-        routeData: {
+        path: {
+          type: String
+        },
+
+        query: {
           type: Object
         },
 
-        subroute: {
-          type: Object
+        facilitySystem: {
+          type: String
         },
 
         elements: {
@@ -620,8 +620,8 @@
       },
 
       observers: [
-        '_routePageChanged(routeData.page)',
-        '_subrouteChanged(subroute)',
+        '_routePageChanged(path)',
+        '_facilitySystemChanged(facilitySystem)',
         '_resetLayout(showTabsOnBottom, wideLayout, thresholdTriggered)',
         '_setGroupingSelectBoxes(hideGroupSelect)'
       ],
@@ -644,8 +644,22 @@
         this.removeAttribute('unresolved');
       },
 
-      _routePageChanged: function(route) {
-        this.page = route || 'home';
+      _routePageChanged: function(path) {
+        if (!path) {
+          return;
+        }
+        var parts = path.split('/').filter(function(p) {
+          return p !== '';
+        });
+        if (!parts.length) {
+          return;
+        }
+        console.log(path, parts);
+        this.page = parts[0] || 'home';
+
+        if (parts[1] && parts[2]) {
+          this.facilitySystem = parts[1] + '/' + parts[2];
+        }
         // Scroll to the top of the page on every *route* change
         this._resetScroll();
         // Close the drawer - in case the *route* change came from a link in the drawer.
@@ -700,15 +714,16 @@
         })
       },
 
-      _subrouteChanged: function(subroute) {
-        if (!subroute || !subroute.path) {
+      _facilitySystemChanged: function(facilitySystem) {
+        console.log(facilitySystem);
+        if (!facilitySystem) {
           return;
         }
-        var names = subroute.path.split('/')
+        var names = facilitySystem.split('/')
                             .filter(function (str) { return str !== ''; });
 
         if (names.length >= 2) {
-          var page = subroute.prefix.slice(1);
+          var page = this.page;
           this.facilitySystem = names[0] + '/' + names[1];
           document.title = names.join('/')  + ' - ' + (this.localize ? this.localize(page, 'name') : page);
         }

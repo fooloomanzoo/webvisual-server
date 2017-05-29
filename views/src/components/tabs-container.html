@@ -46,7 +46,7 @@ Modification from Polymer Shop Demo App
 
     </style>
 
-    <nav id="container" on-track="_onscroll" on-wheel="_onwheel">
+    <nav id="container">
       <tabs-overlay id="overlay"></tabs-overlay>
       <slot></slot>
       <tabs-overlay id="addon" persistent>
@@ -79,6 +79,17 @@ Modification from Polymer Shop Demo App
       static get observers() { return [
         '_onSelectedItemChanged(selectedItem)'
       ]}
+
+      connectedCallback() {
+        super.connectedCallback();
+        this._addListeners();
+      }
+
+      _addListeners() {
+        Polymer.Gestures.addListener(this.$.container, 'track', e => this._onscroll(e), {passive: true});
+        this.$.container.addEventListener(document, 'scroll', e => this._onscroll(e), {passive: true});
+        this.$.container.addEventListener(document, 'wheel', e => this._onwheel(e), {passive: true});
+      }
 
       _onSelectedItemChanged(selectedItem) {
         if (selectedItem === undefined && this.selected) return;

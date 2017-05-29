@@ -19,6 +19,7 @@ views/tmp
 # Tests
 views/**/data
 views/**/images
+!views/src/data
 
 # Runtime data
 pids

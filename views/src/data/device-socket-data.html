@@ -48,12 +48,12 @@
       ],
 
       _connect: function(loggedIn, offline, lazyConnect) {
-        if (loggedIn && !offline && lazyConnect) {
+        // if (loggedIn && !offline && lazyConnect) {
           this._createSocketConnection(this.locationHost, this.nameSpace);
-        } else {
-          this.socketStatus = 'sync-problem';
-          Webvisual.disconnect();
-        }
+        // } else {
+        //   this.socketStatus = 'sync-problem';
+        //   Webvisual.disconnect();
+        // }
       },
 
       _createSocketConnection: function(locationHost, nameSpace) {

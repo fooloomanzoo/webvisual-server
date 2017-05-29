@@ -64,7 +64,6 @@
       chartElement: {},
       area: {},
 
-      _initialized: false,
       _isAttached: false,
 
       get containerRoot() {
@@ -112,7 +111,6 @@
         this.bisectDate = d3.bisector((function(d, x) {
           return d.x - x;
         }));
-        this._initialized = true;
         this._interpolationChanged(this.interpolation);
         if (this.item) {
           this.addNodes();
@@ -125,6 +123,7 @@
       },
 
       addNodes: function() {
+        console.log('addNotes');
         if (this._isAttached) {
           this.clearValues(true);
         }
@@ -133,8 +132,8 @@
         if (!containerRoot || containerRoot.nodeName !== 'DEVICE-CHART') {
           console.warn('No parentElement (chart) for graph found. Registration of Graph Element failed');
           return;
-        } else if (!containerRoot._initialized) {
-          console.warn('Chart has not been initialized yet for adding a graph. Registration of Graph Element failed');
+        } else if (!containerRoot._isAttached) {
+          console.warn('Chart has not been attached yet for adding a graph. Registration of Graph Element failed');
           return;
         } else {
           this.chartElement = containerRoot;
@@ -244,8 +243,6 @@
 
         var len = len || (this.viewLength > 0 ? this.viewLength : values.length);
 
-        if (!this._initialized)
-          this._initialized = true;
         if (!len) {
           values.map(function(v) {
             return {
@@ -298,10 +295,11 @@
       },
 
       renderInsertedValues: function(values) {
-        if (!this.chartElement)
-          this.chartElement = this.containerRoot;
-
-        if (this.chartElement) {
+        console.log('renderInsertedValues', values.length);
+        if (!this._isAttached && this.item) {
+          this.addNodes();
+        } else if (this.chartElement) {
+          console.log('redraw');
           if (this.chartElement._isZoomed === false)
             this.chartElement.redraw();
           else
