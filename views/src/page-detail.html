@@ -309,6 +309,10 @@
 
       _queryChanged: function(query) {
         console.log(query);
+        if (!query) {
+          return;
+        }
+        console.log(query);
         if (this.$.deviceTabs && this.$.deviceTabs.select) {
           var ids = String.prototype.split.call(routeData.ids, ',');
           for (var i = 0; i < ids.length; i++) {

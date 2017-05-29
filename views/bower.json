@@ -8,9 +8,8 @@
   ],
   "dependencies": {
     "polymer": "polymer/polymer#2.0.1",
-    "iron-location": "polymerelements/iron-location#2.0.1",
+    "iron-location": "polymerelements/iron-location",
     "app-layout": "polymerelements/app-layout",
-    "app-route": "polymerelements/app-route",
     "iron-flex-layout": "polymerelements/iron-flex-layout",
     "iron-icon": "polymerelements/iron-icon",
     "iron-list": "polymerelements/iron-list",
