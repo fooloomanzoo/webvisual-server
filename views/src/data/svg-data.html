@@ -1,4 +1,5 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../behaviors/fetch-behavior.html">
 
 <dom-module id="svg-data">
 
@@ -9,25 +10,21 @@
 
       is: 'svg-data',
 
-      properties: {
+      behaviors: [
+        WebvisualBehaviors.FetchBehavior
+      ],
 
-        urlPrefix: {
-          type: String
-        },
+      properties: {
 
         loggedIn: {
           type: Boolean
         },
 
-        facilitySystem: {
+        room: {
           type: String
         },
 
-        origin: {
-          type: String
-        },
-
-        paths: {
+        data: {
           type: Object,
           value: function() { return {}; },
           notify: true
@@ -35,60 +32,23 @@
       },
 
       observers: [
-        '_fetchSvgSource(facilitySystem, loggedIn)'
+        '_fetchSvgSource(room, loggedIn)'
       ],
 
-      _fetchSvgSource: function(facilitySystem, loggedIn) {
-        if (!facilitySystem) return;
+      _fetchSvgSource: function(room, loggedIn) {
+        if (!room) return;
 
         var facilityName, systemName;
-        var names = facilitySystem.split('/')
+        var names = room.split('/')
                          .filter(function (str) { return str !== ''; });
         if (names.length === 2) {
-          facilityName = names[0];
-          systemName = names[1];
-        }
-        if (facilityName && systemName) {
+          var roomUri = names[0] + '+' + names[1];
           this.debounce('svg-data', function() {
-            this._getResource(facilityName, systemName);
+            this._fetch(this.roomUri + '+svgSource.json', 'data');
           }.bind(this), 25);
+        } else {
+          this.fire('data-error', 'Failed to load svg-data');
         }
-      },
-
-      _getResource: function(facilityName, systemName, attempts) {
-        if (!(facilityName && systemName)) {
-          return;
-        }
-        var prefix = this.urlPrefix || '/data/';
-        var xhr = new XMLHttpRequest();
-        xhr.addEventListener('load', function(e) {
-          if (e.target.status < 400) {
-            var data = JSON.parse(e.target.responseText);
-            if (data) {
-              if (data.origin) {
-                this.set('origin', data.origin);
-              }
-              if (data.paths) {
-                this.set('paths', data.paths);
-              }
-            }
-          } else {
-            console.log('failed to load svg-data,', e.target.status)
-          }
-        }.bind(this));
-        xhr.addEventListener('error', function(e) {
-          console.log(e.target.status);
-          // Flaky connections might fail fetching resources
-          if (attempts > 1) {
-            this.debounce('_getResource', this._getResource.bind(this, rq, attempts - 1), 200);
-          } else {
-            rq.onError.call(this, e);
-          }
-        }.bind(this));
-
-        xhr.open('GET', prefix + facilityName + '+' + systemName + '+svgSource.json');
-        xhr.withCredentials = true;
-        xhr.send();
       }
 
     });

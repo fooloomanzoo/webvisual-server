@@ -63,10 +63,7 @@
         Webvisual.createSocketConnection(locationHost, nameSpace);
 
         if (this.socketRoom) {
-          if (this.socketRoom.substring(0, 1) === '/') {
-            this.socketRoom = this.socketRoom.slice(1, this.socketRoom.length);
-          }
-          this.connect();
+          this.connect(this.socketRoom);
         }
       },
 

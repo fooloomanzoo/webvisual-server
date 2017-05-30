@@ -87,14 +87,16 @@
       }
       #dateSection {
         position: absolute;
-        @apply --layout-inline;
-        @apply --layout-center-center;
         pointer-events: none;
         font-size: 0.55em;
         bottom: 0;
         width: 100%;
         padding: 0.5em;
         box-sizing: border-box;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        text-align: center;
       }
       svg#icon {
         height: 1.5em;

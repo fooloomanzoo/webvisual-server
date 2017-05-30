@@ -124,7 +124,7 @@
     },
 
     computeDate: function(x) {
-      return x ? (this.fullDate ? new Date(x).toLocaleString() : new Date(x).toLocaleTimeString()) : '';
+      return x ? (Math.abs(Date.now() - x) < 864E5 ? new Date(x).toLocaleTimeString() : new Date(x).toLocaleString()) : '';
     },
 
     computeValue: function(y, state) {

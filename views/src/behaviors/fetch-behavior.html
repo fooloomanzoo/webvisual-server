@@ -1,0 +1,83 @@
+<script>
+  window.WebvisualBehaviors = window.WebvisualBehaviors || {};
+
+  /**
+   * Behavior that fetches data from server and saves them optionally
+   *
+   * @polymerBehavior
+   */
+
+  WebvisualBehaviors.FetchBehavior = {
+
+    properties: {
+
+      urlPrefix: {
+        type: String,
+        value: '/data/'
+      },
+
+      saveInLocalStorage: {
+        type: Boolean
+      }
+
+    },
+
+    _fetch: function(uri, property, callback, attempts, saveInLocalStorage) {
+      var url = this.urlPrefix + uri;
+      var saveInLocalStorage = saveInLocalStorage || this.saveInLocalStorage;
+      var xhr = new XMLHttpRequest();
+      xhr.addEventListener('load', function(e) {
+        if (e.target.status < 400) {
+          var data;
+          try {
+            if (e.target.responseXML) {
+              data = e.target.responseXML;
+            } else if (e.target.responseText) {
+              data = JSON.parse(e.target.responseText);
+            }
+            if (property && data) {
+              this.set(property, data);
+            }
+          } catch (err) {
+            this.fire('data-error', 'Failed to fetch "' + url + '": ' + err.stack);
+            if (attempts > 1) {
+              this.debounce('get-resource-' + property, this._fetch.bind(this, uri, property, attempts - 1, saveInLocalStorage), 200);
+            }
+          }
+          if (saveInLocalStorage && property && data) {
+            localStorage.setItem(property, e.target.responseText);
+          }
+          if (callback && data) {
+            callback(data);
+          }
+        } else {
+          if (saveInLocalStorage && property) {
+            var items = localStorage.getItem(property);
+            if (items)
+              this.set(property, JSON.parse(items));
+          }
+        }
+      }.bind(this));
+      xhr.addEventListener('error', function(e) {
+        this.fire('anounce', 'Failed to fetch "' + url + '": ' + e.stack);
+        if (attempts > 1) {
+          this.debounce('get-resource-' + property, this._fetch.bind(this, uri, property, attempts - 1, saveInLocalStorage), 200);
+        } else {
+          var items;
+          if (saveInLocalStorage && property) {
+            var items = localStorage.getItem(property);
+          }
+          if (items)
+            this.set(request, JSON.parse(items));
+          else
+            this.fire('data-error', 'Failed to fetch "' + url + '": ' + e.stack);
+        }
+      }.bind(this));
+
+      xhr.open('GET', url);
+      xhr.withCredentials = true;
+      xhr.send();
+    }
+
+  };
+</script>

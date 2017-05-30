@@ -4,8 +4,8 @@
 <link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html"/>
 <link rel="import" href="../bower_components/iron-a11y-keys-behavior/iron-a11y-keys-behavior.html"/>
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html"/>
-<link rel="import" href="../bower_components/app-route/app-location.html"/>
-<link rel="import" href="../bower_components/app-route/app-route.html"/>
+<link rel="import" href="../bower_components/iron-location/iron-location.html"/>
+<link rel="import" href="iron-query-params.html"/>
 
 <link rel="import" href="style/shared-style.html"/>
 <link rel="import" href="style/selectbox-style.html"/>
@@ -196,6 +196,7 @@
 
     <!-- Routing-->
     <iron-location path="{{path}}" query="{{query}}"></iron-location>
+    <iron-query-params params-string="{{query}}" params-object="{{queryParams}}" ></iron-query-params>
 
     <!-- login dialog-->
     <dialog-login id="loginDialog"
@@ -209,14 +210,14 @@
     <!-- Data -->
     <facility-data
       facilities="{{facilities}}"
-      facility-system="[[facilitySystem]]"
+      room="[[queryParams.room]]"
       items="{{elements}}"
       logged-in="[[loggedIn]]"
       offline="[[offline]]"></facility-data>
 
     <device-socket-data id="socketHandler"
       name-space=""
-      socket-room="[[facilitySystem]]"
+      socket-room="[[queryParams.room]]"
       socket-status="{{socketStatus}}"
       logged-in="[[loggedIn]]"
       offline="[[offline]]"
@@ -243,19 +244,19 @@
                 selected="{{page}}"
                 attr-for-selected="name">
                 <tab-element name="list">
-                  <a href$="/list/[[facilitySystem]]" class="tab">
+                  <a href$="/list?room=[[queryParams.room]]" class="tab">
                     <iron-icon icon="list" class="left"></iron-icon>
                     {{localize('list', 'name')}}
                   </a>
                 </tab-element>
                 <tab-element name="groups">
-                  <a href$="/groups/[[facilitySystem]]" class="tab">
+                  <a href$="/groups?room=[[queryParams.room]]" class="tab">
                     <iron-icon icon="grid-on" class="left"></iron-icon>
                     {{localize('groups', 'name')}}
                   </a>
                 </tab-element>
                 <tab-element name="detail">
-                  <a href$="/detail/[[facilitySystem.path]]" class="tab">
+                  <a href$="/detail/[[room.path]]" class="tab">
                     <iron-icon icon="chrome-reader-mode" class="left"></iron-icon>
                     {{localize('detail', 'name')}}
                   </a>
@@ -290,12 +291,12 @@
         </page-home>
         <!-- list view of items in a facility -->
         <page-list name="list" dark$="[[dark]]" plain$="[[plain]]"
-          facility-system="[[facilitySystem]]"
+          room="[[queryParams.room]]"
           elements="[[elements]]">
         </page-list>
         <!-- group view of items -->
         <page-groups name="groups" dark$="[[dark]]" plain$="[[plain]]"
-          facility-system="[[facilitySystem]]"
+          room="[[queryParams.room]]"
           logged-in="[[loggedIn]]"
           elements="[[elements]]"
           grouped-key="{{groupedKey}}"
@@ -303,8 +304,8 @@
         </page-groups>
         <!-- detail view of one item -->
         <page-detail id="detailpage" name="detail" dark$="[[dark]]" plain$="[[plain]]" class="fullbleed"
-          facility-system="[[facilitySystem]]"
-          query="{{query}}"
+          room="[[queryParams.room]]"
+          selected-mounts="{{queryParams.mounts}}"
           logged-in="[[loggedIn]]"
           elements="[[elements]]"
           show-toggle-icon="{{detailHasDrawer}}">
@@ -328,19 +329,19 @@
           selected="{{page}}"
           attr-for-selected="name">
           <tab-element name="list">
-            <a href$="/list/[[facilitySystem]]" class="tab">
+            <a href$="/list?room=[[queryParams.room]]" class="tab">
               <iron-icon icon="list" class="left"></iron-icon>
               {{localize('list', 'name')}}
             </a>
           </tab-element>
           <tab-element name="groups">
-            <a href$="/groups/[[facilitySystem]]" class="tab">
+            <a href$="/groups?room=[[queryParams.room]]" class="tab">
               <iron-icon icon="grid-on" class="left"></iron-icon>
               {{localize('groups', 'name')}}
             </a>
           </tab-element>
           <tab-element name="detail">
-            <a href$="/detail/[[facilitySystem]]" class="tab">
+            <a href$="/detail?room=[[queryParams.room]]" class="tab">
               <iron-icon icon="chrome-reader-mode" class="left"></iron-icon>
               {{localize('detail', 'name')}}
             </a>
@@ -372,17 +373,17 @@
                   <iron-icon icon="exit-to-app" class="left"></iron-icon>
                   {{localize('home', 'name')}}
               </a>
-              <a href="/list/[[facilitySystem]]" class="button" name="list">
+              <a href="/list?room=[[queryParams.room]]" class="button" name="list">
                   <paper-ripple id="ripple" recenters></paper-ripple>
                   <iron-icon icon="list" class="left"></iron-icon>
                   {{localize('list', 'name')}}
               </a>
-              <a href="/groups/[[facilitySystem]]" class="button" name="groups">
+              <a href="/groups?room=[[queryParams.room]]" class="button" name="groups">
                   <paper-ripple id="ripple" recenters></paper-ripple>
                   <iron-icon icon="grid-on" class="left"></iron-icon>
                   {{localize('groups', 'name')}}
               </a>
-              <a href="/detail/[[facilitySystem]]" class="button" name="detail">
+              <a href="/detail?room=[[queryParams.room]]" class="button" name="detail">
                   <paper-ripple id="ripple" recenters></paper-ripple>
                   <iron-icon icon="chrome-reader-mode" class="left"></iron-icon>
                   {{localize('detail', 'name')}}
@@ -466,11 +467,12 @@
         },
 
         query: {
-          type: Object
+          type: String
         },
 
-        facilitySystem: {
-          type: String
+        queryParams: {
+          type: Object,
+          notify: true
         },
 
         elements: {
@@ -518,7 +520,7 @@
           observer: '_plainChanged'
         },
 
-        facilitySystem: {
+        room: {
           type: String
         },
 
@@ -616,12 +618,13 @@
       listeners: {
         'detail-request': '_openDetailRequestDialog',
         'login-request': '_openLoginDialog',
-        'announce': '_notifyAnnouncement'
+        'announce': '_notifyAnnouncement',
+        'data-error': '_redirectHome'
       },
 
       observers: [
         '_routePageChanged(path)',
-        '_facilitySystemChanged(facilitySystem)',
+        '_roomChanged(room)',
         '_resetLayout(showTabsOnBottom, wideLayout, thresholdTriggered)',
         '_setGroupingSelectBoxes(hideGroupSelect)'
       ],
@@ -645,25 +648,28 @@
       },
 
       _routePageChanged: function(path) {
-        if (!path) {
-          return;
-        }
-        var parts = path.split('/').filter(function(p) {
+        page = path.split('/').filter(function(p) {
           return p !== '';
-        });
-        if (!parts.length) {
-          return;
-        }
-        console.log(path, parts);
-        this.page = parts[0] || 'home';
+        }).join('');
 
-        if (parts[1] && parts[2]) {
-          this.facilitySystem = parts[1] + '/' + parts[2];
-        }
+        this.page = page || 'home';
+
         // Scroll to the top of the page on every *route* change
         this._resetScroll();
         // Close the drawer - in case the *route* change came from a link in the drawer.
         this.drawerOpened = false;
+
+        if (!this.query || this.page == 'home') {
+          this._redirectHome();
+        }
+      },
+
+      _redirectHome: function(e) {
+        // this.page = 'home';
+        // this.query = '';
+        // if (e) {
+        //   this._notifyAnnouncement(e);
+        // }
       },
 
       _resetScroll: function() {
@@ -689,12 +695,12 @@
           var order = ['home', 'list', 'groups', 'detail'];
           var pos = order.indexOf(this.page) || 0;
           pos = (pos + 1 + order.length) % order.length;
-          if (this.facilitySystem) {
+          if (this.room) {
             this.showTabs = true;
-            this.set('route.path', order[pos] + '/' + this.facilitySystem);
+            this.set('page', order[pos]);
           } else {
             this.showTabs = false;
-            this.set('route.path', 'home');
+            this.set('page', 'home');
           }
         })
       },
@@ -704,27 +710,25 @@
           var order = ['home', 'list', 'groups', 'detail'];
           var pos = order.indexOf(this.page) || 0;
           pos = (pos - 1 + order.length) % order.length;
-          if (this.facilitySystem) {
+          if (this.room) {
             this.showTabs = true;
-            this.set('route.path', order[pos] + '/' + this.facilitySystem);
+            this.set('page', order[pos]);
           } else {
             this.showTabs = false;
-            this.set('route.path', 'home');
+            this.set('page', 'home');
           }
         })
       },
 
-      _facilitySystemChanged: function(facilitySystem) {
-        console.log(facilitySystem);
-        if (!facilitySystem) {
+      _roomChanged: function(room) {
+        if (!room) {
           return;
         }
-        var names = facilitySystem.split('/')
-                            .filter(function (str) { return str !== ''; });
+        var names = room.split('/').filter(function (str) { return str !== ''; });
 
         if (names.length >= 2) {
           var page = this.page;
-          this.facilitySystem = names[0] + '/' + names[1];
+          this.room = names[0] + '+' + names[1];
           document.title = names.join('/')  + ' - ' + (this.localize ? this.localize(page, 'name') : page);
         }
       },
@@ -747,8 +751,7 @@
                 var item;
                 this._debouncedHideTabs();
               }, function() {
-                console.log('fallback',page);
-                this.page = 'home'; // Fallback
+                this.set('page', 'home'); // Fallback
               }, true);
           }
         }
@@ -800,7 +803,7 @@
         if (this.offline || (!this.offline && oldOffline === true)) {
           this.$.networkNotification.querySelector('.message').innerHTML = this.localize ? this.localize('notification', 'offline', this.offline) : (this.offline ?
             'You are offline' : 'You are online');
-          this.$.networkNotification.open();
+          this.$.networkNotification.opened = true;
         }
       },
 
@@ -810,7 +813,7 @@
         // or if the network status changed.
         if (message) {
           this.$.announceNotification.querySelector('.message').innerHTML = message;
-          this.$.announceNotification.open();
+          this.$.announceNotification.opened = true;
         }
       },
 
@@ -827,7 +830,7 @@
       },
 
       _openLoginDialog: function() {
-        this.$.loginDialog.open();
+        this.$.loginDialog.opened = true;
       },
 
       // detail-requests
@@ -840,7 +843,7 @@
           this._detailRequestDialog.set('item', detail.item);
           this._detailRequestDialog.set('language', this.language);
           this._detailRequestDialog.set('languageResources', this.languageResources);
-          this._detailRequestDialog.open();
+          this._detailRequestDialog.opened = true;
         });
       },
 

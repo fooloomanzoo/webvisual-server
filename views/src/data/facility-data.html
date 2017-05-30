@@ -1,4 +1,5 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../behaviors/fetch-behavior.html">
 
 <dom-module id="facility-data">
 
@@ -9,13 +10,13 @@
 
       is: 'facility-data',
 
+      behaviors: [
+        WebvisualBehaviors.FetchBehavior
+      ],
+
       properties: {
 
-        urlPrefix: {
-          type: String
-        },
-
-        facilitySystem: {
+        room: {
           type: String
         },
 
@@ -74,7 +75,7 @@
 
       observers: [
         '_computeFacilityList(loggedIn, offline)',
-        '_computeNames(facilitySystem)',
+        '_computeNames(room)',
         '_computeFacility(facilities, facilityName)',
         '_computeSystem(facility, systemName)',
         '_computeItems(system)'
@@ -82,27 +83,15 @@
 
       _computeFacilityList: function(loggedIn, offline) {
         if (loggedIn || offline) {
-          this.async( function() {
-            // var facilities = localStorage.getItem('facilities');
-            // if (facilities)
-            //   this.set('facilities', JSON.parse(facilities));
-            var prefix = this.urlPrefix || '/data/';
-            this._fetchFacilityList(prefix)
-                .then(function(facilities) {
-                  this.set('facilities', facilities);
-                  // localStorage.setItem('facilities',  JSON.stringify(facilities));
-                }.bind(this))
-                .catch(function(status) {
-                  console.log('Facilities could not be loaded, Status:', status);
-                }.bind(this));
-          }.bind(this));
+          this.async(function() {
+            this._fetch('facilities.json', 'facilities');
+          });
         }
       },
 
-      _computeNames: function(facilitySystem) {
-        if (facilitySystem) {
-          var names = facilitySystem.split('/')
-                           .filter(function (str) { return str !== ''; });
+      _computeNames: function(room) {
+        if (room) {
+          var names = room.split('/').filter(function (str) { return str !== ''; });
           if (names.length === 2) {
             this.async( function() {
               this.set('facilityName', names[0]);
@@ -118,14 +107,11 @@
             this._getNamedArrayItem(facilities, facilityName)
                 .then(function(facility) {
                   this.set('facility', facility);
-                  // localStorage.setItem('facility', JSON.stringify(facility));
                 }.bind(this))
                 .catch(function(e) {
+                  this.fire('announce', 'Failed to set facility: ' + e);
                   console.log(e);
-                  // var facility = localStorage.getItem('facility');
-                  // if (facility)
-                  //   this.set('facility', JSON.parse(facility));
-                }.bind(this))
+                })
           }.bind(this));
         }
       },
@@ -137,13 +123,10 @@
             this._getNamedArrayItem(facility.systems, systemName)
                 .then(function(system) {
                   this.set('system', system);
-                  // localStorage.setItem('system', JSON.stringify(system));
                 }.bind(this))
                 .catch(function(e) {
+                  this.fire('announce', 'Failed to set facility: ' + e)
                   console.log(e);
-                  // var system = localStorage.getItem('system');
-                  // if (system)
-                  //   this.set('system', JSON.parse(system));
                 }.bind(this))
           }.bind(this) );
         }
@@ -154,7 +137,8 @@
         var color = '';
         if (system && system.items) {
           for (var i = 0; i < system.items.length; i++) {
-            if (!system.items[i].color && !system.items[i].isIndicatorLamp) { // custom colors
+            if (!system.items[i].color && !system.items[i].isIndicatorLamp) {
+              // set custom colors
               color = '#';
               var perm = ['2C', 'F5'];
               perm.push((4 * Math.floor(Math.random() * 64)).toString(16));
@@ -167,36 +151,7 @@
             }
           }
           this.set('items', system.items);
-          // console.log(system.items);
-        } else {
-          // var items = localStorage.getItem('items');
-          // if (items)
-          //   this.set('items', JSON.parse(items));
         }
-      },
-
-      _fetchFacilityList: function(urlPrefix) {
-        return new Promise( function(resolve, reject) {
-          try {
-            var xhr = new XMLHttpRequest();
-            xhr.addEventListener('load', function(e) {
-              if ( e.target.status >= 400 ) {
-                reject(e.target.status);
-              }
-              else {
-                resolve( JSON.parse(e.target.responseText) );
-              }
-            });
-            xhr.addEventListener('error', function(e) {
-              reject(e.target.status);
-            });
-            xhr.open('GET', (urlPrefix || '') + 'facilities.json');
-            xhr.withCredentials = true;
-            xhr.send();
-          } catch (err) {
-            reject(err);
-          }
-        })
       },
 
       _getNamedArrayItem: function(arr, name) {
@@ -208,15 +163,7 @@
               resolve(c);
             }
           }
-          // reject('not in array\n' + name + '\n' + JSON.stringify(arr));
         });
-      },
-
-      refresh: function() {
-        if (this.facilityName && this.systemName) {
-          // Try at most 3 times to get the items.
-          this._computeItems(this.facilityName, this.systemName, 3);
-        }
       }
 
     });

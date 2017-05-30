@@ -199,7 +199,7 @@
       },
 
       _computeHref: function(view, facility, system) {
-        return '/' + (view || 'list') + '/' + facility + '/' + system;
+        return '/' + (view || 'list') + '?room=' + facility + '/' + system;
       },
 
       _computeOpened: function(name, selected) {

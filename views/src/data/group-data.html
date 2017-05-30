@@ -1,4 +1,5 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../behaviors/fetch-behavior.html">
 
 <dom-module id="group-data">
 
@@ -9,17 +10,17 @@
 
       is: 'group-data',
 
-      properties: {
+      behaviors: [
+        WebvisualBehaviors.FetchBehavior
+      ],
 
-        urlPrefix: {
-          type: String
-        },
+      properties: {
 
         loggedIn: {
           type: Boolean
         },
 
-        facilitySystem: {
+        room: {
           type: String
         },
 
@@ -51,20 +52,22 @@
       },
 
       observers: [
-        '_fetchGroups(facilitySystem, loggedIn)'
+        '_fetchGroups(room, loggedIn)'
       ],
 
-      _fetchGroups: function(facilitySystem, loggedIn) {
-        if (!facilitySystem) return;
+      _fetchGroups: function(room, loggedIn) {
+        if (!room) return;
 
-        var names = facilitySystem.split('/')
+        var names = room.split('/')
                          .filter(function (str) { return str !== ''; });
         if (names.length === 2) {
-          this._groupUri = names[0] + '+' + names[1];
+          this.roomUri = names[0] + '+' + names[1];
           this.debounce('group-data', function() {
-            this._request(this._groupUri, 'groups');
-            this._request(this._groupUri, 'groupingKeys');
+            this._fetch(this.roomUri + '+groups.json', 'groups');
+            this._fetch(this.roomUri + '+groupingKeys.json', 'groupingKeys');
           }.bind(this), 200);
+        } else {
+          this.fire('data-error', 'Room not defined');
         }
       },
 
@@ -79,74 +82,18 @@
         return [];
       },
 
-      _request: function(groupUri, request, attempts) {
-        if (!(groupUri && request)) {
-          return;
-        }
-        var prefix = this.urlPrefix || '/data/';
-        this._getResource({
-          url: prefix + groupUri + '+' + request + '.json',
-          onLoad: function(e) {
-            if (e.target.status < 400) {
-              this.set(request, JSON.parse(e.target.responseText));
-              // localStorage.setItem(request, e.target.responseText);
-            } else {
-              // var items = localStorage.getItem(request);
-              // if (items)
-              //   this.set(request, JSON.parse(items));
-            }
-          },
-          onError: function(e) {
-            // var items = localStorage.getItem(request);
-            // if (items)
-            //   this.set(request, JSON.parse(items));
-          }
-        }, attempts);
-      },
-
-      _getResource: function(rq, attempts) {
-        if (!rq) {
-          return;
-        }
-        var xhr = new XMLHttpRequest();
-        xhr.addEventListener('load', rq.onLoad.bind(this));
-        xhr.addEventListener('error', function(e) {
-          console.log(e.target.status);
-          // Flaky connections might fail fetching resources
-          if (attempts > 1) {
-            this.debounce('_getResource', this._getResource.bind(this, rq, attempts - 1), 200);
-          } else {
-            rq.onError.call(this, e);
-          }
-        }.bind(this));
-
-        xhr.open('GET', rq.url);
-        xhr.withCredentials = true;
-        xhr.send();
-      },
-
       _groupingKeysChanged: function(groupingKeys) {
         if (!(groupingKeys && groupingKeys.length)) {
           return;
         }
-        var prefix = this.urlPrefix || '/data/';
         var groupedKey = localStorage.getItem('groupedKey');
-        if (groupedKey && groupedKey in this.groupingKeys) {
-          this.set('groupedKey', groupedKey);
-        } else if (this._groupUri) {
-          var URL = prefix + this._groupUri + '+preferedGroupingKey.json';
-          this._getResource({
-            url: URL,
-            onLoad: function(e) {
-              if (e.target.status < 400) {
-                this.set('groupedKey', JSON.parse(e.target.responseText));
-              }
-            },
-            onError: function(e) {
-              console.log(e);
-            }
-          });
-        }
+        this.async( function() {
+          if (groupedKey && groupingKeys.indexOf(groupedKey) !== -1) {
+            this.set('groupedKey', groupedKey);
+          } else if (this.roomUri) {
+            this._fetch(this.roomUri + '+preferedGroupingKey.json', 'groupedKey', null, null, true);
+          }
+        });
       },
 
       _groupedKeyChanged: function(groupedKey, old) {

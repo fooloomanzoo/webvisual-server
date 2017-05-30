@@ -70,16 +70,16 @@
     </style>
 
     <group-data
-      facility-system="[[facilitySystem]]"
+      room="[[room]]"
       logged-in="[[loggedIn]]"
       subgroups="{{subgroups}}"
       grouped-key="{{groupedKey}}"
       grouping-keys="{{groupingKeys}}"></group-data>
 
     <svg-data
-      facility-system="[[facilitySystem]]"
+      room="[[room]]"
       logged-in="[[loggedIn]]"
-      paths="{{svgPaths}}"></svg-data>
+      data="{{svgData}}"></svg-data>
 
     <template is="dom-if" if="[[visible]]">
 
@@ -91,9 +91,9 @@
               open-on-select
               open-on-exceed
               multi
-              svg-url-prefix="/images/[[facilitySystem]]/"
+              svg-url-prefix="/images/[[room]]/"
               svg-src-path="[[group.svg.path]]"
-              svg-selectable="[[_getSvgSelectable(group.svg.path, svgPaths)]]">
+              svg-selectable="[[_getSvgSelectable(group.svg.path, svgData.paths)]]">
 
               <ul class="grid sign">
                 <template is="dom-repeat" items="[[group.items]]" as="id">
@@ -124,8 +124,9 @@
 
       properties: {
 
-        facilitySystem: {
-          type: String
+        room: {
+          type: String,
+          notify: true
         },
 
         elements: {
@@ -157,7 +158,7 @@
           type: Boolean
         },
 
-        svgPaths: {
+        svgData: {
           type: Object
         }
 

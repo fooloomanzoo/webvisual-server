@@ -1,8 +1,9 @@
-<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/polymer/polymer.html"/>
 
-<link rel="import" href="behaviors/fullscreen-behavior.html" />
+<link rel="import" href="behaviors/fullscreen-behavior.html"/>
+<link rel="import" href="behaviors/fetch-behavior.html"/>
 
-<link rel="import" href="components/icon-button.html" />
+<link rel="import" href="components/icon-button.html"/>
 <!--
 'device-svg' provides rendering a svg in a container.
 
@@ -171,6 +172,7 @@
       is: 'device-svg',
 
       behaviors: [
+        WebvisualBehaviors.FetchBehavior,
         WebvisualBehaviors.FullscreenBehavior
       ],
 
@@ -178,12 +180,17 @@
         /**
          * url prefix to source url of svg document
          */
-        urlPrefix: String,
+        urlPrefix: {
+          type: String,
+          value: '/images/'
+        },
 
         /**
          * source url of svg document
          */
-        src: String,
+        src: {
+          type: String
+        },
 
         _recentSrc: {
           type: String
@@ -312,20 +319,6 @@
         '_exceedingChanged(exceeding.length)'
       ],
 
-      // created: function() {
-      //   this._enshureD3();
-      // },
-
-      // _enshureD3: function() {
-      //   return new Promise((resolve, reject) => {
-      //     if (!window.hasOwnProperty('d3')) {
-      //       importScripts('/scripts/d3.bundle.js', resolve.bind(this)); // importScripts --> in './scripts/polyfills.js'
-      //     } else {
-      //       resolve();
-      //     }
-      //   });
-      // },
-
       _openedChanged: function() {
         if (!this.src) return;
         this._srcChanged();
@@ -351,43 +344,15 @@
             if (this._svg && !this._svg.empty()) {
               this.$.svgContainer.removeChild(this._svg.node());
             }
-            // import svg (came by data-socket-repeater)
-            urlPrefix = urlPrefix || '/images/';
-            this._fetchResource(urlPrefix + src)
-              .then(this._registerXML.bind(this))
-              .catch(function(req) {
-                console.log('Failed to read source\n', req);
-              });
+
+            this._fetch(src, null, this._registerXML.bind(this))
           }
         // })
       },
 
-      _fetchResource: function(url) {
-        return new Promise(function(resolve, reject) {
-          var req = new XMLHttpRequest();
-          req.onreadystatechange = function() {
-            try {
-              if (this.readyState === 4 && this.status < 400) {
-                if (this.responseXML) {
-                  resolve(this.responseXML.documentElement);
-                } else {
-                  reject(this);
-                }
-              }
-            } catch (e) {
-              console.log(e);
-              return;
-            }
-          }.bind(req);
-          req.open("GET", url);
-          req.withCredentials = true;
-          req.send();
-        })
-      },
-
       _registerXML: function(xml) {
         // import svg to document
-        var svgNode = document.importNode(xml.cloneNode(true), true);
+        var svgNode = document.importNode(xml.documentElement.cloneNode(true), true);
 
         // append imported svg to this element
         this.$.svgContainer.insertBefore(svgNode, this.$.svgContainer.firstChild);

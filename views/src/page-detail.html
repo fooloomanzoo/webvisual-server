@@ -174,9 +174,9 @@
     <iron-media-query query="(max-width: 600px)" query-matches="{{narrowLayout}}"></iron-media-query>
 
     <svg-data hidden
-      facility-system="[[routeData.facility]]/[[routeData.system]]"
+      room="[[routeData.facility]]/[[routeData.system]]"
       logged-in="[[loggedIn]]"
-      paths="{{svgPaths}}"></svg-data>
+      data="{{svgData}}"></svg-data>
 
     <div id="content">
 
@@ -188,7 +188,7 @@
           opened="[[visible]]"
           url-prefix="/images/[[routeData.facility]]/[[routeData.system]]/"
           src="[[selectedElement.svg.path]]"
-          selectable-items="[[_getSvgSelectable(selectedElement.svg.path, svgPaths)]]"
+          selectable-items="[[_getSvgSelectable(selectedElement.svg.path, svgData.paths)]]"
           item="[[selectedElement]]"
           exceeding="[[exceeding]]"></device-svg>
       </template>
@@ -232,8 +232,8 @@
 
       properties: {
 
-        query: {
-          type: Object
+        selectedMounts: {
+          type: Array
         },
 
         loggedIn: {
@@ -267,7 +267,7 @@
           observer: '_checkedTabChanged'
         },
 
-        svgPaths: {
+        svgData: {
           type: Object
         },
 
@@ -278,7 +278,7 @@
 
         _withSvg: {
           type: Boolean,
-          computed: '_hasSvg(selectedElement, svgPaths)'
+          computed: '_hasSvg(selectedElement, svgData.paths)'
         },
 
         narrowLayout: {
@@ -300,7 +300,7 @@
       },
 
       observers: [
-        '_queryChanged(query)'
+        '_queryChanged(selectedMounts)'
       ],
 
       attached: function() {
