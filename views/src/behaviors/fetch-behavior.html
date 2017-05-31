@@ -53,7 +53,7 @@
           if (saveInLocalStorage && property && data) {
             localStorage.setItem(property, data);
           }
-          if (type == 'xml' && data) {
+          if (type === 'xml' && data) {
             return new window.DOMParser().parseFromString(data, "text/xml")
           }
           return Promise.resolve(data);
