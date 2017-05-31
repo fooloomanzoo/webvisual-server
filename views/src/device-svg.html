@@ -345,7 +345,10 @@
               this.$.svgContainer.removeChild(this._svg.node());
             }
 
-            this._fetch(src, 'GET', 'include', 'xml').then(this._registerXML.bind(this));
+            this._fetch(src, 'GET', 'include', 'xml').then(this._registerXML.bind(this))
+                .catch( function(statusCode, statusText) {
+                  console.log(statusCode, statusText);
+                });
           }
         // })
       },
