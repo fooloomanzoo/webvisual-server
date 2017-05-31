@@ -1,3 +1,5 @@
+<script src="../../bower_components/fetch/fetch.js"></script>
+
 <script>
   window.WebvisualBehaviors = window.WebvisualBehaviors || {};
 
@@ -13,7 +15,7 @@
 
       urlPrefix: {
         type: String,
-        value: '/data/'
+        value: ''
       },
 
       saveInLocalStorage: {
@@ -22,61 +24,48 @@
 
     },
 
-    _fetch: function(uri, property, callback, attempts, saveInLocalStorage) {
+    _fetch: function(uri, method, cred, type, property, saveInLocalStorage, body) {
       var url = this.urlPrefix + uri;
       var saveInLocalStorage = saveInLocalStorage || this.saveInLocalStorage;
-      var xhr = new XMLHttpRequest();
-      xhr.addEventListener('load', function(e) {
-        if (e.target.status < 400) {
-          var data;
-          try {
-            if (e.target.responseXML) {
-              data = e.target.responseXML;
-            } else if (e.target.responseText) {
-              data = JSON.parse(e.target.responseText);
+
+      var options = {
+        method: method,
+        credentials: cred || 'include',
+        body: body
+      };
+
+      return fetch(url, options)
+        .then(function(res) {
+          if (res.status < 400) {
+            if (type === 'json') {
+              return res.json();
+            } else {
+              return res.text();
             }
-            if (property && data) {
-              this.set(property, data);
-            }
-          } catch (err) {
-            this.fire('data-error', 'Failed to fetch "' + url + '": ' + err.stack);
-            if (attempts > 1) {
-              this.debounce('get-resource-' + property, this._fetch.bind(this, uri, property, attempts - 1, saveInLocalStorage), 200);
-            }
+          } else {
+            return Promise.reject(res);
+          }
+        }.bind(this))
+        .then(function(data) {
+          if (property && data) {
+            this.set(property, data);
           }
           if (saveInLocalStorage && property && data) {
-            localStorage.setItem(property, e.target.responseText);
+            localStorage.setItem(property, data);
           }
-          if (callback && data) {
-            callback(data);
+          if (type == 'xml' && data) {
+            return new window.DOMParser().parseFromString(data, "text/xml")
           }
-        } else {
+          return Promise.resolve(data);
+        }.bind(this))
+        .catch( function(res) {
           if (saveInLocalStorage && property) {
             var items = localStorage.getItem(property);
             if (items)
-              this.set(property, JSON.parse(items));
+              this.set(request, items);
           }
-        }
-      }.bind(this));
-      xhr.addEventListener('error', function(e) {
-        this.fire('anounce', 'Failed to fetch "' + url + '": ' + e.stack);
-        if (attempts > 1) {
-          this.debounce('get-resource-' + property, this._fetch.bind(this, uri, property, attempts - 1, saveInLocalStorage), 200);
-        } else {
-          var items;
-          if (saveInLocalStorage && property) {
-            var items = localStorage.getItem(property);
-          }
-          if (items)
-            this.set(request, JSON.parse(items));
-          else
-            this.fire('data-error', 'Failed to fetch "' + url + '": ' + e.stack);
-        }
-      }.bind(this));
-
-      xhr.open('GET', url);
-      xhr.withCredentials = true;
-      xhr.send();
+          return Promise.reject(res.status, res.statusText);
+        }.bind(this))
     }
 
   };

@@ -15,6 +15,11 @@
       ],
 
       properties: {
+        
+        urlPrefix: {
+          type: String,
+          value: '/data/'
+        },
 
         loggedIn: {
           type: Boolean
@@ -63,8 +68,8 @@
         if (names.length === 2) {
           this.roomUri = names[0] + '+' + names[1];
           this.debounce('group-data', function() {
-            this._fetch(this.roomUri + '+groups.json', 'groups');
-            this._fetch(this.roomUri + '+groupingKeys.json', 'groupingKeys');
+            this._fetch(this.roomUri + '+groups.json', 'GET', 'include', 'json', 'groups');
+            this._fetch(this.roomUri + '+groupingKeys.json', 'GET', 'include', 'json', 'groupingKeys');
           }.bind(this), 200);
         } else {
           this.fire('data-error', 'Room not defined');
@@ -91,7 +96,7 @@
           if (groupedKey && groupingKeys.indexOf(groupedKey) !== -1) {
             this.set('groupedKey', groupedKey);
           } else if (this.roomUri) {
-            this._fetch(this.roomUri + '+preferedGroupingKey.json', 'groupedKey', null, null, true);
+            this._fetch(this.roomUri + '+preferedGroupingKey.json', 'GET', 'include', 'json', 'groupedKey', true);
           }
         });
       },

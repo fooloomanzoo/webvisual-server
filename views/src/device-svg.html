@@ -345,12 +345,14 @@
               this.$.svgContainer.removeChild(this._svg.node());
             }
 
-            this._fetch(src, null, this._registerXML.bind(this))
+            this._fetch(src, 'GET', 'include', 'xml').then(this._registerXML.bind(this));
           }
         // })
       },
 
       _registerXML: function(xml) {
+        if (!(xml && xml.documentElement)) return;
+
         // import svg to document
         var svgNode = document.importNode(xml.documentElement.cloneNode(true), true);
 

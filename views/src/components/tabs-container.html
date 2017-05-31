@@ -87,8 +87,8 @@ Modification from Polymer Shop Demo App
 
       _addListeners() {
         Polymer.Gestures.addListener(this.$.container, 'track', e => this._onscroll(e), {passive: true});
-        this.$.container.addEventListener(document, 'scroll', e => this._onscroll(e), {passive: true});
-        this.$.container.addEventListener(document, 'wheel', e => this._onwheel(e), {passive: true});
+        Polymer.Gestures.addListener(this.$.container, 'scroll', e => this._onscroll(e), {passive: true});
+        Polymer.Gestures.addListener(this.$.container, 'wheel', e => this._onwheel(e), {passive: true});
       }
 
       _onSelectedItemChanged(selectedItem) {

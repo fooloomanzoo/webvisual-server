@@ -16,6 +16,11 @@
 
       properties: {
 
+        urlPrefix: {
+          type: String,
+          value: '/data/'
+        },
+        
         room: {
           type: String
         },
@@ -84,7 +89,7 @@
       _computeFacilityList: function(loggedIn, offline) {
         if (loggedIn || offline) {
           this.async(function() {
-            this._fetch('facilities.json', 'facilities');
+            this._fetch('facilities.json', 'GET', 'include', 'json', 'facilities');
           });
         }
       },

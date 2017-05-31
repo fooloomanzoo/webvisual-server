@@ -1,7 +1,7 @@
-<script src="../bower_components/fetch/fetch.js"></script>
 <link rel="import" href="../bower_components/polymer/polymer.html">
 
 <link rel="import" href="behaviors/localize-behavior.html">
+<link rel="import" href="behaviors/fetch-behavior.html">
 
 <link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
 <link rel="import" href="../bower_components/iron-icon/iron-icon.html">
@@ -72,7 +72,7 @@
       }
     </style>
 
-    <dialog-element id="dialog">
+    <dialog-element id="dialog" opened="{{opened}}">
       <template is="dom-if" if="[[!loggedIn]]">
         <div dialog-title id="loginInfo">
           <div>{{localize('login', 'name')}}</div>
@@ -142,10 +142,17 @@
       is: 'dialog-login',
 
       behaviors: [
+        WebvisualBehaviors.FetchBehavior,
         WebvisualBehaviors.LocalizeBehavior
       ],
 
       properties: {
+
+        opened: {
+          type: Boolean,
+          notify: true
+        },
+
         userProfile: {
           type: Object
         },
@@ -219,7 +226,7 @@
             if (!profile) {
               this.loggedIn = false;
               if (!this.offline) {
-                this.open();
+                this.opened = true;
               }
               this.dispatchEvent(new CustomEvent('announce', {
                 detail: this.localize ? this.localize('notification', 'loggedIn', false) : 'You are not signed in'
@@ -236,7 +243,7 @@
           }.bind(this), function() {
             this.loggedIn = false;
             if (!this.offline) {
-              this.open();
+              this.opened = true;
             }
             // When rejected, authentication was performed but failed.
             this.dispatchEvent(new CustomEvent('announce', {
@@ -254,7 +261,7 @@
               bubbles: true
             });
             if (!this.offline) {
-              this.open();
+              this.opened = true;
             }
           });
       },
@@ -272,7 +279,7 @@
         if (signinForm.validate && !signinForm.validate()) return;
 
         if (!signinForm.elements.username.value || !signinForm.elements.password.value) {
-          this.notSignedIn.call(this, 'password or username are empty', 401)
+          this.notSignedIn.call(this, 401, 'password or username are empty')
               .catch(console.warn);
           return;
         }
@@ -298,7 +305,7 @@
                 bubbles: true
               });
               if (!this.offline) {
-                this.open();
+                this.opened = true;
               }
             }.bind(this));
         } else {
@@ -318,7 +325,7 @@
                 bubbles: true
               });
               if (!this.offline) {
-                this.open();
+                this.opened = true;
               }
             }.bind(this));
         }
@@ -335,20 +342,7 @@
        * @return {Promise} Returns result of `noCredApiSignIn()`
        */
       signIn: function(url, cred) {
-        // POST-ing credential object will be converted to FormData object
-        var options = {
-          method: 'POST',
-          credentials: cred || 'include'
-        };
-        return fetch(url, options)
-          .then(function(res) {
-            // Convert JSON string to an object
-            if (res.status === 200) {
-              return res.json();
-            } else {
-              return Promise.reject(null, res.status);
-            }
-          }.bind(this))
+        return this._fetch(url, 'POST', cred || 'include', 'json')
           .then(this.signedIn.bind(this))
           .catch(this.notSignedIn.bind(this));
       },
@@ -360,22 +354,15 @@
        */
       signOut: function() {
         // POST-ing credential object will be converted to FormData object
-        return fetch(this.signOutUrl, { // convert multipart-formdata to urlencoded
-            method: 'POST',
-            body: JSON.stringify(this.userProfile),
-            credentials: 'include'
-          }).then(function(res) {
-            // Convert JSON string to an object
-            if (res.status !== 200) {
-              return Promise.reject();
-            }
+        return this._fetch(this.signOutUrl, 'POST', 'include', 'json', null, null, JSON.stringify(this.userProfile))
+          .then(function() {
             if (navigator.credentials) {
               navigator.credentials.requireUserMediation();
             }
             this.loggedIn = false;
             this.userProfile = null;
             if (!this.offline) {
-              this.open();
+              this.opened = true;
             }
           }.bind(this))
           .catch(this.notSignedIn.bind(this));
@@ -398,7 +385,7 @@
         }
       },
 
-      notSignedIn: function(err, statusCode) {
+      notSignedIn: function(statusCode, statusText) {
         var status = '';
         this.loggedIn = false;
         if (statusCode) {
@@ -411,16 +398,15 @@
           }
         }
         this.dispatchEvent(new CustomEvent('announce', {
-          detail: status ? status : err
+          detail: status ? status : statusText
         }), {
           bubbles: true
         });
         this.$$('#username').value = '';
         this.$$('#password').value = '';
         if (!this.offline) {
-          this.open();
+          this.opened = true;
         }
-        return Promise.reject(err);
       },
 
       /**
@@ -430,24 +416,9 @@
        * @return {Promise} Resolves when successfully authenticated
        */
       noCredApiSignIn: function(url, signinForm) {
-        return fetch(url, {
-            method: 'POST',
-            // `credentials:'include'` is required to include cookies on `fetch`
-            credentials: 'include',
-            body: signinForm
-          }).then(function(res) {
-            // Convert JSON string to an object
-            if (res.status === 200) {
-              return res.json();
-            } else {
-              return Promise.reject();
-            }
-          }).then(this.signedIn.bind(this))
+        return this._fetch(url, 'POST', 'include', 'json', null, null, signinForm)
+          .then(this.signedIn.bind(this))
           .catch(this.notSignedIn.bind(this));
-      },
-
-      open: function() {
-        this.$.dialog.open();
       }
     });
   </script>

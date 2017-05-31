@@ -16,6 +16,11 @@
 
       properties: {
 
+        urlPrefix: {
+          type: String,
+          value: '/data/'
+        },
+
         loggedIn: {
           type: Boolean
         },
@@ -42,9 +47,9 @@
         var names = room.split('/')
                          .filter(function (str) { return str !== ''; });
         if (names.length === 2) {
-          var roomUri = names[0] + '+' + names[1];
+          var url = names[0] + '+' + names[1] + '+svgSource.json';
           this.debounce('svg-data', function() {
-            this._fetch(this.roomUri + '+svgSource.json', 'data');
+            this._fetch(url, 'GET', 'include', 'json', 'data');
           }.bind(this), 25);
         } else {
           this.fire('data-error', 'Failed to load svg-data');
