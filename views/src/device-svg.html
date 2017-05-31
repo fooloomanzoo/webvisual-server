@@ -312,7 +312,7 @@
       _d3Zoom: Object,
 
       observers: [
-        '_srcChanged(src, urlPrefix)',
+        '_srcChanged(src)',
         '_selectableItemsChanged(selectableItems)',
         '_selectedItemsChanged(item)',
         '_selectedItemsChanged(items.length)',
@@ -336,21 +336,19 @@
         this.opened = false;
       },
 
-      _srcChanged: function(src, urlPrefix) {
-        // this._enshureD3().then( () => {
-          if (src && this._recentSrc !== src) {
-            this._recentSrc = src;
-            this._svg = d3.select(this.$.svgContainer).select('svg#main');
-            if (this._svg && !this._svg.empty()) {
-              this.$.svgContainer.removeChild(this._svg.node());
-            }
-
-            this._fetch(src, 'GET', 'include', 'xml').then(this._registerXML.bind(this))
-                .catch( function(statusCode, statusText) {
-                  console.log(statusCode, statusText);
-                });
+      _srcChanged: function(src) {
+        if (src && this._recentSrc !== src) {
+          this._recentSrc = src;
+          this._svg = d3.select(this.$.svgContainer).select('svg#main');
+          if (this._svg && !this._svg.empty()) {
+            this.$.svgContainer.removeChild(this._svg.node());
           }
-        // })
+
+          this._fetch(src, 'GET', 'include', 'xml').then(this._registerXML.bind(this))
+              .catch( function(statusCode, statusText) {
+                console.log(statusCode, statusText);
+              });
+        }
       },
 
       _registerXML: function(xml) {
