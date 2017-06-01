@@ -546,10 +546,6 @@
           type: Boolean
         },
 
-        loadExtraComplete: {
-          type: Boolean
-        },
-
         detailHasDrawer: {
           type: Boolean
         },
@@ -619,7 +615,8 @@
         'detail-request': '_openDetailRequestDialog',
         'login-request': '_openLoginDialog',
         'announce': '_notifyAnnouncement',
-        'data-error': '_redirectHome'
+        'data-missing': '_notifyAnnouncement',
+        'empty-configuration': '_redirectHome'
       },
 
       observers: [
@@ -658,22 +655,23 @@
         this._resetScroll();
         // Close the drawer - in case the *route* change came from a link in the drawer.
         this.drawerOpened = false;
-
-        if (!this.query || this.page == 'home') {
-          this._redirectHome();
-        }
       },
 
       _redirectHome: function(e) {
-        // this.page = 'home';
-        // this.query = '';
-        // if (e) {
-        //   this._notifyAnnouncement(e);
-        // }
+        this.setProperties({
+          path: '/home',
+          page: 'home',
+          query: '',
+          elements: [],
+          showTabs: false
+        });
+        if (e) {
+          this._notifyAnnouncement(e);
+        }
       },
 
       _resetScroll: function() {
-        this.debounce( '_resetScroll', function () {
+        this.debounce( 'reset-scroll', function () {
           this.$.pages.scrollTop = 0;
           this.$.layout.resetLayout();
           // this._resetLayout(this.showTabsOnBottom, this.wideLayout, this.thresholdTriggered);

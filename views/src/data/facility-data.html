@@ -117,7 +117,7 @@
                   this.set('facility', facility);
                 }.bind(this))
                 .catch(function(e) {
-                  this.fire('announce', 'Failed to set facility: ' + e);
+                  this.fire('empty-configuration');
                   console.log(e);
                 })
           }.bind(this));
@@ -133,7 +133,7 @@
                   this.set('system', system);
                 }.bind(this))
                 .catch(function(e) {
-                  this.fire('announce', 'Failed to set facility: ' + e)
+                  this.fire('empty-configuration');
                   console.log(e);
                 }.bind(this))
           }.bind(this) );
@@ -143,7 +143,7 @@
       _computeItems: function(system) {
         // console.log('items', system);
         var color = '';
-        if (system && system.items) {
+        if (system && system.items && system.items.length) {
           for (var i = 0; i < system.items.length; i++) {
             if (!system.items[i].color && !system.items[i].isIndicatorLamp) {
               // set custom colors
@@ -159,6 +159,8 @@
             }
           }
           this.set('items', system.items);
+        } else {
+          this.fire('empty-configuration');
         }
       },
 
