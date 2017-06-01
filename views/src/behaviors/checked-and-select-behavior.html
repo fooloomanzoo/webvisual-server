@@ -40,23 +40,92 @@
         value: true
       },
 
+      tapEvent: {
+        type: String
+      },
+
+      tapDuration: {
+        type: Number,
+        value : 500
+      },
+
       selectEvent: {
         type: String,
         value: 'item-select'
+      },
+
+      disabled: {
+        type: Boolean,
+        value: false
+      },
+
+      eventTarget: {
+        type: Object,
+        value: function() {
+          return this;
+        }
       }
 
+    },
+
+    observers: [
+      '_addTouchListeners(disabled, selectEvent, tapEvent)'
+    ],
+
+    detached: function() {
+      this._removeTouchListeners();
+    },
+
+    _addTouchListeners: function(disabled, selectEvent, tapEvent) {
+      if (disabled) {
+        this._removeTouchListeners();
+      } else {
+        if (tapEvent) {
+          Polymer.Gestures.addListener(this.eventTarget, 'down', e => this._handleTouch(e));
+          Polymer.Gestures.addListener(this.eventTarget, 'up', e =>  this._handleTouch(e));
+        } else if (selectEvent) {
+          Polymer.Gestures.addListener(this.eventTarget, 'tap', e => this.select());
+        }
+      }
+    },
+
+    _removeTouchListeners: function() {
+      Polymer.Gestures.removeListener(this.eventTarget, 'down', e => this._handleTouch(e));
+      Polymer.Gestures.removeListener(this.eventTarget, 'up', e =>  this._handleTouch(e));
+      Polymer.Gestures.removeListener(this.eventTarget, 'tap', e => this.select());
+    },
+
+    _handleTouch: function(e) {
+      if (e.type === 'down') {
+        this._lastEvent = e;
+      } else {
+        if (this._lastEvent && e.timeStamp - (this._lastEvent.timeStamp || performance.now()) > this.tapDuration) {
+          this.fire(this.tapEvent, { item: this.item });
+          if (this.checked === false) {
+            this.select(true);
+          }
+        } else {
+          this.select();
+        }
+      }
     },
 
     checkedChanged: function(checked, old) {
       if (old !== undefined && this.selectable && this.selectEvent) {
-        // this.dispatchEvent(new CustomEvent(this.selectEvent, {detail: { item: this.item, value: checked }}), {bubbles: true});
-        this.fire(this.selectEvent, { item: this.item, value: checked });
+        if (!this._preventSelectEvent) {
+          // this.dispatchEvent(new CustomEvent(this.selectEvent, {detail: { item: this.item, value: checked }}), {bubbles: true});
+          this.fire(this.selectEvent, { item: this.item, value: checked });
+        }
       }
+      this._preventSelectEvent = false;
     },
 
-    select: function() {
+    select: function(value, preventEvent) {
       if (this.selectable === true) {
-        if (this.toggles === true) {
+        this._preventSelectEvent = preventEvent;
+        if (value !== undefined) {
+          this.checked = value;
+        } else if (this.toggles === true) {
           if (this.checked === true) {
             this.checked = false;
           } else {
@@ -66,7 +135,6 @@
         } else {
           this.checked = true;
         }
-        this.fire('change');
       }
     }
   };

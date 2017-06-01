@@ -1,22 +1,27 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
-
+<link rel="import" href="behaviors/device-behavior.html"/>
 <link rel="import" href="behaviors/color-behavior.html"/>
 <link rel="import" href="behaviors/checked-and-select-behavior.html"/>
-<link rel="import" href="behaviors/device-behavior.html"/>
 
 <dom-module id="device-checkbox">
   <template strip-whitespace>
     <style>
       :host {
-        display: inline-flex;
+        display: inline-block;
         position: relative;
-        line-height: 0;
-        --calculated-box-size: var(--box-size, 20px);
-        --calculated-box-ink-size: var(--box-ink-size, -1px);
-        padding: 0.25em 0.5em;
+        cursor: pointer;
         transition: background-color 200ms ease;
         box-sizing: border-box;
-        cursor: pointer;
+        --calculated-box-size: var(--box-size, 20px);
+        --calculated-box-ink-size: var(--box-ink-size, -1px);
+      }
+
+      #content {
+        display: inline-flex;
+        width: 100%;
+        position: relative;
+        line-height: 0;
+        padding: 0.25em 0.5em;
       }
 
       #boxContainer {
@@ -159,17 +164,17 @@
       }
     </style>
 
-    <section id="boxContainer">
-      <template is="dom-if" if="[[selectable]]">
-        <paper-ripple id="ripple" center class="circle"></paper-ripple>
-      </template>
-      <section id="box">
-        <section id="arrow" hidden$="[[!checked]]"></section>
-      </section>
-    </section>
-
-    <slot></slot>
-
+    <div id="content">
+      <div id="boxContainer">
+        <template is="dom-if" if="[[selectable]]">
+          <paper-ripple id="ripple" center class="circle"></paper-ripple>
+        </template>
+        <section id="box">
+          <section id="arrow" hidden$="[[!checked]]"></section>
+        </section>
+      </div>
+      <slot></slot>
+    </div>
   </template>
 
   <script>
@@ -191,22 +196,8 @@
 
         showDate: {
           type: Boolean
-        },
-
-        noPointerEvents: {
-          type: Boolean,
-          value: false,
-          observer: '_addTapListener'
         }
 
-      },
-
-      _addTapListener: function(noPointerEvents) {
-        if (noPointerEvents) {
-          this.addEventListener('tap', this.select.bind(this));
-        } else {
-          this.removeEventListener('tap', this.select.bind(this));
-        }
       },
 
       insertValues: function(values) {

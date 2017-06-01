@@ -18,15 +18,20 @@
         value: ''
       },
 
+      noEqualityCheck: {
+        type: Boolean
+      },
+
       saveInLocalStorage: {
         type: Boolean
       }
 
     },
 
-    _fetch: function(uri, method, cred, type, property, saveInLocalStorage, body) {
+    _fetch: function(uri, method, cred, type, property, saveInLocalStorage, noEqualityCheck, body) {
       var url = this.urlPrefix + uri;
       var saveInLocalStorage = saveInLocalStorage || this.saveInLocalStorage;
+      var noEqualityCheck = noEqualityCheck || this.noEqualityCheck;
 
       var options = {
         method: method,
@@ -48,7 +53,10 @@
         }.bind(this))
         .then(function(data) {
           if (property && data) {
-            this.set(property, data);
+            var set = (noEqualityCheck || !this[property]) ? true : !this._equals(this[property], data);
+            if (set) {
+              this.set(property, data);
+            }
           }
           if (saveInLocalStorage && property && data) {
             localStorage.setItem(property, data);
@@ -58,7 +66,7 @@
           }
           return Promise.resolve(data);
         }.bind(this))
-        .catch( function(res) {
+        .catch(function(res) {
           if (saveInLocalStorage && property) {
             var items = localStorage.getItem(property);
             if (items)
@@ -66,6 +74,27 @@
           }
           return Promise.reject(res.status, res.statusText);
         }.bind(this))
+    },
+
+    _equals: function(x, y) {
+      if (x === y) return true;
+
+      if (!(x instanceof Object) || !(y instanceof Object)) return false;
+
+      if (x.constructor !== y.constructor) return false;
+
+      for (var p in x) {
+        if (!x.hasOwnProperty(p)) continue;
+        if (!y.hasOwnProperty(p)) return false;
+        if (x[p] === y[p]) continue;
+        if (typeof(x[p]) !== "object") return false;
+        if (!this._equals(x[p], y[p])) return false;
+      }
+
+      for (p in y) {
+        if (y.hasOwnProperty(p) && !x.hasOwnProperty(p)) return false;
+      }
+      return true;
     }
 
   };

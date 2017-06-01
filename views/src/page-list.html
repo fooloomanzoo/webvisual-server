@@ -1,7 +1,4 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
-<link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
-
-<link rel="import" href="style/shared-style.html">
 <link rel="import" href="style/grid-layout.html">
 
 <dom-module id="page-list">
@@ -50,9 +47,9 @@
 
     <template is="dom-if" if="[[visible]]">
       <ul class="grid">
-        <template is="dom-repeat" items="[[_getListItems(elements)]]">
+        <template is="dom-repeat" items="[[_getListItems(items)]]">
           <li>
-            <a href$="/detail?room=[[queryParams.room]]&mounts=[[item.mount]]">
+            <a href$="/detail?room=[[room]]&mounts=[[item.mount]]">
               <device-sign
                 item="[[item]]"
                 show-date></device-sign>
@@ -73,7 +70,7 @@
 
       properties: {
 
-        facilitySystem: {
+        room: {
           type: String
         },
 
@@ -84,8 +81,12 @@
 
         visible: {
           type: Boolean
-        }
+        },
 
+        items: {
+          type: Array,
+          computed: '_getListItems(elements)'
+        }
       },
 
       _getListItems: function(items) {

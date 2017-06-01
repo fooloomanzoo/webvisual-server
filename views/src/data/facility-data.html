@@ -4,181 +4,172 @@
 <dom-module id="facility-data">
 
   <script>
-  (function() {
+    (function() {
 
-    Polymer({
+      Polymer({
 
-      is: 'facility-data',
+        is: 'facility-data',
 
-      behaviors: [
-        WebvisualBehaviors.FetchBehavior
-      ],
+        behaviors: [
+          WebvisualBehaviors.FetchBehavior
+        ],
 
-      properties: {
+        properties: {
 
-        urlPrefix: {
-          type: String,
-          value: '/data/'
+          urlPrefix: {
+            type: String,
+            value: '/data/'
+          },
+
+          room: {
+            type: String
+          },
+
+          facilityName: {
+            type: String
+          },
+
+          systemName: {
+            type: String
+          },
+
+          itemName: {
+            type: String
+          },
+
+          facilities: {
+            type: Array,
+            notify: true
+          },
+
+          facility: {
+            type: Object,
+            notify: true
+          },
+
+          system: {
+            type: Object,
+            notify: true
+          },
+
+          items: {
+            type: Array,
+            notify: true
+          },
+
+          loggedIn: {
+            type: Boolean,
+            notify: true
+          },
+
+          offline: {
+            type: Boolean,
+            value: true
+          }
         },
 
-        room: {
-          type: String
-        },
+        observers: [
+          '_computeFacilityList(loggedIn, offline)',
+          '_computeNames(room)',
+          '_computeFacility(facilities, facilityName)',
+          '_computeSystem(facility, systemName)',
+          '_computeItems(system)'
+        ],
 
-        facilityName: {
-          type: String
-        },
-
-        systemName: {
-          type: String
-        },
-
-        itemName: {
-          type: String
-        },
-
-        facilities: {
-          type: Array,
-          value: function() { return []; },
-          notify: true
-        },
-
-        facility: {
-          type: Object,
-          value: function() { return {}; },
-          notify: true
-        },
-
-        system: {
-          type: Object,
-          value: function() { return {}; },
-          notify: true
-        },
-
-        items: {
-          type: Array,
-          value: function() { return []; },
-          notify: true
-        },
-
-        failure: {
-          type: Boolean,
-          notify: true,
-          readOnly: true
-        },
-
-        loggedIn: {
-          type: Boolean,
-          notify: true
-        },
-
-        offline: {
-          type: Boolean,
-          value: true
-        }
-      },
-
-      observers: [
-        '_computeFacilityList(loggedIn, offline)',
-        '_computeNames(room)',
-        '_computeFacility(facilities, facilityName)',
-        '_computeSystem(facility, systemName)',
-        '_computeItems(system)'
-      ],
-
-      _computeFacilityList: function(loggedIn, offline) {
-        if (loggedIn || offline) {
-          this.async(function() {
-            this._fetch('facilities.json', 'GET', 'include', 'json', 'facilities')
-                .catch( function(statusCode, statusText) {
+        _computeFacilityList: function(loggedIn, offline) {
+          if (loggedIn || offline) {
+            this.debounce('fetch-facility', function() {
+              this._fetch('facilities.json', 'GET', 'include', 'json', 'facilities')
+                .catch(function(statusCode, statusText) {
                   console.log(statusCode, statusText);
                 });
+            }, 15);
+          }
+        },
+
+        _computeNames: function(room) {
+          if (room) {
+            var names = room.split('/').filter(function(str) {
+              return str !== '';
+            });
+            if (names.length === 2) {
+              this.async(function() {
+                this.setProperties({
+                  facilityName: names[0],
+                  systemName: names[1]
+                });
+              }.bind(this), 1)
+            }
+          }
+        },
+
+        _computeFacility: function(facilities, facilityName) {
+          if (facilities && facilityName) {
+            this._getNamedArrayItem(facilities, facilityName)
+              .then(function(facility) {
+                if (!(this.facility && this._equals(facility, this.facility))) {
+                  this.set('facility', facility);
+                }
+              }.bind(this))
+              .catch(function(e) {
+                console.log('empty-facility');
+                this.fire('empty-configuration');
+              })
+          }
+        },
+
+        _computeSystem: function(facility, systemName) {
+          if (facility && facility.systems && systemName) {
+            this._getNamedArrayItem(facility.systems, systemName)
+              .then(function(system) {
+                if (!(this.system && this._equals(system, this.system))) {
+                  this.set('system', system);
+                }
+              }.bind(this))
+              .catch(function(e) {
+                console.log('empty-system');
+                this.fire('empty-configuration');
+              }.bind(this))
+          }
+        },
+
+        _computeItems: function(system) {
+          var color = '';
+          if (system && system.items && system.items.length) {
+            for (var i = 0; i < system.items.length; i++) {
+              if (!system.items[i].color && !system.items[i].isIndicatorLamp) {
+                // set custom colors
+                color = '#';
+                var perm = ['2C', 'F5'];
+                perm.push((4 * Math.floor(Math.random() * 64)).toString(16));
+                for (var j = 3; j > 0; j--) {
+                  var pos = Math.floor(Math.random() * j);
+                  color += ((perm[pos].length === 1) ? '0' : '') + perm[pos];
+                  perm.splice(pos, 1);
+                }
+                system.items[i].color = color;
+              }
+            }
+            this.set('items', system.items);
+          }
+        },
+
+        _getNamedArrayItem: function(arr, name) {
+          return new Promise(function(resolve, reject) {
+            if (!arr || !name)
+              reject('empty');
+            for (var i = 0, c; c = arr[i]; ++i) {
+              if (c.name === name) {
+                resolve(c);
+              }
+            }
+            reject('not existing');
           });
         }
-      },
 
-      _computeNames: function(room) {
-        if (room) {
-          var names = room.split('/').filter(function (str) { return str !== ''; });
-          if (names.length === 2) {
-            this.async( function() {
-              this.set('facilityName', names[0]);
-              this.set('systemName', names[1]);
-            }.bind(this), 1)
-          }
-        }
-      },
+      });
 
-      _computeFacility: function(facilities, facilityName) {
-        if (facilities && facilityName) {
-          this.async( function() {
-            this._getNamedArrayItem(facilities, facilityName)
-                .then(function(facility) {
-                  this.set('facility', facility);
-                }.bind(this))
-                .catch(function(e) {
-                  this.fire('empty-configuration');
-                  console.log(e);
-                })
-          }.bind(this));
-        }
-      },
-
-      _computeSystem: function(facility, systemName) {
-        // console.log('system', facility, systemName);
-        if (facility && facility.systems && systemName) {
-          this.async( function() {
-            this._getNamedArrayItem(facility.systems, systemName)
-                .then(function(system) {
-                  this.set('system', system);
-                }.bind(this))
-                .catch(function(e) {
-                  this.fire('empty-configuration');
-                  console.log(e);
-                }.bind(this))
-          }.bind(this) );
-        }
-      },
-
-      _computeItems: function(system) {
-        // console.log('items', system);
-        var color = '';
-        if (system && system.items && system.items.length) {
-          for (var i = 0; i < system.items.length; i++) {
-            if (!system.items[i].color && !system.items[i].isIndicatorLamp) {
-              // set custom colors
-              color = '#';
-              var perm = ['2C', 'F5'];
-              perm.push((4 * Math.floor(Math.random() * 64)).toString(16));
-              for (var j = 3; j > 0; j--) {
-                var pos = Math.floor(Math.random() * j);
-                color += ((perm[pos].length === 1) ? '0' : '') + perm[pos];
-                perm.splice(pos, 1);
-              }
-              system.items[i].color = color;
-            }
-          }
-          this.set('items', system.items);
-        } else {
-          this.fire('empty-configuration');
-        }
-      },
-
-      _getNamedArrayItem: function(arr, name) {
-        return new Promise( function(resolve, reject) {
-          if (!arr || !name)
-            reject('empty');
-          for (var i = 0, c; c = arr[i]; ++i) {
-            if (c.name === name) {
-              resolve(c);
-            }
-          }
-        });
-      }
-
-    });
-
-  })();
+    })();
   </script>
 
 </dom-module>

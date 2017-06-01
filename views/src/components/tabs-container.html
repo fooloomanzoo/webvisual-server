@@ -3,7 +3,7 @@ Modification from Polymer Shop Demo App
 -->
 
 <link rel="import" href="../../bower_components/polymer/polymer.html">
-<link rel="import" href="../../bower_components/iron-selector/iron-selectable.html">
+<link rel="import" href="../../bower_components/iron-selector/iron-multi-selectable.html">
 
 <link rel="import" href="tabs-overlay.html">
 
@@ -31,6 +31,7 @@ Modification from Polymer Shop Demo App
         flex-direction: row;
         white-space: nowrap;
         overflow: hidden;
+        pointer-events: all;
         text-align: center;
         -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
       }
@@ -43,22 +44,25 @@ Modification from Polymer Shop Demo App
         flex-direction: column;
         width: 100%;
       }
+      :host([vertical]) ::slotted(*) {
+        width: 100%;
+      }
+      :host(:not([vertical])) ::slotted(*) {
+        height: 100%;
+      }
 
     </style>
 
-    <nav id="container">
+    <nav id="container" on-track="_onScroll">
       <tabs-overlay id="overlay"></tabs-overlay>
       <slot></slot>
-      <tabs-overlay id="addon" persistent>
-        <slot name="addon"></slot>
-      </tabs-overlay>
     </nav>
 
   </template>
   <script>
 
     class TabsContainer extends Polymer.mixinBehaviors(
-    [Polymer.IronSelectableBehavior], Polymer.Element) {
+        [Polymer.IronMultiSelectableBehavior], Polymer.Element ) {
 
       static get is() { return 'tabs-container'; }
 
@@ -71,36 +75,43 @@ Modification from Polymer Shop Demo App
 
          multi: {
            type: Boolean,
-           value: false,
-           readOnly: true
+           value: false
          }
       }}
 
       static get observers() { return [
-        '_onSelectedItemChanged(selectedItem)'
+        '_onSelectedItemChanged(selectedItem)',
+        '_onSelectedItemsChanged(selectedItems)',
+        '_onSelectedValuesChanged(selectedValues, selected)'
       ]}
 
       connectedCallback() {
         super.connectedCallback();
-        this._addListeners();
+        this._addScrollListeners();
       }
 
-      _addListeners() {
-        Polymer.Gestures.addListener(this.$.container, 'track', e => this._onscroll(e), {passive: true});
-        Polymer.Gestures.addListener(this.$.container, 'scroll', e => this._onscroll(e), {passive: true});
-        Polymer.Gestures.addListener(this.$.container, 'wheel', e => this._onwheel(e), {passive: true});
+      _addScrollListeners() {
+        this.$.container.addEventListener('scroll', e => this._onScroll(e), {passive: true});
+        this.$.container.addEventListener('wheel', e => this._onWheel(e), {passive: true});
       }
 
-      _onSelectedItemChanged(selectedItem) {
-        if (selectedItem === undefined && this.selected) return;
-        // requestAnimationFrame( () => {
-        //   selectedItem.scrollIntoViewIfNeeded(true);
+      _onSelectedItemChanged(selectedItem, old) {
+        console.log('selectedItem', selectedItem);
+        if (selectedItem === undefined) return;
+        if (!this.multi) {
           this.$.overlay.target = selectedItem;
-          this.$.addon.target = selectedItem;
-        // });
+        }
       }
 
-      _onwheel(e) {
+      _onSelectedItemsChanged(selectedItems) {
+          console.log('selectedItems', selectedItems);
+      }
+
+      _onSelectedValuesChanged(selectedValues, selected) {
+          console.log('selectedValues', selectedValues, selected);
+      }
+
+      _onWheel(e) {
         if (!e) {
           return;
         }
@@ -129,7 +140,8 @@ Modification from Polymer Shop Demo App
         }
       }
 
-      _onscroll(e, detail) {
+      _onScroll(e, detail) {
+        e.stopImmediatePropagation();
         var scrollChange;
         if (this.vertical) {
           scrollChange = (detail && -detail.ddy) || 0;

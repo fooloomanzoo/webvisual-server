@@ -1,6 +1,8 @@
 <link rel="import" href="../bower_components/polymer/polymer.html"/>
 
 <link rel="import" href="behaviors/localize-behavior.html"/>
+<link rel="import" href="behaviors/fetch-behavior.html">
+
 <link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html"/>
 <link rel="import" href="../bower_components/iron-a11y-keys-behavior/iron-a11y-keys-behavior.html"/>
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html"/>
@@ -11,6 +13,7 @@
 <link rel="import" href="style/selectbox-style.html"/>
 <link rel="import" href="style/button-style.html"/>
 <link rel="import" href="style/app-style.html"/>
+<link rel="import" href="style/input-style.html"/>
 
 <link rel="import" href="../bower_components/app-layout/app-header-layout/app-header-layout.html"/>
 <link rel="import" href="../bower_components/app-layout/app-header/app-header.html"/>
@@ -305,7 +308,7 @@
         <!-- detail view of one item -->
         <page-detail id="detailpage" name="detail" dark$="[[dark]]" plain$="[[plain]]" class="fullbleed"
           room="[[queryParams.room]]"
-          selected-mounts="{{queryParams.mounts}}"
+          query="{{queryParams.mounts}}"
           logged-in="[[loggedIn]]"
           elements="[[elements]]"
           show-toggle-icon="{{detailHasDrawer}}">
@@ -658,11 +661,10 @@
       },
 
       _redirectHome: function(e) {
+        console.log('redirect home');
         this.setProperties({
           path: '/home',
           page: 'home',
-          query: '',
-          elements: [],
           showTabs: false
         });
         if (e) {
@@ -689,32 +691,23 @@
       },
 
       _nextPage: function() {
-        this.async( function () {
-          var order = ['home', 'list', 'groups', 'detail'];
-          var pos = order.indexOf(this.page) || 0;
-          pos = (pos + 1 + order.length) % order.length;
-          if (this.room) {
-            this.showTabs = true;
-            this.set('page', order[pos]);
-          } else {
-            this.showTabs = false;
-            this.set('page', 'home');
-          }
-        })
+        this._switchPage(1);
       },
 
-      _previousPage: function(e) {
+      _previousPage: function() {
+        this._switchPage(-1);
+      },
+
+      _switchPage: function(num) {
         this.async( function () {
           var order = ['home', 'list', 'groups', 'detail'];
           var pos = order.indexOf(this.page) || 0;
-          pos = (pos - 1 + order.length) % order.length;
-          if (this.room) {
-            this.showTabs = true;
-            this.set('page', order[pos]);
-          } else {
-            this.showTabs = false;
-            this.set('page', 'home');
-          }
+          pos = (pos + num + order.length) % order.length;
+          this.setProperties({
+            path: '/' + order[pos],
+            page: order[pos],
+            showTabs: false
+          });
         })
       },
 

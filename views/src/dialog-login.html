@@ -354,7 +354,7 @@
        */
       signOut: function() {
         // POST-ing credential object will be converted to FormData object
-        return this._fetch(this.signOutUrl, 'POST', 'include', 'json', null, null, JSON.stringify(this.userProfile))
+        return this._fetch(this.signOutUrl, 'POST', 'include', 'json', null, false, false, JSON.stringify(this.userProfile))
           .then(function() {
             if (navigator.credentials) {
               navigator.credentials.requireUserMediation();
@@ -416,7 +416,7 @@
        * @return {Promise} Resolves when successfully authenticated
        */
       noCredApiSignIn: function(url, signinForm) {
-        return this._fetch(url, 'POST', 'include', 'json', null, null, signinForm)
+        return this._fetch(url, 'POST', 'include', 'json', null, null, false, signinForm)
           .then(this.signedIn.bind(this))
           .catch(this.notSignedIn.bind(this));
       }
