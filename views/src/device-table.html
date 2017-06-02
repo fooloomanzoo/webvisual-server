@@ -1,6 +1,6 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/iron-list/iron-list.html">
-<link rel="import" href="behaviors/device-behavior.html"/>
+<link rel="import" href="behaviors/device-behavior.html" />
 
 <dom-module id="device-table">
 	<template strip-whitespace>
@@ -91,50 +91,51 @@
           <span>[[computeValue(value.y, value.state)]]</span>
         </div>
       </template>
-  	</iron-list>
+	</iron-list>
 
-    <section id="caption">[[caption]]</section>
-  </template>
+	<section id="caption">[[caption]]</section>
+	</template>
 
 	<script>
-		WebvisualElementTable = Polymer({
-			is: 'device-table',
+		class DeviceTable extends WebvisualBehaviors.DeviceBehavior(Polymer.Element) {
 
-			behaviors: [
-				WebvisualBehaviors.DeviceBehavior
-			],
+			static get is() {
+				return 'device-table';
+			}
 
-			properties: {
+			static get properties() {
+				return {
+					caption: String,
 
-				caption: String,
+					keysForCaption: Boolean,
 
-				keysForCaption: Boolean,
+					onlyFirstRow: Boolean,
 
-				onlyFirstRow: Boolean,
+					hideHeader: Boolean,
 
-				hideHeader: Boolean,
+					fullDate: Boolean,
 
-				fullDate: Boolean,
+					viewLength: {
+						type: Number,
+						value: Number.POSITIVE_INFINITY
+					},
 
-				viewLength: {
-          type: Number,
-          value: Number.POSITIVE_INFINITY
-        },
+					storeInside: {
+						type: Boolean,
+						value: true
+					}
+				}
+			}
 
-        storeInside: {
-          type: Boolean,
-          value: true
-        }
+			static get observers() {
+				return [
+					'_computeKeysForCaption(keysForCaption, item)'
+				]
+			}
 
-			},
-
-      observers: [
-        '_computeKeysForCaption(keysForCaption, item)'
-      ],
-
-			insertValues: function(values) {
+			insertValues(values) {
 				if (values && values.length) {
-					this.async( function() {
+					this.async(function() {
 						if (!this._initialized) {
 							this.set('values', values.reverse());
 							this._initialized = true;
@@ -147,55 +148,62 @@
 				} else if (!this._initialized) {
 					this.renderClearing();
 				}
-			},
+			}
 
-			spliceValues: function(splices) {
-        // var list = this.$.list.items;
+			spliceValues(splices) {
+				// var list = this.$.list.items;
 
-        this.async( function() {
-          var changeRecord = [];
+				this.async(function() {
+					var changeRecord = [];
 
-          for (var i = 0; i < splices.length; i++) {
-            for (var j = this.values.length - 1; j >= 0; j--) {
-              if (this.values[j].x === splices[i].x)
-                break;
-            }
-            if (j !== -1) {
-              this.values.splice(j, 1);
-              changeRecord.push( { index: j, removed: [this.values[j]], addedCount: 0, object: this.values, type: 'splice'} );
-            }
-          }
+					for (var i = 0; i < splices.length; i++) {
+						for (var j = this.values.length - 1; j >= 0; j--) {
+							if (this.values[j].x === splices[i].x)
+								break;
+						}
+						if (j !== -1) {
+							this.values.splice(j, 1);
+							changeRecord.push({
+								index: j,
+								removed: [this.values[j]],
+								addedCount: 0,
+								object: this.values,
+								type: 'splice'
+							});
+						}
+					}
 
-          this.notifySplices('values', changeRecord);
-        }.bind(this))
+					this.notifySplices('values', changeRecord);
+				}.bind(this))
 
-			},
+			}
 
-      renderClearing: function() {
-        this.$.list.set('items', []);
-      },
+			renderClearing() {
+				this.$.list.set('items', []);
+			}
 
-      _computeKeysForCaption: function(keysForCaption, item) {
-        if (keysForCaption && item && item.keys) {
-          var cap = '';
-          for (var key in this.item.keys) {
-            cap += this.item.keys[key] + ' ';
-          }
-          this.$.caption.textContent = cap;
-        } else if (this.caption) {
-          this.$.caption.textContent = this.caption;
-        }
-        // if (item && item.color) {
-        //   this.$.caption.style.background = item.color;
-        // } else {
-        //   this.$.caption.style.background = '';
-        // }
-      },
+			_computeKeysForCaption(keysForCaption, item) {
+				if (keysForCaption && item && item.keys) {
+					var cap = '';
+					for (var key in this.item.keys) {
+						cap += this.item.keys[key] + ' ';
+					}
+					this.$.caption.textContent = cap;
+				} else if (this.caption) {
+					this.$.caption.textContent = this.caption;
+				}
+				// if (item && item.color) {
+				//   this.$.caption.style.background = item.color;
+				// } else {
+				//   this.$.caption.style.background = '';
+				// }
+			}
 
-      _toggleGridView: function() {
-        this.$.list.grid = !!!this.$.list.grid;
-      }
-		});
+			_toggleGridView: function() {
+				this.$.list.grid = !!!this.$.list.grid;
+			}
+		}
+		customElements.define(DeviceTable.is, DeviceTable);
 	</script>
 
 </dom-module>

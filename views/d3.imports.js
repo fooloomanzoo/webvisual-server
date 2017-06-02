@@ -51,6 +51,8 @@ export {
 } from "d3-scale";
 
 export {
+  axisRight,
+  axisTop,
   axisBottom,
   axisLeft
 } from "d3-axis";
