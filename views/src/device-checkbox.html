@@ -1,7 +1,8 @@
-<link rel="import" href="../bower_components/polymer/polymer.html">
-<link rel="import" href="behaviors/device-behavior.html"/>
-<link rel="import" href="behaviors/color-behavior.html"/>
-<link rel="import" href="behaviors/checked-and-select-behavior.html"/>
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
+<link rel="import" href="behaviors/device-behavior.html" />
+<link rel="import" href="behaviors/color-behavior.html" />
+<link rel="import" href="behaviors/checked-and-select-behavior.html" />
 
 <dom-module id="device-checkbox">
   <template strip-whitespace>
@@ -9,9 +10,9 @@
       :host {
         display: inline-block;
         position: relative;
-        cursor: pointer;
         transition: background-color 200ms ease;
         box-sizing: border-box;
+        cursor: pointer;
         --calculated-box-size: var(--box-size, 20px);
         --calculated-box-ink-size: var(--box-ink-size, -1px);
       }
@@ -22,6 +23,19 @@
         position: relative;
         line-height: 0;
         padding: 0.25em 0.5em;
+      }
+      :host::before {
+        position: absolute;
+        content: "";
+        top: 0; left: 0; right: 0; bottom: 0;
+        @apply --checkbox-unchecked;
+      }
+      :host([checked])::before {
+        @apply --checkbox-checked;
+      }
+
+      :host(:focus)::before {
+        outline: 1px solid var(--bright-primary-color);
       }
 
       #boxContainer {
@@ -115,18 +129,6 @@
         opacity: 1;
       }
 
-      :host {
-        @apply --checkbox-unchecked;
-      }
-
-      :host([checked]) {
-        @apply --checkbox-checked;
-      }
-
-      :host(:focus) {
-        outline: 1px solid var(--bright-primary-color);
-      }
-
       /* box checked animations */
       :host([checked]) #arrow {
         -webkit-animation: arrow-expand 250ms ease-out forwards;
@@ -175,37 +177,42 @@
       </div>
       <slot></slot>
     </div>
+
   </template>
 
   <script>
-    Polymer({
-      is: 'device-checkbox',
+    class DeviceCheckbox extends WebvisualBehaviors.CheckedAndSelectBehavior(WebvisualBehaviors.ColorBehavior(WebvisualBehaviors.DeviceBehavior(Polymer.Element))) {
 
-      behaviors: [
-        WebvisualBehaviors.ColorBehavior,
-        WebvisualBehaviors.CheckedAndSelectBehavior,
-        WebvisualBehaviors.DeviceBehavior
-      ],
+      static get is() {
+        return 'device-checkbox';
+      }
 
-      properties: {
+      static get properties() {
+        return {
 
-        viewLength: {
-          type: Number,
-          value: 1
-        },
+          viewLength: {
+            type: Number,
+            value: 1
+          },
 
-        showDate: {
-          type: Boolean
+          showDate: {
+            type: Boolean
+          },
+
+          eventTarget: {
+            type: String,
+            value: 'content'
+          }
+
         }
+      }
 
-      },
-
-      insertValues: function(values) {
+      insertValues(values) {
         if (values && values.length) {
           if (!this._initialized)
             this._initialized = true;
 
-          var value = values[values.length-1];
+          var value = values[values.length - 1];
 
           if (this.item.exceedable) {
             this.checkExceedingState(value);
@@ -216,19 +223,20 @@
         } else {
           this.renderClearing();
         }
-      },
+      }
 
-      renderClearing: function() {
+      renderClearing() {
         this._initialized = false;
         this.setAttribute('state', null);
-      },
+      }
 
-      attached: function() {
+      connectedCallback() {
+        super.connectedCallback();
         Polymer.RenderStatus.afterNextRender(this, function() {
           var inkSize = this.getComputedStyleValue('--calculated-box-ink-size').trim();
           // If unset, compute and set the default `--box-ink-size`.
-          if (inkSize === '-1px') {
-            var checkboxSize = parseFloat(this.getComputedStyleValue('--calculated-box-size').trim()) || 1;
+          if (!inkSize || inkSize === '-1px') {
+            var checkboxSize = parseFloat(this.getComputedStyleValue('--calculated-box-size').trim()) || 20;
             var defaultInkSize = Math.floor((8 / 3) * checkboxSize);
 
             // The checkbox and ripple need to have the same parity so that their
@@ -236,13 +244,15 @@
             if (defaultInkSize % 2 !== checkboxSize % 2) {
               defaultInkSize++;
             }
+            console.log('defaultInkSize', defaultInkSize);
             this.updateStyles({
               '--box-ink-size': defaultInkSize + 'px'
             });
           }
+          console.log('inkSize', inkSize);
         });
       }
-
-    });
+    }
+    customElements.define(DeviceCheckbox.is, DeviceCheckbox);
   </script>
 </dom-module>

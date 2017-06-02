@@ -1,6 +1,6 @@
-<link rel="import" href="../bower_components/polymer/polymer.html"/>
-<link rel="import" href="behaviors/fullscreen-behavior.html"/>
-<link rel="import" href="behaviors/fetch-behavior.html"/>
+<link rel="import" href="../bower_components/polymer/polymer.html" />
+<link rel="import" href="behaviors/fullscreen-behavior.html" />
+<link rel="import" href="behaviors/fetch-behavior.html" />
 
 <!--
 'device-svg' provides rendering a svg in a container.
@@ -166,175 +166,189 @@
 </template>
 
   <script>
-    SvgElement = Polymer({
-      is: 'device-svg',
+    class DeviceSVG extends WebvisualBehaviors.FetchBehavior(WebvisualBehaviors.FullscreenBehavior(Polymer.Element)) {
 
-      behaviors: [
-        WebvisualBehaviors.FetchBehavior,
-        WebvisualBehaviors.FullscreenBehavior
-      ],
+      static get is() {
+        return 'device-svg';
+      }
 
-      properties: {
-        /**
-         * url prefix to source url of svg document
-         */
-        urlPrefix: {
-          type: String,
-          value: '/images/'
-        },
+      static get properties() {
+        return {
+          /**
+           * url prefix to source url of svg document
+           */
+          urlPrefix: {
+            type: String,
+            value: '/images/'
+          },
 
-        /**
-         * source url of svg document
-         */
-        src: {
-          type: String
-        },
+          /**
+           * source url of svg document
+           */
+          src: {
+            type: String
+          },
 
-        _recentSrc: {
-          type: String
-        },
+          _recentSrc: {
+            type: String
+          },
 
-        /**
-         * class-attribute to add a selected Node
-         */
-        selectedClass: {
-          type: String,
-          value: 'selected'
-        },
-        /**
-         * class-attribute to add a exceeding Node
-         */
-        exceedingClass: {
-          type: String,
-          value: 'exceeding'
-        },
-        /**
-         * (css-like) selector of a initially zoomed Nodes
-         */
-        initial: {
-          type: String,
-          value: '',
-          observer: '_initialChanged'
-        },
-        /**
-         * If true, initially it is not zoomed to selected Nodes
-         */
-        initiallyZoomToAll: Boolean,
-        /**
-         * If true, device-svg is shown
-         */
-        opened: {
-          type: Boolean,
-          reflectToAttribute: true,
-          observer: '_openedChanged'
-        },
-        /**
-         * Minimal Zoom Level
-         */
-        minZoom: {
-          type: Number,
-          value: 0.9
-        },
-        /**
-         * Maximal Zoom Level
-         */
-        maxZoom: {
-          type: Number,
-          value: 5
-        },
-        /**
-         * a clicked or selected Node will be centered and zoomed, depending how many times a zoomed Node,
-         * would fit in the actual view
-         */
-        zoomPartition: {
-          type: Number,
-          value: 2
-        },
+          /**
+           * class-attribute to add a selected Node
+           */
+          selectedClass: {
+            type: String,
+            value: 'selected'
+          },
+          /**
+           * class-attribute to add a exceeding Node
+           */
+          exceedingClass: {
+            type: String,
+            value: 'exceeding'
+          },
+          /**
+           * (css-like) selector of a initially zoomed Nodes
+           */
+          initial: {
+            type: String,
+            value: '',
+            observer: '_initialChanged'
+          },
+          /**
+           * If true, initially it is not zoomed to selected Nodes
+           */
+          initiallyZoomToAll: Boolean,
+          /**
+           * If true, device-svg is shown
+           */
+          opened: {
+            type: Boolean,
+            reflectToAttribute: true,
+            observer: '_openedChanged'
+          },
+          /**
+           * Minimal Zoom Level
+           */
+          minZoom: {
+            type: Number,
+            value: 0.9
+          },
+          /**
+           * Maximal Zoom Level
+           */
+          maxZoom: {
+            type: Number,
+            value: 5
+          },
+          /**
+           * a clicked or selected Node will be centered and zoomed, depending how many times a zoomed Node,
+           * would fit in the actual view
+           */
+          zoomPartition: {
+            type: Number,
+            value: 2
+          },
 
-        /**
-         * selectable css-selectors (key as id, value as selector), so that an eventlistener can be attached
-         */
-        selectableItems: {
-          type: Object,
-          value: function() {
-            return {};
-          }
-        },
+          /**
+           * selectable css-selectors (key as id, value as selector), so that an eventlistener can be attached
+           */
+          selectableItems: {
+            type: Object,
+            value: function() {
+              return {};
+            }
+          },
 
-        /**
-         * multi selectable
-         */
+          /**
+           * multi selectable
+           */
 
-        multi: Boolean,
+          multi: Boolean,
 
-        item: {
-          type: Object,
-          value: function() {
-            return {};
-          }
-        },
-        items: {
-          type: Array,
-          value: function() {
-            return [];
-          }
-        },
-        exceeding: {
-          type: Array,
-          value: function() {
-            return [];
+          item: {
+            type: Object,
+            value: function() {
+              return {};
+            }
+          },
+          items: {
+            type: Array,
+            value: function() {
+              return [];
+            }
+          },
+          exceeding: {
+            type: Array,
+            value: function() {
+              return [];
+            }
+          },
+
+          /**
+           * {private} inititial viewBox-height
+           */
+          _height: {
+            type: Number,
+            value: 0
+          },
+          /**
+           * {private} inititial viewBox-width
+           */
+          _width: {
+            type: Number,
+            value: 0
+          },
+          /**
+           * {private} mayor <g></g>-Node (that should be all sourounding group in the Svg-Graphic)
+           */
+          _mainG: {
+            type: Object
+          },
+          /**
+           * {private} svg-Node
+           */
+          _svg: {
+            type: Object
+          },
+          /**
+           * {private} d3-zoom-behavior
+           */
+          _d3Zoom: {
+            type: Object
           }
         }
+      }
 
-      },
+      static get observers() {
+        return [
+          '_srcChanged(src)',
+          '_selectableItemsChanged(selectableItems)',
+          '_selectedItemsChanged(item)',
+          '_selectedItemsChanged(items.length)',
+          '_exceedingChanged(exceeding.length)'
+        ]
+      }
 
-      /**
-       * {private} inititial viewBox-height
-       */
-      _height: 0,
-      /**
-       * {private} inititial viewBox-width
-       */
-      _width: 0,
-      /**
-       * {private} mayor <g></g>-Node (that should be all sourounding group in the Svg-Graphic)
-       */
-      _mainG: Object,
-      /**
-       * {private} svg-Node
-       */
-      _svg: Object,
-      /**
-       * {private} d3-zoom-behavior
-       */
-      _d3Zoom: Object,
-
-      observers: [
-        '_srcChanged(src)',
-        '_selectableItemsChanged(selectableItems)',
-        '_selectedItemsChanged(item)',
-        '_selectedItemsChanged(items.length)',
-        '_exceedingChanged(exceeding.length)'
-      ],
-
-      _openedChanged: function() {
+      _openedChanged() {
         if (!this.src) return;
         this._srcChanged();
         if (!this._inialized)
           this._initialize();
-        this.debounce('resetZoom', this._resetZoom, 1000);
-      },
+        // this.debounce('resetZoom', this._resetZoom, 1000);
+        this._resetZoom();
+      }
 
-      open: function(e) {
+      open(e) {
         this.setSvg(e.detail);
         this.opened = true;
-      },
+      }
 
-      close: function() {
+      close() {
         this.opened = false;
-      },
+      }
 
-      _srcChanged: function(src) {
+      _srcChanged(src) {
         if (src && this._recentSrc !== src) {
           this._recentSrc = src;
           this._svg = d3.select(this.$.svgContainer).select('svg#main');
@@ -343,13 +357,13 @@
           }
 
           this._fetch(src, 'GET', 'include', 'xml').then(this._registerXML.bind(this))
-              .catch( function(statusCode, statusText) {
-                console.log(statusCode, statusText);
-              });
+            .catch(function(statusCode, statusText) {
+              console.log(statusCode, statusText);
+            });
         }
-      },
+      }
 
-      _registerXML: function(xml) {
+      _registerXML(xml) {
         if (!(xml && xml.documentElement)) return;
 
         // import svg to document
@@ -378,27 +392,32 @@
         }
 
         this._initialize();
-      },
+      }
 
-      _initialize: function() {
-        this.async(this._selectableItemsChanged.bind(this), 100);
-        this.debounce('select', this._selectSelected, 100);
-        this.debounce('select-exceeds', this._selectExceeds, 100);
-      },
+      _initialize() {
+        // this.async(this._selectableItemsChanged.bind(this), 100);
+        this._selectableItemsChanged();
+        // this.debounce('select', this._selectSelected, 100);
+        // this.debounce('select-exceeds', this._selectExceeds, 100);
+        this._selectSelected();
+        this._selectExceeds();
+      }
 
-      _initZoom: function() {
+      _initZoom() {
         // register zoom function
         this._d3Zoom = d3.zoom()
           .scaleExtent([this.minZoom, this.maxZoom])
-          .on('zoom', this._zoom.bind(this), {passive: true});
+          .on('zoom', this._zoom.bind(this), {
+            passive: true
+          });
         // set style for resizing
         this._svg.attr('preserveAspectRatio', 'xMinYMin meet')
           .attr('height', null)
           .attr('width', null)
           .call(this._d3Zoom);
-      },
+      }
 
-      _selectedItemsChanged: function() {
+      _selectedItemsChanged() {
         var item = this.item;
         var items = this.items;
 
@@ -411,14 +430,15 @@
             }
           }
           this.opened = this.src && (this.opened || this.forceOpened || this.openOnSelect);
-          this.debounce('select', this._selectSelected, 50);
+          // this.debounce('select', this._selectSelected, 50);
+          this._selectSelected();
         } else if (this._mainG && this._mainG.selectAll) {
           this._mainG.selectAll('.' + this.selectedClass)
             .classed(this.selectedClass, false);
         }
-      },
+      }
 
-      _exceedingChanged: function() {
+      _exceedingChanged() {
         var exceeding = this.exceeding;
 
         if (exceeding && exceeding.length) {
@@ -426,20 +446,22 @@
             this.src = exceeding[exceeding.length - 1].svg.path;
           }
           this.opened = this.src && (this.opened || this.forceOpened || this.openOnExceed);
-          this.debounce('select-exceeds', this._selectExceeds, 50);
+          // this.debounce('select-exceeds', this._selectExceeds, 50);
+          this._selectExceeds();
         } else if (this._mainG && this._mainG.selectAll) {
           this._mainG.selectAll('.' + this.exceedingClass)
             .classed(this.exceedingClass, false);
         }
-      },
+      }
 
-      _initialChanged: function(initial) {
+      _initialChanged(initial) {
         if (!this.src || !initial) return;
-        this.debounce('resetZoom', this._resetZoom, 50);
-      },
+        // this.debounce('resetZoom', this._resetZoom, 50);
+        this._resetZoom();
+      }
 
-      _selectableItemsChanged: function() {
-        if (!this._mainG.node || !this.src) return;
+      _selectableItemsChanged() {
+        if (!(this._mainG && this._mainG.node && this.src)) return;
 
         if (this.selectableItems && this.selectableItems.items) {
           var self = this;
@@ -458,7 +480,9 @@
                   if (!clicked) {
                     this.classList.add('clicked');
                   }
-                }, {passive: true});
+                }, {
+                  passive: true
+                });
           }
           if (this.selectableItems.minZoom !== undefined) {
             this.minZoom = this.selectableItems.minZoom;
@@ -472,14 +496,14 @@
           this._initZoom();
           this._inialized = true;
         }
-      },
+      }
 
-      _zoom: function() {
+      _zoom() {
         // if (isNaN(d3.event.transform.x) || isNaN(d3.event.transform.y) || isNaN(d3.event.transform.k)) return;
         this._mainG.attr('transform', d3.event.transform);
-      },
+      }
 
-      _zoomToElement: function(elem) {
+      _zoomToElement(elem) {
         if (elem === undefined || !this._svg.node()) return;
         // calc centered zoom coordinates
         var transform = this._calcCenterZoom(elem);
@@ -492,9 +516,9 @@
 
         // save last transition
         this._svg.node().__zoom = t;
-      },
+      }
 
-      _selectSelected: function() {
+      _selectSelected() {
         var sel = this.multi ? (this.items || []) : [];
         if (this.item && Object.keys(this.item).length && sel.indexOf(this.item) === -1)
           sel.push(this.item);
@@ -519,22 +543,21 @@
                 for (var j = 0; j < selector.length; j++) {
                   style.sheet.insertRule(selector[j] + '.' + this.selectedClass + ' {\nfill: ' + sel[i].color + ' !important;\n}', style.sheet.cssRules.length);
                 }
-
               }
             }
           }
           this.updateStyles();
           this.select(sel, this.selectedClass);
         }
-      },
+      }
 
-      _selectExceeds: function() {
+      _selectExceeds() {
         if (this.exceeding && this.exceeding.length)
           this.select(this.exceeding, this.exceedingClass);
-      },
+      }
 
-      select: function(selected, selectedClass) {
-        if (!this._mainG.node || !this.src) return;
+      select(selected, selectedClass) {
+        if (!(this._mainG && this._mainG.node && this.src)) return;
         // previous selected elements: remove class for selected elements
         this._mainG = this._svg.select('g');
         this._mainG.selectAll('.' + selectedClass)
@@ -581,9 +604,9 @@
 
         if (this.opened)
           this._zoomToElement(boundE);
-      },
+      }
 
-      _calcCenterZoom: function(elem) {
+      _calcCenterZoom(elem) {
         // get view height and width
         var view = this.getBoundingClientRect();
         if (view === undefined || elem === undefined || view.height === 0 || view.width === 0)
@@ -594,7 +617,7 @@
           };
 
         // calculate scale based on partioned view and dimensions of the element
-        var boundE, bboxE, viewRatio = view.height / view.width;
+        var boundE, bboxE, viewRatio = view.height / view.width, scale;
         if (elem.nodeType !== undefined)
           boundE = elem.getBoundingClientRect();
         else boundE = elem;
@@ -643,47 +666,51 @@
             y: y,
             k: scale
           };
-      },
+      }
 
-      notifyResize: function() {
-        this.debounce('resetZoom', this._resetZoom, 50);
-      },
+      notifyResize() {
+        // this.debounce('resetZoom', this._resetZoom, 50);
+        this._resetZoom();
+      }
 
-      _resetZoom: function(e) {
+      _resetZoom(e) {
         if (e) {
           e.preventDefault();
           e.stopPropagation();
         }
 
-        if (!this.opened || !this._mainG || !this._mainG.node) return;
+        if (!(this.opened && this._mainG && this._mainG.node && this.src)) return;
 
         // zoom to selectedItems
         if (!this.initiallyZoomToAll) {
           if (this.item && Object.keys(this.item).length || (this.items && this.items.length)) {
-            this.debounce('select', this._selectSelected, 50);
+            // this.debounce('select', this._selectSelected, 50);
+            this._selectSelected();
             return;
           }
           if (this.exceeding.length) {
-            this.debounce('select-exceeds', this._selectExceeds, 50);
+            // this.debounce('select-exceeds', this._selectExceeds, 50);
+            this._selectExceeds();
             return;
           }
-        }
-        // zoom to initial
-        if (this.initial) {
-          var initial;
-          if (!(initial = this._mainG.selectAll(this.initial)).empty()) {
-            this.select([{
-              svg: {
-                selector: this.initial
-              }
-            }], 'initial');
-            return;
+          // zoom to initial
+          if (this.initial) {
+            var initial;
+            if (!(initial = this._mainG.selectAll(this.initial)).empty()) {
+              this.select([{
+                svg: {
+                  selector: this.initial
+                }
+              }], 'initial');
+              return;
+            }
           }
+          // zomm to _mainG
+          this._zoomToElement(this._mainG.node());
         }
-        // zomm to _mainG
-        this._zoomToElement(this._mainG.node());
       }
-    });
+    }
+    customElements.define(DeviceSVG.is, DeviceSVG);
   </script>
 
   <dom-module>

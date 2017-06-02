@@ -1,120 +1,131 @@
 <script>
   window.WebvisualBehaviors = window.WebvisualBehaviors || {};
 
-    /**
-     * Behavior that adds fullscreen behavior
-     *
-     * @polymerBehavior
-     */
+  /**
+   * Behavior that adds fullscreen behavior
+   *
+   * @polymerBehavior
+   */
 
-  WebvisualBehaviors.FullscreenBehavior = {
+  WebvisualBehaviors.FullscreenBehavior = function(superClass) {
+    return class extends superClass {
 
-    properties: {
-
-      fullscreen: {
-        type: Boolean,
-        value: false,
-        reflectToAttribute: true
-      },
-
-      fullscreenIcon: {
-        type: String,
-        computed: 'computeFullscreenIcon(fullscreen)'
+      constructor() {
+        super();
+      }
+      
+      static get properties() {
+        return {
+          fullscreen: {
+            type: Boolean,
+            value: false,
+            reflectToAttribute: true
+          },
+          fullscreenIcon: {
+            type: String,
+            computed: 'computeFullscreenIcon(fullscreen)'
+          }
+        }
       }
 
-    },
-
-    get isFullscreen() {
-      return document.fullscreen
-          || document.webkitIsFullScreen
-          || document.mozFullScreen
-          || document.msFullscreenElement;
-    },
-
-    get parent() {
-      var root = Polymer.dom(this).getOwnerRoot();
-      if (!root)
-        return Polymer.dom(this).parentNode;
-      else if (root.nodeType == Node.DOCUMENT_FRAGMENT_NODE)
-        return root.host;
-      else {
-        return undefined;
+      _isFullscreen() {
+        return document.fullscreen ||
+          document.webkitIsFullScreen ||
+          document.mozFullScreen ||
+          document.msFullscreenElement;
       }
-    },
 
-    attached: function() {
-      // fullscreen
-      if (this.requestFullscreen) {
-        this.exitFullscreen = document.exitFullscreen.bind(document);
-        this.addEventListener('fullscreenchange', this.fullScreenChanged.bind(this));
-      } else if (this.webkitRequestFullScreen) {
-        this.requestFullscreen = this.$.svgContainer.webkitRequestFullScreen.bind(this);
-        this.exitFullscreen = document.webkitCancelFullScreen.bind(document);
-        this.addEventListener('webkitfullscreenchange', this.fullScreenChanged.bind(this));
-      } else if (this.mozRequestFullScreen) {
-        this.requestFullscreen = this.mozRequestFullScreen.bind(this);
-        this.exitFullscreen = document.mozCancelFullScreen.bind(document);
-        document.addEventListener('mozfullscreenchange', this.fullScreenChanged.bind(this));
-      } else if (this.msRequestFullscreen) {
-        this.requestFullscreen = this.msRequestFullscreen.bind(this);
-        this.exitFullscreen = document.msExitFullscreen.bind(document);
-        document.addEventListener('MSFullscreenChange', this.fullScreenChanged.bind(this));
+      _getParent() {
+        var root = Polymer.dom(this).getOwnerRoot();
+        if (!root)
+          return Polymer.dom(this).parentNode;
+        else if (root.nodeType == Node.DOCUMENT_FRAGMENT_NODE)
+          return root.host;
+        else {
+          return undefined;
+        }
       }
-    },
 
-    detached: function() {
-      this.removeEventListener('fullscreenchange', this.fullScreenChanged.bind(this), false);
-      this.removeEventListener('webkitfullscreenchange', this.fullScreenChanged.bind(this), false);
-      this.removeEventListener('mozfullscreenchange', this.fullScreenChanged.bind(this), false);
-      this.removeEventListener('MSFullscreenChange', this.fullScreenChanged.bind(this), false);
-    },
-
-    toggleFullscreen: function(e) {
-      e.stopPropagation()
-      if (this.isFullscreen) {
-        this.exitFullscreen();
-      } else {
-        this.requestFullscreen();
+      connectedCallback() {
+        super.connectedCallback();
+        // fullscreen
+        if (this.requestFullscreen) {
+          this.exitFullscreen = document.exitFullscreen.bind(document);
+          this.addEventListener('fullscreenchange', this.fullScreenChanged.bind(this));
+        } else if (this.webkitRequestFullScreen) {
+          this.requestFullscreen = this.$.svgContainer.webkitRequestFullScreen.bind(this);
+          this.exitFullscreen = document.webkitCancelFullScreen.bind(document);
+          this.addEventListener('webkitfullscreenchange', this.fullScreenChanged.bind(this));
+        } else if (this.mozRequestFullScreen) {
+          this.requestFullscreen = this.mozRequestFullScreen.bind(this);
+          this.exitFullscreen = document.mozCancelFullScreen.bind(document);
+          document.addEventListener('mozfullscreenchange', this.fullScreenChanged.bind(this));
+        } else if (this.msRequestFullscreen) {
+          this.requestFullscreen = this.msRequestFullscreen.bind(this);
+          this.exitFullscreen = document.msExitFullscreen.bind(document);
+          document.addEventListener('MSFullscreenChange', this.fullScreenChanged.bind(this));
+        }
       }
-    },
 
-    fullScreenChanged: function() {
-      this.debounce('fullscreen-changed', this._fullScreenChanged, 15);
-    },
+      disconnectedCallback() {
+        super.disconnectedCallback();
+        this.removeEventListener('fullscreenchange', this.fullScreenChanged.bind(this), false);
+        this.removeEventListener('webkitfullscreenchange', this.fullScreenChanged.bind(this), false);
+        this.removeEventListener('mozfullscreenchange', this.fullScreenChanged.bind(this), false);
+        this.removeEventListener('MSFullscreenChange', this.fullScreenChanged.bind(this), false);
+      }
 
-    _fullScreenChanged: function() {
-      requestAnimationFrame( function() {
-        if (this.isFullscreen) {
-          this.fullscreen = true;
-          this.style.position = 'fixed';
-          this.style.top = '0';
-          this.style.left = '0';
-          this.style.right = '0';
-          this.style.bottom = '0';
-          this.style.zIndex = '1000';
-          this.style['border-radius'] = '0px';
-          document.body.style.overflow = 'hidden';
-          this.parent.classList.add('fullscreen');
+      toggleFullscreen(e) {
+        e.stopPropagation()
+        if (this._isFullscreen()) {
+          this.exitFullscreen();
         } else {
-          this.fullscreen = false;
-          this.style.position = '';
-          this.style.top = '';
-          this.style.left = '';
-          this.style.right = '';
-          this.style.bottom = '';
-          this.style.zIndex = '';
-          this.style['border-radius'] = '';
-          document.body.style.overflow = '';
-          this.parent.classList.remove('fullscreen');
+          this.requestFullscreen();
         }
-        if (this.notifyResize) {
-          this.debounce('resize', this.notifyResize);
-        }
-      }.bind(this));
-    },
+      }
 
-    computeFullscreenIcon: function(fullscreen) {
-      return fullscreen ? 'fullscreen-exit' : 'fullscreen';
+      fullScreenChanged() {
+        // this.debounce('fullscreen-changed', this._fullScreenChanged, 15);
+        this._fullScreenChanged();
+      }
+
+      _fullScreenChanged() {
+        requestAnimationFrame( () => {
+          var isFullscreen = this._isFullscreen();
+          var parent = this._getParent();
+          if (isFullscreen) {
+            this.fullscreen = true;
+            this.style.position = 'fixed';
+            this.style.top = '0';
+            this.style.left = '0';
+            this.style.right = '0';
+            this.style.bottom = '0';
+            this.style.zIndex = '1000';
+            this.style['border-radius'] = '0px';
+            document.body.style.overflow = 'hidden';
+            if (parent) parent.classList.add('fullscreen');
+          } else {
+            this.fullscreen = false;
+            this.style.position = '';
+            this.style.top = '';
+            this.style.left = '';
+            this.style.right = '';
+            this.style.bottom = '';
+            this.style.zIndex = '';
+            this.style['border-radius'] = '';
+            document.body.style.overflow = '';
+            if (parent) parent.classList.remove('fullscreen');
+          }
+          if (this.notifyResize) {
+            // this.debounce('resize', this.notifyResize);
+            this.notifyResize();
+          }
+        });
+      }
+
+      computeFullscreenIcon(fullscreen) {
+        return fullscreen ? 'fullscreen-exit' : 'fullscreen';
+      }
     }
-  };
+  }
 </script>

@@ -7,35 +7,49 @@
    * @polymerBehavior
    */
 
-  WebvisualBehaviors.ColorBehavior = {
+  WebvisualBehaviors.ColorBehavior = function(superClass) {
+    return class extends superClass {
 
-    observers: [
-      'setColor(item.color)'
-    ],
+      constructor() {
+        super();
+      }
 
-    setColor: function(color) {
-      // random color if color is not set
-      if (color !== undefined) {
-        this.updateStyles({'--device-color': color || null});
-        if (!this.item.isIndicatorLamp ) {
-          this.updateStyles({'--device-state-inrange-color': color || null});
+      static get observers() {
+        return [
+          'setColor(item.color)'
+        ]
+      }
+
+      setColor(color) {
+        // random color if color is not set
+        if (color !== undefined) {
+          this.updateStyles({
+            '--device-color': color || null
+          });
+          if (!this.item.isIndicatorLamp) {
+            this.updateStyles({
+              '--device-state-inrange-color': color || null
+            });
+          } else {
+            this.updateStyles({
+              '--device-state-inrange-color': null
+            });
+          }
+        }
+        this.updateStyles();
+      }
+
+      resetColor() {
+        this.setColor(this.item ? this.item.color || '' : '');
+      }
+
+      getComputedStyleValue(property) {
+        if (window.ShadyCSS) {
+          return ShadyCSS.getComputedStyleValue(this, property);
         } else {
-          this.updateStyles({'--device-state-inrange-color': null});
+          return getComputedStyle(this).getPropertyValue(property);
         }
       }
-      this.updateStyles();
-    },
-
-    resetColor: function() {
-      this.setColor( this.item ? this.item.color || '' : '' );
-    },
-
-    getComputedStyleValue: function(property) {
-      if (window.ShadyCSS) {
-        return ShadyCSS.getComputedStyleValue(this, property);
-      } else {
-        return getComputedStyle(this).getPropertyValue(property);
-      }
     }
-  };
+  }
 </script>

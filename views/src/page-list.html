@@ -1,4 +1,4 @@
-<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
 <link rel="import" href="style/grid-layout.html">
 
 <dom-module id="page-list">
@@ -65,36 +65,40 @@
   </template>
 
   <script>
-    Polymer({
-      is: 'page-list',
+    class PageList extends Polymer.Element {
 
-      properties: {
+      static get is() {
+        return 'page-list';
+      }
 
-        room: {
-          type: String
-        },
+      static get properties() {
+        return {
+          room: {
+            type: String
+          },
 
-        elements: {
-          type: Array,
-          notify: true
-        },
+          elements: {
+            type: Array,
+            notify: true
+          },
 
-        visible: {
-          type: Boolean
-        },
+          visible: {
+            type: Boolean
+          },
 
-        items: {
-          type: Array,
-          computed: '_getListItems(elements)'
+          items: {
+            type: Array,
+            computed: '_getListItems(elements)'
+          }
         }
-      },
+      }
 
-      _getListItems: function(items) {
+      _getListItems(items) {
         // Return placeholder items when the items haven't loaded yet.
         return items || [{},{},{},{},{},{},{},{},{},{}];
       }
-
-    });
+    }
+    customElements.define(PageList.is, PageList);
   </script>
 
 </dom-module>

@@ -1,4 +1,4 @@
-<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
 
 <dom-module id="device-caption" unresolved>
   <template>
@@ -77,11 +77,11 @@
 
   <script>
 
-    CaptionElement = Polymer({
+    class CaptionElement extends Polymer.Element {
 
-      is: 'device-caption',
+      static get is() { return 'device-caption'; }
 
-      properties: {
+      static get properties() { return {
 
         keys: {
           type: Object,
@@ -115,17 +115,18 @@
           type: Boolean,
           reflectToAttribute: true
         }
-      },
+      }}
 
-      created: function() {
+      constructor() {
+        super();
         this.setAttribute('unresolved', '');
-      },
+      }
 
-      getKey: function(key) {
+      getKey(key) {
         return this.keys[key];
-      },
+      }
 
-      _computeReducedCaptionKeys: function(groupedKey, keys, onlyGroupedKey, withoutGroupedKey) {
+      _computeReducedCaptionKeys(groupedKey, keys, onlyGroupedKey, withoutGroupedKey) {
         var captionKeys = Object.keys(keys || {});
         if (captionKeys.length === 0) return [];
 
@@ -138,13 +139,13 @@
           this.removeAttribute('unresolved');
         }
         return (reducedCaptionKeys.length === 0) ? captionKeys : reducedCaptionKeys;
-      },
-
-      isEmptyCaption: function(key) {
-        return (!this.keys[key]);
       }
 
-    });
+      isEmptyCaption(key) {
+        return (!this.keys[key]);
+      }
+    }
+    customElements.define(CaptionElement.is, CaptionElement);
   </script>
 
 </dom-module>

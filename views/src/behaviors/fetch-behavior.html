@@ -9,93 +9,98 @@
    * @polymerBehavior
    */
 
-  WebvisualBehaviors.FetchBehavior = {
+  WebvisualBehaviors.FetchBehavior = function(superClass) {
+    return class extends superClass {
 
-    properties: {
+      constructor() {
+        super();
+      }
+      
+      static get properties() {
+        return {
+          urlPrefix: {
+            type: String,
+            value: ''
+          },
 
-      urlPrefix: {
-        type: String,
-        value: ''
-      },
+          noEqualityCheck: {
+            type: Boolean
+          },
 
-      noEqualityCheck: {
-        type: Boolean
-      },
-
-      saveInLocalStorage: {
-        type: Boolean
+          saveInLocalStorage: {
+            type: Boolean
+          }
+        }
       }
 
-    },
+      _fetch(uri, method, cred, type, property, saveInLocalStorage, noEqualityCheck, body) {
+        var url = this.urlPrefix + uri;
+        var saveInLocalStorage = saveInLocalStorage || this.saveInLocalStorage;
+        var noEqualityCheck = noEqualityCheck || this.noEqualityCheck;
 
-    _fetch: function(uri, method, cred, type, property, saveInLocalStorage, noEqualityCheck, body) {
-      var url = this.urlPrefix + uri;
-      var saveInLocalStorage = saveInLocalStorage || this.saveInLocalStorage;
-      var noEqualityCheck = noEqualityCheck || this.noEqualityCheck;
+        var options = {
+          method: method,
+          credentials: cred || 'include',
+          body: body
+        };
 
-      var options = {
-        method: method,
-        credentials: cred || 'include',
-        body: body
-      };
-
-      return fetch(url, options)
-        .then(function(res) {
-          if (res.status < 400) {
-            if (type === 'json') {
-              return res.json();
+        return fetch(url, options)
+          .then(res => {
+            if (res.status < 400) {
+              if (type === 'json') {
+                return res.json();
+              } else {
+                return res.text();
+              }
             } else {
-              return res.text();
+              return Promise.reject(res);
             }
-          } else {
-            return Promise.reject(res);
-          }
-        }.bind(this))
-        .then(function(data) {
-          if (property && data) {
-            var set = (noEqualityCheck || !this[property]) ? true : !this._equals(this[property], data);
-            if (set) {
-              this.set(property, data);
+          })
+          .then( data => {
+            if (property && data) {
+              var set = (noEqualityCheck || !this[property]) ? true : !this._equals(this[property], data);
+              if (set) {
+                this.set(property, data);
+              }
             }
-          }
-          if (saveInLocalStorage && property && data) {
-            localStorage.setItem(property, data);
-          }
-          if (type === 'xml' && data) {
-            return new window.DOMParser().parseFromString(data, "text/xml")
-          }
-          return Promise.resolve(data);
-        }.bind(this))
-        .catch(function(res) {
-          if (saveInLocalStorage && property) {
-            var items = localStorage.getItem(property);
-            if (items)
-              this.set(request, items);
-          }
-          return Promise.reject(res.status, res.statusText);
-        }.bind(this))
-    },
-
-    _equals: function(x, y) {
-      if (x === y) return true;
-
-      if (!(x instanceof Object) || !(y instanceof Object)) return false;
-
-      if (x.constructor !== y.constructor) return false;
-
-      for (var p in x) {
-        if (!x.hasOwnProperty(p)) continue;
-        if (!y.hasOwnProperty(p)) return false;
-        if (x[p] === y[p]) continue;
-        if (typeof(x[p]) !== "object") return false;
-        if (!this._equals(x[p], y[p])) return false;
+            if (saveInLocalStorage && property && data) {
+              localStorage.setItem(property, data);
+            }
+            if (type === 'xml' && data) {
+              return new window.DOMParser().parseFromString(data, "text/xml")
+            }
+            return Promise.resolve(data);
+          })
+          .catch( res => {
+            if (saveInLocalStorage && property) {
+              var items = localStorage.getItem(property);
+              if (items)
+                this.set(request, items);
+            }
+            return Promise.reject(res.status, res.statusText);
+          })
       }
 
-      for (p in y) {
-        if (y.hasOwnProperty(p) && !x.hasOwnProperty(p)) return false;
+      _equals(x, y) {
+        if (x === y) return true;
+
+        if (!(x instanceof Object) || !(y instanceof Object)) return false;
+
+        if (x.constructor !== y.constructor) return false;
+
+        for (var p in x) {
+          if (!x.hasOwnProperty(p)) continue;
+          if (!y.hasOwnProperty(p)) return false;
+          if (x[p] === y[p]) continue;
+          if (typeof(x[p]) !== "object") return false;
+          if (!this._equals(x[p], y[p])) return false;
+        }
+
+        for (p in y) {
+          if (y.hasOwnProperty(p) && !x.hasOwnProperty(p)) return false;
+        }
+        return true;
       }
-      return true;
     }
-
-  };
+  }
 </script>

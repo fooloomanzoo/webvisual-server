@@ -1,21 +1,16 @@
-<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../behaviors/fetch-behavior.html">
 
 <dom-module id="facility-data">
-
   <script>
-    (function() {
+    class FacilityData extends WebvisualBehaviors.FetchBehavior(Polymer.Element) {
 
-      Polymer({
+      static get is() {
+        return 'facility-data'
+      }
 
-        is: 'facility-data',
-
-        behaviors: [
-          WebvisualBehaviors.FetchBehavior
-        ],
-
-        properties: {
-
+      static get properties() {
+        return {
           urlPrefix: {
             type: String,
             value: '/data/'
@@ -66,110 +61,117 @@
             type: Boolean,
             value: true
           }
-        },
+        }
+      }
 
-        observers: [
+      static get observers() {
+        return [
           '_computeFacilityList(loggedIn, offline)',
           '_computeNames(room)',
           '_computeFacility(facilities, facilityName)',
           '_computeSystem(facility, systemName)',
           '_computeItems(system)'
-        ],
+        ]
+      }
 
-        _computeFacilityList: function(loggedIn, offline) {
-          if (loggedIn || offline) {
-            this.debounce('fetch-facility', function() {
-              this._fetch('facilities.json', 'GET', 'include', 'json', 'facilities')
-                .catch(function(statusCode, statusText) {
-                  console.log(statusCode, statusText);
-                });
-            }, 15);
-          }
-        },
-
-        _computeNames: function(room) {
-          if (room) {
-            var names = room.split('/').filter(function(str) {
-              return str !== '';
+      _computeFacilityList(loggedIn, offline) {
+        if (loggedIn || offline) {
+          // this.debounce('fetch-facility', function() {
+          this._fetch('facilities.json', 'GET', 'include', 'json', 'facilities')
+            .catch(function(statusCode, statusText) {
+              console.log(statusCode, statusText);
             });
-            if (names.length === 2) {
-              this.async(function() {
-                this.setProperties({
-                  facilityName: names[0],
-                  systemName: names[1]
-                });
-              }.bind(this), 1)
-            }
-          }
-        },
-
-        _computeFacility: function(facilities, facilityName) {
-          if (facilities && facilityName) {
-            this._getNamedArrayItem(facilities, facilityName)
-              .then(function(facility) {
-                if (!(this.facility && this._equals(facility, this.facility))) {
-                  this.set('facility', facility);
-                }
-              }.bind(this))
-              .catch(function(e) {
-                console.log('empty-facility');
-                this.fire('empty-configuration');
-              })
-          }
-        },
-
-        _computeSystem: function(facility, systemName) {
-          if (facility && facility.systems && systemName) {
-            this._getNamedArrayItem(facility.systems, systemName)
-              .then(function(system) {
-                if (!(this.system && this._equals(system, this.system))) {
-                  this.set('system', system);
-                }
-              }.bind(this))
-              .catch(function(e) {
-                console.log('empty-system');
-                this.fire('empty-configuration');
-              }.bind(this))
-          }
-        },
-
-        _computeItems: function(system) {
-          var color = '';
-          if (system && system.items && system.items.length) {
-            for (var i = 0; i < system.items.length; i++) {
-              if (!system.items[i].color && !system.items[i].isIndicatorLamp) {
-                // set custom colors
-                color = '#';
-                var perm = ['2C', 'F5'];
-                perm.push((4 * Math.floor(Math.random() * 64)).toString(16));
-                for (var j = 3; j > 0; j--) {
-                  var pos = Math.floor(Math.random() * j);
-                  color += ((perm[pos].length === 1) ? '0' : '') + perm[pos];
-                  perm.splice(pos, 1);
-                }
-                system.items[i].color = color;
-              }
-            }
-            this.set('items', system.items);
-          }
-        },
-
-        _getNamedArrayItem: function(arr, name) {
-          return new Promise(function(resolve, reject) {
-            if (!arr || !name)
-              reject('empty');
-            for (var i = 0, c; c = arr[i]; ++i) {
-              if (c.name === name) {
-                resolve(c);
-              }
-            }
-            reject('not existing');
-          });
+          // }, 15);
         }
+      }
 
-      });
+      _computeNames(room) {
+        if (room) {
+          var names = room.split('/').filter(function(str) {
+            return str !== '';
+          });
+          if (names.length === 2) {
+            setTimeout(() => {
+              this.setProperties({
+                facilityName: names[0],
+                systemName: names[1]
+              });
+            }, 0)
+          }
+        }
+      }
 
-    })();
+      _computeFacility(facilities, facilityName) {
+        if (facilities && facilityName) {
+          this._getNamedArrayItem(facilities, facilityName)
+            .then(facility => {
+              if (!(this.facility && this._equals(facility, this.facility))) {
+                this.set('facility', facility);
+              }
+            })
+            .catch(e => {
+              console.log('empty-facility');
+              this.dispatchEvent(new CustomEvent('empty-configuration', {
+                bubbles: true,
+                composed: true
+              }));
+            })
+        }
+      }
+
+      _computeSystem(facility, systemName) {
+        if (facility && facility.systems && systemName) {
+          this._getNamedArrayItem(facility.systems, systemName)
+            .then(system => {
+              if (!(this.system && this._equals(system, this.system))) {
+                this.set('system', system);
+              }
+            })
+            .catch(e => {
+              console.log('empty-system');
+              this.dispatchEvent(new CustomEvent('empty-configuration', {
+                bubbles: true,
+                composed: true
+              }));
+            })
+        }
+      }
+
+      _computeItems(system) {
+        var color = '';
+        if (system && system.items && system.items.length) {
+          for (var i = 0; i < system.items.length; i++) {
+            if (!system.items[i].color && !system.items[i].isIndicatorLamp) {
+              // set custom colors
+              color = '#';
+              var perm = ['2C', 'F5'];
+              perm.push((4 * Math.floor(Math.random() * 64)).toString(16));
+              for (var j = 3; j > 0; j--) {
+                var pos = Math.floor(Math.random() * j);
+                color += ((perm[pos].length === 1) ? '0' : '') + perm[pos];
+                perm.splice(pos, 1);
+              }
+              system.items[i].color = color;
+            }
+          }
+          this.set('items', system.items);
+        }
+      }
+
+      _getNamedArrayItem(arr, name) {
+        return new Promise((resolve, reject) => {
+          if (!arr || !name)
+            reject('empty');
+          for (var i = 0, c; c = arr[i]; ++i) {
+            if (c.name === name) {
+              resolve(c);
+            }
+          }
+          reject('not existing');
+        });
+      }
+    }
+    customElements.define(FacilityData.is, FacilityData);
   </script>
 
 </dom-module>

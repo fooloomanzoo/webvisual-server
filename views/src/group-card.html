@@ -1,4 +1,4 @@
-<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
 <link rel="import" href="behaviors/container-behavior.html">
 
 <dom-module id='group-card'>
@@ -164,108 +164,108 @@
               item="[[item]]"
               exceeding="[[exceeding]]"></device-svg>
           </template>
-          <template is="dom-if" if="[[_shouldRenderExtensions]]">
+  <template is="dom-if" if="[[_shouldRenderExtensions]]">
             <device-chart class="view"
               multi
               items="[[items]]"></device-chart>
             <device-table-group class="view"
               items="[[items]]"></device-table-group>
           </template>
-        </iron-pages>
+  </iron-pages>
 
-        <section id="title">
-          <span class="title-text" on-tap="toggle">[[title]]</span>
-          <icon-button title="expand" on-tap="toggle" class="expand-button" icon="[[expandIcon]]"></icon-button>
-        </section>
+  <section id="title">
+    <span class="title-text" on-tap="toggle">[[title]]</span>
+    <icon-button title="expand" on-tap="toggle" class="expand-button" icon="[[expandIcon]]"></icon-button>
+  </section>
 
-        <section id="control">
-          <iron-selector selected="{{view}}" selectable=".button">
-            <icon-button title="map" icon="map" class="button" hidden$="[[!svgSrcPath]]"></icon-button>
-            <icon-button title="chart" icon="show-chart" class="button"  hidden$="[[!_shouldRenderExtensions]]"></icon-button>
-            <icon-button title="table" icon="list" class="button"  hidden$="[[!_shouldRenderExtensions]]"></icon-button>
-          </iron-selector>
-        </section>
-      </section>
-    </section>
+  <section id="control">
+    <iron-selector selected="{{view}}" selectable=".button">
+      <icon-button title="map" icon="map" class="button" hidden$="[[!svgSrcPath]]"></icon-button>
+      <icon-button title="chart" icon="show-chart" class="button" hidden$="[[!_shouldRenderExtensions]]"></icon-button>
+      <icon-button title="table" icon="list" class="button" hidden$="[[!_shouldRenderExtensions]]"></icon-button>
+    </iron-selector>
+  </section>
+  </section>
+  </section>
 
   </template>
 
   <script>
-    WebvisualGroupCard = Polymer({
+    class GroupCard extends WebvisualBehaviors.ContainerBehavior(Polymer.Element) {
 
-      is: 'group-card',
+      static get is() {
+        return 'group-card';
+      }
 
-      behaviors: [
-        WebvisualBehaviors.ContainerBehavior
-      ],
+      static get properties() {
+        return {
+          title: {
+            type: String,
+            value: '',
+            reflectToAttribute: true
+          },
 
-      properties: {
+          opened: {
+            type: Boolean,
+            reflectToAttribute: true,
+            observer: '_openedChanged'
+          },
 
-        title: {
-          type: String,
-          value: '',
-          reflectToAttribute: true
-        },
+          expandIcon: {
+            type: String,
+            value: 'unfold-more',
+            computed: '_computeExpandIcon(opened)'
+          },
 
-        opened: {
-          type: Boolean,
-          reflectToAttribute: true,
-          observer: '_openedChanged'
-        },
+          svgUrlPrefix: {
+            type: String
+          },
 
-        expandIcon: {
-          type: String,
-          value: 'unfold-more',
-          computed: '_computeExpandIcon(opened)'
-        },
+          svgSrcPath: {
+            type: String
+          },
 
-        svgUrlPrefix: {
-          type: String
-        },
+          svgSelectable: {
+            type: Object
+          },
 
-        svgSrcPath: {
-          type: String
-        },
+          view: {
+            type: Number,
+            value: 0,
+            observer: '_viewChanged'
+          },
 
-        svgSelectable: {
-          type: Object
-        },
+          _shouldRenderExtensions: {
+            type: Boolean,
+            computed: '_computeShouldRenderExtensions(items.length)'
+          },
 
-        view: {
-          type: Number,
-          value: 0,
-          observer: '_viewChanged'
-        },
-
-        _shouldRenderExtensions: {
-          type: Boolean,
-          computed: '_computeShouldRenderExtensions(items.length)'
+          _state: {
+            type: Number,
+            value: 0
+          }
         }
+      }
 
-      },
-
-      _state: 0,
-
-      toggle: function() {
+      toggle() {
         if (!this.opened) {
           this.open();
-        }
-        else {
+        } else {
           this.close();
         }
-      },
+      }
 
-      open: function() {
+      open() {
         this._state = this._STATE.OPENING;
         this._transitionStart();
-      },
+      }
 
-      close: function() {
+      close() {
         this._state = this._STATE.CLOSING;
         this._transitionStart();
-      },
+      }
 
-      _openedChanged: function(opened, old) {
+      _openedChanged(opened, old) {
         if (old === undefined) {
           this.view = 0;
         }
@@ -274,29 +274,31 @@
         } else if (opened === false && this._state !== this._STATE.CLOSING) {
           this.close();
         }
-      },
+      }
 
-      _resetTransitionState: function() {
-        this.$.control.style['will-change'] = '';
-        this.$.control.style['transition'] = 'none';
-        this.$.addons.style['will-change'] = '';
-        this.$.addons.style['transition'] = 'none';
-        this.$.headerBackground.style['will-change'] = '';
-        this.$.headerBackground.style['transition'] = 'none';
-        this.$.control.classList.remove('opened');
-        this.$.addons.classList.remove('opened');
-        this.$.header.classList.remove('opened');
-        this.$.headerBackground.classList.remove('opened');
-        this.$.addons.style['display'] = 'none';
-        this.opened = false;
-        this._state = this._STATE.STATIC;
-      },
+      _resetTransitionState() {
+        requestAnimationFrame(() => {
+          this.$.control.style['will-change'] = '';
+          this.$.control.style['transition'] = 'none';
+          this.$.addons.style['will-change'] = '';
+          this.$.addons.style['transition'] = 'none';
+          this.$.headerBackground.style['will-change'] = '';
+          this.$.headerBackground.style['transition'] = 'none';
+          this.$.control.classList.remove('opened');
+          this.$.addons.classList.remove('opened');
+          this.$.header.classList.remove('opened');
+          this.$.headerBackground.classList.remove('opened');
+          this.$.addons.style['display'] = 'none';
+          this.opened = false;
+          this._state = this._STATE.STATIC;
+        });
+      }
 
-      _transitionStart: function() {
+      _transitionStart() {
         this.$.addons.style['display'] = '';
         this.$.addons.style['transition'] = '';
         this.$.addons.style['will-change'] = 'transform';
-        requestAnimationFrame( function() {
+        requestAnimationFrame(() => {
           this.$.headerBackground.style['transition'] = '';
           this.$.headerBackground.style['will-change'] = 'padding-top';
           if (this._state === this._STATE.OPENING) {
@@ -312,11 +314,11 @@
             this.$.addons.classList.remove('opened');
             this.$.headerBackground.classList.remove('opened');
           }
-        }.bind(this));
-      },
+        });
+      }
 
-      _transitionEnd: function() {
-        requestAnimationFrame( function() {
+      _transitionEnd() {
+        requestAnimationFrame(() => {
           if (this._state === this._STATE.CLOSING) {
             this.$.addons.style['display'] = 'none';
             this.$.header.classList.remove('opened');
@@ -330,29 +332,31 @@
           this.$.addons.style['transition'] = '';
           this.$.headerBackground.style['will-change'] = '';
           this._state = this._STATE.STATIC;
-        }.bind(this));
-      },
+        });
+      }
 
-      _computeExpandIcon: function(opened) {
+      _computeExpandIcon(opened) {
         return opened ? 'unfold-less' : 'unfold-more';
-      },
+      }
 
-			_computeShouldRenderExtensions: function(length) {
-			  return length > 0;
-			},
+      _computeShouldRenderExtensions(length) {
+        return length > 0;
+      }
 
-      _viewChanged: function() {
+      _viewChanged() {
         if (this.opened && this.$.addons.selectedItem && this.$.addons.selectedItem.notifyResize) {
           this.$.addons.selectedItem.notifyResize();
         }
-      },
-
-      _STATE: {
-        STATIC: 0,
-        OPENING: 1,
-        CLOSING: 2
       }
 
-    });
+      get _STATE() {
+        return {
+          STATIC: 0,
+          OPENING: 1,
+          CLOSING: 2
+        }
+      }
+    }
+    customElements.define(GroupCard.is, GroupCard);
   </script>
 </dom-module>

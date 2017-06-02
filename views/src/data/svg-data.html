@@ -1,67 +1,72 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
-<link rel="import" href="../behaviors/fetch-behavior.html"/>
+<link rel="import" href="../behaviors/fetch-behavior.html" />
 
 <dom-module id="svg-data">
 
   <script>
-  (function() {
+    class SVGData extends WebvisualBehaviors.FetchBehavior(Polymer.Element) {
 
-    Polymer({
+      static get is() {
+        return 'svg-data'
+      }
 
-      is: 'svg-data',
+      static get properties() {
+        return {
+          urlPrefix: {
+            type: String,
+            value: '/data/'
+          },
 
-      behaviors: [
-        WebvisualBehaviors.FetchBehavior
-      ],
+          loggedIn: {
+            type: Boolean
+          },
 
-      properties: {
+          room: {
+            type: String
+          },
 
-        urlPrefix: {
-          type: String,
-          value: '/data/'
-        },
-
-        loggedIn: {
-          type: Boolean
-        },
-
-        room: {
-          type: String
-        },
-
-        data: {
-          type: Object,
-          value: function() { return {}; },
-          notify: true
+          data: {
+            type: Object,
+            value: function() {
+              return {};
+            },
+            notify: true
+          }
         }
-      },
+      }
 
-      observers: [
-        '_fetchSvgSource(room, loggedIn)'
-      ],
+      static get observers() {
+        return [
+          '_fetchSvgSource(room, loggedIn)'
+        ]
+      }
 
-      _fetchSvgSource: function(room, loggedIn) {
+      _fetchSvgSource(room, loggedIn) {
         if (!room) return;
 
         var facilityName, systemName;
         var names = room.split('/')
-                         .filter(function (str) { return str !== ''; });
+          .filter(function(str) {
+            return str !== '';
+          });
         if (names.length === 2) {
           var url = names[0] + '+' + names[1] + '+svgSource.json';
-          this.debounce('svg-data', function() {
-            this._fetch(url, 'GET', 'include', 'json', 'data')
-                .catch( function(statusCode, statusText) {
-                  console.log(statusCode, statusText);
-                });
-          }.bind(this), 25);
+          // this.debounce('svg-data', function() {
+          this._fetch(url, 'GET', 'include', 'json', 'data')
+            .catch(function(statusCode, statusText) {
+              console.log(statusCode, statusText);
+            });
+          // }.bind(this), 25);
         } else {
-          this.fire('data-error', 'Failed to load svg-data');
+          this.dispatchEvent(new CustomEvent('data-error', {
+            bubbles: true,
+            composed: true,
+            detail: 'Failed to load svg-data'
+          }));
         }
       }
-
-    });
-
-  })();
+    }
+    customElements.define(SVGData.is, SVGData);
   </script>
 
 </dom-module>

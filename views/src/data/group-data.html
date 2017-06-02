@@ -1,88 +1,98 @@
-<link rel="import" href="../../bower_components/polymer/polymer.html">
-<link rel="import" href="../behaviors/fetch-behavior.html"/>
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../behaviors/fetch-behavior.html" />
 
 <dom-module id="group-data">
 
   <script>
-  (function() {
+    class GroupData extends WebvisualBehaviors.FetchBehavior(Polymer.Element) {
 
-    Polymer({
+      static get is() {
+        return 'group-data'
+      }
 
-      is: 'group-data',
+      static get properties() {
+        return {
 
-      behaviors: [
-        WebvisualBehaviors.FetchBehavior
-      ],
+          urlPrefix: {
+            type: String,
+            value: '/data/'
+          },
 
-      properties: {
+          loggedIn: {
+            type: Boolean
+          },
 
-        urlPrefix: {
-          type: String,
-          value: '/data/'
-        },
+          room: {
+            type: String
+          },
 
-        loggedIn: {
-          type: Boolean
-        },
+          groupedKey: {
+            type: String,
+            notify: true,
+            observer: '_groupedKeyChanged'
+          },
 
-        room: {
-          type: String
-        },
+          groupingKeys: {
+            type: Array,
+            value: function() {
+              return [];
+            },
+            notify: true,
+            observer: '_groupingKeysChanged'
+          },
 
-        groupedKey: {
-          type: String,
-          notify: true,
-          observer: '_groupedKeyChanged'
-        },
+          groups: {
+            type: Array,
+            value: function() {
+              return [];
+            },
+            notify: true
+          },
 
-        groupingKeys: {
-          type: Array,
-          value: function() { return []; },
-          notify: true,
-          observer: '_groupingKeysChanged'
-        },
+          subgroups: {
+            type: Array,
+            computed: '_computeSubGroups(groups, groupedKey)',
+            notify: true
+          }
 
-        groups: {
-          type: Array,
-          value: function() { return []; },
-          notify: true
-        },
-
-        subgroups: {
-          type: Array,
-          computed: '_computeSubGroups(groups, groupedKey)',
-          notify: true
         }
+      }
 
-      },
+      static get observers() {
+        return [
+          '_fetchGroups(room, loggedIn)'
+        ]
+      }
 
-      observers: [
-        '_fetchGroups(room, loggedIn)'
-      ],
-
-      _fetchGroups: function(room, loggedIn) {
+      _fetchGroups(room, loggedIn) {
         if (!room) return;
 
         var names = room.split('/')
-                         .filter(function (str) { return str !== ''; });
+          .filter(function(str) {
+            return str !== '';
+          });
         if (names.length === 2) {
           this.roomUri = names[0] + '+' + names[1];
-          this.debounce('group-data', function() {
-            this._fetch(this.roomUri + '+groups.json', 'GET', 'include', 'json', 'groups')
-                .catch( function(statusCode, statusText) {
-                  console.log(statusCode, statusText);
-                });
-            this._fetch(this.roomUri + '+groupingKeys.json', 'GET', 'include', 'json', 'groupingKeys')
-                .catch( function(statusCode, statusText) {
-                  console.log(statusCode, statusText);
-                });
-          }.bind(this), 200);
+          // this.debounce('group-data', () => {
+          this._fetch(this.roomUri + '+groups.json', 'GET', 'include', 'json', 'groups')
+            .catch(function(statusCode, statusText) {
+              console.log(statusCode, statusText);
+            });
+          this._fetch(this.roomUri + '+groupingKeys.json', 'GET', 'include', 'json', 'groupingKeys')
+            .catch(function(statusCode, statusText) {
+              console.log(statusCode, statusText);
+            });
+          // }.bind(this), 200);
         } else {
-          this.fire('data-error', 'Room not defined');
+          this.dispatchEvent(new CustomEvent('data-error', {
+            bubbles: true,
+            composed: true,
+            detail: 'Room is not defined'
+          }));
         }
-      },
+      }
 
-      _computeSubGroups: function(groups, groupedKey) {
+      _computeSubGroups(groups, groupedKey) {
         if (groups && groupedKey) {
           for (var i = 0, group; group = groups[i]; ++i) {
             if (group.key === groupedKey) {
@@ -91,34 +101,32 @@
           }
         }
         return [];
-      },
+      }
 
-      _groupingKeysChanged: function(groupingKeys) {
+      _groupingKeysChanged(groupingKeys) {
         if (!(groupingKeys && groupingKeys.length)) {
           return;
         }
         var groupedKey = localStorage.getItem('groupedKey');
-        this.async( function() {
+        setTimeout(() => {
           if (groupedKey && groupingKeys.indexOf(groupedKey) !== -1) {
             this.set('groupedKey', groupedKey);
           } else if (this.roomUri) {
             this._fetch(this.roomUri + '+preferedGroupingKey.json', 'GET', 'include', 'json', 'groupedKey', true)
-                .catch( function(statusCode, statusText) {
-                  console.log(statusCode, statusText);
-                });
+              .catch((statusCode, statusText) => {
+                console.log(statusCode, statusText);
+              });
           }
-        });
-      },
+        }, 0);
+      }
 
-      _groupedKeyChanged: function(groupedKey, old) {
+      _groupedKeyChanged(groupedKey, old) {
         if (groupedKey) {
           localStorage.setItem('groupedKey', groupedKey);
         }
       }
-
-    });
-
-  })();
+    }
+    customElements.define(GroupData.is, GroupData);
   </script>
 
 </dom-module>

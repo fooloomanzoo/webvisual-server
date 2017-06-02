@@ -1,5 +1,5 @@
-<link rel="import" href="../bower_components/polymer/polymer.html">
-<link rel="import" href="behaviors/localize-behavior.html"/>
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="behaviors/localize-behavior.html">
 
 <dom-module id="page-home">
 
@@ -123,7 +123,7 @@
     </template>
 
     <div class="box">
-      <template is="dom-if" if="[[_gotFacilityItems]]">
+      <template is="dom-if" if="[[!_gotFacilityItems]]">
         <slot></slot>
       </template>
       <template is="dom-if" if="[[_gotFacilityItems]]">
@@ -157,57 +157,58 @@
   </template>
 
   <script>
+    class PageHome extends WebvisualBehaviors.LocalizeBehavior(Polymer.Element) {
 
-    Polymer({
-
-      is: 'page-home',
-
-      behaviors: [
-        WebvisualBehaviors.LocalizeBehavior
-      ],
-
-      properties: {
-
-        facilities: {
-          type: Array
-        },
-
-        currentFacility: {
-          type: String,
-          notify: true
-        },
-
-        visible: {
-          type: Boolean
-        },
-
-        loggedIn: {
-          type: Boolean
-        },
-
-        _gotFacilityItems: {
-          type: Boolean,
-          computed: '_computeFacilityItems(facilities)'
-        }
-      },
-
-      _computeHref: function(view, facility, system) {
-        return '/' + (view || 'list') + '?room=' + facility + '/' + system;
-      },
-
-      _computeOpened: function(name, selected) {
-        return (name === selected);
-      },
-
-      _computeFacilityItems: function(facilities) {
-        return facilities && facilities.length > 0;
-      },
-
-      _requestLogin: function() {
-        this.fire('login-request');
+      static get is() {
+        return 'page-home';
       }
-    });
 
+      static get properties() {
+        return {
+          facilities: {
+            type: Array
+          },
+
+          currentFacility: {
+            type: String,
+            notify: true
+          },
+
+          visible: {
+            type: Boolean
+          },
+
+          loggedIn: {
+            type: Boolean
+          },
+
+          _gotFacilityItems: {
+            type: Boolean,
+            computed: '_computeFacilityItems(facilities)'
+          }
+        }
+      }
+
+      _computeHref(view, facility, system) {
+        return '/' + (view || 'list') + '?room=' + facility + '/' + system;
+      }
+
+      _computeOpened(name, selected) {
+        return (name === selected);
+      }
+
+      _computeFacilityItems(facilities) {
+        return facilities && facilities.length > 0;
+      }
+
+      _requestLogin() {
+        this.dispatchEvent(new CustomEvent('login-request', {
+          bubbles: true,
+          composed: true
+        }));
+      }
+    }
+    customElements.define(PageHome.is, PageHome);
   </script>
 
 </dom-module>

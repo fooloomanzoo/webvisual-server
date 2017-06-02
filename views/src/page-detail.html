@@ -1,7 +1,7 @@
-<link rel="import" href="../bower_components/polymer/polymer.html"/>
-<link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html"/>
-<link rel="import" href="behaviors/container-behavior.html"/>
-<link rel="import" href="components/drawer-element.html"/>
+<link rel="import" href="../bower_components/polymer/polymer-element.html" />
+<link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html" />
+<link rel="import" href="behaviors/container-behavior.html" />
+<link rel="import" href="components/drawer-element.html" />
 
 <link rel="import" href="style/shared-style.html">
 
@@ -102,6 +102,7 @@
         display: none;
       }
       .checkbox {
+        width: 100%;
         --checkbox-unchecked: {
           color: var(--bright-text-color);
         };
@@ -110,7 +111,6 @@
         };
       }
       .caption {
-        width: 100%;
         pointer-events: none;
         --caption-background: transparent;
         --caption-color: currentColor;
@@ -184,15 +184,15 @@
         <tabs-container id="deviceTabs" vertical selected-values="{{selectedMounts}}" attr-for-selected="mount" selected-item="{{selectedTab}}" multi activate-event="item-select">
 
           <template is="dom-repeat" items="[[_getListItems(elements)]]">
-            <device-checkbox class="checkbox"
-              mount$="[[item.mount]]"
-              item="[[item]]"
-              tap-event="detail-request"
-              selectable>
-              <device-caption class="caption"
-                keys="[[item.keys]]"></device-caption>
-            </device-checkbox>
-          </template>
+                <device-checkbox class="checkbox"
+                  mount$="[[item.mount]]"
+                  item="[[item]]"
+                  tap-event="detail-request"
+                  selectable>
+                  <device-caption class="caption"
+                    keys="[[item.keys]]"></device-caption>
+                </device-checkbox>
+              </template>
         </tabs-container>
 
         <device-table id="elementTable" full-date item="[[item]]"></device-table>
@@ -201,174 +201,176 @@
   </template>
 
   <script>
-    Polymer({
-      is: 'page-detail',
+    class PageDetail extends WebvisualBehaviors.ContainerBehavior(Polymer.mixinBehaviors(
+      [Polymer.IronResizableBehavior], Polymer.Element)) {
 
-      behaviors: [
-        Polymer.IronResizableBehavior,
-        WebvisualBehaviors.ContainerBehavior
-      ],
+      static get is() {
+        return 'page-detail';
+      }
 
-      properties: {
-
-        query: {
-          type: String,
-          notify: true
-        },
-
-        selectedMounts: {
-          type: Array,
-          value: function() {
-            return [];
+      static get properties() {
+        return {
+          query: {
+            type: String,
+            notify: true
           },
-          notify: true
-        },
 
-        loggedIn: {
-          type: Boolean
-        },
+          selectedMounts: {
+            type: Array,
+            value: function() {
+              return [];
+            },
+            notify: true
+          },
 
-        elements: {
-          type: Array,
-          notify: true
-        },
+          loggedIn: {
+            type: Boolean
+          },
 
-        multi: {
-          type: Boolean,
-          value: true
-        },
+          elements: {
+            type: Array,
+            notify: true
+          },
 
-        selectedMounts: {
-          type: Array
-        },
+          multi: {
+            type: Boolean,
+            value: true
+          },
 
-        selectedTab: {
-          type: Object,
-          observer: '_selectedTabChanged'
-        },
+          selectedMounts: {
+            type: Array
+          },
 
-        svgData: {
-          type: Object
-        },
+          selectedTab: {
+            type: Object,
+            observer: '_selectedTabChanged'
+          },
 
-        visible: {
-          type: Boolean,
-          observer: '_visibleChanged'
-        },
+          svgData: {
+            type: Object
+          },
 
-        _withSvg: {
-          type: Boolean,
-          computed: '_hasSvg(item, svgData.paths)'
-        },
+          visible: {
+            type: Boolean,
+            observer: '_visibleChanged'
+          },
 
-        narrowLayout: {
-          type: Boolean,
-          value: false,
-          notify: true
-        },
+          _withSvg: {
+            type: Boolean,
+            computed: '_hasSvg(item, svgData.paths)'
+          },
 
-        showToggleIcon: {
-          type: Boolean,
-          notify: true,
-          computed: '_computeShowToggleIcon(narrowLayout, visible)'
+          narrowLayout: {
+            type: Boolean,
+            value: false,
+            notify: true
+          },
+
+          showToggleIcon: {
+            type: Boolean,
+            notify: true,
+            computed: '_computeShowToggleIcon(narrowLayout, visible)'
+          }
+
         }
+      }
 
-      },
+      static get observers() {
+        return [
+          '_queryChanged(query)',
+          '_selectedMountsChanged(selectedMounts)'
+        ]
+      }
 
-      observers: [
-        '_queryChanged(query)',
-        '_selectedMountsChanged(selectedMounts)'
-      ],
-
-      attached: function() {
+      connectedCallback() {
         this._debounceResize();
-      },
+      }
 
-      _queryChanged: function(query) {
+      _queryChanged(query) {
         console.log('query', query);
         if (!query) {
           return;
         }
         this.set('selectedMounts', query.split(','));
-      },
+      }
 
-      _selectedMountsChanged: function(selectedMounts) {
+      _selectedMountsChanged(selectedMounts) {
         console.log('selectedMounts', selectedMounts);
         // this.set('query', selectedMounts.toString());
-      },
+      }
 
-      _setExceeding: function(e) {
+      _setExceeding(e) {
         if (e && e.detail && e.detail.item) {
           if (e.detail.value === true)
             this.setExceeding(e.detail.item);
           else
             this.unsetExceeding(e.detail.item);
         }
-      },
+      }
 
-      setExceeding: function(item) {
+      setExceeding(item) {
         var pos = this.exceeding.indexOf(item);
         if (pos === -1)
           this.push('exceeding', item);
 
         this.isExceeding = (this.exceeding.length > 0) ? true : false;
-      },
+      }
 
-      unsetExceeding: function(item) {
+      unsetExceeding(item) {
         if (this.noAutoRemovalExceedings === true) return;
         var pos = this.exceeding.indexOf(item);
         if (pos !== -1)
           this.splice('exceeding', pos, 1);
 
         this.isExceeding = (this.exceeding.length > 0) ? true : false;
-      },
+      }
 
-      _getListItems: function(items) {
+      _getListItems(items) {
         // Return placeholder items when the items haven't loaded yet.
-        return items || [{},{},{},{},{},{},{},{},{},{}];
-      },
+        return items || [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
+      }
 
-      _setCurrentElement: function(elements, path) {
-      //   console.log('setcurrentelement');
-      //   if (!(elements && elements.length && path)) {
-      //     return;
-      //   }
-      //   var mount;
-      //   var pathData = path.split('/').filter(function (str) { return str !== ''; });
-      //
-      //   if (pathData.length < 2) {
-      //     if (this.elements && this.elements[0] && this.elements[0].mount) {
-      //       mount = this.elements[0].mount;
-      //     } else {
-      //       return;
-      //     }
-      //   } else {
-      //     mount = pathData.join('/');
-      //   }
-      //   if (this.route.prefix !== '/detail') {
-      //     this.route.prefix = '/detail';
-      //     this.notifyPath('route.prefix');
-      //   }
-      //
-      //   for (var i = 0; i < this.elements.length; i++) {
-      //     if (this.elements[i].mount && (mount === this.elements[i].mount)) {
-      //       this.cancelDebouncer('initial-element');
-      //       if (!this._selectedCheckbox || this._selectedCheckbox.mount !== this.elements[i].mount) {
-      //         console.log('select from tab');
-      //         this.set('item', this.elements[i]);
-      //       }
-      //       if (path !== '/' + mount) {
-      //         this.route.path = '/' + mount;
-      //         this.notifyPath('route.path');
-      //       }
-      //       // this._debounceResize();
-      //       return;
-      //     }
-      //   }
-      //   this.debounce('initial-element', this._setInitialElement.bind(this), 250);
-      },
+      _setCurrentElement(elements, path) {
+        //   console.log('setcurrentelement');
+        //   if (!(elements && elements.length && path)) {
+        //     return;
+        //   }
+        //   var mount;
+        //   var pathData = path.split('/').filter(function (str) { return str !== ''; });
+        //
+        //   if (pathData.length < 2) {
+        //     if (this.elements && this.elements[0] && this.elements[0].mount) {
+        //       mount = this.elements[0].mount;
+        //     } else {
+        //       return;
+        //     }
+        //   } else {
+        //     mount = pathData.join('/');
+        //   }
+        //   if (this.route.prefix !== '/detail') {
+        //     this.route.prefix = '/detail';
+        //     this.notifyPath('route.prefix');
+        //   }
+        //
+        //   for (var i = 0; i < this.elements.length; i++) {
+        //     if (this.elements[i].mount && (mount === this.elements[i].mount)) {
+        //       this.cancelDebouncer('initial-element');
+        //       if (!this._selectedCheckbox || this._selectedCheckbox.mount !== this.elements[i].mount) {
+        //         console.log('select from tab');
+        //         this.set('item', this.elements[i]);
+        //       }
+        //       if (path !== '/' + mount) {
+        //         this.route.path = '/' + mount;
+        //         this.notifyPath('route.path');
+        //       }
+        //       // this._debounceResize();
+        //       return;
+        //     }
+        //   }
+        //   this.debounce('initial-element', this._setInitialElement.bind(this), 250);
+      }
 
-      _setInitialElement: function() {
+      _setInitialElement() {
         // if (this.elements && this.elements.length) {
         //   if (this._selectedCheckbox && this._selectedCheckbox.mount) {
         //     var mount = this._selectedCheckbox.mount;
@@ -384,9 +386,9 @@
         //   this.notifyPath('route.path');
         //   this._debounceResize();
         // }
-      },
+      }
 
-      _selectedTabChanged: function(el) {
+      _selectedTabChanged(el) {
         console.log('selectedTab', el);
         if (el) {
           var relatedCheckbox = el.querySelector('device-checkbox');
@@ -396,35 +398,35 @@
           }
           el.scrollIntoViewIfNeeded(true);
         }
-      },
+      }
 
-      _hasSvg: function(item, svgPaths) {
+      _hasSvg(item, svgPaths) {
         // notify the chart to resize
         var _withSvg = Boolean(item && item.svg && item.svg.path && svgPaths && svgPaths[item.svg.path])
         if (_withSvg !== this._withSvg) {
           this._debounceResize();
         }
         return _withSvg;
-      },
+      }
 
-      _getSvgSelectable: function(src, svgPaths) {
+      _getSvgSelectable(src, svgPaths) {
         return svgPaths[src] || {};
-      },
+      }
 
-      _ensureOpened: function(narrowLayout) {
+      _ensureOpened(narrowLayout) {
         return true; // if 'narrowLayout' changes the drawer is opened
-      },
+      }
 
-      _computeShowToggleIcon: function(narrowLayout, visible) {
+      _computeShowToggleIcon(narrowLayout, visible) {
         return narrowLayout && visible;
-      },
+      }
 
-      toggleControlDrawer: function() {
+      toggleControlDrawer() {
         this.$.elementDrawer.toggle();
-      },
+      }
 
-      _debounceResize: function() {
-        this.debounce('resize', function() {
+      _debounceResize() {
+        setTimeout(() => {
           if (this.narrowLayout) {
             this.$.elementDrawer.open();
           }
@@ -432,15 +434,16 @@
             this.selectedTab.scrollIntoViewIfNeeded(true);
           }
           this.notifyResize();
-        }.bind(this), 15);
-      },
+        }, 0);
+      }
 
-      _visibleChanged: function(visible) {
+      _visibleChanged(visible) {
         if (visible) {
           this._debounceResize();
         }
       }
-    });
+    }
+    customElements.define(PageDetail.is, PageDetail);
   </script>
 
 </dom-module>

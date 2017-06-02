@@ -7,341 +7,283 @@
    * @polymerBehavior
    */
 
-  WebvisualBehaviors.DeviceBehavior = {
+  WebvisualBehaviors.DeviceBehavior = function(superClass) {
+    return class extends superClass {
+      
+      constructor() {
+        super();
+      }
 
-    properties: {
+      static get properties() {
+        return {
+          element: {
+            type: Boolean,
+            value: true,
+            reflectToAttribute: true,
+            readOnly: true
+          },
 
-      item: {
-        type: Object
-      },
+          item: {
+            type: Object
+          },
 
-      values: {
-        type: Array,
-        value: function() {
-          return [];
+          values: {
+            type: Array,
+            value: function() {
+              return [];
+            }
+          },
+
+          isExceeding: {
+            type: Boolean,
+            value: false
+          },
+
+          hasExceeded: {
+            type: Boolean,
+            value: false
+          },
+
+          storeInside: {
+            type: Boolean
+          },
+
+          viewLength: {
+            type: Number,
+            value: 1
+          },
+
+          noLink: {
+            type: Boolean,
+            value: false
+          },
+
+          _initialized: {
+            type: Boolean
+          }
+
         }
-      },
-
-      isExceeding: {
-        type: Boolean,
-        value: false
-      },
-
-      hasExceeded: {
-        type: Boolean,
-        value: false
-      },
-
-      storeInside: {
-        type: Boolean
-      },
-
-      viewLength: {
-        type: Number,
-        value: 1
-      },
-
-      noLink: {
-        type: Boolean,
-        value: false
-      },
-
-      _initialized: {
-        type: Boolean
       }
 
-    },
-
-    // communication count to webworker
-    _messageCount: 0,
-
-    observers: [
-      '_exceedingChanged(isExceeding)',
-      '_hasExceededChanged(hasExceeded)',
-      '_linkElement(item, noLink)'
-    ],
-
-    hostAttributes: {
-      element: true
-    },
-
-    factoryImpl: function(obj, properties) {
-      this._linkElement(obj, properties);
-    },
-
-    detached: function() {
-      this._unlinkElement();
-      this.clearValues();
-    },
-
-    _linkElement: function(item, noLink) {
-      if (!(item && item.mount && !noLink)) {
-        return;
+      static get observers() {
+        return [
+          '_exceedingChanged(isExceeding)',
+          '_hasExceededChanged(hasExceeded)',
+          '_linkElement(item, noLink)'
+        ]
       }
-      if (this._olditem) {
-        if (item.mount === this._olditem.mount) {
+
+      connectedCallback() {
+        super.connectedCallback();
+        this._linkElement(this.item, this.noLink);
+      }
+
+      disconnectedCallback() {
+        super.disconnectedCallback();
+        this._unlinkElement();
+        this.clearValues();
+      }
+
+      _linkElement(item, noLink) {
+        console.log(item);
+        if (!(item && item.mount && !noLink)) {
           return;
         }
-        this._unlinkElement(this._olditem);
-      }
+        if (this._olditem) {
+          if (item.mount === this._olditem.mount) {
+            return;
+          }
+          this._unlinkElement(this._olditem);
+        }
 
-      if (window.Webvisual && window.Webvisual.assignElement) {
-        window.Webvisual.assignElement(this);
-      }
+        if (window.Webvisual && window.Webvisual.assignElement) {
+          window.Webvisual.assignElement(this);
 
-      this._olditem = item;
-      this.async( function() {
+
+        this._olditem = item;
         this.clearValues();
         this.resetState();
-      }.bind(this))
 
-      this.requestValues(null, null, this.viewLength)
-          .then( function(data) {
+        this.requestValues(null, null, this.viewLength)
+          .then(data => {
             for (var mount in data) {
               if (mount === this.item.mount) {
                 this.insertValues(data[mount]);
                 break;
               }
             }
-          }.bind(this))
-          .catch( function(err) {
+          })
+          .catch(err => {
             // if (err) {
             //   console.log(err);
             // }
-          } );
-    },
-
-    _unlinkElement: function(item) {
-      item = item || this.item || this._olditem;
-      if (window.Webvisual && Webvisual.retractElement && item && item.mount) {
-        window.Webvisual.retractElement(this, item);
-        this._olditem = null;
-      }
-    },
-
-    getElement: function() {
-      return this.properties;
-    },
-
-    computeDate: function(x) {
-      return x ? (Math.abs(Date.now() - x) < 864E5 ? new Date(x).toLocaleTimeString() : new Date(x).toLocaleString()) : '';
-    },
-
-    computeValue: function(y, state) {
-      return (this.item && this.item.isIndicatorLamp) ? ( state ? '✗' : '✓' ) : y;
-    },
-
-    insertValues: function(values, len) {
-      if (values === undefined) {
-        return;
-      }
-
-      var len = len || this.viewLength;
-
-      // len = (len && isFinite(len) && len <= values.length) ? len : ( (this.viewLength && isFinite(this.viewLength) && this.viewLength <= values.length) ? this.viewLength : values.length );
-
-      if (!this._initialized)
-        this._initialized = true;
-
-      if (!len) {
-        if (this.item && this.item.exceedable === true) {
-          values.forEach(function (value) {
-            this.checkExceedingState(value);
-          }, this)
-        }
-        if (this.storeInside) {
-          this.values = this.values.concat(values);
-        }
-        // console.log(this.values);
-        this.renderInsertedValues(values);
-      } else {
-        var tmp = values.slice(values.length - len, values.length);
-        if (this.item && this.item.exceedable === true) {
-          tmp.forEach(function (value) {
-            this.checkExceedingState(value);
-          }, this)
-        }
-        if (this.storeInside) {
-          this.values = this.values.concat(tmp);
-        }
-        this.renderInsertedValues(tmp);
-        tmp.length = 0;
-      }
-      values.length = 0;
-    },
-
-    spliceValues: function(splices) {
-      if (splices) {
-        if (this.storeInside === true) {
-          this.values = this.values.filter( function(v) {
-            return splices.indexOf(v) === -1;
-          })
-          this.notifyPath('values');
-          // this.splice('values', 0, splices.length);
-        }
-        if (this.renderSplicedValues) {
-          this.renderSplicedValues(splices);
+          });
         }
       }
-    },
 
-    resetValues: function(values) {
-      this.values = values;
-      this.notifyPath('values');
-      this.renderInsertedValues(this.values);
-    },
-
-    clearValues: function(force) {
-      this.values = [];
-      this.notifyPath('values');
-    },
-
-    requestValues: function(start, end, len) {
-      if (!(this.item && this.item.mount)) {
-        return new Promise(function(resolve, reject) {
-          reject();
-        })
-      }
-      len = len || this.viewLength || 1;
-      var req = {
-        target: 'cache',
-        operation: 'request',
-        args: {
-          mounts: [this.item.mount],
-          from: null,
-          to: null,
-          length: len || 1
+      _unlinkElement(item) {
+        item = item || this.item || this._olditem;
+        if (window.Webvisual && Webvisual.retractElement && item && item.mount) {
+          window.Webvisual.retractElement(this, item);
+          this._olditem = null;
         }
-      };
+      }
 
-      if (window.Webvisual) {
-        return new Promise(function(resolve, reject) {
-          window.Webvisual.request( req, resolve );
-        })
-      } else {
-        return new Promise( function(resolve, reject) {
-          if (this.values)
-            resolve(this.values.slice(this.values.length - len, this.values.length))
-          else {
+      getElement() {
+        return this.properties;
+      }
+
+      computeDate(x) {
+        return x ? (Math.abs(Date.now() - x) < 864E5 ? new Date(x).toLocaleTimeString() : new Date(x).toLocaleString()) : '';
+      }
+
+      computeValue(y, state) {
+        return (this.item && this.item.isIndicatorLamp) ? (state ? '✗' : '✓') : y;
+      }
+
+      insertValues(values, len) {
+        if (values === undefined) {
+          return;
+        }
+
+        var len = len || this.viewLength;
+
+        // len = (len && isFinite(len) && len <= values.length) ? len : ( (this.viewLength && isFinite(this.viewLength) && this.viewLength <= values.length) ? this.viewLength : values.length );
+
+        if (!this._initialized)
+          this._initialized = true;
+
+        if (!len) {
+          if (this.item && this.item.exceedable === true) {
+            values.forEach(value => {
+              this.checkExceedingState(value);
+            })
+          }
+          if (this.storeInside) {
+            this.values = this.values.concat(values);
+          }
+          // console.log(this.values);
+          this.renderInsertedValues(values);
+        } else {
+          var tmp = values.slice(values.length - len, values.length);
+          if (this.item && this.item.exceedable === true) {
+            tmp.forEach(value => {
+              this.checkExceedingState(value);
+            })
+          }
+          if (this.storeInside) {
+            this.values = this.values.concat(tmp);
+          }
+          this.renderInsertedValues(tmp);
+          tmp.length = 0;
+        }
+        values.length = 0;
+      }
+
+      spliceValues(splices) {
+        if (splices) {
+          if (this.storeInside === true) {
+            this.values = this.values.filter(v => {
+              return splices.indexOf(v) === -1;
+            })
+            this.notifyPath('values');
+            // this.splice('values', 0, splices.length);
+          }
+          if (this.renderSplicedValues) {
+            this.renderSplicedValues(splices);
+          }
+        }
+      }
+
+      resetValues(values) {
+        this.values = values;
+        this.notifyPath('values');
+        this.renderInsertedValues(this.values);
+      }
+
+      clearValues(force) {
+        this.values = [];
+        this.notifyPath('values');
+      }
+
+      requestValues(start, end, len) {
+        if (!(this.item && this.item.mount)) {
+          return new Promise((resolve, reject) => {
             reject();
-          }
-        }.bind(this));
-      }
-    },
-
-    requestRange: function(key, attempts) {
-      var mount = this.mount;
-      messageCount = this._messageCount++;
-      if (!this.storeInside && window.Webvisual && window.Webvisual.webworker) {
-        return new Promise( function (resolve, reject) {
-
-          var messageId = 'requestRange' + uniqueId + '#' + messageCount;
-          this.webworker.addEventListener('message', function onMessage(e) {
-            if (e.data
-             && e.data.messageId
-             && e.data.messageId === messageId) {
-               this.webworker.removeEventListener('message', onMessage);
-               if (e.data.response && e.data.response.length === 2) {
-                 resolve(e.data.response);
-               } else if (attempts) {
-                 resolve(this.requestRange(key, attempts--));
-               } else {
-                 reject(this.item + ': no range received')
-               }
-             }
-          }.bind(this));
-
-          this.webworker.postMessage(
-            {
-              request: {
-                messageId: messageId,
-                func: 'rangedValues',
-                arg: {
-                  mounts: [mount],
-                  key: key
-                }
-              }
-            });
-        }.bind(window.Webvisual))
-      } else {
-        return new Promise( function(resolve, reject) {
-          if (this.values && this.values.length) {
-            var min = this.min(this.values, key);
-            var max = this.max(this.values, key);
-            resolve( [ min, max ] );
-          }
-          else {
-            // reject('no values are set');
-            resolve( [ ] );
-          }
-        }.bind(this));
-      }
-    },
-
-	  min: function(array, key) { // inspired by d3.array
-			var i = -1,
-		      a,
-		      b;
-			var n = array.length;
-
-			while (++i < n) if ((b = array[i][key]) !== null && b >= b) { a = b; break; }
-			while (++i < n) if ((b = array[i][key]) !== null && a > b) a = b;
-
-	    return a;
-	  },
-
-    max: function(array, key) { // inspired by d3.array
-			var i = -1,
-		      a,
-		      b;
-			var n = array.length;
-
-			while (++i < n) if ((b = array[i][key]) !== null && b >= b) { a = b; break; }
-			while (++i < n) if ((b = array[i][key]) !== null && a < b) { a = b; }
-
-	    return a;
-	  },
-
-    renderInsertedValues: function(values) {
-    },
-
-    renderSplicedValues: function(values) {
-    },
-
-    renderClearing: function(values) {
-    },
-
-    checkExceedingState: function(value) {
-      if (!this.item || this.item.exceedable === false || value === undefined) return;
-
-      if (value.state === 0) {
-        if (this.isExceeding === true) {
-          this.isExceeding = false;
+          })
         }
-      } else {
-        if (this.isExceeding !== true) {
-          this.isExceeding = true;
-          if (this.hasExceeded === false)
-            this.set('hasExceeded', true);
+        len = len || this.viewLength || 1;
+        var req = {
+          target: 'cache',
+          operation: 'request',
+          args: {
+            mounts: [this.item.mount],
+            from: null,
+            to: null,
+            length: len || 1
+          }
+        };
+
+        if (window.Webvisual) {
+          return new Promise((resolve, reject) => {
+            window.Webvisual.request(req, resolve);
+          })
+        } else {
+          return new Promise((resolve, reject) => {
+            if (this.values)
+              resolve(this.values.slice(this.values.length - len, this.values.length))
+            else {
+              reject();
+            }
+          });
         }
       }
-    },
 
-    _exceedingChanged: function(isExceeding, old) {
-      if (this.item && this.item.exceedable === true) {
-        this.fire('exceeding', { item: this.item, value: isExceeding });
+      renderInsertedValues(values) {}
+
+      renderSplicedValues(values) {}
+
+      renderClearing(values) {}
+
+      checkExceedingState(value) {
+        if (!this.item || this.item.exceedable === false || value === undefined) return;
+
+        if (value.state === 0) {
+          if (this.isExceeding === true) {
+            this.isExceeding = false;
+          }
+        } else {
+          if (this.isExceeding !== true) {
+            this.isExceeding = true;
+            if (this.hasExceeded === false)
+              this.set('hasExceeded', true);
+          }
+        }
       }
-    },
 
-    _hasExceededChanged: function() {},
+      _exceedingChanged(isExceeding, old) {
+        if (this.item && this.item.exceedable === true) {
+          this.dispatchEvent(new CustomEvent('exceeding', {
+            bubbles: true,
+            composed: true,
+            detail: {
+              item: this.item,
+              value: isExceeding
+            }
+          }));
+        }
+      }
 
-    resetState: function() {
-      if (this.resetColor)
-        this.resetColor();
-      this.isExceeding = false;
-      this.hasExceeded = false;
-      this._initialized = false;
-      this.renderClearing();
+      _hasExceededChanged() {}
+
+      resetState() {
+        if (this.resetColor)
+          this.resetColor();
+        this.isExceeding = false;
+        this.hasExceeded = false;
+        this._initialized = false;
+        this.renderClearing();
+      }
     }
-  };
+  }
 </script>

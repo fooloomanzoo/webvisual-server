@@ -1,7 +1,7 @@
-<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
 <link rel="import" href="style/grid-layout.html">
-<link rel="import" href="data/group-data.html"/>
-<link rel="import" href="group-card.html"/>
+<link rel="import" href="data/group-data.html">
+<link rel="import" href="group-card.html">
 
 <dom-module id="page-groups">
   <template strip-whitespace>
@@ -78,7 +78,6 @@
       data="{{svgData}}"></svg-data>
 
     <template is="dom-if" if="[[visible]]">
-
       <ul class="grid">
         <template is="dom-repeat" id="cards" items="[[_getSubGroups(subgroups)]]" as="group">
           <li>
@@ -109,63 +108,64 @@
           </li>
         </template>
       </ul>
-
     </template>
-
   </template>
 
   <script>
-    Polymer({
-      is: 'page-groups',
+    class PageGroups extends Polymer.Element {
 
-      properties: {
+      static get is() {
+        return 'page-groups';
+      }
 
-        room: {
-          type: String,
-          notify: true
-        },
+      static get properties() {
+        return {
+          room: {
+            type: String,
+            notify: true
+          },
 
-        elements: {
-          type: Array,
-          notify: true
-        },
+          elements: {
+            type: Array,
+            notify: true
+          },
 
-        subgroups: {
-          type: Array,
-          notify: true
-        },
+          subgroups: {
+            type: Array,
+            notify: true
+          },
 
-        groupedKey: {
-          type: String,
-          notify: true,
-          observer: '_groupedKeyChanged'
-        },
+          groupedKey: {
+            type: String,
+            notify: true,
+            observer: '_groupedKeyChanged'
+          },
 
-        groupingKeys: {
-          type: Array,
-          notify: true
-        },
+          groupingKeys: {
+            type: Array,
+            notify: true
+          },
 
-        visible: {
-          type: Boolean
-        },
+          visible: {
+            type: Boolean
+          },
 
-        loggedIn: {
-          type: Boolean
-        },
+          loggedIn: {
+            type: Boolean
+          },
 
-        svgData: {
-          type: Object
+          svgData: {
+            type: Object
+          }
         }
+      }
 
-      },
-
-      _getSubGroups: function(subgroup) {
+      _getSubGroups(subgroup) {
         // Return placeholder items when the items haven't loaded yet.
-        return subgroup || [{},{},{},{},{}];
-      },
+        return subgroup || [{}, {}, {}, {}, {}];
+      }
 
-      _getItem: function(id, elements) {
+      _getItem(id, elements) {
         if (id && elements) {
           for (var i = 0, item; item = elements[i]; ++i) {
             if (item.id === id) {
@@ -174,9 +174,9 @@
           }
         }
         return {};
-      },
+      }
 
-      _getItemKeys: function(id, elements) {
+      _getItemKeys(id, elements) {
         if (id && elements) {
           for (var i = 0, item; item = elements[i]; ++i) {
             if (item.id === id) {
@@ -185,27 +185,28 @@
           }
         }
         return {};
-      },
+      }
 
-      _getSvgSelectable: function(src, svgSrcPaths) {
+      _getSvgSelectable(src, svgSrcPaths) {
         return svgSrcPaths && svgSrcPaths[src] || {};
-      },
+      }
 
-      _groupedKeyChanged: function(groupedKey, old) {
+      _groupedKeyChanged(groupedKey, old) {
         if (old !== undefined) {
           var sel = Polymer.dom(this.root).querySelectorAll('[element]');
-          sel.forEach( function(el) {
+          sel.forEach(function(el) {
             el.resetState();
           });
 
           var cards = Polymer.dom(this.root).querySelectorAll('group-card');
-          cards.forEach( function(gr) {
+          cards.forEach(function(gr) {
             gr.clearItems();
             gr._resetTransitionState();
           });
         }
       }
-    });
+    }
+    customElements.define(PageGroups.is, PageGroups);
   </script>
 
 </dom-module>

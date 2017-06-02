@@ -1,29 +1,29 @@
-<link rel="import" href="../bower_components/polymer/polymer.html"/>
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
 
-<link rel="import" href="behaviors/localize-behavior.html"/>
+<link rel="import" href="behaviors/localize-behavior.html">
 <link rel="import" href="behaviors/fetch-behavior.html">
 
-<link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html"/>
-<link rel="import" href="../bower_components/iron-a11y-keys-behavior/iron-a11y-keys-behavior.html"/>
-<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html"/>
-<link rel="import" href="../bower_components/iron-location/iron-location.html"/>
-<link rel="import" href="iron-query-params.html"/>
+<link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
+<link rel="import" href="../bower_components/iron-a11y-keys-behavior/iron-a11y-keys-behavior.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../bower_components/iron-location/iron-location.html">
+<link rel="import" href="iron-query-params.html">
 
-<link rel="import" href="style/shared-style.html"/>
-<link rel="import" href="style/selectbox-style.html"/>
-<link rel="import" href="style/button-style.html"/>
-<link rel="import" href="style/app-style.html"/>
-<link rel="import" href="style/input-style.html"/>
+<link rel="import" href="style/shared-style.html">
+<link rel="import" href="style/selectbox-style.html">
+<link rel="import" href="style/button-style.html">
+<link rel="import" href="style/app-style.html">
+<link rel="import" href="style/input-style.html">
 
-<link rel="import" href="../bower_components/app-layout/app-header-layout/app-header-layout.html"/>
-<link rel="import" href="../bower_components/app-layout/app-header/app-header.html"/>
-<link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html"/>
-<link rel="import" href="../bower_components/iron-collapse/iron-collapse.html"/>
+<link rel="import" href="../bower_components/app-layout/app-header-layout/app-header-layout.html">
+<link rel="import" href="../bower_components/app-layout/app-header/app-header.html">
+<link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
+<link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
 
-<link rel="import" href="components/icon-button.html"/>
-<link rel="import" href="dialog-login.html"/>
-<link rel="import" href="page-home.html"/>
-<link rel="import" href="data/facility-data.html"/>
+<link rel="import" href="components/icon-button.html">
+<link rel="import" href="dialog-login.html">
+<link rel="import" href="page-home.html">
+<link rel="import" href="data/facility-data.html">
 
 <dom-module id="webvisual-app">
 
@@ -272,89 +272,70 @@
             <icon-button icon="[[loginIcon]]" class="login-icon" title="{{localize('login', 'name')}}" on-click="_openLoginDialog"></icon-button>
           </template>
 
-          <template is="dom-if" if="[[detailHasDrawer]]">
+  <template is="dom-if" if="[[detailHasDrawer]]">
             <icon-button icon="subject" title="items" on-tap="_toggleDetailControlDrawer">
             </icon-button>
           </template>
 
-          <icon-button icon="more-vert" title="{{localize('view')}}" on-tap="toggleShowTabs"></icon-button>
-        </app-toolbar>
+  <icon-button icon="more-vert" title="{{localize('view')}}" on-tap="toggleShowTabs"></icon-button>
+  </app-toolbar>
 
-      </app-header>
+  </app-header>
 
-      <!-- Pages-->
-      <iron-pages id="pages" role="main" selected="{{page}}" attr-for-selected="name" selected-attribute="visible" fallback-selection="home">
-        <!-- home view for selecting the facility -->
-        <page-home name="home" dark$="[[dark]]" plain$="[[plain]]" class="fullbleed"
-          facilities="[[facilities]]"
-          logged-in="[[loggedIn]]"
-          language="[[language]]"
-          language-resources="[[languageResources]]">
-          <slot></slot>
-        </page-home>
-        <!-- list view of items in a facility -->
-        <page-list name="list" dark$="[[dark]]" plain$="[[plain]]"
-          room="[[queryParams.room]]"
-          elements="[[elements]]">
-        </page-list>
-        <!-- group view of items -->
-        <page-groups name="groups" dark$="[[dark]]" plain$="[[plain]]"
-          room="[[queryParams.room]]"
-          logged-in="[[loggedIn]]"
-          elements="[[elements]]"
-          grouped-key="{{groupedKey}}"
-          grouping-keys="{{groupingKeys}}">
-        </page-groups>
-        <!-- detail view of one item -->
-        <page-detail id="detailpage" name="detail" dark$="[[dark]]" plain$="[[plain]]" class="fullbleed"
-          room="[[queryParams.room]]"
-          query="{{queryParams.mounts}}"
-          logged-in="[[loggedIn]]"
-          elements="[[elements]]"
-          show-toggle-icon="{{detailHasDrawer}}">
-        </page-detail>
-      </iron-pages>
-    </app-header-layout>
+  <!-- Pages-->
+  <iron-pages id="pages" role="main" selected="{{page}}" attr-for-selected="name" selected-attribute="visible" fallback-selection="home">
+    <!-- home view for selecting the facility -->
+    <page-home name="home" dark$="[[dark]]" plain$="[[plain]]" class="fullbleed" facilities="[[facilities]]" logged-in="[[loggedIn]]" language="[[language]]" language-resources="[[languageResources]]">
+      <slot></slot>
+    </page-home>
+    <!-- list view of items in a facility -->
+    <page-list name="list" dark$="[[dark]]" plain$="[[plain]]" room="[[queryParams.room]]" elements="[[elements]]">
+    </page-list>
+    <!-- group view of items -->
+    <page-groups name="groups" dark$="[[dark]]" plain$="[[plain]]" room="[[queryParams.room]]" logged-in="[[loggedIn]]" elements="[[elements]]" grouped-key="{{groupedKey}}" grouping-keys="{{groupingKeys}}">
+    </page-groups>
+    <!-- detail view of one item -->
+    <page-detail id="detailpage" name="detail" dark$="[[dark]]" plain$="[[plain]]" class="fullbleed" room="[[queryParams.room]]" query="{{queryParams.mounts}}" logged-in="[[loggedIn]]" elements="[[elements]]" show-toggle-icon="{{detailHasDrawer}}">
+    </page-detail>
+  </iron-pages>
+  </app-header-layout>
 
-    <drawer-element id="networkNotification" class="notification" align="bottom" shadow auto-close auto-close-period="4000">
-      <iron-icon class="prop" icon="[[socketStatusIcon]]" slot="icon"></iron-icon>
-      <span class="message"></span>
-    </drawer-element>
-    <drawer-element id="announceNotification" class="notification" align="bottom" shadow auto-close auto-close-period="5000">
-      <iron-icon class="prop" icon="event" slot="icon"></iron-icon>
-      <span class="message"></span>
-    </drawer-element>
+  <drawer-element id="networkNotification" class="notification" align="bottom" shadow auto-close auto-close-period="4000">
+    <iron-icon class="prop" icon="[[socketStatusIcon]]" slot="icon"></iron-icon>
+    <span class="message"></span>
+  </drawer-element>
+  <drawer-element id="announceNotification" class="notification" align="bottom" shadow auto-close auto-close-period="5000">
+    <iron-icon class="prop" icon="event" slot="icon"></iron-icon>
+    <span class="message"></span>
+  </drawer-element>
 
-    <drawer-element opened="{{showTabsOnBottom}}" id="toolbarBottom" swipe-open auto-close-period="8000" shadow auto-close="[[!thresholdTriggered]]">
-      <div class="tab-drawer">
-        <tabs-container class="tabs"
-          role="tablist"
-          selected="{{page}}"
-          attr-for-selected="name">
-          <tab-element name="list">
-            <a href$="/list?room=[[queryParams.room]]" class="tab">
-              <iron-icon icon="list" class="left"></iron-icon>
-              {{localize('list', 'name')}}
-            </a>
-          </tab-element>
-          <tab-element name="groups">
-            <a href$="/groups?room=[[queryParams.room]]" class="tab">
-              <iron-icon icon="grid-on" class="left"></iron-icon>
-              {{localize('groups', 'name')}}
-            </a>
-          </tab-element>
-          <tab-element name="detail">
-            <a href$="/detail?room=[[queryParams.room]]" class="tab">
-              <iron-icon icon="chrome-reader-mode" class="left"></iron-icon>
-              {{localize('detail', 'name')}}
-            </a>
-          </tab-element>
-        </tabs-container>
-      </div>
-    </drawer-element>
+  <drawer-element opened="{{showTabsOnBottom}}" id="toolbarBottom" swipe-open auto-close-period="8000" shadow auto-close="[[!thresholdTriggered]]">
+    <div class="tab-drawer">
+      <tabs-container class="tabs" role="tablist" selected="{{page}}" attr-for-selected="name">
+        <tab-element name="list">
+          <a href$="/list?room=[[queryParams.room]]" class="tab">
+            <iron-icon icon="list" class="left"></iron-icon>
+            {{localize('list', 'name')}}
+          </a>
+        </tab-element>
+        <tab-element name="groups">
+          <a href$="/groups?room=[[queryParams.room]]" class="tab">
+            <iron-icon icon="grid-on" class="left"></iron-icon>
+            {{localize('groups', 'name')}}
+          </a>
+        </tab-element>
+        <tab-element name="detail">
+          <a href$="/detail?room=[[queryParams.room]]" class="tab">
+            <iron-icon icon="chrome-reader-mode" class="left"></iron-icon>
+            {{localize('detail', 'name')}}
+          </a>
+        </tab-element>
+      </tabs-container>
+    </div>
+  </drawer-element>
 
-    <!-- SIDEMENU -->
-    <template is="dom-if" if="[[_shouldRenderDrawer]]">
+  <!-- SIDEMENU -->
+  <template is="dom-if" if="[[_shouldRenderDrawer]]">
       <drawer-element id="drawer" opened="{{drawerOpened}}" align="left" swipe-open tabindex="0" scrim stretch>
         <app-toolbar class="top">
           <icon-button icon="close" title="close" on-tap="_toggleDrawer"></icon-button>
@@ -448,207 +429,215 @@
   </template>
 
   <script>
-    Polymer({
-      is: 'webvisual-app',
+    class WebvisualApp extends WebvisualBehaviors.LocalizeBehavior(Polymer.mixinBehaviors(
+      [Polymer.IronA11yKeysBehavior,
+        Polymer.IronResizableBehavior
+      ], Polymer.Element)) {
 
-      behaviors: [
-        Polymer.IronA11yKeysBehavior,
-        Polymer.IronResizableBehavior,
-        WebvisualBehaviors.LocalizeBehavior
-      ],
+      static get is() {
+        return 'webvisual-app';
+      }
 
-      properties: {
+      static get properties() {
+        return {
 
-        page: {
-          type: String,
-          reflectToAttribute: true,
-          observer: '_pageChanged'
-        },
-
-        path: {
-          type: String
-        },
-
-        query: {
-          type: String
-        },
-
-        queryParams: {
-          type: Object,
-          notify: true
-        },
-
-        elements: {
-          type: Array
-        },
-
-        groupingKeys: {
-          type: Array,
-          value: function() {
-            return [];
+          page: {
+            type: String,
+            reflectToAttribute: true,
+            observer: '_pageChanged'
           },
-          notify: true
-        },
 
-        groupedKey: {
-          type: String,
-          notify: true
-        },
+          path: {
+            type: String
+          },
 
-        language: {
-          type: String,
-          notify: true,
-          value: window.navigator.language,
-          observer: '_checkLanguage'
-        },
+          query: {
+            type: String
+          },
 
-        languageResourcePath: {
-          type: String,
-          value: '/locales.json'
-        },
+          queryParams: {
+            type: Object,
+            notify: true
+          },
 
-        dark: {
-          type: Boolean,
-          value: false,
-          notify: true,
-          reflectToAttribute: true,
-          observer: '_darkChanged'
-        },
+          elements: {
+            type: Array
+          },
 
-        plain: {
-          type: Boolean,
-          value: false,
-          notify: true,
-          reflectToAttribute: true,
-          observer: '_plainChanged'
-        },
+          groupingKeys: {
+            type: Array,
+            value: function() {
+              return [];
+            },
+            notify: true
+          },
 
-        room: {
-          type: String
-        },
+          groupedKey: {
+            type: String,
+            notify: true
+          },
 
-        socketStatus: {
-          type: String
-        },
+          language: {
+            type: String,
+            notify: true,
+            value: window.navigator.language,
+            observer: '_checkLanguage'
+          },
 
-        loggedIn: {
-          type: Boolean,
-          notify: true
-        },
+          languageResourcePath: {
+            type: String,
+            value: '/locales.json'
+          },
 
-        loginIcon: {
-          type: String,
-          computed: '_computeLoginIcon(loggedIn)'
-        },
+          dark: {
+            type: Boolean,
+            value: false,
+            notify: true,
+            reflectToAttribute: true,
+            observer: '_darkChanged'
+          },
 
-        offline: {
-          type: Boolean
-        },
+          plain: {
+            type: Boolean,
+            value: false,
+            notify: true,
+            reflectToAttribute: true,
+            observer: '_plainChanged'
+          },
 
-        loadComplete: {
-          type: Boolean
-        },
+          room: {
+            type: String
+          },
 
-        detailHasDrawer: {
-          type: Boolean
-        },
+          socketStatus: {
+            type: String
+          },
 
-        showTabs: {
-          type: Boolean,
-          value: false,
-          observer: '_debouncedHideTabs'
-        },
+          loggedIn: {
+            type: Boolean,
+            notify: true
+          },
 
-        wideLayout: {
-          type: Boolean,
-          value: false,
-          notify: true
-        },
+          loginIcon: {
+            type: String,
+            computed: '_computeLoginIcon(loggedIn)'
+          },
 
-        thresholdTriggered: {
-          type: Boolean,
-          value: false
-        },
+          offline: {
+            type: Boolean
+          },
 
-        showTabsOnBottom: {
-          type: Boolean,
-          notify: true,
-          computed: '_computeShowTabsOnBottom(thresholdTriggered, wideLayout, showTabs)'
-        },
+          loadComplete: {
+            type: Boolean
+          },
 
-        socketStatusIcon: {
-          type: String,
-          computed: '_computeStatusIcon(socketStatus)'
-        },
+          detailHasDrawer: {
+            type: Boolean
+          },
 
-        hideGroupSelect: {
-          type: Boolean,
-          computed: '_computeHideGroupSelect(page, loadComplete, groupingKeys)'
-        },
+          showTabs: {
+            type: Boolean,
+            value: false,
+            observer: '_debouncedHideTabs'
+          },
 
-        _isContentPage: {
-          type: Boolean,
-          computed: '_computeIsContentPage(page)'
-        },
+          wideLayout: {
+            type: Boolean,
+            value: false,
+            notify: true
+          },
 
-        _isFullbleedPage: {
-          type: Boolean,
-          computed: '_computeIsFullbleedPage(page)'
-        },
+          thresholdTriggered: {
+            type: Boolean,
+            value: false
+          },
 
-        _shouldRenderDrawer: {
-          type: Boolean,
-          computed: '_computeShouldRenderDrawer(_isContentPage, loadComplete)'
-        },
+          showTabsOnBottom: {
+            type: Boolean,
+            notify: true,
+            computed: '_computeShowTabsOnBottom(thresholdTriggered, wideLayout, showTabs)'
+          },
 
-        _shouldLogin: {
-          type: Boolean,
-          computed: '_computeShouldLogin(loggedIn, offline)'
-        },
+          socketStatusIcon: {
+            type: String,
+            computed: '_computeStatusIcon(socketStatus)'
+          },
 
-        keyEventTarget: {
-          type: Object,
-          value: function() {
-            return document.body;
+          hideGroupSelect: {
+            type: Boolean,
+            computed: '_computeHideGroupSelect(page, loadComplete, groupingKeys)'
+          },
+
+          _isContentPage: {
+            type: Boolean,
+            computed: '_computeIsContentPage(page)'
+          },
+
+          _isFullbleedPage: {
+            type: Boolean,
+            computed: '_computeIsFullbleedPage(page)'
+          },
+
+          _shouldRenderDrawer: {
+            type: Boolean,
+            computed: '_computeShouldRenderDrawer(_isContentPage, loadComplete)'
+          },
+
+          _shouldLogin: {
+            type: Boolean,
+            computed: '_computeShouldLogin(loggedIn, offline)'
+          },
+
+          keyEventTarget: {
+            type: Object,
+            value: function() {
+              return document.body;
+            }
           }
         }
-      },
+      }
 
-      listeners: {
-        'detail-request': '_openDetailRequestDialog',
-        'login-request': '_openLoginDialog',
-        'announce': '_notifyAnnouncement',
-        'data-missing': '_notifyAnnouncement',
-        'empty-configuration': '_redirectHome'
-      },
+      static get listeners() {
+        return {
+          'detail-request': '_openDetailRequestDialog',
+          'login-request': '_openLoginDialog',
+          'announce': '_notifyAnnouncement',
+          'data-missing': '_notifyAnnouncement',
+          'empty-configuration': '_redirectHome'
+        }
+      }
 
-      observers: [
-        '_routePageChanged(path)',
-        '_roomChanged(room)',
-        '_resetLayout(showTabsOnBottom, wideLayout, thresholdTriggered)',
-        '_setGroupingSelectBoxes(hideGroupSelect)'
-      ],
+      static get observers() {
+        return [
+          '_routePageChanged(path)',
+          '_roomChanged(room)',
+          '_resetLayout(showTabsOnBottom, wideLayout, thresholdTriggered)',
+          '_setGroupingSelectBoxes(hideGroupSelect)'
+        ]
+      }
 
-      keyBindings: {
-        'left': '_previousPage',
-        'right': '_nextPage'
-      },
+      // keyBindings: {
+      //   'left': '_previousPage',
+      //   'right': '_nextPage'
+      // },
 
-      ready: function() {
+      ready() {
         // listen for online/offline
+        super.ready();
         Polymer.RenderStatus.afterNextRender(this, function() {
-          this.listen(window, 'online', '_notifyNetworkStatus');
-          this.listen(window, 'offline', '_notifyNetworkStatus');
+          window.addEventListener('online', this._notifyNetworkStatus);
+          window.addEventListener('offline', this._notifyNetworkStatus);
         });
         this._loadPresettings();
-      },
+      }
 
-      attached: function() {
+      connectedCallback() {
+        super.connectedCallback();
         this.removeAttribute('unresolved');
-      },
+      }
 
-      _routePageChanged: function(path) {
-        page = path.split('/').filter(function(p) {
+      _routePageChanged(path) {
+        var page = path.split('/').filter(function(p) {
           return p !== '';
         }).join('');
 
@@ -658,9 +647,9 @@
         this._resetScroll();
         // Close the drawer - in case the *route* change came from a link in the drawer.
         this.drawerOpened = false;
-      },
+      }
 
-      _redirectHome: function(e) {
+      _redirectHome(e) {
         console.log('redirect home');
         this.setProperties({
           path: '/home',
@@ -670,17 +659,17 @@
         if (e) {
           this._notifyAnnouncement(e);
         }
-      },
+      }
 
-      _resetScroll: function() {
-        this.debounce( 'reset-scroll', function () {
+      _resetScroll() {
+        setTimeout(() => {
           this.$.pages.scrollTop = 0;
           this.$.layout.resetLayout();
           // this._resetLayout(this.showTabsOnBottom, this.wideLayout, this.thresholdTriggered);
         });
-      },
+      }
 
-      _resetLayout: function(showTabsOnBottom, wideLayout, thresholdTriggered) {
+      _resetLayout(showTabsOnBottom, wideLayout, thresholdTriggered) {
         // Polymer.RenderStatus.afterNextRender(this, function() {
         //   if (!wideLayout && (thresholdTriggered || showTabsOnBottom) && !this._isFullbleedPage) {
         //     this.$.pages.style.marginBottom = '2.5em';
@@ -688,18 +677,18 @@
         //     this.$.pages.style.marginBottom = '0';
         //   }
         // });
-      },
+      }
 
-      _nextPage: function() {
+      _nextPage() {
         this._switchPage(1);
-      },
+      }
 
-      _previousPage: function() {
+      _previousPage() {
         this._switchPage(-1);
-      },
+      }
 
-      _switchPage: function(num) {
-        this.async( function () {
+      _switchPage(num) {
+        this.async(function() {
           var order = ['home', 'list', 'groups', 'detail'];
           var pos = order.indexOf(this.page) || 0;
           pos = (pos + num + order.length) % order.length;
@@ -709,31 +698,33 @@
             showTabs: false
           });
         })
-      },
+      }
 
-      _roomChanged: function(room) {
+      _roomChanged(room) {
         if (!room) {
           return;
         }
-        var names = room.split('/').filter(function (str) { return str !== ''; });
+        var names = room.split('/').filter(function(str) {
+          return str !== '';
+        });
 
         if (names.length >= 2) {
           var page = this.page;
           this.room = names[0] + '+' + names[1];
-          document.title = names.join('/')  + ' - ' + (this.localize ? this.localize(page, 'name') : page);
+          document.title = names.join('/') + ' - ' + (this.localize ? this.localize(page, 'name') : page);
         }
-      },
+      }
 
-      toggleShowTabs: function functionName() {
+      toggleShowTabs() {
         this.showTabs = !this.showTabs;
-      },
+      }
 
-      _pageChanged: function(page, oldPage) {
+      _pageChanged(page, oldPage) {
         if (page) {
           // home route is eagerly loaded
           if (page === 'home') {
             this._pageLoaded(Boolean(oldPage));
-          // other routes are lazy loaded
+            // other routes are lazy loaded
           } else {
             this.importHref(
               this.resolveUrl('page-' + page + '.html'),
@@ -741,36 +732,37 @@
                 this._pageLoaded(Boolean(oldPage));
                 var item;
                 this._debouncedHideTabs();
-              }, function() {
+              },
+              function() {
                 this.set('page', 'home'); // Fallback
               }, true);
           }
         }
-      },
+      }
 
-      _socketConnect: function(e) {
+      _socketConnect(e) {
         if (this.$.socketHandler.socketStatus === 'sync-disabled') {
           this.$.socketHandler.connect();
         } else {
           this.$.socketHandler.socketStatus = 'sync-disabled';
           this.$.socketHandler.disconnect();
         }
-      },
+      }
 
-      _pageLoaded: function(shouldResetLayout) {
+      _pageLoaded(shouldResetLayout) {
         this._ensureLazyLoaded();
         if (shouldResetLayout) {
           // The size of the header depends on the page (e.g. on some pages the tabs
           // do not appear), so reset the header's layout only when switching pages.
-          this.async(function() {
+          setTimeout(() => {
             // console.log('reset layout');
             this.$.header.resetLayout();
             this._resetScroll();
           }, 25);
         }
-      },
+      }
 
-      _ensureLazyLoaded: function() {
+      _ensureLazyLoaded() {
         // load lazy resources after render and set 'loadComplete' when done.
         if (!this.loadComplete) {
           Polymer.RenderStatus.afterNextRender(this, function() {
@@ -784,9 +776,9 @@
             });
           });
         }
-      },
+      }
 
-      _notifyNetworkStatus: function() {
+      _notifyNetworkStatus() {
         var oldOffline = this.offline;
         this.offline = !navigator.onLine;
         // Show the drawer if the user is offline when starting a new session
@@ -796,9 +788,9 @@
             'You are offline' : 'You are online');
           this.$.networkNotification.opened = true;
         }
-      },
+      }
 
-      _notifyAnnouncement: function(e) {
+      _notifyAnnouncement(e) {
         var message = e.detail;
         // Show the drawer if the user is offline when starting a new session
         // or if the network status changed.
@@ -806,27 +798,27 @@
           this.$.announceNotification.querySelector('.message').innerHTML = message;
           this.$.announceNotification.opened = true;
         }
-      },
+      }
 
-      _toggleDrawer: function() {
+      _toggleDrawer() {
         this.drawerOpened = !this.drawerOpened;
-      },
+      }
 
-      _toggleDetailControlDrawer: function() {
+      _toggleDetailControlDrawer() {
         this.$.detailpage.toggleControlDrawer();
-      },
+      }
 
-      _toggleAlarmDrawer: function() {
+      _toggleAlarmDrawer() {
         this.alarmDrawerOpened = !this.alarmDrawerOpened;
-      },
+      }
 
-      _openLoginDialog: function() {
+      _openLoginDialog() {
         this.$.loginDialog.opened = true;
-      },
+      }
 
       // detail-requests
-      _openDetailRequestDialog: function(e, detail) {
-        this.async( function() {
+      _openDetailRequestDialog(e, detail) {
+        this.async(function() {
           if (!this._detailRequestDialog) {
             this._detailRequestDialog = document.createElement('dialog-detail-request');
             Polymer.dom(this.root).appendChild(this._detailRequestDialog);
@@ -836,17 +828,17 @@
           this._detailRequestDialog.set('languageResources', this.languageResources);
           this._detailRequestDialog.opened = true;
         });
-      },
+      }
 
-      _loadPresettings: function() {
+      _loadPresettings() {
         var settings = JSON.parse(localStorage.getItem('settings'));
         for (var key in settings) {
           this.set(key, settings[key]);
         }
         this._updateStyles();
-      },
+      }
 
-      _plainChanged: function(plain, old) {
+      _plainChanged(plain, old) {
         if (old === undefined)
           return;
 
@@ -855,9 +847,9 @@
         localStorage.setItem('settings', JSON.stringify(settings));
 
         this._updateStyles();
-      },
+      }
 
-      _darkChanged: function(dark, old) {
+      _darkChanged(dark, old) {
         if (old === undefined)
           return;
 
@@ -866,18 +858,18 @@
         localStorage.setItem('settings', JSON.stringify(settings));
 
         this._updateStyles();
-      },
+      }
 
-      _updateStyles: function() {
+      _updateStyles() {
         this.debounce('update-styles', this.updateStyles);
-      },
+      }
 
-      _setGroupingSelectBoxes: function(hideGroupSelect) {
+      _setGroupingSelectBoxes(hideGroupSelect) {
         if (hideGroupSelect) {
           return;
         }
         // Hack: initial binding to native select value property is not bound
-        this.debounce('_setGroupingSelectBoxes', function() {
+        setTimeout(() => {
           var groupedKey = this.groupedKey;
           var groupingSelectors = Polymer.dom(this.root).querySelectorAll('.selectbox.grouping');
           var groupingKeys = this.groupingKeys;
@@ -888,7 +880,7 @@
               while (sel.hasChildNodes()) {
                 sel.removeChild(sel.lastChild);
               }
-              groupingKeys.forEach(function (item) {
+              groupingKeys.forEach(function(item) {
                 var option = document.createElement('option');
                 option.textContent = item;
                 option.value = item;
@@ -897,43 +889,43 @@
               sel.value = groupedKey;
             }
           })
-        },5);
-      },
+        }, 0);
+      }
 
-      _debouncedHideTabs: function(showTabs) {
+      _debouncedHideTabs(showTabs) {
         if (showTabs) {
-          this.debounce('hide-tabs', function() {
-            this.showTabs = false;
-            this.async(this.notifyResize, 500);
-          }, 10000);
+          // this.debounce('hide-tabs', function() {
+          this.showTabs = false;
+          //   this.async(this.notifyResize, 500);
+          // }, 10000);
         }
-      },
+      }
 
-      _computeShowTabsOnBottom: function(thresholdTriggered, wideLayout, showTabs) {
+      _computeShowTabsOnBottom(thresholdTriggered, wideLayout, showTabs) {
         return thresholdTriggered || (!wideLayout && showTabs);
-      },
+      }
 
-      _computeShouldLogin: function(loggedIn, offline) {
+      _computeShouldLogin(loggedIn, offline) {
         return (loggedIn === false && offline === false);
-      },
+      }
 
-      _computeIsContentPage: function(page) {
+      _computeIsContentPage(page) {
         return page !== 'home';
-      },
+      }
 
-      _computeIsFullbleedPage: function(page) {
+      _computeIsFullbleedPage(page) {
         return page === 'detail';
-      },
+      }
 
-      _computeShouldRenderDrawer: function(isContentPage, loadComplete) {
+      _computeShouldRenderDrawer(isContentPage, loadComplete) {
         return isContentPage && loadComplete;
-      },
+      }
 
-      _computeHideGroupSelect: function(page, loadComplete, groupingKeys) {
+      _computeHideGroupSelect(page, loadComplete, groupingKeys) {
         return page !== 'groups' || !loadComplete || !groupingKeys || !groupingKeys.length;
-      },
+      }
 
-      _computeStatusIcon: function(status) {
+      _computeStatusIcon(status) {
         switch (status) {
           case 'sync-problem':
             return 'sync-problem';
@@ -944,16 +936,16 @@
           default:
             return 'sync-disabled';
         }
-      },
+      }
 
-      _toggleCollapse: function(e) {
+      _toggleCollapse(e) {
         // TODO: very probable that this will change in Polymer 2.0
         var button = e.currentTarget;
         if (!button.hasAttribute('for')) {
           return;
         }
         var id = button.getAttribute('for');
-        var collapse = this.$$('#'+id);
+        var collapse = this.$$('#' + id);
         var iconbutton = button.querySelector('iron-icon.right');
 
         if (collapse && collapse.toggle) {
@@ -965,12 +957,12 @@
               iconbutton.set('icon', 'expand-more');
           }
         }
-      },
+      }
 
-      _computeLoginIcon: function(loggedIn) {
+      _computeLoginIcon(loggedIn) {
         return loggedIn ? 'person' : 'person-outline';
       }
-    });
-
+    }
+    customElements.define(WebvisualApp.is, WebvisualApp);
   </script>
 </dom-module>

@@ -1,141 +1,170 @@
 <script>
   window.WebvisualBehaviors = window.WebvisualBehaviors || {};
 
-    /**
-     * Behavior that adds select events and checked attributes
-     *
-     * @polymerBehavior
-     */
+  /**
+   * Behavior that adds select events and checked attributes
+   *
+   * @polymerBehavior
+   */
 
-  WebvisualBehaviors.CheckedAndSelectBehavior = {
+  WebvisualBehaviors.CheckedAndSelectBehavior = function(superClass) {
+    return class extends superClass {
 
-    properties: {
-
-      /**
-       * If true, the button is a toggle and is currently in the active state.
-       */
-      active: {
-        type: Boolean,
-        value: false,
-        notify: true,
-        reflectToAttribute: true
-      },
-
-      selectable: {
-        type: Boolean,
-        value: false,
-        reflectToAttribute: true
-      },
-
-      checked: {
-        type: Boolean,
-        value: false,
-        reflectToAttribute: true,
-        notify: true,
-        observer: 'checkedChanged'
-      },
-
-      toggles: {
-        type: Boolean,
-        value: true
-      },
-
-      tapEvent: {
-        type: String
-      },
-
-      tapDuration: {
-        type: Number,
-        value : 500
-      },
-
-      selectEvent: {
-        type: String,
-        value: 'item-select'
-      },
-
-      disabled: {
-        type: Boolean,
-        value: false
-      },
-
-      eventTarget: {
-        type: Object,
-        value: function() {
-          return this;
-        }
+      constructor() {
+        super();
       }
 
-    },
+      static get properties() {
+        return {
+          /**
+           * If true, the button is a toggle and is currently in the active state.
+           */
+          active: {
+            type: Boolean,
+            value: false,
+            notify: true,
+            reflectToAttribute: true
+          },
 
-    observers: [
-      '_addTouchListeners(disabled, selectEvent, tapEvent)'
-    ],
+          selectable: {
+            type: Boolean,
+            value: false,
+            reflectToAttribute: true
+          },
 
-    detached: function() {
-      this._removeTouchListeners();
-    },
+          checked: {
+            type: Boolean,
+            value: false,
+            reflectToAttribute: true,
+            notify: true,
+            observer: 'checkedChanged'
+          },
 
-    _addTouchListeners: function(disabled, selectEvent, tapEvent) {
-      if (disabled) {
-        this._removeTouchListeners();
-      } else {
-        if (tapEvent) {
-          Polymer.Gestures.addListener(this.eventTarget, 'down', e => this._handleTouch(e));
-          Polymer.Gestures.addListener(this.eventTarget, 'up', e =>  this._handleTouch(e));
-        } else if (selectEvent) {
-          Polymer.Gestures.addListener(this.eventTarget, 'tap', e => this.select());
-        }
-      }
-    },
+          toggles: {
+            type: Boolean,
+            value: true
+          },
 
-    _removeTouchListeners: function() {
-      Polymer.Gestures.removeListener(this.eventTarget, 'down', e => this._handleTouch(e));
-      Polymer.Gestures.removeListener(this.eventTarget, 'up', e =>  this._handleTouch(e));
-      Polymer.Gestures.removeListener(this.eventTarget, 'tap', e => this.select());
-    },
+          tapEvent: {
+            type: String
+          },
 
-    _handleTouch: function(e) {
-      if (e.type === 'down') {
-        this._lastEvent = e;
-      } else {
-        if (this._lastEvent && e.timeStamp - (this._lastEvent.timeStamp || performance.now()) > this.tapDuration) {
-          this.fire(this.tapEvent, { item: this.item });
-          if (this.checked === false) {
-            this.select(true);
+          tapDuration: {
+            type: Number,
+            value: 500
+          },
+
+          selectEvent: {
+            type: String,
+            value: 'item-select'
+          },
+
+          disabled: {
+            type: Boolean,
+            value: false
+          },
+
+          eventTarget: {
+            type: String
           }
+
+        }
+      }
+      
+      connectedCallback() {
+        super.connectedCallback();
+        this._createMethodObserver('_addTouchListeners(disabled, selectEvent, tapEvent)', true);
+      }
+
+      disconnectedCallback() {
+        this._removeTouchListeners();
+      }
+
+      _addTouchListeners(disabled, selectEvent, tapEvent) {
+        if (disabled) {
+          this._removeTouchListeners();
         } else {
-          this.select();
+          var eventTarget = this.eventTarget;
+          if (!eventTarget) {
+            eventTarget = this;
+          } else {
+            eventTarget = this.$[eventTarget];
+          }
+          if (tapEvent) {
+            Polymer.Gestures.addListener(eventTarget, 'down', e => this._handleTouch(e));
+            Polymer.Gestures.addListener(eventTarget, 'up', e => this._handleTouch(e));
+          } else if (selectEvent) {
+            Polymer.Gestures.addListener(eventTarget, 'tap', e => this.select());
+          }
         }
       }
-    },
 
-    checkedChanged: function(checked, old) {
-      if (old !== undefined && this.selectable && this.selectEvent) {
-        if (!this._preventSelectEvent) {
-          // this.dispatchEvent(new CustomEvent(this.selectEvent, {detail: { item: this.item, value: checked }}), {bubbles: true});
-          this.fire(this.selectEvent, { item: this.item, value: checked });
+      _removeTouchListeners() {
+        var eventTarget = this.eventTarget;
+        if (!eventTarget) {
+          eventTarget = this;
+        } else {
+          eventTarget = this.$[eventTarget];
+        }
+        Polymer.Gestures.removeListener(eventTarget, 'down', e => this._handleTouch(e));
+        Polymer.Gestures.removeListener(eventTarget, 'up', e => this._handleTouch(e));
+        Polymer.Gestures.removeListener(eventTarget, 'tap', e => this.select());
+      }
+
+      _handleTouch(e) {
+        if (e.type === 'down') {
+          this._lastEvent = e;
+        } else {
+          if (this._lastEvent && e.timeStamp - (this._lastEvent.timeStamp || performance.now()) > this.tapDuration) {
+            this.dispatchEvent(new CustomEvent(this.tapEvent, {
+              bubbles: true,
+              composed: true,
+              detail: {
+                item: this.item
+              }
+            }));
+            if (this.checked === false) {
+              this.select(true);
+            }
+          } else {
+            this.select();
+          }
         }
       }
-      this._preventSelectEvent = false;
-    },
 
-    select: function(value, preventEvent) {
-      if (this.selectable === true) {
-        this._preventSelectEvent = preventEvent;
-        if (value !== undefined) {
-          this.checked = value;
-        } else if (this.toggles === true) {
-          if (this.checked === true) {
-            this.checked = false;
+      checkedChanged(checked, old) {
+        if (old !== undefined && this.selectable && this.selectEvent) {
+          if (!this._preventSelectEvent) {
+            this.dispatchEvent(new CustomEvent(this.tapEvent, {
+              bubbles: true,
+              composed: true,
+              detail: {
+                item: this.item,
+                value: checked
+              }
+            }));
+          }
+        }
+        this._preventSelectEvent = false;
+      }
+
+      select(value, preventEvent) {
+        if (this.selectable === true) {
+          this._preventSelectEvent = preventEvent;
+          if (value !== undefined) {
+            this.checked = value;
+          } else if (this.toggles === true) {
+            if (this.checked === true) {
+              this.checked = false;
+            } else {
+              this.checked = true;
+            }
+            this.active = !this.active;
           } else {
             this.checked = true;
           }
-          this.active = !this.active;
-        } else {
-          this.checked = true;
         }
       }
     }
-  };
+  }
 </script>
