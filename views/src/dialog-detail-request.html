@@ -142,16 +142,14 @@
 </dom-module>
 
 <script>
-  (function() {
-    Polymer({
-      is: 'dialog-detail-request',
+  class DialogDetailRequest extends WebvisualBehaviors.LocalizeBehavior(Polymer.Element) {
 
-      behaviors: [
-        WebvisualBehaviors.LocalizeBehavior
-      ],
+    static get is() {
+      return 'dialog-detail-request'
+    }
 
-      properties: {
-
+    static get properties() {
+      return {
         item: {
           type: Object,
           value: function() {
@@ -184,67 +182,64 @@
           observer: '_domainXChanged'
         }
 
-      },
+      }
+    }
 
-      listeners: {
+    static get listeners() {
+      return {
         'dialog.iron-overlay-closed': '_reset',
         'dialog.iron-overlay-opened': '_resize'
-      },
-
-      requestFromSocket: function() {
-        var req = {
-          target: 'socket',
-          operation: 'request',
-          args: {
-            mounts: [this.item.mount],
-            from: this.fromDate,
-            to: this.toDate
-          }
-        };
-
-        var start = +(new Date());
-        this.isLoading = true;
-        Promise.resolve( new Promise( function(resolve, reject) {
-            window.Webvisual.request(req, resolve);
-          }))
-          .then(function(res) {
-            this.$.chart.clearValues(res);
-            this.$.chart.insertValues(res);
-            var remaining = new Date() - start;
-            if (remaining < 1000) {
-              this.async( function() {
-                this.isLoading = false;
-              }, remaining);
-            } else {
-              this.isLoading = false;
-            }
-          }.bind(this))
-          .catch(function(err) {
-            console.log(err);
-          });
-      },
-
-      _domainXChanged: function() {
-        if (this.domainX && Number.isFinite(this.domainX[0]) && Number.isFinite(this.domainX[1])) {
-          this.set('fromDate', this.domainX[0]);
-          this.set('toDate', this.domainX[1]);
-        }
-      },
-
-      _reset: function(e) {
-        // console.log(e);
-      },
-
-      _resize: function() {
-        this.async(this.$.chart._sizeLayout.bind(this.$.chart), 50);
-      },
-
-      open: function() {
-        this.$.dialog.open();
-      },
-      close: function() {
-        this.$.dialog.close();
       }
-    });
-  })();
+    }
+
+    requestFromSocket() {
+      var req = {
+        target: 'socket',
+        operation: 'request',
+        args: {
+          mounts: [this.item.mount],
+          from: this.fromDate,
+          to: this.toDate
+        }
+      };
+
+      var start = +(new Date());
+      this.isLoading = true;
+      Promise.resolve(new Promise(function(resolve, reject) {
+          window.Webvisual.request(req, resolve);
+        }))
+        .then(function(res) {
+          this.$.chart.clearValues(res);
+          this.$.chart.insertValues(res);
+          var remaining = new Date() - start;
+          if (remaining < 1000) {
+            this.async(function() {
+              this.isLoading = false;
+            }, remaining);
+          } else {
+            this.isLoading = false;
+          }
+        }.bind(this))
+        .catch(function(err) {
+          console.log(err);
+        });
+    }
+
+    _domainXChanged() {
+      if (this.domainX && Number.isFinite(this.domainX[0]) && Number.isFinite(this.domainX[1])) {
+        this.set('fromDate', this.domainX[0]);
+        this.set('toDate', this.domainX[1]);
+      }
+    }
+
+    _reset(e) {
+      // console.log(e);
+    }
+
+    _resize() {
+      // this.async(this.$.chart._sizeLayout.bind(this.$.chart), 50);
+      setTimeout(this.$.chart._sizeLayout.bind(this.$.chart), 0);
+    }
+  }
+  customElements.define(DialogDetailRequest.is, DialogDetailRequest);
 </script>

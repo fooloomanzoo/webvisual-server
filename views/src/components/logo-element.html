@@ -1,7 +1,7 @@
-<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
 
 <dom-module id="logo-element">
-<template strip-whitespace>
+  <template strip-whitespace>
   <style>
     :host {
       color: currentColor;
@@ -161,47 +161,55 @@
 
 </template>
 
-<script>
-  Polymer({
-    is: 'logo-element',
+  <script>
+    class LogoElement extends Polymer.Element {
 
-    properties: {
-      href: {
-        type: String
+      static get is() {
+        return 'logo-element';
       }
-    },
 
-    listeners: {
-      'mouseenter': '_addClass',
-      'mouseleave': '_removeClass'
-    },
-
-    _addClass: function() {
-      if (!this._circles) {
-        this._circles = Polymer.dom(this.root).querySelectorAll('.circle');
-      }
-      requestAnimationFrame(function() {
-        Array.prototype.forEach.call(this._circles, function(c) {
-          if (c.classList) {
-            c.classList.add('animated');
+      static get properties() {
+        return {
+          href: {
+            type: String
           }
-        })
-      }.bind(this));
-    },
-
-    _removeClass: function() {
-      if (!this._circles) {
-        return;
+        }
       }
-      requestAnimationFrame(function() {
-        Array.prototype.forEach.call(this._circles, function(c) {
-          if (c.classList) {
-            c.classList.remove('animated');
-          }
-        })
-      }.bind(this));
+
+      static get listeners() {
+        return {
+          'mouseenter': '_addClass',
+          'mouseleave': '_removeClass'
+        }
+      }
+
+      _addClass() {
+        if (!this._circles) {
+          this._circles = Polymer.dom(this.root).querySelectorAll('.circle');
+        }
+        requestAnimationFrame(function() {
+          Array.prototype.forEach.call(this._circles, function(c) {
+            if (c.classList) {
+              c.classList.add('animated');
+            }
+          })
+        }.bind(this));
+      }
+
+      _removeClass() {
+        if (!this._circles) {
+          return;
+        }
+        requestAnimationFrame(function() {
+          Array.prototype.forEach.call(this._circles, function(c) {
+            if (c.classList) {
+              c.classList.remove('animated');
+            }
+          })
+        }.bind(this));
+      }
     }
-  });
-</script>
+    customElements.define(LogoElement.is, LogoElement);
+  </script>
 
 </dom-module>

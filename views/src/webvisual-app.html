@@ -236,7 +236,7 @@
 
           <logo-element id="logo" href="/home" title$="[[localize('home', 'name')]]"></logo-element>
 
-          <iron-collapse opened="[[showTabs]]" hidden$="[[!wideLayout]]" horizontal style="align-self: flex-end;">
+          <iron-collapse opened$="[[showTabs]]" hidden$="[[!wideLayout]]" horizontal style="align-self: flex-end;">
             <div class="tab-drawer top">
 
               <div class="selectbox toolbar grouping top" title="[[groupedKey]]" hidden$="[[hideGroupSelect]]">
@@ -272,42 +272,42 @@
             <icon-button icon="[[loginIcon]]" class="login-icon" title="{{localize('login', 'name')}}" on-click="_openLoginDialog"></icon-button>
           </template>
 
-  <template is="dom-if" if="[[detailHasDrawer]]">
+          <template is="dom-if" if="[[detailHasDrawer]]">
             <icon-button icon="subject" title="items" on-tap="_toggleDetailControlDrawer">
             </icon-button>
           </template>
 
-  <icon-button icon="more-vert" title="{{localize('view')}}" on-tap="toggleShowTabs"></icon-button>
-  </app-toolbar>
+          <icon-button icon="more-vert" title="{{localize('view')}}" on-tap="toggleShowTabs"></icon-button>
+        </app-toolbar>
 
-  </app-header>
+      </app-header>
 
-  <!-- Pages-->
-  <iron-pages id="pages" role="main" selected="{{page}}" attr-for-selected="name" selected-attribute="visible" fallback-selection="home">
-    <!-- home view for selecting the facility -->
-    <page-home name="home" dark$="[[dark]]" plain$="[[plain]]" class="fullbleed" facilities="[[facilities]]" logged-in="[[loggedIn]]" language="[[language]]" language-resources="[[languageResources]]">
-      <slot></slot>
-    </page-home>
-    <!-- list view of items in a facility -->
-    <page-list name="list" dark$="[[dark]]" plain$="[[plain]]" room="[[queryParams.room]]" elements="[[elements]]">
-    </page-list>
-    <!-- group view of items -->
-    <page-groups name="groups" dark$="[[dark]]" plain$="[[plain]]" room="[[queryParams.room]]" logged-in="[[loggedIn]]" elements="[[elements]]" grouped-key="{{groupedKey}}" grouping-keys="{{groupingKeys}}">
-    </page-groups>
-    <!-- detail view of one item -->
-    <page-detail id="detailpage" name="detail" dark$="[[dark]]" plain$="[[plain]]" class="fullbleed" room="[[queryParams.room]]" query="{{queryParams.mounts}}" logged-in="[[loggedIn]]" elements="[[elements]]" show-toggle-icon="{{detailHasDrawer}}">
-    </page-detail>
-  </iron-pages>
-  </app-header-layout>
+      <!-- Pages-->
+      <iron-pages id="pages" role="main" selected="{{page}}" attr-for-selected="name" selected-attribute="visible" fallback-selection="home">
+        <!-- home view for selecting the facility -->
+        <page-home name="home" dark$="[[dark]]" plain$="[[plain]]" class="fullbleed" facilities="[[facilities]]" logged-in="[[loggedIn]]" language="[[language]]" language-resources="[[languageResources]]">
+          <slot></slot>
+        </page-home>
+        <!-- list view of items in a facility -->
+        <page-list name="list" dark$="[[dark]]" plain$="[[plain]]" room="[[queryParams.room]]" elements="[[elements]]">
+        </page-list>
+        <!-- group view of items -->
+        <page-groups name="groups" dark$="[[dark]]" plain$="[[plain]]" room="[[queryParams.room]]" logged-in="[[loggedIn]]" elements="[[elements]]" grouped-key="{{groupedKey}}" grouping-keys="{{groupingKeys}}">
+        </page-groups>
+        <!-- detail view of one item -->
+        <page-detail id="detailpage" name="detail" dark$="[[dark]]" plain$="[[plain]]" class="fullbleed" room="[[queryParams.room]]" query="{{queryParams.mounts}}" logged-in="[[loggedIn]]" elements="[[elements]]" show-toggle-icon="{{detailHasDrawer}}">
+        </page-detail>
+      </iron-pages>
+    </app-header-layout>
 
-  <drawer-element id="networkNotification" class="notification" align="bottom" shadow auto-close auto-close-period="4000">
-    <iron-icon class="prop" icon="[[socketStatusIcon]]" slot="icon"></iron-icon>
-    <span class="message"></span>
-  </drawer-element>
-  <drawer-element id="announceNotification" class="notification" align="bottom" shadow auto-close auto-close-period="5000">
-    <iron-icon class="prop" icon="event" slot="icon"></iron-icon>
-    <span class="message"></span>
-  </drawer-element>
+    <drawer-element id="networkNotification" class="notification" align="bottom" shadow auto-close auto-close-period="4000">
+      <iron-icon class="prop" icon="[[socketStatusIcon]]" slot="icon"></iron-icon>
+      <span class="message"></span>
+    </drawer-element>
+    <drawer-element id="announceNotification" class="notification" align="bottom" shadow auto-close auto-close-period="5000">
+      <iron-icon class="prop" icon="event" slot="icon"></iron-icon>
+      <span class="message"></span>
+    </drawer-element>
 
   <drawer-element opened="{{showTabsOnBottom}}" id="toolbarBottom" swipe-open auto-close-period="8000" shadow auto-close="[[!thresholdTriggered]]">
     <div class="tab-drawer">

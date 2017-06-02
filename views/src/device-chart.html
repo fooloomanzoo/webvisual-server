@@ -1,4 +1,4 @@
-<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
 <link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
 
@@ -448,26 +448,6 @@
         this._isBrushed = false;
         this._isZoomed = false;
         this._brushBehavior = Function.prototype;
-      }
-
-      _self() {
-        return this;
-      }
-
-      static get listeners() {
-        return {
-          'iron-resize': '_sizeChanged'
-        }
-      }
-
-      static get observers() {
-        return [
-          '_sizeChanged(opened)'
-        ]
-      }
-
-      constructor() {
-        super();
         this._graphs = new Set();
         var localeDateFormat = {
           'dateTime': '%x %X',
@@ -527,6 +507,22 @@
           },
           Number: d3.format(',')
         }
+      }
+
+      _self() {
+        return this;
+      }
+
+      static get listeners() {
+        return {
+          'iron-resize': '_sizeChanged'
+        }
+      }
+
+      static get observers() {
+        return [
+          '_sizeChanged(opened)'
+        ]
       }
 
       connectedCallback() {

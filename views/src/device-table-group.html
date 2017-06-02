@@ -1,7 +1,7 @@
-<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
 
 <dom-module id="device-table-group">
-	<template strip-whitespace>
+  <template strip-whitespace>
     <style include="button-style">
       :host {
         @apply --layout-horizontal;
@@ -41,52 +41,62 @@
       <template is="dom-repeat" items="[[items]]">
         <div class="button tab" title="[[item.id]]"><div>[[item.id]]</div></div>
       </template>
-    </tabs-container>
-    <iron-pages id="tables" selected="[[currentTable]]">
-      <template is="dom-repeat" items="[[items]]">
+  </tabs-container>
+  <iron-pages id="tables" selected="[[currentTable]]">
+    <template is="dom-repeat" items="[[items]]">
         <device-table title$="[[item.id]]" item="[[item]]" keys-for-caption full-date></device-table>
       </template>
-    </iron-pages>
+  </iron-pages>
 
   </template>
 
-	<script>
-		WebvisualElementTable = Polymer({
+  <script>
+    class DeviceTableGroup extends Polymer.Element {
+      static get is() {
+        return 'device-table-group'
+      }
 
-			is: 'device-table-group',
-
-			properties: {
-        items: {
-          type: Array,
-          value: function() {
-            return [];
+      static get properties() {
+        return {
+          items: {
+            type: Array,
+            value: function() {
+              return [];
+            },
+            notify: true
           },
-          notify: true
-        },
 
-				onlyFirstRow: Boolean,
+          onlyFirstRow: {
+            type: Boolean
+          },
 
-				showFullDate: Boolean,
+          showFullDate: {
+            type: Boolean
+          },
 
-        currentTable: {
-          type: Number,
-          value: 0,
-          notify: true
+          currentTable: {
+            type: Number,
+            value: 0,
+            notify: true
+          }
         }
-			},
+      }
 
-      observers: [
-        '_shouldHideTabs(items.length)'
-      ],
+      static get observers() {
+        return [
+          '_shouldHideTabs(items.length)'
+        ]
+      }
 
-			_shouldHideTabs: function(length) {
+      _shouldHideTabs(length) {
         if (length < 2) {
           this.$.select.classList.add('hidden');
         } else {
           this.$.select.classList.remove('hidden');
         }
-			}
-		});
-	</script>
+      }
+    }
+    customElements.define(DeviceTableGroup.is, DeviceTableGroup);
+  </script>
 
 </dom-module>

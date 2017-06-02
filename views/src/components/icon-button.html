@@ -1,4 +1,4 @@
-<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
 
 <link rel="import" href="icon-set.html">
 <!-- Modification of polymers paper-icon-button because of conflicts with paper-style -->
@@ -79,39 +79,52 @@
   </template>
 
   <script>
-    Polymer({
-      is: 'icon-button',
+    class IconButton extends Polymer.Element {
 
-      properties: {
-        icon: {
-          type: String
-        },
-        alt: {
-          type: String,
-          observer: "_altChanged"
-        },
-        checked: {
-          type: Boolean,
-          value: false,
-          notify: true,
-          reflectToAttribute: true
+      static get is() {
+        return 'icon-button';
+      }
+
+      static get properties() {
+        return {
+          icon: {
+            type: String
+          },
+          alt: {
+            type: String,
+            observer: "_altChanged"
+          },
+          checked: {
+            type: Boolean,
+            value: false,
+            notify: true,
+            reflectToAttribute: true
+          }
         }
-      },
+      }
 
-      listeners: {
-        'tap': '_changeChecked'
-      },
+      connectedCallback() {
+        super.connectedCallback();
+        Polymer.Gestures.addListener(this, 'tap', e => this._changeChecked(e));
+      }
+      
+      disconnectedCallback() {
+        super.disconnectedCallback();
+        Polymer.Gestures.removeListener(this, 'tap', e => this._changeChecked(e));
+      }
 
-      _altChanged: function(newValue, oldValue) {
+      _altChanged(newValue, oldValue) {
         var system = this.getAttribute('aria-system');
         if (!system || oldValue == system) {
           this.setAttribute('aria-system', newValue);
         }
-      },
+      }
 
-      _changeChecked: function() {
+      _changeChecked() {
         this.checked = !this.checked;
       }
-    });
+    }
+
+    customElements.define(IconButton.is, IconButton);
   </script>
 </dom-module>

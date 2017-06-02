@@ -1,5 +1,5 @@
 <!-- Modification of polymers paper-toggle-button because of conflicts with paper-style and simplifications (no form support needed)-->
-<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
 
 <dom-module id="toggle-button">
   <template strip-whitespace>
@@ -142,28 +142,48 @@
   </template>
 
   <script>
-    Polymer({
-      is: 'toggle-button',
+    class ToggleButton extends Polymer.Element {
 
-      properties: {
-        checked: {
-          type: Boolean,
-          notify: true,
-          reflectToAttribute: true
+      static get is() {
+        return 'toggle-button';
+      }
+
+      static get properties() {
+        return {
+          checked: {
+            type: Boolean,
+            notify: true,
+            reflectToAttribute: true
+          },
+
+          role: {
+            type: String,
+            reflectToAttribute: true,
+            readOnly: true,
+            value: 'button'
+          },
+
+          tabindex: {
+            type: Number,
+            reflectToAttribute: true,
+            value: 0
+          },
+
         }
-      },
+      }
 
-      hostAttributes: {
-        role: 'button',
-        tabindex: 0
-      },
+      connectedCallback() {
+        super.connectedCallback();
+        Polymer.Gestures.addListener(this, 'tap', e => this._onclicked(e));
+        Polymer.Gestures.addListener(this, 'track', e => this._ontrack(e));
+      }
+      disconnectedCallback() {
+        super.disconnectedCallback();
+        Polymer.Gestures.removeListener(this, 'tap', e => this._onclicked(e));
+        Polymer.Gestures.removeListener(this, 'track', e => this._ontrack(e));
+      }
 
-      listeners: {
-        track: '_ontrack',
-        tap: '_onclicked'
-      },
-
-      _ontrack: function(event) {
+      _ontrack(event) {
         var track = event.detail;
         if (track.state === 'start') {
           this._trackStart(track);
@@ -172,30 +192,31 @@
         } else if (track.state === 'end') {
           this._trackEnd(track);
         }
-      },
+      }
 
-      _trackStart: function(track) {
+      _trackStart(track) {
         this._width = this.$.toggleBar.offsetWidth / 2;
         this._trackChecked = this.checked;
         this.$.toggleButton.classList.add('dragging');
-      },
+      }
 
-      _trackMove: function(track) {
+      _trackMove(track) {
         var dx = track.dx;
         this._x = Math.min(this._width,
-            Math.max(0, this._trackChecked ? this._width + dx : dx));
+          Math.max(0, this._trackChecked ? this._width + dx : dx));
         this.translate3d(this._x + 'px', 0, 0, this.$.toggleButton);
-      },
+      }
 
-      _trackEnd: function(track) {
+      _trackEnd(track) {
         this.$.toggleButton.classList.remove('dragging');
         this.transform('', this.$.toggleButton);
-      },
+      }
 
-      _onclicked: function() {
+      _onclicked() {
         this.checked = this.checked ? false : true;
       }
 
-    });
+    }
+    customElements.define(ToggleButton.is, ToggleButton);
   </script>
 </dom-module>

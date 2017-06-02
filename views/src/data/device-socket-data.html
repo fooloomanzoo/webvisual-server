@@ -1,61 +1,66 @@
-<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
 
 <dom-module id="device-socket-data">
   <script>
-    Polymer({
+    class DeviceSocketData extends Polymer.Element {
 
-      is: 'device-socket-data',
+      static get is() {
+        return 'device-socket-data'
+      }
 
-      properties: {
+      static get properties() {
+        return {
+          locationHost: {
+            type: String,
+            value: window.location.origin
+          },
 
-        locationHost: {
-          type: String,
-          value: window.location.origin
-        },
+          nameSpace: {
+            type: String
+          },
 
-        nameSpace: {
-          type: String
-        },
+          socketRoom: {
+            type: String,
+            observer: 'connect'
+          },
 
-        socketRoom: {
-          type: String,
-          observer: 'connect'
-        },
+          socketStatus: {
+            type: String,
+            value: 'connect',
+            notify: true
+          },
 
-        socketStatus: {
-          type: String,
-          value: 'connect',
-          notify: true
-        },
+          lazyConnect: {
+            type: Boolean
+          },
 
-        lazyConnect: {
-          type: Boolean
-        },
+          loggedIn: {
+            type: Boolean
+          },
 
-        loggedIn: {
-          type: Boolean
-        },
+          offline: {
+            type: Boolean
+          }
 
-        offline: {
-          type: Boolean
         }
+      }
 
-      },
+      static get observers() {
+        return [
+          '_connect(loggedIn, offline, lazyConnect)'
+        ]
+      }
 
-      observers: [
-        '_connect(loggedIn, offline, lazyConnect)'
-      ],
-
-      _connect: function(loggedIn, offline, lazyConnect) {
+      _connect(loggedIn, offline, lazyConnect) {
         // if (loggedIn && !offline && lazyConnect) {
-          this._createSocketConnection(this.locationHost, this.nameSpace);
+        this._createSocketConnection(this.locationHost, this.nameSpace);
         // } else {
         //   this.socketStatus = 'sync-problem';
         //   Webvisual.disconnect();
         // }
-      },
+      }
 
-      _createSocketConnection: function(locationHost, nameSpace) {
+      _createSocketConnection(locationHost, nameSpace) {
         if (!locationHost || this.socketStatus === 'sync-disabled') return;
 
         Webvisual.assignStatusNotifications(this);
@@ -64,9 +69,9 @@
         if (this.socketRoom) {
           this.connect(this.socketRoom);
         }
-      },
+      }
 
-      connect: function(socketRoom) {
+      connect(socketRoom) {
         socketRoom = socketRoom || this.socketRoom;
 
         if (!socketRoom) {
@@ -80,13 +85,14 @@
         if (this.socketStatus !== 'connected') {
           this.socketStatus = 'connect';
         }
-      },
+      }
 
-      disconnect: function() {
+      disconnect() {
         this.socketStatus = 'sync-disabled';
         Webvisual.disconnect();
       }
 
-    });
+    }
+    customElements.define(DeviceSocketData.is, DeviceSocketData);
   </script>
 </dom-module>

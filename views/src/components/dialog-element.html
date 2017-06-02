@@ -1,4 +1,4 @@
-<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../../bower_components/paper-dialog-behavior/paper-dialog-behavior.html">
 <link rel="import" href="../../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
 <link rel="import" href="../style/dialog-style.html">
@@ -25,29 +25,32 @@
 </dom-module>
 
 <script>
-(function() {
-  Polymer({
-    is: 'dialog-element',
+  class DialogElement extends Polymer.mixinBehaviors(
+    [Polymer.IronResizableBehavior, Polymer.PaperDialogBehavior], Polymer.Element) {
 
-    behaviors: [
-      Polymer.IronResizableBehavior,
-      Polymer.PaperDialogBehavior
-    ],
+    static get is() {
+      return 'dialog-element';
+    }
 
-    listners: {
-      'iron-overlay-opened': '_debouncedNotifyResize'
-    },
-
-    properties: {
-      opened: {
-        type: Boolean,
-        reflectToAttribute: true
+    static get properties() {
+      return {
+        opened: {
+          type: Boolean,
+          reflectToAttribute: true
+        }
       }
-    },
+    }
 
-    _debouncedNotifyResize: function() {
+
+    static get listeners() {
+      return {
+        'iron-overlay-opened': '_debouncedNotifyResize'
+      }
+    }
+
+    _debouncedNotifyResize() {
       this.debounce('resize', this.notifyResize);
     }
-  });
-})();
+  }
+  customElements.define(DialogElement.is, DialogElement);
 </script>

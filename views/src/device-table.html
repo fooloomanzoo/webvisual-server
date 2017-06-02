@@ -1,4 +1,4 @@
-<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../bower_components/iron-list/iron-list.html">
 <link rel="import" href="behaviors/device-behavior.html" />
 
@@ -199,7 +199,7 @@
 				// }
 			}
 
-			_toggleGridView: function() {
+			_toggleGridView() {
 				this.$.list.grid = !!!this.$.list.grid;
 			}
 		}
