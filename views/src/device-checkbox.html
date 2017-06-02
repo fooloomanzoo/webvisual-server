@@ -16,7 +16,6 @@
         --calculated-box-size: var(--box-size, 20px);
         --calculated-box-ink-size: var(--box-ink-size, -1px);
       }
-
       #content {
         display: inline-flex;
         width: 100%;
@@ -33,11 +32,9 @@
       :host([checked])::before {
         @apply --checkbox-checked;
       }
-
       :host(:focus)::before {
         outline: 1px solid var(--bright-primary-color);
       }
-
       #boxContainer {
         display: inline-block;
 				align-self: center;
@@ -51,7 +48,6 @@
         vertical-align: var(--box-vertical-align, middle);
         background-color: var(--box-unchecked-background-color, transparent);
       }
-
       #ripple {
         position: absolute;
         /* Center the ripple in the checkbox by negative offsetting it by
@@ -63,7 +59,6 @@
         color: var(--box-unchecked-ink-color, var(--primary-text-color));
         opacity: 0.6;
       }
-
       #box {
         opacity: 0.75;
         position: relative;
@@ -77,7 +72,6 @@
         -webkit-transition: background-color 150ms, border-color 150ms, opacity 150ms;
         transition: background-color 150ms, border-color 150ms, opacity 150ms;
       }
-
       #arrow {
         position: absolute;
         width: 36%;
@@ -92,7 +86,6 @@
         transform-origin: 97% 87%;
         box-sizing: content-box; /* protect against page-level box-sizing */
       }
-
       #box {
         background-color: var(--device-color);
       }
@@ -111,7 +104,6 @@
       :host(:not([checked])[state="-1"]) #box {
         background-color: var(--device-state-deceeds-color);
       }
-
       #ripple {
         color: var(--device-color);
       }
@@ -124,17 +116,14 @@
       :host([state="-1"]) #ripple {
         color: var(--device-state-deceeds-color);
       }
-
       :host([checked]) #box {
         opacity: 1;
       }
-
       /* box checked animations */
       :host([checked]) #arrow {
         -webkit-animation: arrow-expand 250ms ease-out forwards;
         animation: arrow-expand 250ms ease-out forwards;
       }
-
       @-webkit-keyframes arrow-expand {
         0% {
           -webkit-transform: scale(0, 0) rotate(45deg);
@@ -143,7 +132,6 @@
           -webkit-transform: scale(1, 1) rotate(45deg);
         }
       }
-
       @keyframes arrow-expand {
         0% {
           transform: scale(0, 0) rotate(45deg);
@@ -152,7 +140,6 @@
           transform: scale(1, 1) rotate(45deg);
         }
       }
-
       :host([disabled]) #box {
         opacity: 0.5;
         border-color: var(--box-unchecked-color, --primary-text-color);

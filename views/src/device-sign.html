@@ -1,4 +1,4 @@
-<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
 <link rel="import" href="behaviors/device-behavior.html"/>
 <link rel="import" href="behaviors/color-behavior.html"/>
 <link rel="import" href="behaviors/checked-and-select-behavior.html"/>
@@ -175,18 +175,14 @@
   </template>
 
   <script>
+  class DeviceSign extends WebvisualBehaviors.CheckedAndSelectBehavior(WebvisualBehaviors.ColorBehavior(WebvisualBehaviors.DeviceBehavior(Polymer.Element))) {
 
-    WebvisualElementSign = Polymer({
-      is: 'device-sign',
+    static get is() {
+      return 'device-sign';
+    }
 
-      behaviors: [
-        WebvisualBehaviors.ColorBehavior,
-        WebvisualBehaviors.CheckedAndSelectBehavior,
-        WebvisualBehaviors.DeviceBehavior
-      ],
-
-      properties: {
-
+    static get properties() {
+      return {
         showDate: {
           type: Boolean,
           value: false
@@ -197,15 +193,12 @@
           value: 1
         }
 
-      },
+      }
+    }
 
-      hostAttributes: {
-        tabindex: '0'
-      },
-
-      insertValues: function(values) {
+      insertValues(values) {
         if (values && values.length) {
-          this.async( function() {
+          setTimeout( () => {
 
             if (!this._initialized)
               this._initialized = true;
@@ -226,17 +219,17 @@
               }
             }
 
-          }.bind(this));
+          }, 0);
         } else {
           this.renderClearing();
         }
-      },
+      }
 
-      computeValue: function(y) {
+      computeValue(y) {
         return y;
-      },
+      }
 
-      renderClearing: function(values) {
+      renderClearing(values) {
         if (!this._initialized) {
           this.hasExceeded = false;
           this.isExceeding = false;
@@ -244,16 +237,21 @@
         this.$.value.textContent = '';
         this.$.dateSection.textContent = '';
         this.setAttribute('state', null);
-      },
+      }
 
-      _requestExceedingDetails: function(e) {
+      _requestExceedingDetails(e) {
         e.preventDefault();
         e.stopPropagation();
-        this.fire('request-exceeding-details', {
+        this.dispatchEvent(new CustomEvent('request-exceeding-details', {
+          bubbles: true,
+          composed: true,
+          detail: {
             item: this.item
-          });
+          }
+        }));
       }
-    });
+    }
+    customElements.define(DeviceSign.is, DeviceSign);
   </script>
 
 </dom-module>
