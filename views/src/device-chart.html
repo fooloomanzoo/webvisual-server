@@ -443,7 +443,6 @@
         this._yAxes = [];
         this._xAxisFn = {};
         this._yAxisFn = {};
-        this._initialized = false;
         this._isAttached = false;
         this._isBrushed = false;
         this._isZoomed = false;
@@ -533,12 +532,16 @@
       _sizeChanged() {
         // only resize if initialized & opened
         if (this._isAttached && this.opened) {
-          this.debounce('sizeLayout', this._sizeLayout, 15);
+          if (this._activeSizeJob) {
+            clearTimeout(this._activeSizeJob);
+          }
+          this._activeSizeJob = setTimeout( () => {
+            this._sizeLayout();
+          }, 200);
         }
       }
 
       _buildLayout() {
-        console.log('buildLayout');
         this._svg = d3.select(this.$.svgChart)
           .attr('height', null)
           .attr('width', null);
@@ -658,8 +661,9 @@
 
       _sizeLayout() {
         if (!this._isAttached) return;
-        console.log('sizeLayout');
+
         var bRect = this.$.svgChart.getBoundingClientRect();
+        console.log('sizeLayout', bRect);
 
         if (bRect.height === 0 || bRect.width === 0) return;
 
@@ -804,9 +808,6 @@
       redraw() {
         if (!(this.opened && this._chart && this._chart.select)) return;
 
-        // if (!this._initialized) {
-        //   this._sizeLayout();
-        // }
         Promise.resolve(this.setDomains.call(this))
           .then(this._redraw.bind(this))
           .catch(function(err) {
@@ -1190,7 +1191,7 @@
         this._y = this._createScaleFn(this.yScale);
         this._y.domain(domainY).nice(this.yTicks);
         this.set('domainY', domainY);
-        this.debounce('sizeLayout', this._sizeLayout);
+        this._sizeChanged();
       }
 
       _resetZoom(e) {

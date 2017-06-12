@@ -47,7 +47,7 @@
         --chart-plot-background-opacity: 1;
         --focus-color: var(--primary-text-color);
         /*--control-bottom: 20px;*/
-        margin: 6px 20px;
+        margin: 6px 20px 24px 48px;
       }
       :host([plain]) #chart,
       :host([dark]) #chart {
@@ -92,8 +92,8 @@
         --checkbox-checked-color: var(--primary-text-color);
         --checkbox-checked-background: {
           background-color: rgba(255, 255, 255, 0.75);
-          border-left: medium solid var(--device-color, var(--secondary-color));
-          border-bottom: none;
+          border-top: thin solid rgba(0,0,0,0.2);
+          border-left: medium solid rgba(0,0,0,0.5);
         };
         --checkbox-unchecked-background: {
           background-color: transparent;
@@ -118,28 +118,6 @@
           --drawer-background: rgba(255,255,255,0.0);
         }
       }
-      @media (min-width: 800px) {
-        #chart,
-        #svg {
-          padding-left: 0.5em;
-          padding-right: 0.5em;
-        }
-      }
-      @media (min-width: 1280px) {
-        #chart,
-        #svg {
-          padding-left: 1em;
-          padding-right: 1em;
-        }
-      }
-      @media (min-width: 1600px) {
-        #chart,
-        #svg {
-          padding-left: 1.5em;
-          padding-right: 1.5em;
-        }
-      }
-
     </style>
 
     <iron-media-query query="(max-width: 600px)" query-matches="{{narrowLayout}}"></iron-media-query>
@@ -149,41 +127,43 @@
       logged-in="[[loggedIn]]"
       data="{{svgData}}"></svg-data>
 
-    <div id="content">
+    <template is="dom-if" if="[[visible]]">
+      <div id="content">
 
-      <device-chart id="chart" opened="[[visible]]" fullheight$="[[!_withSvg]]" disable-upgrade$="[[!visible]]"
-        items="[[items]]" multi></device-chart>
+        <device-chart id="chart" opened="[[visible]]" fullheight$="[[!_withSvg]]"
+          items="[[items]]" multi></device-chart>
 
-      <template is="dom-if" if="[[_withSvg]]">
-        <device-svg id="svg" disable-upgrade$="[[!visible]]"
-          opened="[[visible]]"
-          url-prefix="/images/[[room]]/"
-          src="[[item.svg.path]]"
-          selectable-items="[[_getSvgSelectable(item.svg.path, svgData.paths)]]"
-          items="[[items]]"
-          multi
-          exceeding="[[exceeding]]"></device-svg>
-      </template>
+        <template is="dom-if" if="[[_withSvg]]">
+          <device-svg id="svg"
+            opened="[[visible]]"
+            url-prefix="/images/[[room]]/"
+            src="[[item.svg.path]]"
+            selectable-items="[[_getSvgSelectable(item.svg.path, svgData.paths)]]"
+            items="[[items]]"
+            multi
+            exceeding="[[exceeding]]"></device-svg>
+        </template>
 
-      <drawer-element id="elementDrawer" opened$="[[_ensureOpened(narrowLayout)]]" swipe-open$="[[narrowLayout]]" scrim persistent$="[[!narrowLayout]]" align="right" stretch>
+        <drawer-element id="elementDrawer" opened$="[[_ensureOpened(narrowLayout)]]" swipe-open$="[[narrowLayout]]" scrim persistent$="[[!narrowLayout]]" align="right" stretch>
 
-        <tabs-container id="deviceTabs" vertical selected-values="{{selectedMounts}}" attr-for-selected="mount" selected-items="{{selectedCheckboxes}}" multi selected-attribute="checked">
+          <tabs-container id="deviceTabs" vertical selected-values="{{selectedMounts}}" attr-for-selected="mount" selected-items="{{selectedCheckboxes}}" multi selected-attribute="checked">
 
-          <template is="dom-repeat" items="[[_getListItems(elements)]]">
-            <device-checkbox class="checkbox"
-              mount$="[[item.mount]]"
-              item="[[item]]"
-              tap-event="detail-request"
-              selectable>
-              <device-caption class="caption"
-                keys="[[item.keys]]"></device-caption>
-            </device-checkbox>
-          </template>
-        </tabs-container>
+            <template is="dom-repeat" items="[[_getListItems(elements)]]">
+              <device-checkbox class="checkbox"
+                mount$="[[item.mount]]"
+                item="[[item]]"
+                tap-event="detail-request"
+                selectable>
+                <device-caption class="caption"
+                  keys="[[item.keys]]"></device-caption>
+              </device-checkbox>
+            </template>
+          </tabs-container>
 
-        <device-table-group id="elementTable" items="[[items]]"></device-table-group>
-      </drawer-element>
-    </div>
+          <device-table-group id="elementTable" items="[[items]]"></device-table-group>
+        </drawer-element>
+      </div>
+    </template>
   </template>
 
   <script>
@@ -288,6 +268,7 @@
       }
 
       connectedCallback() {
+        super.connectedCallback();
         this._debounceResize();
       }
 
@@ -303,33 +284,38 @@
       }
 
       _selectedMountsChanged(selectedMounts) {
-        var elements = this.elements;
-        var mount;
-        for (var i = 0; i < this.selectedCheckboxes.length; i++) {
-          mount = this.selectedCheckboxes[i].mount;
-          if (selectedMounts.indexOf(mount) === -1) {
-            this.splice('selectedCheckboxes', i, 1);
-            i--;
+        setTimeout(() => {
+          var mount;
+          if (selectedMounts && this.selectedCheckboxes) {
+            for (var i = 0; i < this.selectedCheckboxes.length; i++) {
+              mount = this.selectedCheckboxes[i].mount;
+              if (selectedMounts.indexOf(mount) === -1) {
+                this.splice('selectedCheckboxes', i, 1);
+                i--;
+              }
+            }
+            this.set('query', selectedMounts.join(','));
           }
-        }
-        this.set('query', selectedMounts.join(','));
+        }, 0)
       }
 
       _selectedCheckboxesChanged(selectedCheckboxes) {
-        var selectedMounts = this.selectedMounts;
-        if (selectedCheckboxes) {
-          var mount;
-          for (var i = 0; i < selectedCheckboxes.length; i++) {
-            mount = selectedCheckboxes[i].mount;
-            if (mount && selectedMounts.indexOf(mount) === -1) {
-              selectedMounts.push(mount);
+        setTimeout(() => {
+          var selectedMounts = this.selectedMounts;
+          if (selectedMounts && selectedCheckboxes) {
+            var mount;
+            for (var i = 0; i < selectedCheckboxes.length; i++) {
+              mount = selectedCheckboxes[i].mount;
+              if (mount && selectedMounts.indexOf(mount) === -1) {
+                selectedMounts.push(mount);
+              }
             }
+            if (selectedCheckboxes.length) {
+              selectedCheckboxes[selectedCheckboxes.length-1].scrollIntoViewIfNeeded(true);
+            }
+            this.set('selectedMounts', selectedMounts);
           }
-          if (selectedCheckboxes.length) {
-            selectedCheckboxes[selectedCheckboxes.length-1].scrollIntoViewIfNeeded(true);
-          }
-          this.set('selectedMounts', selectedMounts);
-        }
+        }, 0)
       }
 
       _getListItems(items) {

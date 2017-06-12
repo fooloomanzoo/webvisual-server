@@ -68,14 +68,15 @@
       }
 
       _getContainerRoot() {
-        var root = Polymer.dom(this).getOwnerRoot();
-        if (!root)
-          return Polymer.dom(this).parentNode;
-        else if (root.nodeType == Node.DOCUMENT_FRAGMENT_NODE)
-          return root.host;
-        else {
-          return undefined;
-        }
+        return new Promise( (resolve, reject) => {
+          var root = Polymer.dom(this).getOwnerRoot();
+          if (!root)
+            resolve(Polymer.dom(this).parentNode);
+          else if (root.host || root.nodeType === Node.DOCUMENT_FRAGMENT_NODE)
+            resolve(root.host);
+          else
+            reject();
+        });
       }
 
       static get observers() {
@@ -132,69 +133,73 @@
         if (this._isAttached) {
           this.clearValues(true);
         }
-        var containerRoot = this._getContainerRoot();
+        this._getContainerRoot()
+          .then( containerRoot => {
+            if (!containerRoot || containerRoot.nodeName !== 'DEVICE-CHART') {
+              console.warn('No parentElement (chart) for graph found. Registration of Graph Element failed', containerRoot);
+              return;
+            } else if (!containerRoot._isAttached) {
+              console.warn('Chart has not been attached yet for adding a graph. Registration of Graph Element failed');
+              return;
+            } else {
+              this.chartElement = containerRoot;
+            }
 
-        if (!containerRoot || containerRoot.nodeName !== 'DEVICE-CHART') {
-          console.warn('No parentElement (chart) for graph found. Registration of Graph Element failed');
-          return;
-        } else if (!containerRoot._isAttached) {
-          console.warn('Chart has not been attached yet for adding a graph. Registration of Graph Element failed');
-          return;
-        } else {
-          this.chartElement = containerRoot;
-        }
+            if (!this.chartElement._height || !this.chartElement._width) {
+              this.chartElement._sizeChanged();
+            }
 
-        if (!this.chartElement._height || !this.chartElement._width) {
-          this.chartElement._sizeLayout();
-        }
+            this.chartElement._graphs.add(this);
 
-        this.chartElement._graphs.add(this);
+            this.noDots = this.chartElement.noDots || false;
+            this.noLine = this.chartElement.noLine || false;
+            this.noFill = this.chartElement.noFill || false;
 
-        this.noDots = this.chartElement.noDots || false;
-        this.noLine = this.chartElement.noLine || false;
-        this.noFill = this.chartElement.noFill || false;
+            // fill area
+            if (this.areaNode && this.areaNode.node) {
+              this.areaNode
+                .attr('data-name', this.item.mount)
+                .attr('fill', this.noFill ? null : (this.item.color || '#000'))
+                .attr('stroke', this.noLine ? null : this.item.color || '#000')
+                .attr('stroke-width', this.lineWidth);
+            } else {
+              this.areaNode = this.chartElement._areas
+                .append('svg:path')
+                .attr('data-name', this.item.mount)
+                .attr('class', 'area')
+                .attr('fill', this.noFill ? null : (this.item.color || '#000'))
+                .attr('stroke', this.noLine ? null : this.item.color || '#000')
+                .attr('stroke-width', this.lineWidth);
+            }
+            this.areaNode
+              .datum([])
+              .attr('d', this.area);
 
-        // fill area
-        if (this.areaNode && this.areaNode.node) {
-          this.areaNode
-            .attr('data-name', this.item.mount)
-            .attr('fill', this.noFill ? null : (this.item.color || '#000'))
-            .attr('stroke', this.noLine ? null : this.item.color || '#000')
-            .attr('stroke-width', this.lineWidth);
-        } else {
-          this.areaNode = this.chartElement._areas
-            .append('svg:path')
-            .attr('data-name', this.item.mount)
-            .attr('class', 'area')
-            .attr('fill', this.noFill ? null : (this.item.color || '#000'))
-            .attr('stroke', this.noLine ? null : this.item.color || '#000')
-            .attr('stroke-width', this.lineWidth);
-        }
-        this.areaNode
-          .datum([])
-          .attr('d', this.area);
+            // threshold markings
+            var y, node;
+            var bounderies = this.chartElement._bounderies;
+            if (this.item.threshold) {
+              this.bounderyLineGradientNode = bounderies.append('linearGradient')
+                .attr('id', 'boundery-line-' + this.item.mount)
+                .attr('gradientUnits', 'userSpaceOnUse')
+                .attr('x1', 0).attr('y1', this.chartElement._height)
+                .attr('x2', 0).attr('y2', 0);
+              this.areaNode.attr('stroke', 'url(#boundery-line-' + this.item.mount + ')');
+            } else {
+              if (this.bounderyLineGradientNode && this.bounderyLineGradientNode.node) {
+                node = this.bounderyLineGradientNode.node();
+                if (node && node.parentElement)
+                  node.parentElement.removeChild(node);
+                this.bounderyLineGradientNode = null;
+              }
+            }
 
-        // threshold markings
-        var y, node;
-        var bounderies = this.chartElement._bounderies;
-        if (this.item.threshold) {
-          this.bounderyLineGradientNode = bounderies.append('linearGradient')
-            .attr('id', 'boundery-line-' + this.item.mount)
-            .attr('gradientUnits', 'userSpaceOnUse')
-            .attr('x1', 0).attr('y1', this.chartElement._height)
-            .attr('x2', 0).attr('y2', 0);
-          this.areaNode.attr('stroke', 'url(#boundery-line-' + this.item.mount + ')');
-        } else {
-          if (this.bounderyLineGradientNode && this.bounderyLineGradientNode.node) {
-            node = this.bounderyLineGradientNode.node();
-            if (node && node.parentElement)
-              node.parentElement.removeChild(node);
-            this.bounderyLineGradientNode = null;
-          }
-        }
-
-        this._isAttached = true;
-        this.chartElement.redraw();
+            this._isAttached = true;
+            this.chartElement.redraw();
+          })
+          .catch( err => {
+            console.warn('No parentElement (chart) for graph found. Registration of Graph Element failed');
+          })
       }
 
       removeNodes() {
@@ -221,7 +226,9 @@
           // this.removeNodes();
           return;
         }
-        this.addNodes();
+        if (this._isAttached) {
+          this.addNodes();
+        }
       }
 
       insertValues(values, len) {

@@ -139,7 +139,7 @@
       }
 
       checkedChanged(checked, old) {
-        if (old !== undefined && this.selectable && this.selectEvent) {
+        if (this.selectable && this.selectEvent) {
           this.dispatchEvent(new CustomEvent(this.selectEvent, {
             bubbles: true, composed: true,
             detail: {

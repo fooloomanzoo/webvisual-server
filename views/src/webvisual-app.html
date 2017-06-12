@@ -236,7 +236,7 @@
 
           <logo-element id="logo" href="/home" title$="[[localize('home', 'name')]]"></logo-element>
 
-          <iron-collapse opened$="[[showTabs]]" hidden$="[[!wideLayout]]" horizontal style="align-self: flex-end;">
+          <iron-collapse opened="[[showTabs]]" hidden$="[[!wideLayout]]" horizontal style="align-self: flex-end;">
             <div class="tab-drawer top">
 
               <div class="selectbox toolbar grouping top" title="[[groupedKey]]" hidden$="[[hideGroupSelect]]">
@@ -259,7 +259,7 @@
                   </a>
                 </tab-element>
                 <tab-element name="detail">
-                  <a href$="/detail/[[room.path]]" class="tab">
+                  <a href$="/detail?room=[[queryParams.room]]" class="tab">
                     <iron-icon icon="chrome-reader-mode" class="left"></iron-icon>
                     {{localize('detail', 'name')}}
                   </a>
@@ -430,9 +430,8 @@
 
   <script>
     class WebvisualApp extends WebvisualBehaviors.LocalizeBehavior(Polymer.mixinBehaviors(
-      [Polymer.IronA11yKeysBehavior,
-        Polymer.IronResizableBehavior
-      ], Polymer.Element)) {
+      [ Polymer.IronA11yKeysBehavior,
+        Polymer.IronResizableBehavior ], Polymer.Element)) {
 
       static get is() {
         return 'webvisual-app';
@@ -616,23 +615,21 @@
         ]
       }
 
-      // keyBindings: {
-      //   'left': '_previousPage',
-      //   'right': '_nextPage'
-      // },
-
-      ready() {
-        // listen for online/offline
-        super.ready();
-        Polymer.RenderStatus.afterNextRender(this, function() {
-          window.addEventListener('online', this._notifyNetworkStatus);
-          window.addEventListener('offline', this._notifyNetworkStatus);
-        });
+      constructor() {
+        super();
+        this.keyBindings = {
+          'left': '_previousPage',
+          'right': '_nextPage'
+        };
         this._loadPresettings();
       }
 
       connectedCallback() {
         super.connectedCallback();
+        Polymer.RenderStatus.afterNextRender(this, function() {
+          window.addEventListener('online', this._notifyNetworkStatus);
+          window.addEventListener('offline', this._notifyNetworkStatus);
+        });
         this.removeAttribute('unresolved');
       }
 
@@ -861,7 +858,9 @@
       }
 
       _updateStyles() {
-        this.debounce('update-styles', this.updateStyles);
+        setTimeout(() => {
+          this.updateStyles();
+        }, 0);
       }
 
       _setGroupingSelectBoxes(hideGroupSelect) {
@@ -894,10 +893,16 @@
 
       _debouncedHideTabs(showTabs) {
         if (showTabs) {
-          // this.debounce('hide-tabs', function() {
-          this.showTabs = false;
-          //   this.async(this.notifyResize, 500);
-          // }, 10000);
+          if (this._activeHideTabsJob) {
+            clearTimeout(this._activeHideTabsJob);
+          }
+          this._activeHideTabsJob = setTimeout(() => {
+            this.showTabs = false;
+            setTimeout(() => {
+              this.notifyResize();
+            }, 0)
+            this._activeHideTabsJob = null;
+          }, 10000);
         }
       }
 

@@ -397,12 +397,11 @@
       }
 
       _initialize() {
-        // this.async(this._selectableItemsChanged.bind(this), 100);
-        this._selectableItemsChanged();
-        // this.debounce('select', this._selectSelected, 100);
-        // this.debounce('select-exceeds', this._selectExceeds, 100);
-        this._selectSelected();
-        this._selectExceeds();
+        setTimeout(() => {
+          this._selectableItemsChanged();
+          this._selectSelected();
+          this._selectExceeds();
+        }, 0)
       }
 
       _initZoom() {
@@ -432,7 +431,6 @@
             }
           }
           this.opened = this.src && (this.opened || this.forceOpened || this.openOnSelect);
-          // this.debounce('select', this._selectSelected, 50);
           this._selectSelected();
         } else if (this._mainG && this._mainG.selectAll) {
           this._mainG.selectAll('.' + this.selectedClass)
@@ -448,7 +446,6 @@
             this.src = exceeding[exceeding.length - 1].svg.path;
           }
           this.opened = this.src && (this.opened || this.forceOpened || this.openOnExceed);
-          // this.debounce('select-exceeds', this._selectExceeds, 50);
           this._selectExceeds();
         } else if (this._mainG && this._mainG.selectAll) {
           this._mainG.selectAll('.' + this.exceedingClass)
@@ -458,7 +455,6 @@
 
       _initialChanged(initial) {
         if (!this.src || !initial) return;
-        // this.debounce('resetZoom', this._resetZoom, 50);
         this._resetZoom();
       }
 
@@ -521,30 +517,42 @@
       }
 
       _selectSelected() {
-        var sel = this.multi ? (this.items || []) : [];
-        if (this.item && Object.keys(this.item).length && sel.indexOf(this.item) === -1)
-          sel.push(this.item);
-        var style, scopeName; // Use elements color as fill-color by creating a CSS rule
-        if (ShadyCSS && ShadyCSS.nativeShadow === true) { // shadowDOM
-          style = this.shadowRoot.querySelector('style');
-        } else { // shadyDOM
-          style = document.querySelector('style[scope="device-svg"]');
-        }
-        if (style && sel && sel.length) {
-          for (var i = 0; i < sel.length; i++) {
-            if (sel[i] && sel[i].color && sel[i].svg && sel[i].svg.selector) {
-              // Add to StyleSheet
-              if (style && style.sheet && style.sheet.insertRule) {
-                var selector = sel[i].svg.selector.split(',');
-                for (var j = 0; j < selector.length; j++) {
-                  style.sheet.insertRule(selector[j] + '.' + this.selectedClass + ' {\nfill: ' + sel[i].color + ' !important;\n}', style.sheet.cssRules.length);
+        requestAnimationFrame( () => {
+          var sel = this.multi ? (this.items || []) : [];
+          if (this.item && Object.keys(this.item).length && sel.indexOf(this.item) === -1)
+            sel.push(this.item);
+          var style, scopeName; // Use elements color as fill-color by creating a CSS rule
+          if (ShadyCSS && ShadyCSS.nativeShadow === true) { // shadowDOM
+            style = this.shadowRoot.querySelector('style');
+          } else { // shadyDOM
+            style = document.querySelector('style[scope="device-svg"]');
+          }
+          if (style && sel && sel.length) {
+            var selector, selectorText, hasRule;
+            for (var i = 0; i < sel.length; i++) {
+              if (sel[i] && sel[i].color && sel[i].svg && sel[i].svg.selector) {
+                // Add to StyleSheet
+                if (style && style.sheet && style.sheet.insertRule) {
+                  selector = sel[i].svg.selector.split(',');
+                  for (var j = 0; j < selector.length; j++) {
+                    selectorText = selector[j] + '.' + this.selectedClass;
+                    hasRule = false;
+                    for (var k = 0; k < style.sheet.cssRules.length; k++) {
+                      if (style.sheet.cssRules[i].selectorText === selectorText) {
+                        hasRule = true;
+                      }
+                    }
+                    if (hasRule === false) {
+                      style.sheet.insertRule(selectorText + ' {\nfill: ' + sel[i].color + ' !important;\n}', style.sheet.cssRules.length);
+                    }
+                  }
                 }
               }
             }
+            this.updateStyles();
+            this.select(sel, this.selectedClass);
           }
-          this.updateStyles();
-          this.select(sel, this.selectedClass);
-        }
+        })
       }
 
       _selectExceeds() {
@@ -574,9 +582,9 @@
         }
         if (sel === '' ||
           (elems = this._mainG.selectAll(sel)).classed(selectedClass, true).empty()) {
-          // if (this.opened) {
-          //   this.debounce('resetZoom', this._resetZoom, 33);
-          // }
+          if (this.opened) {
+            this.resetZoom();
+          }
           return;
         }
 
@@ -665,7 +673,6 @@
       }
 
       notifyResize() {
-        // this.debounce('resetZoom', this._resetZoom, 50);
         this._resetZoom();
       }
 
@@ -674,36 +681,35 @@
           e.preventDefault();
           e.stopPropagation();
         }
+        requestAnimationFrame( () => {
+          if (!(this.opened && this._mainG && this._mainG.node && this.src)) return;
 
-        if (!(this.opened && this._mainG && this._mainG.node && this.src)) return;
-
-        // zoom to selectedItems
-        if (!this.initiallyZoomToAll) {
-          if (this.item && Object.keys(this.item).length || (this.items && this.items.length)) {
-            // this.debounce('select', this._selectSelected, 50);
-            this._selectSelected();
-            return;
-          }
-          if (this.exceeding.length) {
-            // this.debounce('select-exceeds', this._selectExceeds, 50);
-            this._selectExceeds();
-            return;
-          }
-          // zoom to initial
-          if (this.initial) {
-            var initial;
-            if (!(initial = this._mainG.selectAll(this.initial)).empty()) {
-              this.select([{
-                svg: {
-                  selector: this.initial
-                }
-              }], 'initial');
+          // zoom to selectedItems
+          if (!this.initiallyZoomToAll) {
+            if (this.item && Object.keys(this.item).length || (this.items && this.items.length)) {
+              this._selectSelected();
               return;
             }
+            if (this.exceeding.length) {
+              this._selectExceeds();
+              return;
+            }
+            // zoom to initial
+            if (this.initial) {
+              var initial;
+              if (!(initial = this._mainG.selectAll(this.initial)).empty()) {
+                this.select([{
+                  svg: {
+                    selector: this.initial
+                  }
+                }], 'initial');
+                return;
+              }
+            }
+            // zomm to _mainG
+            this._zoomToElement(this._mainG.node());
           }
-          // zomm to _mainG
-          this._zoomToElement(this._mainG.node());
-        }
+        })
       }
     }
     customElements.define(DeviceSVG.is, DeviceSVG);
