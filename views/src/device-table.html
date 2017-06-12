@@ -29,7 +29,7 @@
         @apply --layout-horizontal;
         @apply --layout-around-justified;
     		font-size: 0.7em;
-        -webkit-user-select: all; -moz-user-select: all; -ms-user-select: all; user-select: all;
+        -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
   		}
   		.tr:not([state]), .tr[state="0"] {
   			background: none; color: inherit;
@@ -65,7 +65,9 @@
         display: block;
         position: relative;
         font-size: 0.6em;
-        padding: 0.25em 0.5em;
+        background-color: rgba(0, 0, 0, 0.2);
+        color: var(--bright-text-color);
+        padding: 0.5em 1em;
         text-align: center;
         -webkit-user-select: all; -moz-user-select: all; -ms-user-select: all; user-select: all;
       }
@@ -77,6 +79,12 @@
   			width: 100%;
   			flex: 1 1 50px;
   		}
+      ::selection {
+        background: transparent;
+      }
+      ::-moz-selection {
+        background: transparent;
+      }
     </style>
 
     <section id="head" hidden$="[[hideHeader]]" on-tap="_toggleGridView">
@@ -91,9 +99,9 @@
           <span>[[computeValue(value.y, value.state)]]</span>
         </div>
       </template>
-	</iron-list>
+	   </iron-list>
 
-	<section id="caption">[[caption]]</section>
+	   <section id="caption" hidden$="[[!caption]]">[[caption]]</section>
 	</template>
 
 	<script>
@@ -106,7 +114,8 @@
 			static get properties() {
 				return {
 					caption: {
-            type: String
+            type: String,
+            value: ''
           },
 
 					keysForCaption: {

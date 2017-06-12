@@ -123,7 +123,7 @@
       }
 
       getKey(key) {
-        return this.keys[key];
+        return this.keys && this.keys[key];
       }
 
       _computeReducedCaptionKeys(groupedKey, keys, onlyGroupedKey, withoutGroupedKey) {

@@ -52,23 +52,25 @@
       }
 
       _connect(loggedIn, offline, lazyConnect) {
-        // if (loggedIn && !offline && lazyConnect) {
-        this._createSocketConnection(this.locationHost, this.nameSpace);
-        // } else {
-        //   this.socketStatus = 'sync-problem';
-        //   Webvisual.disconnect();
-        // }
+        if (loggedIn && !offline && lazyConnect) {
+          this._createSocketConnection(this.locationHost, this.nameSpace);
+        } else {
+          this.socketStatus = 'sync-problem';
+          Webvisual.disconnect();
+        }
       }
 
       _createSocketConnection(locationHost, nameSpace) {
-        if (!locationHost || this.socketStatus === 'sync-disabled') return;
+        if (!locationHost || this.socketStatus === 'sync-disabled' || !Webvisual) return;
 
-        Webvisual.assignStatusNotifications(this);
-        Webvisual.createSocketConnection(locationHost, nameSpace);
+        setTimeout(() => {
+          Webvisual.assignStatusNotifications(this);
+          Webvisual.createSocketConnection(locationHost, nameSpace);
 
-        if (this.socketRoom) {
-          this.connect(this.socketRoom);
-        }
+          if (this.socketRoom) {
+            this.connect(this.socketRoom);
+          }
+        }, 0)
       }
 
       connect(socketRoom) {

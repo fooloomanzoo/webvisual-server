@@ -12,7 +12,8 @@ Modification from Polymer Shop Demo App
     <style>
       :host {
         @apply --layout;
-        @apply --layout-center-center;
+        @apply --layout-start-justified;
+        @apply --layout-center;
         box-sizing: border-box;
         position: relative;
         white-space: nowrap;
@@ -40,6 +41,9 @@ Modification from Polymer Shop Demo App
         @apply --tab-overlay;
       }
 
+      :host([vertical]) {
+        @apply --layout-center-center;
+      }
       :host([vertical]) #container {
         flex-direction: column;
         width: 100%;

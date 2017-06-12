@@ -65,15 +65,6 @@
         flex: 0 0 auto;
         padding: 0.25em;
       }
-      #currentSelected {
-        max-height: 2.75em;
-        flex: 0 0 auto;
-        justify-content: center;
-        padding: 0.75em 5vw;
-        text-align: center;
-        background-color: rgba(0, 0, 0, 0.2);
-        color: var(--bright-text-color);
-      }
       #elementTable,
       #deviceTabs {
         height: 50%;
@@ -101,7 +92,7 @@
         --checkbox-checked-color: var(--primary-text-color);
         --checkbox-checked-background: {
           background-color: rgba(255, 255, 255, 0.75);
-          border-left: medium solid var(--secondary-color, white);
+          border-left: medium solid var(--device-color, var(--secondary-color));
           border-bottom: none;
         };
         --checkbox-unchecked-background: {
@@ -114,8 +105,8 @@
         --caption-color: currentColor;
       }
       @media (max-width: 600px) {
-        #deviceTabs {
-          background-color: rgba(255,255,255,0.25);
+        #elementDrawer {
+          --drawer-background: rgba(255,255,255,0.33);
         }
       }
       @media (min-width: 601px) {
@@ -124,6 +115,7 @@
         }
         #elementDrawer {
           right: -16em;
+          --drawer-background: rgba(255,255,255,0.0);
         }
       }
       @media (min-width: 800px) {
@@ -173,28 +165,23 @@
           exceeding="[[exceeding]]"></device-svg>
       </template>
 
-      <div class="spacer" hidden$="[[narrowLayout]]"></div>
-      <template is="dom-if" if="[[narrowLayout]]">
-        <device-caption id="currentSelected" class="caption" keys="[[item.keys]]"></device-caption>
-      </template>
-
       <drawer-element id="elementDrawer" opened$="[[_ensureOpened(narrowLayout)]]" swipe-open$="[[narrowLayout]]" scrim persistent$="[[!narrowLayout]]" align="right" stretch>
 
         <tabs-container id="deviceTabs" vertical selected-values="{{selectedMounts}}" attr-for-selected="mount" selected-items="{{selectedCheckboxes}}" multi selected-attribute="checked">
 
           <template is="dom-repeat" items="[[_getListItems(elements)]]">
-                <device-checkbox class="checkbox"
-                  mount$="[[item.mount]]"
-                  item="[[item]]"
-                  tap-event="detail-request"
-                  selectable>
-                  <device-caption class="caption"
-                    keys="[[item.keys]]"></device-caption>
-                </device-checkbox>
-              </template>
+            <device-checkbox class="checkbox"
+              mount$="[[item.mount]]"
+              item="[[item]]"
+              tap-event="detail-request"
+              selectable>
+              <device-caption class="caption"
+                keys="[[item.keys]]"></device-caption>
+            </device-checkbox>
+          </template>
         </tabs-container>
 
-        <device-table id="elementTable" full-date item="[[item]]" keys-for-caption></device-table>
+        <device-table-group id="elementTable" items="[[items]]"></device-table-group>
       </drawer-element>
     </div>
   </template>

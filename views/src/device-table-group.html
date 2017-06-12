@@ -2,51 +2,51 @@
 
 <dom-module id="device-table-group">
   <template strip-whitespace>
-    <style include="button-style">
+    <style>
       :host {
-        @apply --layout-horizontal;
+        @apply --layout-vertical;
         position: relative;
         box-sizing: border-box;
-        line-height: 0;
-        min-height: 100px;
       }
 			#select {
-        min-width: 3em;
-        max-width: 6em;
+        width: 100%;
         flex-shrink: 0;
+        background-color: rgba(0, 0, 0, 0.2);
 				--tab-overlay: {
-					background-color: rgba(255, 255, 255, 0.25);
-					border-right: medium solid var(--secondary-color, var(--highlight-color));
+          background-color: rgba(0, 0, 0, 0.3);
+          color: var(--bright-text-color);
+					border-top: thin solid var(--secondary-color);
+					border-bottom: thin solid var(--secondary-color);
 					border-left: none;
-					border-bottom: none;
 				}
 			}
       #tables {
         position: relative;
         box-sizing: border-box;
-        flex: 1 0 auto;
+        flex: 1 0 0.0001px;
       }
       .tab {
         font-size: 0.75em;
         padding: 0.5em;
         border-radius: 0;
-        white-space: normal;
+        white-space: nowrap;
       }
       .hidden {
         display: none;
       }
+
     </style>
 
-    <tabs-container id="select" selected="{{currentTable}}" fallback-selection="0" vertical>
+    <iron-pages id="tables" selected="[[currentTable]]">
       <template is="dom-repeat" items="[[items]]">
-        <div class="button tab" title="[[item.id]]"><div>[[item.id]]</div></div>
+        <device-table title$="[[item.id]]" item="[[item]]" full-date></device-table>
       </template>
-  </tabs-container>
-  <iron-pages id="tables" selected="[[currentTable]]">
-    <template is="dom-repeat" items="[[items]]">
-        <device-table title$="[[item.id]]" item="[[item]]" keys-for-caption full-date></device-table>
+    </iron-pages>
+    <tabs-container id="select" selected="{{currentTable}}" fallback-selection="0">
+      <template is="dom-repeat" items="[[items]]">
+        <tab-element class="tab" title$="[[item.id]]">[[item.id]]</tab-element>
       </template>
-  </iron-pages>
+    </tabs-container>
 
   </template>
 
@@ -64,14 +64,6 @@
               return [];
             },
             notify: true
-          },
-
-          onlyFirstRow: {
-            type: Boolean
-          },
-
-          showFullDate: {
-            type: Boolean
           },
 
           currentTable: {

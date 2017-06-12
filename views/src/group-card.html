@@ -165,30 +165,29 @@
               multi
               exceeding="[[exceeding]]"></device-svg>
           </template>
-  <template is="dom-if" if="[[_shouldRenderExtensions]]">
+          <template is="dom-if" if="[[_shouldRenderExtensions]]">
             <device-chart class="view"
               multi
               items="[[items]]"></device-chart>
             <device-table-group class="view"
               items="[[items]]"></device-table-group>
           </template>
-  </iron-pages>
+        </iron-pages>
 
-  <section id="title">
-    <span class="title-text" on-tap="toggle">[[title]]</span>
-    <icon-button title="expand" on-tap="toggle" class="expand-button" icon="[[expandIcon]]"></icon-button>
-  </section>
+        <section id="title">
+          <span class="title-text" on-tap="toggle">[[title]]</span>
+          <icon-button title="expand" on-tap="toggle" class="expand-button" icon="[[expandIcon]]"></icon-button>
+        </section>
 
-  <section id="control">
-    <iron-selector selected="{{view}}" selectable=".button">
-      <icon-button title="map" icon="map" class="button" hidden$="[[!svgSrcPath]]"></icon-button>
-      <icon-button title="chart" icon="show-chart" class="button" hidden$="[[!_shouldRenderExtensions]]"></icon-button>
-      <icon-button title="table" icon="list" class="button" hidden$="[[!_shouldRenderExtensions]]"></icon-button>
-    </iron-selector>
-  </section>
-  </section>
-  </section>
-
+        <section id="control">
+          <iron-selector selected="{{view}}" selectable=".button">
+            <icon-button title="map" icon="map" class="button" hidden$="[[!svgSrcPath]]"></icon-button>
+            <icon-button title="chart" icon="show-chart" class="button" hidden$="[[!_shouldRenderExtensions]]"></icon-button>
+            <icon-button title="table" icon="list" class="button" hidden$="[[!_shouldRenderExtensions]]"></icon-button>
+          </iron-selector>
+        </section>
+      </section>
+    </section>
   </template>
 
   <script>

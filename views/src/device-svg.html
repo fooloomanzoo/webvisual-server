@@ -279,7 +279,7 @@
               return [];
             }
           },
-          
+
           exceeding: {
             type: Array,
             value: function() {
@@ -524,21 +524,15 @@
         var sel = this.multi ? (this.items || []) : [];
         if (this.item && Object.keys(this.item).length && sel.indexOf(this.item) === -1)
           sel.push(this.item);
-        if (sel && sel.length) {
+        var style, scopeName; // Use elements color as fill-color by creating a CSS rule
+        if (ShadyCSS && ShadyCSS.nativeShadow === true) { // shadowDOM
+          style = this.shadowRoot.querySelector('style');
+        } else { // shadyDOM
+          style = document.querySelector('style[scope="device-svg"]');
+        }
+        if (style && sel && sel.length) {
           for (var i = 0; i < sel.length; i++) {
             if (sel[i] && sel[i].color && sel[i].svg && sel[i].svg.selector) {
-              var style; // Use elements color as fill-color by creating a CSS rule
-              if (this.shadowRoot) { // shadowDOM
-                style = this.shadowRoot.querySelector('style');
-              } else {
-                var scopeName; // shadyDOM
-                Array.prototype.forEach.call(this.classList, function(cl) {
-                  if (cl.startsWith('device-svg')) {
-                    scopeName = cl;
-                  }
-                })
-                style = document.querySelector('style[scope="' + scopeName + '"]');
-              }
               // Add to StyleSheet
               if (style && style.sheet && style.sheet.insertRule) {
                 var selector = sel[i].svg.selector.split(',');
