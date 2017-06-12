@@ -252,20 +252,45 @@
             key: key
           }
         };
+        console.log(req);
 
-        if (window.Webvisual) {
-          return new Promise((resolve, reject) => {
+        if (!this.storeInside && window.Webvisual) {
+          return new Promise( (resolve, reject) => {
             window.Webvisual.request(req, resolve);
           })
         } else {
-          return new Promise((resolve, reject) => {
-            if (this.values)
-              resolve([this.values[this.values.length - 1], this.values[0]])
+          return new Promise( (resolve, reject) => {
+            if (this.values && this.values.length) {
+              var min = this.min(this.values, key);
+              var max = this.max(this.values, key);
+              resolve( [ min, max ] );
+            }
             else {
-              reject();
+              // reject('no values are set');
+              resolve( [ ] );
             }
           });
         }
+      }
+
+      min(array, key) { // inspired by d3.array
+        var i = -1,
+            a,
+            b;
+        var n = array.length;
+        while (++i < n) if ((b = array[i][key]) !== null && b >= b) { a = b; break; }
+        while (++i < n) if ((b = array[i][key]) !== null && a > b) a = b;
+        return a;
+      }
+
+      max(array, key) { // inspired by d3.array
+        var i = -1,
+            a,
+            b;
+        var n = array.length;
+        while (++i < n) if ((b = array[i][key]) !== null && b >= b) { a = b; break; }
+        while (++i < n) if ((b = array[i][key]) !== null && a < b) { a = b; }
+        return a;
       }
 
       renderInsertedValues(values) {}

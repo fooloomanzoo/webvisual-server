@@ -105,6 +105,7 @@
       }
       #graphs .area {
         fill-opacity: 0.3;
+        mix-blend-mode: overlay;
         @apply --chart-area;
       }
       #graphs .line {
@@ -943,10 +944,11 @@
           });
           Promise.all(p)
             .then(function(res) {
+              console.log(res);
               var min, max;
               for (var i = 0; i < res.length; i++) {
-                min = (min === undefined || min > res[i][0][key]) ? res[i][0][key] : min;
-                max = (max === undefined || max < res[i][1][key]) ? res[i][1][key] : max;
+                min = (min === undefined || min > res[i][0]) ? res[i][0] : min;
+                max = (max === undefined || max < res[i][1]) ? res[i][1] : max;
               }
               if (min === undefined || max === undefined) {
                 reject();
