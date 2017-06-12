@@ -1,15 +1,15 @@
 <script>
   window.WebvisualBehaviors = window.WebvisualBehaviors || {};
 
-  /**
-   * Behavior that adds functionality to assign to socket and adds exceed events
-   *
-   * @polymerBehavior
-   */
-
   WebvisualBehaviors.DeviceBehavior = function(superClass) {
+    /**
+     * Behavior that adds functionality to assign to socket and adds exceed events
+     *
+     * @mixinClass
+     * @polymer
+     */
     return class extends superClass {
-      
+
       constructor() {
         super();
       }
@@ -85,7 +85,6 @@
       }
 
       _linkElement(item, noLink) {
-        console.log(item);
         if (!(item && item.mount && !noLink)) {
           return;
         }
@@ -232,6 +231,36 @@
           return new Promise((resolve, reject) => {
             if (this.values)
               resolve(this.values.slice(this.values.length - len, this.values.length))
+            else {
+              reject();
+            }
+          });
+        }
+      }
+
+      requestRange(key) {
+        if (!(this.item && this.item.mount)) {
+          return new Promise((resolve, reject) => {
+            reject();
+          })
+        }
+        var req = {
+          target: 'cache',
+          operation: 'range',
+          args: {
+            mounts: [this.item.mount],
+            key: key
+          }
+        };
+
+        if (window.Webvisual) {
+          return new Promise((resolve, reject) => {
+            window.Webvisual.request(req, resolve);
+          })
+        } else {
+          return new Promise((resolve, reject) => {
+            if (this.values)
+              resolve([this.values[this.values.length - 1], this.values[0]])
             else {
               reject();
             }

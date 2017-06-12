@@ -240,8 +240,6 @@
       }
 
       _requestExceedingDetails(e) {
-        e.preventDefault();
-        e.stopPropagation();
         this.dispatchEvent(new CustomEvent('request-exceeding-details', {
           bubbles: true,
           composed: true,

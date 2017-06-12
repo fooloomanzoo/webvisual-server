@@ -512,14 +512,14 @@
 
       setColor(color) {
         // random color if color is not set
-        WebvisualBehaviors.ColorBehavior.setColor.call(this, color);
+        super.setColor.call(this, color);
         if (this.chart) {
           if (this.areaNode && this.areaNode.attr) this.areaNode.attr('fill', color);
         }
       }
 
       clearValues(force) {
-        WebvisualBehaviors.DeviceBehavior.clearValues.call(this, force);
+        super.clearValues.call(this, force);
         // if (this.dots && this.dots.node) {
         //   this.dots.selectAll('circle')
         //           .remove();

@@ -96,7 +96,7 @@ Modification from Polymer Shop Demo App
       }
 
       _onSelectedItemChanged(selectedItem, old) {
-        console.log('selectedItem', selectedItem);
+        // console.log('selectedItem', selectedItem);
         if (selectedItem === undefined) return;
         if (!this.multi) {
           this.$.overlay.target = selectedItem;
@@ -104,11 +104,11 @@ Modification from Polymer Shop Demo App
       }
 
       _onSelectedItemsChanged(selectedItems) {
-          console.log('selectedItems', selectedItems);
+          // console.log('selectedItems', selectedItems);
       }
 
       _onSelectedValuesChanged(selectedValues, selected) {
-          console.log('selectedValues', selectedValues, selected);
+          // console.log('selectedValues', selectedValues, selected);
       }
 
       _onWheel(e) {

@@ -114,7 +114,6 @@ WebvisualClient.prototype = {
   },
 
   assignElement: function(node) {
-    console.log(node);
     var mount = node.item.mount;
 
     if (!mount)

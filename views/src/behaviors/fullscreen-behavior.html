@@ -1,19 +1,19 @@
 <script>
   window.WebvisualBehaviors = window.WebvisualBehaviors || {};
 
-  /**
-   * Behavior that adds fullscreen behavior
-   *
-   * @polymerBehavior
-   */
-
   WebvisualBehaviors.FullscreenBehavior = function(superClass) {
+    /**
+     * Behavior that adds fullscreen behavior
+     *
+     * @mixinClass
+     * @polymer
+     */
     return class extends superClass {
 
       constructor() {
         super();
       }
-      
+
       static get properties() {
         return {
           fullscreen: {

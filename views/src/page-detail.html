@@ -16,12 +16,6 @@
           padding: 0;
           position: absolute;
         };
-        --tab-overlay: {
-          background-color: rgba(255, 255, 255, 0.75);
-          border-left: medium solid var(--secondary-color, white);
-          color: var(--primary-text-color);
-          border-bottom: none;
-        };
       }
       #content {
         display: flex;
@@ -103,15 +97,19 @@
       }
       .checkbox {
         width: 100%;
-        --checkbox-unchecked: {
-          color: var(--bright-text-color);
+        --checkbox-unchecked-color: var(--bright-text-color);
+        --checkbox-checked-color: var(--primary-text-color);
+        --checkbox-checked-background: {
+          background-color: rgba(255, 255, 255, 0.75);
+          border-left: medium solid var(--secondary-color, white);
+          border-bottom: none;
         };
-        --checkbox-checked: {
-          @apply --tab-overlay;
+        --checkbox-unchecked-background: {
+          background-color: transparent;
+          border-left: none;
         };
       }
       .caption {
-        pointer-events: none;
         --caption-background: transparent;
         --caption-color: currentColor;
       }
@@ -155,7 +153,7 @@
     <iron-media-query query="(max-width: 600px)" query-matches="{{narrowLayout}}"></iron-media-query>
 
     <svg-data hidden
-      room="[[routeData.facility]]/[[routeData.system]]"
+      room="[[room]]"
       logged-in="[[loggedIn]]"
       data="{{svgData}}"></svg-data>
 
@@ -167,10 +165,11 @@
       <template is="dom-if" if="[[_withSvg]]">
         <device-svg id="svg" disable-upgrade$="[[!visible]]"
           opened="[[visible]]"
-          url-prefix="/images/[[routeData.facility]]/[[routeData.system]]/"
+          url-prefix="/images/[[room]]/"
           src="[[item.svg.path]]"
           selectable-items="[[_getSvgSelectable(item.svg.path, svgData.paths)]]"
           items="[[items]]"
+          multi
           exceeding="[[exceeding]]"></device-svg>
       </template>
 
@@ -181,7 +180,7 @@
 
       <drawer-element id="elementDrawer" opened$="[[_ensureOpened(narrowLayout)]]" swipe-open$="[[narrowLayout]]" scrim persistent$="[[!narrowLayout]]" align="right" stretch>
 
-        <tabs-container id="deviceTabs" vertical selected-values="{{selectedMounts}}" attr-for-selected="mount" selected-item="{{selectedTab}}" multi activate-event="item-select">
+        <tabs-container id="deviceTabs" vertical selected-values="{{selectedMounts}}" attr-for-selected="mount" selected-items="{{selectedCheckboxes}}" multi selected-attribute="checked">
 
           <template is="dom-repeat" items="[[_getListItems(elements)]]">
                 <device-checkbox class="checkbox"
@@ -195,14 +194,14 @@
               </template>
         </tabs-container>
 
-        <device-table id="elementTable" full-date item="[[item]]"></device-table>
+        <device-table id="elementTable" full-date item="[[item]]" keys-for-caption></device-table>
       </drawer-element>
     </div>
   </template>
 
   <script>
-    class PageDetail extends WebvisualBehaviors.ContainerBehavior(Polymer.mixinBehaviors(
-      [Polymer.IronResizableBehavior], Polymer.Element)) {
+    class PageDetail extends WebvisualBehaviors.ContainerBehavior(Polymer.MutableData(Polymer.mixinBehaviors(
+      [Polymer.IronResizableBehavior], Polymer.Element))) {
 
       static get is() {
         return 'page-detail';
@@ -212,15 +211,19 @@
         return {
           query: {
             type: String,
-            notify: true
+            notify: true,
+            observer: '_queryChanged'
           },
 
           selectedMounts: {
             type: Array,
-            value: function() {
-              return [];
-            },
-            notify: true
+            notify: true,
+            observer: '_selectedMountsChanged'
+          },
+
+          selectedCheckboxes: {
+            type: Array,
+            observer: '_selectedCheckboxesChanged'
           },
 
           loggedIn: {
@@ -232,18 +235,30 @@
             notify: true
           },
 
+          item: {
+            type: Object,
+            notify: true,
+            value: function() {
+              return {};
+            }
+          },
+
+          items: {
+            type: Array,
+            notify: true,
+            value: function() {
+              return [];
+            }
+          },
+
+          room: {
+            type: String,
+            notify: true
+          },
+
           multi: {
             type: Boolean,
             value: true
-          },
-
-          selectedMounts: {
-            type: Array
-          },
-
-          selectedTab: {
-            type: Object,
-            observer: '_selectedTabChanged'
           },
 
           svgData: {
@@ -258,6 +273,16 @@
           _withSvg: {
             type: Boolean,
             computed: '_hasSvg(item, svgData.paths)'
+          },
+
+          selectNotify: {
+            type: Boolean,
+            value: true
+          },
+
+          exceedNotify: {
+            type: Boolean,
+            value: true
           },
 
           narrowLayout: {
@@ -275,19 +300,15 @@
         }
       }
 
-      static get observers() {
-        return [
-          '_queryChanged(query)',
-          '_selectedMountsChanged(selectedMounts)'
-        ]
-      }
-
       connectedCallback() {
         this._debounceResize();
       }
 
+      _onItemsChanged(items) {
+        console.log('item-select', items);
+      }
+
       _queryChanged(query) {
-        console.log('query', query);
         if (!query) {
           return;
         }
@@ -295,109 +316,38 @@
       }
 
       _selectedMountsChanged(selectedMounts) {
-        console.log('selectedMounts', selectedMounts);
-        // this.set('query', selectedMounts.toString());
-      }
-
-      _setExceeding(e) {
-        if (e && e.detail && e.detail.item) {
-          if (e.detail.value === true)
-            this.setExceeding(e.detail.item);
-          else
-            this.unsetExceeding(e.detail.item);
+        var elements = this.elements;
+        var mount;
+        for (var i = 0; i < this.selectedCheckboxes.length; i++) {
+          mount = this.selectedCheckboxes[i].mount;
+          if (selectedMounts.indexOf(mount) === -1) {
+            this.splice('selectedCheckboxes', i, 1);
+            i--;
+          }
         }
+        this.set('query', selectedMounts.join(','));
       }
 
-      setExceeding(item) {
-        var pos = this.exceeding.indexOf(item);
-        if (pos === -1)
-          this.push('exceeding', item);
-
-        this.isExceeding = (this.exceeding.length > 0) ? true : false;
-      }
-
-      unsetExceeding(item) {
-        if (this.noAutoRemovalExceedings === true) return;
-        var pos = this.exceeding.indexOf(item);
-        if (pos !== -1)
-          this.splice('exceeding', pos, 1);
-
-        this.isExceeding = (this.exceeding.length > 0) ? true : false;
+      _selectedCheckboxesChanged(selectedCheckboxes) {
+        var selectedMounts = this.selectedMounts;
+        if (selectedCheckboxes) {
+          var mount;
+          for (var i = 0; i < selectedCheckboxes.length; i++) {
+            mount = selectedCheckboxes[i].mount;
+            if (mount && selectedMounts.indexOf(mount) === -1) {
+              selectedMounts.push(mount);
+            }
+          }
+          if (selectedCheckboxes.length) {
+            selectedCheckboxes[selectedCheckboxes.length-1].scrollIntoViewIfNeeded(true);
+          }
+          this.set('selectedMounts', selectedMounts);
+        }
       }
 
       _getListItems(items) {
         // Return placeholder items when the items haven't loaded yet.
         return items || [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
-      }
-
-      _setCurrentElement(elements, path) {
-        //   console.log('setcurrentelement');
-        //   if (!(elements && elements.length && path)) {
-        //     return;
-        //   }
-        //   var mount;
-        //   var pathData = path.split('/').filter(function (str) { return str !== ''; });
-        //
-        //   if (pathData.length < 2) {
-        //     if (this.elements && this.elements[0] && this.elements[0].mount) {
-        //       mount = this.elements[0].mount;
-        //     } else {
-        //       return;
-        //     }
-        //   } else {
-        //     mount = pathData.join('/');
-        //   }
-        //   if (this.route.prefix !== '/detail') {
-        //     this.route.prefix = '/detail';
-        //     this.notifyPath('route.prefix');
-        //   }
-        //
-        //   for (var i = 0; i < this.elements.length; i++) {
-        //     if (this.elements[i].mount && (mount === this.elements[i].mount)) {
-        //       this.cancelDebouncer('initial-element');
-        //       if (!this._selectedCheckbox || this._selectedCheckbox.mount !== this.elements[i].mount) {
-        //         console.log('select from tab');
-        //         this.set('item', this.elements[i]);
-        //       }
-        //       if (path !== '/' + mount) {
-        //         this.route.path = '/' + mount;
-        //         this.notifyPath('route.path');
-        //       }
-        //       // this._debounceResize();
-        //       return;
-        //     }
-        //   }
-        //   this.debounce('initial-element', this._setInitialElement.bind(this), 250);
-      }
-
-      _setInitialElement() {
-        // if (this.elements && this.elements.length) {
-        //   if (this._selectedCheckbox && this._selectedCheckbox.mount) {
-        //     var mount = this._selectedCheckbox.mount;
-        //     for (var i = 0; i < this.elements.length; i++) {
-        //       if (this.elements[i].mount && (mount === this.elements[i].mount)) {
-        //         this.route.path = '/' + mount;
-        //         this.notifyPath('route.path');
-        //         return;
-        //       }
-        //     }
-        //   }
-        //   this.route.path = '/' + this.elements[0].mount;
-        //   this.notifyPath('route.path');
-        //   this._debounceResize();
-        // }
-      }
-
-      _selectedTabChanged(el) {
-        console.log('selectedTab', el);
-        if (el) {
-          var relatedCheckbox = el.querySelector('device-checkbox');
-          if (relatedCheckbox && !relatedCheckbox.checked) {
-            relatedCheckbox._preventEvent = true;
-            relatedCheckbox.checked = true;
-          }
-          el.scrollIntoViewIfNeeded(true);
-        }
       }
 
       _hasSvg(item, svgPaths) {
@@ -430,8 +380,8 @@
           if (this.narrowLayout) {
             this.$.elementDrawer.open();
           }
-          if (this.selectedTab) {
-            this.selectedTab.scrollIntoViewIfNeeded(true);
+          if (this.selectedCheckboxes && this.selectedCheckboxes.length) {
+            this.selectedCheckboxes[this.selectedCheckboxes.length-1].scrollIntoViewIfNeeded(true);
           }
           this.notifyResize();
         }, 0);

@@ -1,19 +1,19 @@
 <script>
   window.WebvisualBehaviors = window.WebvisualBehaviors || {};
 
-  /**
-   * Behavior that listens for select and exceed Events
-   *
-   * @polymerBehavior
-   */
-
   WebvisualBehaviors.ContainerBehavior = function(superClass) {
+    /**
+     * Behavior that listens for select and exceed Events
+     *
+     * @mixinClass
+     * @polymer
+     */
     return class extends superClass {
 
       constructor() {
         super();
       }
-      
+
       static get properties() {
         return {
           container: {

@@ -1,13 +1,13 @@
 <script>
   window.WebvisualBehaviors = window.WebvisualBehaviors || {};
 
-  /**
-   * Behavior that adds select events and checked attributes
-   *
-   * @polymerBehavior
-   */
-
   WebvisualBehaviors.CheckedAndSelectBehavior = function(superClass) {
+    /**
+     * Behavior that adds select events and checked attributes
+     *
+     * @mixinClass
+     * @polymer
+     */
     return class extends superClass {
 
       constructor() {
@@ -51,7 +51,7 @@
 
           tapDuration: {
             type: Number,
-            value: 500
+            value: 300
           },
 
           selectEvent: {
@@ -70,10 +70,15 @@
 
         }
       }
-      
+
+      static get observers() {
+        return [
+          '_addTouchListeners(disabled, selectEvent, tapEvent)'
+        ]
+      }
+
       connectedCallback() {
         super.connectedCallback();
-        this._createMethodObserver('_addTouchListeners(disabled, selectEvent, tapEvent)', true);
       }
 
       disconnectedCallback() {
@@ -95,6 +100,8 @@
             Polymer.Gestures.addListener(eventTarget, 'up', e => this._handleTouch(e));
           } else if (selectEvent) {
             Polymer.Gestures.addListener(eventTarget, 'tap', e => this.select());
+          } else {
+            this._removeTouchListeners();
           }
         }
       }
@@ -117,8 +124,7 @@
         } else {
           if (this._lastEvent && e.timeStamp - (this._lastEvent.timeStamp || performance.now()) > this.tapDuration) {
             this.dispatchEvent(new CustomEvent(this.tapEvent, {
-              bubbles: true,
-              composed: true,
+              bubbles: true, composed: true,
               detail: {
                 item: this.item
               }
@@ -134,23 +140,18 @@
 
       checkedChanged(checked, old) {
         if (old !== undefined && this.selectable && this.selectEvent) {
-          if (!this._preventSelectEvent) {
-            this.dispatchEvent(new CustomEvent(this.tapEvent, {
-              bubbles: true,
-              composed: true,
-              detail: {
-                item: this.item,
-                value: checked
-              }
-            }));
-          }
+          this.dispatchEvent(new CustomEvent(this.selectEvent, {
+            bubbles: true, composed: true,
+            detail: {
+              item: this.item,
+              value: checked
+            }
+          }));
         }
-        this._preventSelectEvent = false;
       }
 
-      select(value, preventEvent) {
+      select(value) {
         if (this.selectable === true) {
-          this._preventSelectEvent = preventEvent;
           if (value !== undefined) {
             this.checked = value;
           } else if (this.toggles === true) {

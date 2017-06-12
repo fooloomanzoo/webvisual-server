@@ -105,15 +105,25 @@
 
 			static get properties() {
 				return {
-					caption: String,
+					caption: {
+            type: String
+          },
 
-					keysForCaption: Boolean,
+					keysForCaption: {
+            type: Boolean
+          },
 
-					onlyFirstRow: Boolean,
+					onlyFirstRow: {
+            type: Boolean
+          },
 
-					hideHeader: Boolean,
+					hideHeader: {
+            type: Boolean
+          },
 
-					fullDate: Boolean,
+					fullDate: {
+            type: Boolean
+          },
 
 					viewLength: {
 						type: Number,
@@ -135,7 +145,7 @@
 
 			insertValues(values) {
 				if (values && values.length) {
-					this.async(function() {
+					setTimeout(() => {
 						if (!this._initialized) {
 							this.set('values', values.reverse());
 							this._initialized = true;
@@ -144,7 +154,7 @@
 								this.unshift('values', values[i]);
 							}
 						}
-					}.bind(this));
+					}, 0);
 				} else if (!this._initialized) {
 					this.renderClearing();
 				}
@@ -153,9 +163,8 @@
 			spliceValues(splices) {
 				// var list = this.$.list.items;
 
-				this.async(function() {
-					var changeRecord = [];
-
+				setTimeout(() => {
+          var changeRecord = [];
 					for (var i = 0; i < splices.length; i++) {
 						for (var j = this.values.length - 1; j >= 0; j--) {
 							if (this.values[j].x === splices[i].x)
@@ -172,10 +181,8 @@
 							});
 						}
 					}
-
 					this.notifySplices('values', changeRecord);
-				}.bind(this))
-
+				}, 0);
 			}
 
 			renderClearing() {

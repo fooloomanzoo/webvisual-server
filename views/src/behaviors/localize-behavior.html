@@ -1,19 +1,20 @@
 <script>
   window.WebvisualBehaviors = window.WebvisualBehaviors || {};
 
-  /**
-   * Behavior that adds localization to page
-   * modification of PolymerElements/app-localize-behavior for simplification reasons
-   *
-   * @polymerBehavior
-   */
   WebvisualBehaviors.LocalizeBehavior = function(superClass) {
+    /**
+     *  Behavior that adds localization to page
+     *  modification of PolymerElements/app-localize-behavior for simplification reasons
+     *
+     * @mixinClass
+     * @polymer
+     */
     return class extends superClass {
 
       constructor() {
         super();
       }
-      
+
       static get properties() {
         return {
           language: {

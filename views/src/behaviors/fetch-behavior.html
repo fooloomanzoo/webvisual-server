@@ -3,19 +3,19 @@
 <script>
   window.WebvisualBehaviors = window.WebvisualBehaviors || {};
 
-  /**
-   * Behavior that fetches data from server and saves them optionally
-   *
-   * @polymerBehavior
-   */
-
   WebvisualBehaviors.FetchBehavior = function(superClass) {
+    /**
+     * Behavior that fetches data from server and saves them optionally
+     *
+     * @mixinClass
+     * @polymer
+     */
     return class extends superClass {
 
       constructor() {
         super();
       }
-      
+
       static get properties() {
         return {
           urlPrefix: {

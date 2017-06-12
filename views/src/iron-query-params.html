@@ -18,7 +18,10 @@ work-around until problems are fixed with iron-query-location
 
       paramsObject: {
         type: Object,
-        notify: true
+        notify: true,
+        value: function() {
+          return {};
+        }
       },
 
       _dontReact: {
@@ -42,6 +45,7 @@ work-around until problems are fixed with iron-query-location
     },
 
     paramsObjectChanged: function() {
+      // console.log(this.paramsObject);
       if (this._dontReact) {
         return;
       }
