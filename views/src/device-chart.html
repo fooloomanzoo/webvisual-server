@@ -187,7 +187,7 @@
         background-color: rgba(255, 255, 255, 0.25);
       }
       icon-button {
-        mix-blend-mode: exclusion;
+        mix-blend-mode: overlay;
       }
       [hidden] {
         display: none !important;
@@ -664,7 +664,7 @@
         if (!this._isAttached) return;
 
         var bRect = this.$.svgChart.getBoundingClientRect();
-        console.log('sizeLayout', bRect);
+        // console.log('sizeLayout', bRect);
 
         if (bRect.height === 0 || bRect.width === 0) return;
 
@@ -944,7 +944,6 @@
           });
           Promise.all(p)
             .then(function(res) {
-              console.log(res);
               var min, max;
               for (var i = 0; i < res.length; i++) {
                 min = (min === undefined || min > res[i][0]) ? res[i][0] : min;
