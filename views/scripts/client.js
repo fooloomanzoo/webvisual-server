@@ -29,7 +29,7 @@ WebvisualClient.prototype = {
               if (resolve) {
                 // this.messageMap.delete(e.data.messageId);
                 delete this.messageMap[e.data.messageId];
-                console.log(e);
+                // console.log(e);
                 resolve(e.data.response);
               }
             } else {

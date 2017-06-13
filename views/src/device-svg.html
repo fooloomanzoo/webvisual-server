@@ -521,7 +521,8 @@
           var sel = this.multi ? (this.items || []) : [];
           if (this.item && Object.keys(this.item).length && sel.indexOf(this.item) === -1)
             sel.push(this.item);
-          var style, scopeName; // Use elements color as fill-color by creating a CSS rule
+          // Use elements color as fill-color by creating a CSS rule
+          var style, scopeName;
           if (ShadyCSS && ShadyCSS.nativeShadow === true) { // shadowDOM
             style = this.shadowRoot.querySelector('style');
           } else { // shadyDOM
@@ -532,7 +533,7 @@
             for (var i = 0; i < sel.length; i++) {
               if (sel[i] && sel[i].color && sel[i].svg && sel[i].svg.selector) {
                 // Add to StyleSheet
-                if (style && style.sheet && style.sheet.insertRule) {
+                if (style && style.sheet && style.sheet.cssRules && style.sheet.insertRule) {
                   selector = sel[i].svg.selector.split(',');
                   for (var j = 0; j < selector.length; j++) {
                     selectorText = selector[j] + '.' + this.selectedClass;

@@ -92,16 +92,32 @@
         stroke-width: 0;
       }
       .axis path, .axis line {
-        fill: none;
         stroke: currentColor;
-        stroke-opacity: 0.5;
+        stroke-opacity: 0.15;
         stroke-width: 1.5px;
+      }
+      .axis.expanded path {
+        fill-opacity: 0.75;
+        stroke-opacity: 0.6;
       }
       .axis {
         font-family: inherit;
       }
-      #graphs {
-        mix-blend-mode: darken;
+      .axis.button {
+        pointer-events: all;
+        cursor: pointer;
+      }
+      .x.axis > .tick:first-of-type:not(:only-of-type) > text {
+        text-anchor: start;
+      }
+      .x.axis > .tick:last-of-type:not(:only-of-type) > text {
+        text-anchor: end;
+      }
+      .y.axis > .tick:first-of-type:not(:only-of-type) > text {
+        alignment-baseline: after-edge;
+      }
+      .y.axis > .tick:last-of-type:not(:only-of-type) > text {
+        alignment-baseline: before-edge;
       }
       #graphs .area {
         fill-opacity: 0.3;
@@ -142,18 +158,6 @@
       }
       .selectbox {
         padding: 0;
-      }
-      g.x.axis > g.tick:first-of-type:not(:only-of-type) > text {
-        text-anchor: start;
-      }
-      g.x.axis > g.tick:last-of-type:not(:only-of-type) > text {
-        text-anchor: end;
-      }
-      g.y.axis > g.tick:first-of-type:not(:only-of-type) > text {
-        alignment-baseline: after-edge;
-      }
-      g.y.axis > g.tick:last-of-type:not(:only-of-type) > text {
-        alignment-baseline: before-edge;
       }
       #control {
         position: absolute;
@@ -223,6 +227,7 @@
           <g id="yGrid" class="grid" clip-path="url(#clip)"></g>
           <g id="graphs" clip-path="url(#clip)">
             <g id="areas"></g>
+            <g id="lines"></g>
             <g id="bounderies"></g>
             <g id="brush"></g>
           </g>
@@ -287,9 +292,9 @@
           no-link="[[noLink]]">
         </device-graph>
       </template>
-  </template>
+    </template>
 
-  <template is="dom-if" if="[[!multi]]" restamp>
+    <template is="dom-if" if="[[!multi]]" restamp>
       <device-graph
         item="[[item]]"
         interpolation="[[interpolation]]"
@@ -323,10 +328,10 @@
             type: Object,
             value: function() {
               return {
-                top: 0,
-                right: 0,
-                bottom: 0,
-                left: 0
+                top: 6,
+                right: 20,
+                bottom: 6,
+                left: 6
               }
             }
           },
@@ -334,6 +339,26 @@
           gridMult: {
             type: Number,
             value: 2
+          },
+
+          yAxisWidth: {
+            type: Number,
+            value: 48
+          },
+
+          xAxisHeight: {
+            type: Number,
+            value: 24
+          },
+
+          yAxisCondensedWidth: {
+            type: Number,
+            value: 12
+          },
+
+          xAxisCondensedHeight: {
+            type: Number,
+            value: 12
           },
 
           xScale: {
@@ -368,11 +393,6 @@
             type: String,
             value: 'Lineare Verbindung',
             observer: 'changeInterpolation'
-          },
-
-          noDots: {
-            type: Boolean,
-            value: false
           },
 
           noLine: {
@@ -422,6 +442,7 @@
         this._yGrid = {};
         this._brush = {};
         this._chart = {};
+        this._control = {};
         this._svg = {};
         this._info = {};
         this._focus = {};
@@ -435,20 +456,21 @@
         this._deltaY = {};
         this._deltaDot = {};
         this._areas = {};
+        this._lines = {};
         this._bounderies = {};
         this._focusedValue = null;
         this._fixedValue = null;
         this._x = Function.prototype;
         this._y = Function.prototype;
-        this._xAxes = [];
-        this._yAxes = [];
-        this._xAxisFn = {};
-        this._yAxisFn = {};
+        this._xAxes = {};
+        this._yAxes = {};
+        // this._xAxisFn = {};
+        // this._yAxisFn = {};
         this._isAttached = false;
         this._isBrushed = false;
         this._isZoomed = false;
         this._brushBehavior = Function.prototype;
-        this._graphs = new Set();
+        this._graphs = {};
         var localeDateFormat = {
           'dateTime': '%x %X',
           'date': '%d.%m.%Y',
@@ -538,7 +560,7 @@
           }
           this._activeSizeJob = setTimeout( () => {
             this._sizeLayout();
-          }, 200);
+          }, 150);
         }
       }
 
@@ -550,23 +572,25 @@
         this._y = this._createScaleFn(this.yScale);
 
         this._chart = d3.select(this.$.chart);
+        this._control = d3.select(this.$.control);
 
         this._xAxes = d3.select(this.$.xAxes);
         this._yAxes = d3.select(this.$.yAxes);
 
         this._areas = d3.select(this.$.areas);
+        this._lines = d3.select(this.$.lines);
         this._bounderies = d3.select(this.$.bounderies);
 
         // Test
-        this._xAxes
-          .append('svg:g')
-          .classed('x axis', true);
-        this._yAxes
-          .append('svg:g')
-          .classed('y axis', true);
-        this._yAxes
-          .append('svg:g')
-          .classed('y axis', true);
+        // this._xAxes
+        //   .append('svg:g')
+        //   .classed('x axis', true);
+        // this._yAxes
+        //   .append('svg:g')
+        //   .classed('y axis', true);
+        // this._yAxes
+        //   .append('svg:g')
+        //   .classed('y axis', true);
         //
 
         this._info = d3.select(this.$.info);
@@ -575,9 +599,9 @@
         this._focusY = d3.select(this.$.focusY);
         this._focusDot = d3.select(this.$.focusDot);
         this._focusDot
-          .on('mouseenter', function() {
+          .on('mouseenter', () => {
             this.cancelDebouncer('hideinfo');
-          }.bind(this), {
+          }, {
             passive: true
           })
           .on('mouseleave', this._hideInfo.bind(this), {
@@ -605,22 +629,23 @@
           .on('mouseleave touchend', this._hideInfo.bind(this), {
             passive: true
           })
-          .on('mousemove', function() {
+          .on('mousemove', () => {
             var m = d3.mouse(this._chart.node());
-            requestAnimationFrame(function() {
+            requestAnimationFrame( () => {
               var closestGraph, closestPoint, closestDistance;
-              this._graphs.forEach(
-                function(g) {
-                  if (g.values && g.values.length) {
-                    var d = g._closestPoint(m);
-                    var currentMin2 = Math.pow(m[0] - this._x(d.x), 2) + Math.pow(m[1] - this._y(d.y), 2); // in px²
-                    if (closestDistance === undefined || currentMin2 < closestDistance) {
-                      closestDistance = currentMin2;
-                      closestPoint = d;
-                      closestGraph = g;
-                    }
+              var mounts = Object.keys(this._graphs), g;
+              for (var i = 0; mounts && i < mounts.length; i++) {
+                g = this._graphs[mounts[i]]
+                if (g.values && g.values.length) {
+                  var d = g._closestPoint(m);
+                  var currentMin2 = Math.pow(m[0] - this._x(d.x), 2) + Math.pow(m[1] - this._y(d.y), 2); // in px²
+                  if (closestDistance === undefined || currentMin2 < closestDistance) {
+                    closestDistance = currentMin2;
+                    closestPoint = d;
+                    closestGraph = g;
                   }
-                }.bind(this));
+                }
+              }
               if (closestPoint) {
                 var fill = closestGraph.getComputedStyleValue('--device-color') || '#000';
                 if (closestGraph.item.threshold) {
@@ -642,8 +667,8 @@
               } else {
                 this._hideInfo();
               }
-            }.bind(this));
-          }.bind(this), {
+            });
+          }, {
             passive: true
           })
           .on('touchmove', this._resetZoom.bind(this), {
@@ -668,49 +693,95 @@
 
         if (bRect.height === 0 || bRect.width === 0) return;
 
-        this._width = bRect.width - (this.margin.left || 0) - (this.margin.right || 0);
-        this._height = bRect.height - (this.margin.bottom || 0) - (this.margin.top || 0);
+        var top = this.margin.top,
+          right = this.margin.right,
+          bottom = this.margin.bottom,
+          left = this.margin.left,
+          yAxisWidth = this.yAxisWidth,
+          yAxisCondensedWidth = this.yAxisCondensedWidth,
+          xAxisCondensedHeight = this.xAxisCondensedHeight,
+          xAxisHeight = this.xAxisHeight,
+          lineWidth = 1;
 
-        this.xTicks = Math.ceil(this._width / 75);
-        this.yTicks = Math.ceil(this._height / 50);
+        var mounts = Object.keys(this._graphs), g, yexp, xexp;
+        for (var i = 0; mounts && i < mounts.length; i++) {
+          g = this._graphs[mounts[i]];
+          yexp = g.yAxisExpanded;
+          xexp = g.xAxisExpanded;
+
+          if (g.yAxisPosition === 'left') {
+            left -= yexp ? yAxisWidth : yAxisCondensedWidth;
+            g.yAxisExpandButton.transition(150).attr('x', left).attr('y', 0);
+          }
+          else {
+            right -= yexp ? yAxisWidth : yAxisCondensedWidth;
+            g.yAxisExpandButton.transition(150).attr('x', right).attr('y', 0);
+          }
+          if (g.xAxisPosition === 'bottom') {
+            g.xAxisExpandButton.transition(150).attr('y', bottom).attr('x', this._width);
+            bottom += xexp ? xAxisHeight : xAxisCondensedHeight;
+          }
+          else {
+            g.xAxisExpandButton.transition(150).attr('y', top).attr('x', this._width);
+            top += xexp ? xAxisHeight : xAxisCondensedHeight;
+          }
+          g.xAxisFn.tickFormat(xexp ? null : '').tickSize(xAxisCondensedHeight);
+          g.yAxisFn.tickFormat(yexp ? null : '').tickSize(yAxisCondensedWidth);
+
+          g.xAxisExpandButton.transition(150).attr('height', xexp ? xAxisHeight : xAxisCondensedHeight).attr('width', xexp ? xAxisCondensedHeight : lineWidth);
+          g.yAxisExpandButton.transition(150).attr('height', yexp ? yAxisCondensedWidth : lineWidth).attr('width', yexp ? yAxisWidth : yAxisCondensedWidth);
+        }
+
+        this._width = bRect.width + (left || 0) + (right || 0);
+        this._height = bRect.height - (bottom || 0) - (top || 0);
 
         this._x.range([0, this._width]);
         this._y.range([this._height, 0]);
 
-        this._chart.attr('transform', 'translate(' + (this.margin.left || 0) + ',' + (this.margin.top || 0) + ')');
+        this.xTicks = Math.ceil(this._width / 75);
+        this.yTicks = Math.ceil(this._height / 50);
+
+        for (var i = 0; mounts && i < mounts.length; i++) {
+          g = this._graphs[mounts[i]];
+          g.xAxisNode.call(g.xAxisFn).attr('transform', 'translate(0,' + this._height + ')');
+          g.yAxisNode.call(g.yAxisFn).attr('transform', 'translate(0,0)');
+        }
+
+        this._control.transition(150).style('transform', 'translate('+right+'px,-'+bottom+'px)');
 
         // Limiting Projection to Margin
-        this._chart.select('clipPath#clip rect')
+        this._chart.select('clipPath#clip rect').transition(150)
           .attr('width', this._width)
           .attr('height', this._height);
 
-        this._chart.select('rect#plot')
+        this._chart.select('rect#plot').transition(150)
           .attr('width', this._width)
           .attr('height', this._height);
 
-        this._xAxisFn = this._createAxisFn(this._x, 'bottom', this.xScale);
-        this._yAxisFn = this._createAxisFn(this._y, 'left', this.yScale);
+        this._chart.transition(150).attr('transform', 'translate(' + (-left || 0) + ',' + (top || 0) + ')');
+        // this._xAxisFn = this._createAxisFn(this._x, 'bottom', this.xScale, this.xTicks);
+        // this._yAxisFn = this._createAxisFn(this._y, 'left', this.yScale, this.yTicks);
 
-        // this._xGrid = this._createAxisFn(this._x, 'bottom', this.xScale, this.gridMult)
+        // this._xGrid = this._createAxisFn(this._x, 'bottom', this.xScale, this.xTicks*this.gridMult)
         //   .tickSize(-this._height)
         //   .tickFormat('');
-        this._yGrid = this._createAxisFn(this._y, 'left', this.yScale, this.gridMult)
-          .tickSize(-this._width)
-          .tickFormat('');
+        // this._yGrid = this._createAxisFn(this._y, 'left', this.yScale, this.xTicks*this.gridMult)
+        //   .tickSize(-this._width)
+        //   .tickFormat('');
 
-        this._xAxes.selectAll('.x.axis')
-          .call(this._xAxisFn)
-          .attr('transform', 'translate(0,' + this._height + ')');
-        this._yAxes.selectAll('.y.axis')
-          .call(this._yAxisFn)
-          .attr('transform', 'translate(0,' + 0 + ')');
+        // this._xAxes.selectAll('.x.axis')
+        //   .call(this._xAxisFn)
+        //   .attr('transform', 'translate(0,' + this._height + ')');
+        // this._yAxes.selectAll('.y.axis')
+        //   .call(this._yAxisFn)
+        //   .attr('transform', 'translate(0,' + 0 + ')');
 
         // this._chart.select('#xGrid')
         //   .attr('transform', 'translate(0,' + this._height + ')')
         //   .call(this._xGrid);
-        this._chart.select('#yGrid')
-          .call(this._yGrid)
-          .attr('transform', 'translate(0,' + 0 + ')');;
+        // this._chart.select('#yGrid')
+        //   .call(this._yGrid)
+        //   .attr('transform', 'translate(0,' + 0 + ')');;
 
         if (this._isBrushed !== true || this._isZoomed !== true) {
           this._brushBehavior.extent([
@@ -721,8 +792,7 @@
         }
 
         this._svg.selectAll('g,line,text,path,rect')
-          .classed('style-scope', true)
-          .classed('device-chart', true);
+          .classed('style-scope device-chart', true)
         this._focusY.attr('y1', this._height);
 
         this._redraw(true);
@@ -747,35 +817,28 @@
         }
       }
 
-      _createAxisFn(scale, orient, kind, tickmult) {
-        var axis, ticks, horTicks, verTicks;
-        tickmult = tickmult || 1;
-
+      _createAxisFn(scale, orient, kind, ticks) {
+        var axis;
+        ticks = ticks || 5;
         switch (orient) {
           case 'top':
             axis = d3.axisTop();
-            ticks = this.xTicks;
             break;
           case 'bottom':
             axis = d3.axisBottom();
-            ticks = this.xTicks;
             break;
           case 'left':
             axis = d3.axisLeft();
-            ticks = this.yTicks;
             break;
           case 'right':
             axis = d3.axisRight();
-            ticks = this.yTicks;
             break;
         }
-        axis.scale(scale).ticks(ticks * tickmult);
+        axis.scale(scale).ticks(ticks);
         if (kind === 'time')
-          axis
-          // .ticks(ticks * tickmult)
-          .tickFormat(this.timeFormat.bind(this));
+          axis.ticks(ticks).tickFormat(this.timeFormat.bind(this));
         else if (scale.base && scale.base() === Math.E)
-          axis.tickFormat(function(d) {
+          axis.tickFormat(d => {
             return (d < 1 || d > 1000 ? (Math.log(d)).toExponential(3) : (Math.log(d)).toFixed(2));
           })
 
@@ -811,7 +874,7 @@
 
         Promise.resolve(this.setDomains.call(this))
           .then(this._redraw.bind(this))
-          .catch(function(err) {
+          .catch(err => {
             if (err) {
               console.warn(err);
             }
@@ -825,17 +888,14 @@
           this.redraw();
           return;
         }
-        if (this._graphs.size > 0) {
-          this._graphs.forEach(function(g) {
-            if (g.redraw)
-              g.redraw();
-          });
+        var mounts = Object.keys(this._graphs), g;
+        for (var i = 0; mounts && i < mounts.length; i++) {
+          g = this._graphs[mounts[i]];
+          g.redraw();
         }
 
-        this._xAxes.select('.x.axis').call(this._xAxisFn);
-        this._yAxes.select('.y.axis').call(this._yAxisFn);
         // this._chart.transition(50).select('#xGrid').call(this._xGrid);
-        this._chart.transition(50).select('#yGrid').call(this._yGrid);
+        // this._chart.transition(50).select('#yGrid').call(this._yGrid);
 
         this._svg.selectAll('g,line,text,path,rect')
           .classed('style-scope', true)
@@ -844,38 +904,38 @@
       }
 
       brushed() {
-        var s = d3.event.selection;
-        this._hideInfo();
-        if (s) {
-          this._isBrushed = true;
-          this._isZoomed = true;
-          this._x.domain([s[0][0], s[1][0]].map(this._x.invert, this._x)).nice(this.xTicks);
-          this._y.domain([s[1][1], s[0][1]].map(this._y.invert, this._y)).nice(this.yTicks);
-          this._brush.call(this._brushBehavior.move, null);
-          return;
-        } else if (this._isBrushed === true) {
-          this._isBrushed = false;
-        } else {
-          this._isZoomed = false;
-          this.redraw();
-          return;
-        }
-        this._redraw();
+        // var s = d3.event.selection;
+        // this._hideInfo();
+        // if (s) {
+        //   this._isBrushed = true;
+        //   this._isZoomed = true;
+        //   this._x.domain([s[0][0], s[1][0]].map(this._x.invert, this._x)).nice(this.xTicks);
+        //   this._y.domain([s[1][1], s[0][1]].map(this._y.invert, this._y)).nice(this.yTicks);
+        //   this._brush.call(this._brushBehavior.move, null);
+        //   return;
+        // } else if (this._isBrushed === true) {
+        //   this._isBrushed = false;
+        // } else {
+        //   this._isZoomed = false;
+        //   this.redraw();
+        //   return;
+        // }
+        // this._redraw();
       }
 
       setDomains() {
-        return new Promise(function(resolve, reject) {
-          if (!this._graphs.size)
+        return new Promise((resolve, reject) => {
+          if (!Object.keys(this._graphs).length)
             reject('No Graphs are attached');
           if (this._isZoomed === true || this._isBrushed === true) {
             resolve();
           }
 
           this.requestRange('x')
-            .then(function(rangeX) {
+            .then(rangeX => {
               var domainX = rangeX;
               this.requestRange('y')
-                .then(function(rangeY) {
+                .then(rangeY => {
 
                   var domainY = rangeY;
 
@@ -910,40 +970,46 @@
                   this.set('domainY', domainY);
                   resolve();
 
-                }.bind(this))
-                .catch(function(err) {
+                })
+                .catch(err => {
                   reject(err);
                 });
-            }.bind(this))
-            .catch(function(err) {
+            })
+            .catch(err => {
               reject(err);
             });
-        }.bind(this));
+        });
       }
 
       insertValues(data) {
-        this._graphs.forEach(function(g) {
+        var mounts = Object.keys(this._graphs), g;
+        for (var i = 0; mounts && i < mounts.length; i++) {
+          g = this._graphs[mounts[i]];
           if (g.item && g.item.mount && data[g.item.mount])
             g.insertValues(data[g.item.mount]);
-        });
+        }
       }
 
       clearValues() {
-        this._graphs.forEach(function(g) {
+        var mounts = Object.keys(this._graphs), g;
+        for (var i = 0; mounts && i < mounts.length; i++) {
+          g = this._graphs[mounts[i]];
           if (g.item && g.item.mount)
             g.clearValues();
-        });
+        }
       }
 
       requestRange(key) {
-        return new Promise(function(resolve, reject) {
+        return new Promise((resolve, reject) => {
           var p = [];
-          this._graphs.forEach(function(g) {
+          var mounts = Object.keys(this._graphs), g;
+          for (var i = 0; mounts && i < mounts.length; i++) {
+            g = this._graphs[mounts[i]];
             if (g.item && g.item.mount)
               p.push(g.requestRange(key));
-          });
+          }
           Promise.all(p)
-            .then(function(res) {
+            .then(res => {
               var min, max;
               for (var i = 0; i < res.length; i++) {
                 min = (min === undefined || min > res[i][0]) ? res[i][0] : min;
@@ -960,7 +1026,7 @@
               //    console.log(err);
               //  }
             });
-        }.bind(this));
+        });
       }
 
       _moveInfo(d) {
@@ -1004,10 +1070,10 @@
         this._info.attr('hidden', '');
         this._focus.attr('hidden', '');
         this._hideDelta();
-        this._xAxisFn = this._createAxisFn(this._x, 'bottom', this.xScale);
-        this._yAxisFn = this._createAxisFn(this._y, 'left', this.yScale);
-        this._xAxes.select('.x.axis').call(this._xAxisFn);
-        this._yAxes.select('.y.axis').call(this._yAxisFn);
+        // this._xAxisFn = this._createAxisFn(this._x, 'bottom', this.xScale, this.xTicks);
+        // this._yAxisFn = this._createAxisFn(this._y, 'left', this.yScale, this.yTicks);
+        // this._xAxes.select('.x.axis').call(this._xAxisFn);
+        // this._yAxes.select('.y.axis').call(this._yAxisFn);
         this._svg.selectAll('g,line,text,path,rect')
           .classed('style-scope', true)
           .classed('device-chart', true);
@@ -1058,12 +1124,12 @@
             this._focusDot.attr('cy', y).attr('cx', x);
         }
 
-        this._xAxisFn.tickValues([this._focusedValue.x]);
-        this._xAxisFn.tickFormat(null);
-        this._yAxisFn.tickValues([this._focusedValue.y]);
-        this._yAxisFn.tickFormat(null);
-        this._xAxes.select('.x.axis').call(this._xAxisFn);
-        this._yAxes.select('.y.axis').call(this._yAxisFn);
+        // this._xAxisFn.tickValues([this._focusedValue.x]);
+        // this._xAxisFn.tickFormat(null);
+        // this._yAxisFn.tickValues([this._focusedValue.y]);
+        // this._yAxisFn.tickFormat(null);
+        // this._xAxes.select('.x.axis').call(this._xAxisFn);
+        // this._yAxes.select('.y.axis').call(this._yAxisFn);
         this._svg.selectAll('g,line,text,path,rect')
           .classed('style-scope', true)
           .classed('device-chart', true);
@@ -1151,12 +1217,12 @@
             }
             this._fixedValue = d;
             this._deltaDot.datum(this._fixedValue)
-              .attr('cx', function(d) {
+              .attr('cx', d => {
                 return this._x(d.x)
-              }.bind(this))
-              .attr('cy', function(d) {
+              })
+              .attr('cy', d => {
                 return this._y(d.y)
-              }.bind(this))
+              })
               .attr('r', this._focusDot.attr('r'))
               .attr('fill', this._focusDot.attr('fill'));
             break;
@@ -1170,29 +1236,29 @@
       }
 
       changeInterpolation(interpolation, oldValue) {
-        if (!this._graphs.size) return;
-        this._graphs.forEach(
-          function(g) {
-            g.set('interpolation', interpolation);
-          });
+        var mounts = Object.keys(this._graphs), g;
+        for (var i = 0; mounts && i < mounts.length; i++) {
+          g = this._graphs[mounts[i]];
+          g.set('interpolation', interpolation);
+        }
       }
 
       changeScale(newValue, oldValue) {
-        if (oldValue === undefined) return;
-        var domainY = this._y.domain();
-        if (this.yScale === 'ln' || this.yScale === 'log₁₀') {
-          if (domainY[0] <= 0) {
-            domainY[0] = Number.EPSILON;
-          }
-          if (domainY[1] <= 0) {
-            domainY[1] = Number.EPSILON;
-          }
-        }
-        this._hideInfo();
-        this._y = this._createScaleFn(this.yScale);
-        this._y.domain(domainY).nice(this.yTicks);
-        this.set('domainY', domainY);
-        this._sizeChanged();
+        // if (oldValue === undefined) return;
+        // var domainY = this._y.domain();
+        // if (this.yScale === 'ln' || this.yScale === 'log₁₀') {
+        //   if (domainY[0] <= 0) {
+        //     domainY[0] = Number.EPSILON;
+        //   }
+        //   if (domainY[1] <= 0) {
+        //     domainY[1] = Number.EPSILON;
+        //   }
+        // }
+        // this._hideInfo();
+        // this._y = this._createScaleFn(this.yScale);
+        // this._y.domain(domainY).nice(this.yTicks);
+        // this.set('domainY', domainY);
+        // this._sizeChanged();
       }
 
       _resetZoom(e) {
@@ -1210,25 +1276,25 @@
 
       _refresh() {
         this._buildLayout();
-        if (!this._graphs.size) return;
-        this._graphs.forEach(
-          function(g) {
-            g.clearValues(true);
-            g.requestValues(null, null, this.viewLength)
-              .then(function(data) {
-                for (var mount in data) {
-                  if (mount === this.item.mount) {
-                    this.insertValues(data[mount]);
-                    break;
-                  }
+        var mounts = Object.keys(this._graphs), g;
+        for (var i = 0; mounts && i < mounts.length; i++) {
+          g = this._graphs[mounts[i]];
+          g.clearValues(true);
+          g.requestValues(null, null, this.viewLength)
+            .then(function(data) {
+              for (var mount in data) {
+                if (mount === this.item.mount) {
+                  this.insertValues(data[mount]);
+                  break;
                 }
-              }.bind(g))
-              .catch(function(err) {
-                if (err) {
-                  console.log(err);
-                }
-              }.bind(this));
-          }.bind(this));
+              }
+            }.bind(g))
+            .catch(err => {
+              if (err) {
+                console.log(err);
+              }
+            });
+        }
         this._isZoomed = false;
         this.redraw();
       }
