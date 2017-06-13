@@ -710,29 +710,29 @@
           xexp = g.xAxisExpanded;
 
           if (g.yAxisPosition === 'left') {
-            left -= yexp ? yAxisWidth : yAxisCondensedWidth;
-            g.yAxisExpandButton.transition(150).attr('x', left).attr('y', 0);
+            left += yexp ? yAxisWidth : yAxisCondensedWidth;
+            g._y_left = left; g._y_right = null;
+            // g.yAxisExpandButton.transition(150).attr('x', left).attr('y', 0);
           }
           else {
-            right -= yexp ? yAxisWidth : yAxisCondensedWidth;
-            g.yAxisExpandButton.transition(150).attr('x', right).attr('y', 0);
+            right += yexp ? yAxisWidth : yAxisCondensedWidth;
+            g._y_left = null; g._y_right = right;
+            // g.yAxisExpandButton.transition(150).attr('x', right).attr('y', 0);
           }
           if (g.xAxisPosition === 'bottom') {
-            g.xAxisExpandButton.transition(150).attr('y', bottom).attr('x', this._width);
+            g._x_bottom = bottom; g._x_top = null;
+            // g.xAxisExpandButton.transition(150).attr('y', bottom).attr('x', this._width);
             bottom += xexp ? xAxisHeight : xAxisCondensedHeight;
           }
           else {
-            g.xAxisExpandButton.transition(150).attr('y', top).attr('x', this._width);
+            g._x_bottom = null; g._x_top = top;
+            // g.xAxisExpandButton.transition(150).attr('y', top).attr('x', this._width);
             top += xexp ? xAxisHeight : xAxisCondensedHeight;
           }
-          g.xAxisFn.tickFormat(xexp ? null : '').tickSize(xAxisCondensedHeight);
-          g.yAxisFn.tickFormat(yexp ? null : '').tickSize(yAxisCondensedWidth);
 
-          g.xAxisExpandButton.transition(150).attr('height', xexp ? xAxisHeight : xAxisCondensedHeight).attr('width', xexp ? xAxisCondensedHeight : lineWidth);
-          g.yAxisExpandButton.transition(150).attr('height', yexp ? yAxisCondensedWidth : lineWidth).attr('width', yexp ? yAxisWidth : yAxisCondensedWidth);
         }
 
-        this._width = bRect.width + (left || 0) + (right || 0);
+        this._width = bRect.width - (left || 0) - (right || 0);
         this._height = bRect.height - (bottom || 0) - (top || 0);
 
         this._x.range([0, this._width]);
@@ -743,8 +743,14 @@
 
         for (var i = 0; mounts && i < mounts.length; i++) {
           g = this._graphs[mounts[i]];
+          yexp = g.yAxisExpanded;
+          xexp = g.xAxisExpanded;
+          g.xAxisFn.tickFormat(xexp ? null : '').tickSize(xAxisCondensedHeight);
+          g.yAxisFn.tickFormat(yexp ? null : '').tickSize(yAxisCondensedWidth);
           g.xAxisNode.call(g.xAxisFn).attr('transform', 'translate(0,' + this._height + ')');
           g.yAxisNode.call(g.yAxisFn).attr('transform', 'translate(0,0)');
+          g.xAxisExpandButton.transition(150).attr('height', xexp ? xAxisHeight : xAxisCondensedHeight).attr('width', xexp ? xAxisCondensedHeight : lineWidth);
+          g.yAxisExpandButton.transition(150).attr('height', yexp ? yAxisCondensedWidth : lineWidth).attr('width', yexp ? yAxisWidth : yAxisCondensedWidth);
         }
 
         this._control.transition(150).style('transform', 'translate('+right+'px,-'+bottom+'px)');
