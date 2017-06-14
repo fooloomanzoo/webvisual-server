@@ -35,6 +35,30 @@
             observer: 'changeScale'
           },
 
+          hasLine: {
+            type: Boolean,
+            value: true,
+            observer: '_lineChanged'
+          },
+
+          hasArea: {
+            type: Boolean,
+            value: false,
+            observer: '_areaChanged'
+          },
+
+          hasXAxis: {
+            type: Boolean,
+            value: true,
+            observer: '_xAxisChanged'
+          },
+
+          hasYAxis: {
+            type: Boolean,
+            value: true,
+            observer: '_yAxisChanged'
+          },
+
           xAxisExpanded: {
             type: Boolean,
             value: false
@@ -47,28 +71,29 @@
 
           xAxisPosition: {
             type: String,
-            value: 'bottom'
+            value: function() {
+              var rdn = Math.random();
+              return rdn < 0.5 ? 'bottom' : 'top'
+            }
           },
 
           yAxisPosition: {
             type: String,
-            value: 'left'
-          },
-
-          noLine: {
-            type: Boolean,
-            value: false
-          },
-
-          noFill: {
-            type: Boolean,
-            value: false
+            value: function() {
+              var rdn = Math.random();
+              return rdn < 0.5 ? 'left' : 'right'
+            }
           },
 
           lineWidth: {
             type: Number,
             value: 1,
             observer: '_lineWidthChanged'
+          },
+
+          dotRadius: {
+            type: Number,
+            value: 3
           },
 
           viewLength: {
@@ -86,33 +111,15 @@
 
       constructor() {
         super();
-        this.chartElement = {};
-        this.areaFn = {};
-        this.lineFn = {};
         this._isAttached = false;
-      }
-
-      _getContainerRoot() {
-        return new Promise( (resolve, reject) => {
-          var root = Polymer.dom(this).getOwnerRoot();
-          if (!root)
-            resolve(Polymer.dom(this).parentNode);
-          else if (root.host || root.nodeType === Node.DOCUMENT_FRAGMENT_NODE)
-            resolve(root.host);
-          else
-            reject();
-        });
-      }
-
-      static get observers() {
-        return [
-          '_itemChanged(item)',
-          '_presentationChanged(noLine, noFill)'
-        ]
-      }
-
-      connectedCallback() {
-        super.connectedCallback();
+        this.chartElement = null;
+        this.areaNode = null;
+        this.lineNode = null;
+        this.bounderyLineGradientNode = null;
+        this.xAxisNode = null;
+        this.xAxisFn = null;
+        this.yAxisNode = null;
+        this.yAxisFn = null;
         this.areaFn = d3.area()
           .defined(this._defined.bind(this))
           .x(d => {
@@ -141,7 +148,28 @@
         this.bisectDate = d3.bisector((d, x) => {
           return d.x - x;
         });
-        this._interpolationChanged(this.interpolation);
+      }
+
+      _getContainerRoot() {
+        return new Promise((resolve, reject) => {
+          var root = Polymer.dom(this).getOwnerRoot();
+          if (!root)
+            resolve(Polymer.dom(this).parentNode);
+          else if (root.host || root.nodeType === Node.DOCUMENT_FRAGMENT_NODE)
+            resolve(root.host);
+          else
+            reject();
+        });
+      }
+
+      static get observers() {
+        return [
+          '_itemChanged(item)'
+        ]
+      }
+
+      connectedCallback() {
+        super.connectedCallback();
         if (this.item) {
           this.addNodes();
         }
@@ -150,7 +178,6 @@
       disconnectedCallback() {
         super.disconnectedCallback();
         this.removeNodes();
-        this.chartElement = null;
       }
 
       addNodes() {
@@ -159,25 +186,21 @@
           this.clearValues(true);
         }
         this._getContainerRoot()
-          .then( containerRoot => {
+          .then(containerRoot => {
             if (!containerRoot || containerRoot.nodeName !== 'DEVICE-CHART') {
               console.warn('No parentElement (chart) for graph found. Registration of Graph Element failed', containerRoot);
               return;
             } else if (!containerRoot._isAttached) {
               console.warn('Chart has not been attached yet for adding a graph. Registration of Graph Element failed');
               return;
-            } else {
-              this.chartElement = containerRoot;
             }
+            this.chartElement = containerRoot;
             this.chartElement._graphs[this.item.mount] = this;
-
-            this.noLine = this.chartElement.noLine || false;
-            this.noFill = this.chartElement.noFill || false;
-
-            this.addArea();
-            this.addLine();
-            this.setColorProperties();
-            this.addAxes();
+            this._areaChanged(this.hasArea);
+            this._lineChanged(this.hasLine);
+            this._xAxisChanged(this.hasXAxis);
+            this._yAxisChanged(this.hasYAxis);
+            this._setColorProperties();
 
             // if (!this.chartElement._height || !this.chartElement._width) {
             //   this.chartElement._sizeChanged();
@@ -186,186 +209,195 @@
             this._isAttached = true;
             this.chartElement._sizeChanged();
           })
-          .catch( err => {
+          .catch(err => {
             console.warn('No parentElement (chart) for graph found. Registration of Graph Element failed');
           })
       }
 
-      addArea() {
-        if (!this.chartElement) return;
-        // fill area
-        if (this.areaNode && this.areaNode.node) {
+      _areaChanged(hasArea) {
+        if (!(this.chartElement && this.chartElement._areas)) return;
+
+        if (hasArea === false) {
+          // remove fill area
+          if (this.areaNode && this.areaNode.node) {
+            node = this.areaNode.node();
+            if (node && node.parentElement)
+              node.parentElement.removeChild(node);
+            this.areaNode = null;
+          }
+        } else {
+          if (!(this.areaNode && this.areaNode.node)) { // add fill area
+            this.areaNode = this.chartElement._areas.append('svg:path')
+          }
+          // update fill area node properties
           this.areaNode
             .attr('data-name', this.item.mount)
-            .attr('fill', this.noFill ? null : (this.item.color || '#000'))
-            // .attr('stroke', this.noLine ? null : this.item.color || '#000')
-            // .attr('stroke-width', this.lineWidth);
-            .attr('stroke-width', 0);
-        } else {
-          this.areaNode = this.chartElement._areas
-            .append('svg:path')
-            .attr('data-name', this.item.mount)
             .attr('class', 'area')
-            .attr('fill', this.noFill ? null : (this.item.color || '#000'))
-            // .attr('stroke', this.noLine ? null : this.item.color || '#000')
-            // .attr('stroke-width', this.lineWidth);
-            .attr('stroke-width', 0);
+            .attr('stroke-width', 0)
+            .datum([])
+            .attr('d', this.areaFn);
         }
-        this.areaNode
-          .datum([])
-          .attr('d', this.areaFn);
       }
 
-      addLine() {
-        if (!this.chartElement) return;
-        // line
-        if (this.lineNode && this.lineNode.node) {
-          this.lineNode
-            .attr('data-name', this.item.mount)
-            .attr('fill', 'none')
-            .attr('stroke', this.noLine ? null : this.item.color || '#000')
-            .attr('stroke-width', this.lineWidth);
+      _lineChanged(hasLine) {
+        if (!(this.chartElement && this.chartElement._lines)) return;
+
+        if (hasLine === false) {
+          // remove line
+          if (this.lineNode && this.lineNode.node) {
+            node = this.lineNode.node();
+            if (node && node.parentElement)
+              node.parentElement.removeChild(node);
+            this.lineNode = null;
+          }
         } else {
-          this.lineNode = this.chartElement._lines
-            .append('svg:path')
+          if (!(this.lineNode && this.lineNode.node)) { // add line node
+            this.lineNode = this.chartElement._lines.append('svg:path')
+          }
+          // update line node properties
+          this.lineNode
             .attr('data-name', this.item.mount)
             .attr('class', 'line')
             .attr('fill', 'none')
-            .attr('stroke', this.noLine ? null : this.item.color || '#000')
-            .attr('stroke-width', this.lineWidth);
-        }
-        this.lineNode
-          .datum([])
-          .attr('d', this.lineFn);
-      }
-
-      addAxes() {
-        if (!this.chartElement) return;
-        // scale functions
-        this.xAxisFn = this.chartElement._createAxisFn(this.chartElement._x, this.xAxisPosition, this.xScale);
-        this.yAxisFn = this.chartElement._createAxisFn(this.chartElement._y, this.yAxisPosition, this.yScale);
-
-        // xScale
-        if (!this.xAxisNode) {
-          this.xAxisNode = this.chartElement._xAxes
-            .append('svg:g')
-            .classed('x axis', true)
-            .attr('data-name', this.item.mount)
-            .lower();
-          this.xAxisExpandButton = this.chartElement._xAxes
-            .append('svg:rect')
-            .classed('x axis button', true)
-            .attr('data-name', this.item.mount)
-            .attr('fill', this.item.color || 'fff')
-            .on('click', this._toggleXAxis.bind(this));
-        }
-        // yScale
-        if (!this.yAxisNode) {
-          this.yAxisNode = this.chartElement._yAxes
-            .append('svg:g')
-            .classed('y axis', true)
-            .attr('data-name', this.item.mount)
-            .lower();
-          this.yAxisExpandButton = this.chartElement._yAxes
-            .append('svg:rect')
-            .classed('y axis button', true)
-            .attr('data-name', this.item.mount)
-            .attr('fill', this.item.color || 'fff')
-            .on('click', this._toggleYAxis.bind(this));
+            .attr('stroke-width', this.lineWidth)
+            .datum([])
+            .attr('d', this.lineFn);
         }
       }
 
-      _toggleYAxis() {
-        this.yAxisExpanded = !this.yAxisExpanded;
-        this.chartElement._sizeChanged();
-      }
+      _xAxisChanged(hasXAxis) {
+        if (!(this.chartElement && this.chartElement._xAxes)) return;
 
-      _toggleXAxis() {
-        this.xAxisExpanded = !this.xAxisExpanded;
-        this.chartElement._sizeChanged();
-      }
-
-      setColorProperties() {
-        if (!this.chartElement) return;
-        // basic color
-        if (this.item && this.item.color) {
-          if (this.areaNode && this.areaNode.attr) this.areaNode.attr('fill', this.item.color);
-          if (this.lineNode && this.lineNode.attr) this.lineNode.attr('stroke', this.item.color);
-          if (this.yAxisExpandButton && this.yAxisExpandButton.attr) this.yAxisExpandButton.attr('fill', this.item.color);
-          if (this.xAxisExpandButton && this.xAxisExpandButton.attr) this.xAxisExpandButton.attr('fill', this.item.color);
-        }
-        // threshold markings
-        var bounderies = this.chartElement._bounderies;
-        if (this.item && this.item.threshold) {
-          if (!this.bounderyLineGradientNode) {
-            this.bounderyLineGradientNode = bounderies.append('linearGradient')
-              .attr('id', 'boundery-line-' + this.item.mount)
-              .attr('gradientUnits', 'userSpaceOnUse')
-              .attr('x1', 0).attr('y1', this.chartElement._height)
-              .attr('x2', 0).attr('y2', 0);
+        if (hasXAxis === false) {
+          // remove y axis
+          if (this.xAxisNode && this.xAxisNode.node) {
+            node = this.xAxisNode.node();
+            if (node && node.parentElement)
+              node.parentElement.removeChild(node);
+            this.xAxisNode = null;
+            this.xAxisFn = null;
           }
-          this.areaNode.attr('fill', 'url(#boundery-line-' + this.item.mount + ')');
-          this.lineNode.attr('stroke', 'url(#boundery-line-' + this.item.mount + ')');
+        } else {
+          if (!this.xAxisFn) {
+            this.xAxisFn = this._createAxisFn(this.chartElement._x, this.xAxisPosition, this.xScale);
+          }
+          if (!(this.xAxisNode && this.xAxisNode.node)) { // add y axis
+            this.xAxisNode = this.chartElement._xAxes.append('svg:g')
+          }
+          // update x axis node properties
+          this.xAxisNode
+            .classed('x axis', true)
+            .classed('expanded', this.xAxisExpanded)
+            .attr('data-name', this.item.mount)
+            .on('click', this._toggleXAxisExpansion.bind(this));
+        }
+      }
+
+      _yAxisChanged(hasYAxis) {
+        if (!(this.chartElement && this.chartElement._yAxes)) return;
+
+        if (hasYAxis === false) {
+          // remove y axis
+          if (this.yAxisNode && this.yAxisNode.node) {
+            node = this.yAxisNode.node();
+            if (node && node.parentElement)
+              node.parentElement.removeChild(node);
+            this.yAxisNode = null;
+            this.yAxisFn = null;
+          }
+        } else {
+          if (!this.yAxisFn) {
+            this.yAxisFn = this._createAxisFn(this.chartElement._y, this.yAxisPosition, this.yScale);
+          }
+          if (!(this.yAxisNode && this.yAxisNode.node)) { // add y axis
+            this.yAxisNode = this.chartElement._yAxes.append('svg:g')
+          }
+          // update y axis node properties
+          this.yAxisNode
+            .classed('y axis', true)
+            .classed('expanded', this.yAxisExpanded)
+            .attr('data-name', this.item.mount)
+            .on('click', this._toggleYAxisExpansion.bind(this));
+        }
+      }
+
+      _thresholdChanged(threshold) {
+        if (!(this.chartElement && this.chartElement._bounderies)) return;
+
+        if (threshold) {
+          if (!this.bounderyLineGradientNode) { // add threshold node
+            this.bounderyLineGradientNode = this.chartElement._bounderies.append('linearGradient');
+          }
+          // update threshold node properties
+          this.bounderyLineGradientNode
+            .attr('id', 'boundery-line-' + this.item.mount)
+            .attr('gradientUnits', 'userSpaceOnUse')
+            .attr('x1', 0).attr('y1', this.chartElement._height)
+            .attr('x2', 0).attr('y2', 0);
+        } else {
+          // remove threshold colors
+          if (this.bounderyLineGradientNode && this.bounderyLineGradientNode.node) {
+            node = this.bounderyLineGradientNode.node();
+            if (node && node.parentElement)
+              node.parentElement.removeChild(node);
+            this.bounderyLineGradientNode = null;
+          }
+        }
+      }
+
+      _createAxisFn(transFn, axisPosition, scale) {
+        if (!(this.chartElement && transFn && axisPosition && scale)) {
+          return null;
+        }
+        return this.chartElement._createAxisFn(transFn, axisPosition, scale);
+      }
+
+      _toggleYAxisExpansion() {
+        this.yAxisExpanded = !this.yAxisExpanded;
+        //this.yAxisNode.lower();
+        this.yAxisNode.classed('expanded', this.yAxisExpanded);
+        this.chartElement._sizeChanged();
+      }
+
+      _toggleXAxisExpansion() {
+        this.xAxisExpanded = !this.xAxisExpanded;
+        //this.xAxisNode.lower();
+        this.xAxisNode.classed('expanded', this.xAxisExpanded);
+        this.chartElement._sizeChanged();
+      }
+
+      _setColorProperties() {
+        if (!this.chartElement) return;
+        if (this.item && this.item.color) {
+          var colorForGraph = this.item.theshold ? ('url(#boundery-line-' + this.item.mount + ')') : this.item.color || '#000';
+          if (this.areaNode && this.areaNode.attr) this.areaNode.attr('fill', colorForGraph);
+          if (this.lineNode && this.lineNode.attr) this.lineNode.attr('stroke', colorForGraph);
+          if (this.yAxisNode && this.yAxisNode.attr) this.yAxisNode.style('color', this.item.color || '#000');
+          if (this.xAxisNode && this.xAxisNode.attr) this.xAxisNode.style('color', this.item.color || '#000');
         }
       }
 
       removeNodes() {
-        var node;
-        if (this.areaNode && this.areaNode.node) {
-          node = this.areaNode.node();
-          if (node && node.parentElement)
-            node.parentElement.removeChild(node);
-          this.areaNode = null;
-        }
-        if (this.lineNode && this.lineNode.node) {
-          node = this.lineNode.node();
-          if (node && node.parentElement)
-            node.parentElement.removeChild(node);
-          this.lineNode = null;
-        }
-        if (this.xAxisNode && this.xAxisNode.node) {
-          node = this.xAxisNode.node();
-          if (node && node.parentElement)
-            node.parentElement.removeChild(node);
-          this.xAxisNode = null;
-        }
-        if (this.yAxisNode && this.yAxisNode.node) {
-          node = this.yAxisNode.node();
-          if (node && node.parentElement)
-            node.parentElement.removeChild(node);
-          this.yAxisNode = null;
-        }
-        if (this.yAxisExpandButton && this.yAxisExpandButton.node) {
-          node = this.yAxisExpandButton.node();
-          if (node && node.parentElement)
-            node.parentElement.removeChild(node);
-          this.yAxisExpandButton = null;
-        }
-        if (this.xAxisExpandButton && this.xAxisExpandButton.node) {
-          node = this.xAxisExpandButton.node();
-          if (node && node.parentElement)
-            node.parentElement.removeChild(node);
-          this.xAxisExpandButton = null;
-        }
-        if (this.bounderyLineGradientNode && this.bounderyLineGradientNode.node) {
-          node = this.bounderyLineGradientNode.node();
-          if (node && node.parentElement)
-            node.parentElement.removeChild(node);
-          this.bounderyLineGradientNode = null;
-        }
+        console.log('removeNodes');
+        this._areaChanged();
+        this._lineChanged();
+        this._xAxisChanged();
+        this._yAxisChanged();
+        this._thresholdChanged();
         if (this.chartElement && this.chartElement._graphs)
           delete this.chartElement._graphs[this.item.mount];
         this._isAttached = false;
       }
 
       _itemChanged(item) {
-        if (!item || !item.mount) {
-          // this.removeNodes();
+        if (!this._isAttached) {
           return;
         }
-        if (this._isAttached) {
-          this.addNodes();
+        if (!(item && item.mount)) {
+          this.removeNodes();
+          return;
         }
+        this.addNodes();
       }
 
       insertValues(values, len) {
@@ -428,7 +460,6 @@
         if (!this._isAttached && this.item) {
           this.addNodes();
         } else if (this.chartElement) {
-          console.log('redraw');
           if (this.chartElement._isZoomed === false)
             this.chartElement.redraw();
           else
@@ -437,112 +468,94 @@
       }
 
       redraw() {
-        if (!(this.chartElement && this.chartElement.opened && this.item && this.values && this.values.length)) return;
-        // setTimeout(() => {
+        if (!(this.chartElement && this.chartElement._isAttached && this.item && this.values && this.values.length)) return;
 
-          var data = this.values || [];
+        console.log('redraw');
+        var data = this.values || [];
 
-          // fill area
-          if (!this.noFill) {
-            if (this.areaNode && this.areaNode.node) {
-              this.areaNode
-                .datum(data)
-                .attr('d', this.areaFn);
-            } else if (this.item && this.item.mount) {
-              this.addArea();
-              this.redraw();
-              return;
-            } else {
-              return;
+        // fill area
+        if (this.hasArea) {
+          if (!(this.areaNode && this.areaNode.node)) {
+            this._areaChanged(true);
+          }
+          this.areaNode
+            .datum(data)
+            .attr('d', this.areaFn);
+        }
+
+        // line
+        if (this.hasLine) {
+          if (!(this.lineNode && this.lineNode.node)) {
+            this._lineChanged(true);
+          }
+          this.lineNode
+            .datum(data)
+            .attr('d', this.lineFn);
+        }
+
+        // threshold gradients
+        if (this.item && this.item.threshold) {
+          if (!(this.bounderyLineGradientNode && this.bounderyLineGradientNode.node)) {
+            this._thresholdChanged(this.item.threshold);
+          }
+          var b_line = [],
+            y,
+            u_color = this.getComputedStyleValue('--device-state-exceeds-color') || '#F20C0C',
+            l_color = this.getComputedStyleValue('--device-state-deceeds-color') || '#F20C0C',
+            i_color = this.item.color || '#000';
+
+          if (this.item.threshold.from !== undefined) {
+            y = ((1 - Math.ceil(this.chartElement._y(this.item.threshold.from) + this.lineWidth * 1.25) / this.chartElement._height) * 100);
+            if (Number.isFinite(y)) {
+              b_line.push({
+                o: y + '%',
+                c: l_color
+              });
+              b_line.push({
+                o: y + '%',
+                c: i_color
+              });
             }
           }
-
-          // line
-          if (!this.noLine) {
-            if (this.lineNode && this.lineNode.node) {
-              this.lineNode
-                .datum(data)
-                .attr('d', this.lineFn);
-            } else if (this.item && this.item.mount) {
-              this.addLine();
-              this.redraw();
-              return;
-            } else {
-              return;
+          if (this.item.threshold.to !== undefined) {
+            y = ((1 - Math.floor(this.chartElement._y(this.item.threshold.to) - this.lineWidth * 1.25) / this.chartElement._height) * 100);
+            if (Number.isFinite(y)) {
+              b_line.push({
+                o: y + '%',
+                c: i_color
+              });
+              b_line.push({
+                o: y + '%',
+                c: u_color
+              });
             }
           }
+          // for area
+          var gradients = this.bounderyLineGradientNode
+            .attr('x1', 0).attr('y1', this.chartElement._height)
+            .attr('x2', 0).attr('y2', 0)
+            .selectAll('stop')
+            .data(b_line);
 
-          // axes
-          if (!(this.xAxisNode && this.yAxisNode)) {
-            this.addAxes();
-            this.redraw();
-            return;
-          }
+          gradients.attr('offset', function(d) {
+              return d.o;
+            })
+            .attr('stop-color', function(d) {
+              return d.c;
+            });
 
-          // threshold gradients
-          var y;
-          if (this.item && this.item.threshold) {
-            if (this.bounderyLineGradientNode && this.bounderyLineGradientNode.node) {
-              var b_line = [],
-                u_color = this.getComputedStyleValue('--device-state-exceeds-color') || '#F20C0C',
-                l_color = this.getComputedStyleValue('--device-state-deceeds-color') || '#F20C0C',
-                i_color = this.item.color || '#000';
+          gradients.enter()
+            .append('stop')
+            .attr('offset', function(d) {
+              return d.o;
+            })
+            .attr('stop-color', function(d) {
+              return d.c;
+            });
 
-              if (this.item.threshold.from !== undefined) {
-                y = ((1 - Math.ceil(this.chartElement._y(this.item.threshold.from) + this.lineWidth * 1.25) / this.chartElement._height) * 100);
-                if (Number.isFinite(y)) {
-                  b_line.push({
-                    o: y + '%',
-                    c: l_color
-                  });
-                  b_line.push({
-                    o: y + '%',
-                    c: i_color
-                  });
-                }
-              }
-              if (this.item.threshold.to !== undefined) {
-                y = ((1 - Math.floor(this.chartElement._y(this.item.threshold.to) - this.lineWidth * 1.25) / this.chartElement._height) * 100);
-                if (Number.isFinite(y)) {
-                  b_line.push({
-                    o: y + '%',
-                    c: i_color
-                  });
-                  b_line.push({
-                    o: y + '%',
-                    c: u_color
-                  });
-                }
-              }
-              // for area
-              var gradients = this.bounderyLineGradientNode
-                .attr('x1', 0).attr('y1', this.chartElement._height)
-                .attr('x2', 0).attr('y2', 0)
-                .selectAll('stop')
-                .data(b_line);
-
-              gradients.attr('offset', function(d) {
-                  return d.o;
-                })
-                .attr('stop-color', function(d) {
-                  return d.c;
-                });
-
-              gradients.enter()
-                .append('stop')
-                .attr('offset', function(d) {
-                  return d.o;
-                })
-                .attr('stop-color', function(d) {
-                  return d.c;
-                });
-
-              gradients.exit()
-                .remove();
-            }
-          }
-
-        // }, 0);
+          gradients.exit()
+            .remove();
+        }
         // TODO(?): update line, animated http://bl.ocks.org/benjchristensen/1148374
       }
 
@@ -583,14 +596,11 @@
         if (lo < 0) lo = 0;
         if (hi > values.length) hi = values.length;
 
-        // console.log(values[mid], lo, hi, precision, variance, searchRadius);
         var minDist = r2,
           currentDist,
           pos = mid;
-        // var counter = 0;
         // linear scan for coarse approximation
         for (i = lo; i < hi; i += precision) {
-          // counter++;
           if ((currentDist = pixdistance2(values[i])) < minDist) {
             mid = i, minDist = currentDist;
           }
@@ -599,7 +609,6 @@
 
         // linear search in positive prediction radius
         for (var i = mid + 1; i < hi && i < mid + precision - 1; i++) {
-          // counter++;
           if ((currentDist = pixdistance2(values[i])) < minDist) {
             minDist = currentDist;
             pos = i;
@@ -608,18 +617,15 @@
 
         // linear search in negative prediction radius
         for (var i = mid - 1; i > lo && i > mid - precision + 1; i--) {
-          // counter++;
           if ((currentDist = pixdistance2(values[i])) < minDist) {
             minDist = currentDist;
             pos = i;
           }
         }
 
-        // console.log(lo, mid, hi, Math.sqrt(r2), precision, counter);
         return values[pos];
 
         function pixdistance2(p) {
-          // counter++;
           var dx = _x(new Date(p.x)) - m[0],
             dy = _y(p.y) - m[1];
           return dx * dx + dy * dy;
@@ -679,15 +685,11 @@
       setColor(color) {
         // random color if color is not set
         super.setColor.call(this, color);
-        this.setColorProperties();
+        this._setColorProperties();
       }
 
       clearValues(force) {
         super.clearValues.call(this, force);
-        // if (this.dots && this.dots.node) {
-        //   this.dots.selectAll('circle')
-        //           .remove();
-        // }
       }
 
       _getStrokeColor(d) {
@@ -702,22 +704,8 @@
         return this.item.color || '#fff';
       }
 
-      _presentationChanged(noLine, noFill) {
-        if (noLine === undefined || noFill === undefined) return;
-
-        if (this.areaNode && this.areaNode.attr) {
-          var color = this.areaNode.attr('fill');
-          this.areaNode.attr('fill', noFill ? null : (color || '#000'));
-        }
-        if (this.lineNode && this.lineNode.attr) {
-          var color = this.lineNode.attr('stroke');
-          this.lineNode.attr('stroke', noLine ? null : (color || '#000'));
-        }
-      }
-
-
       _lineWidthChanged(lineWidth) {
-        if (this.areaNode && this.areaNode.attr) {
+        if (this.lineNode && this.lineNode.attr) {
           this.lineNode.attr('stroke-width', lineWidth);
         }
       }
@@ -778,7 +766,7 @@
         this.lineFn.curve(curve);
 
         if (this.chartElement)
-          this.redraw();
+          this.chartElement.redraw();
       }
     }
     customElements.define(DeviceGraph.is, DeviceGraph);

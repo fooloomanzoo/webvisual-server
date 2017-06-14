@@ -21,7 +21,7 @@
         letter-spacing: normal !important;
         user-select: none !important;
         z-index: auto;
-        transition: background 250ms linear;
+        transition: background 150ms linear;
       }
       :host([fullscreen]) {
         color: var(--fullscreen-color, white);
@@ -59,6 +59,7 @@
       }
       text {
         fill: currentColor;
+        stroke: none;
         font-size: 10px;
         letter-spacing: normal !important;
         font-family: inherit !important;
@@ -92,13 +93,17 @@
         stroke-width: 0;
       }
       .axis path, .axis line {
+        fill: currentColor;
+        fill-opacity: 0.01;
         stroke: currentColor;
-        stroke-opacity: 0.15;
-        stroke-width: 1.5px;
+        stroke-opacity: 0.5;
+        transition: fill-opacity 150ms linear;
       }
-      .axis.expanded path {
-        fill-opacity: 0.75;
-        stroke-opacity: 0.6;
+      .axis path:hover {
+        fill-opacity: 0.25;
+      }
+      .axis.expanded path, .axis.expanded line {
+        stroke-opacity: 0.75;
       }
       .axis {
         font-family: inherit;
@@ -209,6 +214,7 @@
           </marker>
           <marker id="stub" markerWidth="5" markerHeight="5" refX="0" refY="0" orient="auto" markerUnits="strokeWidth" viewBox="-1 -5 2 10">
             <path d="M0,0 m-1,-5 L1,-5 L1,5 L-1,5 z"/>
+            <path d="M -2,0 M -5,-1 H 1 V 1 H -5 Z"/>
           </marker>
           <filter x="0" y="0" width="1" height="1" id="solid">
             <feFlood flood-color="white" id="flood"/>
@@ -231,12 +237,12 @@
             <g id="bounderies"></g>
             <g id="brush"></g>
           </g>
-          <g id="delta" clip-path="url(#clip)" hidden>
+          <g id="delta" hidden>
             <line id="deltaX" class="line x" marker-start="url(#arrowToLeft)" marker-end="url(#arrowToRight)"></line>
             <line id="deltaY" class="line y" marker-start="url(#arrowToLeft)" marker-end="url(#arrowToRight)"></line>
             <circle id="deltaDot" class="dot"></circle>
           </g>
-          <g id="focus" clip-path="url(#clip)" hidden>
+          <g id="focus" hidden>
             <line id="focusX" class="line x" x1="0" marker-start="url(#stub)" marker-end="url(#arrowToRight)"></line>
             <line id="focusY" class="line y" marker-start="url(#stub)" marker-end="url(#arrowToRight)"></line>
             <circle id="focusDot" class="dot"></circle>
@@ -314,22 +320,13 @@
 
       static get properties() {
         return {
-          opened: {
-            type: Boolean,
-            reflectToAttribute: true
-          },
-
-          openOnSelect: {
-            type: Boolean,
-            value: true
-          },
 
           margin: {
             type: Object,
             value: function() {
               return {
                 top: 6,
-                right: 20,
+                right: 6,
                 bottom: 6,
                 left: 6
               }
@@ -339,6 +336,16 @@
           gridMult: {
             type: Number,
             value: 2
+          },
+
+          multiYAxis: {
+            type: Boolean,
+            value: true
+          },
+
+          multiXAxis: {
+            type: Boolean,
+            value: true
           },
 
           yAxisWidth: {
@@ -351,14 +358,14 @@
             value: 24
           },
 
-          yAxisCondensedWidth: {
+          tickSize: {
             type: Number,
-            value: 12
+            value: 6
           },
 
-          xAxisCondensedHeight: {
+          axisMargin: {
             type: Number,
-            value: 12
+            value: 6
           },
 
           xScale: {
@@ -393,16 +400,6 @@
             type: String,
             value: 'Lineare Verbindung',
             observer: 'changeInterpolation'
-          },
-
-          noLine: {
-            type: Boolean,
-            value: false
-          },
-
-          noArea: {
-            type: Boolean,
-            value: false
           },
 
           noLink: {
@@ -541,20 +538,14 @@
         }
       }
 
-      static get observers() {
-        return [
-          '_sizeChanged(opened)'
-        ]
-      }
-
       connectedCallback() {
         super.connectedCallback();
         this._buildLayout();
       }
 
       _sizeChanged() {
-        // only resize if initialized & opened
-        if (this._isAttached && this.opened) {
+        // only resize if initialized
+        if (this._isAttached) {
           if (this._activeSizeJob) {
             clearTimeout(this._activeSizeJob);
           }
@@ -604,7 +595,7 @@
           }, {
             passive: true
           })
-          .on('mouseleave', this._hideInfo.bind(this), {
+          .on('mouseleave', this._debouncedHideInfo.bind(this), {
             passive: true
           })
           .on('click', this._dotClicked.bind(this), {
@@ -626,7 +617,7 @@
           .on('mouseenter touchstart', this._showInfo.bind(this), {
             passive: true
           })
-          .on('mouseleave touchend', this._hideInfo.bind(this), {
+          .on('mouseleave touchend', this._debouncedHideInfo.bind(this), {
             passive: true
           })
           .on('mousemove', () => {
@@ -659,13 +650,16 @@
                   }
                 }
                 this._focusedValue = closestPoint;
+                this._focusedValue.g = closestGraph;
+                this._focusedValue._y_axis = this.multiYAxis ? (closestGraph._y_left + closestGraph._y_right) : 0;
+                this._focusedValue._x_axis = this.multiXAxis ? (closestGraph._x_bottom + closestGraph._x_top) : this._height;
                 this._focusDot.datum(closestPoint)
                   .attr('fill', fill)
                   .attr('r', closestGraph.dotRadius);
                 this._showInfo();
                 this._moveInfo(closestPoint);
               } else {
-                this._hideInfo();
+                this._debouncedHideInfo();
               }
             });
           }, {
@@ -693,47 +687,51 @@
 
         if (bRect.height === 0 || bRect.width === 0) return;
 
-        var top = this.margin.top,
-          right = this.margin.right,
-          bottom = this.margin.bottom,
-          left = this.margin.left,
+        var top = 0,
+          right = 0,
+          bottom = 0,
+          left = 0,
           yAxisWidth = this.yAxisWidth,
-          yAxisCondensedWidth = this.yAxisCondensedWidth,
-          xAxisCondensedHeight = this.xAxisCondensedHeight,
           xAxisHeight = this.xAxisHeight,
+          condensedSize = this.tickSize + this.axisMargin,
           lineWidth = 1;
 
         var mounts = Object.keys(this._graphs), g, yexp, xexp;
         for (var i = 0; mounts && i < mounts.length; i++) {
           g = this._graphs[mounts[i]];
-          yexp = g.yAxisExpanded;
-          xexp = g.xAxisExpanded;
+          if (!(g && g._isAttached)) continue;
 
-          if (g.yAxisPosition === 'left') {
-            left += yexp ? yAxisWidth : yAxisCondensedWidth;
-            g._y_left = left; g._y_right = null;
-            // g.yAxisExpandButton.transition(150).attr('x', left).attr('y', 0);
-          }
-          else {
-            right += yexp ? yAxisWidth : yAxisCondensedWidth;
-            g._y_left = null; g._y_right = right;
-            // g.yAxisExpandButton.transition(150).attr('x', right).attr('y', 0);
-          }
-          if (g.xAxisPosition === 'bottom') {
-            g._x_bottom = bottom; g._x_top = null;
-            // g.xAxisExpandButton.transition(150).attr('y', bottom).attr('x', this._width);
-            bottom += xexp ? xAxisHeight : xAxisCondensedHeight;
-          }
-          else {
-            g._x_bottom = null; g._x_top = top;
-            // g.xAxisExpandButton.transition(150).attr('y', top).attr('x', this._width);
-            top += xexp ? xAxisHeight : xAxisCondensedHeight;
+          if (g.hasYAxis) {
+            yexp = g.yAxisExpanded;
+            if (g.yAxisPosition === 'left') {
+              g._y_left = left; g._y_right = 0;
+              left -= yexp ? yAxisWidth : condensedSize;
+            }
+            else {
+              g._y_left = 0; g._y_right = right;
+              right += yexp ? yAxisWidth : condensedSize;
+            }
+          } else {
+            g._y_left = 0; g._y_right = 0;
           }
 
+          if (g.hasXAxis) {
+            xexp = g.xAxisExpanded;
+            if (g.xAxisPosition === 'bottom') {
+              g._x_bottom = bottom; g._x_top = 0;
+              bottom += xexp ? xAxisHeight : condensedSize;
+            }
+            else {
+              g._x_bottom = 0; g._x_top = top;
+              top -= xexp ? xAxisHeight : condensedSize;
+            }
+          } else {
+            g._x_bottom = 0; g._x_top = 0;
+          }
         }
 
-        this._width = bRect.width - (left || 0) - (right || 0);
-        this._height = bRect.height - (bottom || 0) - (top || 0);
+        this._width = bRect.width - Math.abs(left || 0) - Math.abs(right || 0) - (this.margin.left || 0) - (this.margin.right || 0);
+        this._height = bRect.height - Math.abs(bottom || 0) - Math.abs(top || 0) - (this.margin.bottom || 0) - (this.margin.top || 0);
 
         this._x.range([0, this._width]);
         this._y.range([this._height, 0]);
@@ -743,17 +741,29 @@
 
         for (var i = 0; mounts && i < mounts.length; i++) {
           g = this._graphs[mounts[i]];
-          yexp = g.yAxisExpanded;
-          xexp = g.xAxisExpanded;
-          g.xAxisFn.tickFormat(xexp ? null : '').tickSize(xAxisCondensedHeight);
-          g.yAxisFn.tickFormat(yexp ? null : '').tickSize(yAxisCondensedWidth);
-          g.xAxisNode.call(g.xAxisFn).attr('transform', 'translate(0,' + this._height + ')');
-          g.yAxisNode.call(g.yAxisFn).attr('transform', 'translate(0,0)');
-          g.xAxisExpandButton.transition(150).attr('height', xexp ? xAxisHeight : xAxisCondensedHeight).attr('width', xexp ? xAxisCondensedHeight : lineWidth);
-          g.yAxisExpandButton.transition(150).attr('height', yexp ? yAxisCondensedWidth : lineWidth).attr('width', yexp ? yAxisWidth : yAxisCondensedWidth);
+          if (!(g && g._isAttached)) continue;
+          if (g.hasXAxis) {
+            xexp = g.xAxisExpanded;
+            g.xAxisFn.tickFormat(xexp ? null : '').tickSize(this.tickSize);
+            if (g.xAxisPosition === 'bottom') { // bottom x-axis
+              g._x_bottom += this._height;
+            }
+            g.xAxisNode.call(g.xAxisFn).transition(150).attr('transform', 'translate(0,' + (g._x_top + g._x_bottom) + ')');
+          }
+          if (g.hasYAxis) {
+            yexp = g.yAxisExpanded;
+            g.yAxisFn.tickFormat(yexp ? null : '').tickSize(this.tickSize);
+            if (g.yAxisPosition === 'right') { // right y-axis
+              g._y_right += this._width;
+            }
+            g.yAxisNode.call(g.yAxisFn).transition(150).attr('transform', 'translate('+ (g._y_left + g._y_right) + ',0)');
+          }
         }
-
-        this._control.transition(150).style('transform', 'translate('+right+'px,-'+bottom+'px)');
+        top -= (this.margin.top || 0);
+        right += (this.margin.right || 0);
+        bottom += (this.margin.bottom || 0);
+        left -= (this.margin.left || 0);
+        this._control.transition(150).style('transform', 'translate(-'+right+'px,-'+bottom+'px)');
 
         // Limiting Projection to Margin
         this._chart.select('clipPath#clip rect').transition(150)
@@ -764,7 +774,7 @@
           .attr('width', this._width)
           .attr('height', this._height);
 
-        this._chart.transition(150).attr('transform', 'translate(' + (-left || 0) + ',' + (top || 0) + ')');
+        this._chart.transition(150).attr('transform', 'translate(' + (-left || 0) + ',' + (-top || 0) + ')');
         // this._xAxisFn = this._createAxisFn(this._x, 'bottom', this.xScale, this.xTicks);
         // this._yAxisFn = this._createAxisFn(this._y, 'left', this.yScale, this.yTicks);
 
@@ -802,6 +812,10 @@
         this._focusY.attr('y1', this._height);
 
         this._redraw(true);
+      }
+
+      _addGraph(g) {
+
       }
 
       _createScaleFn(option) {
@@ -876,7 +890,7 @@
       }
 
       redraw() {
-        if (!(this.opened && this._chart && this._chart.select)) return;
+        if (!(this._chart && this._chart.select)) return;
 
         Promise.resolve(this.setDomains.call(this))
           .then(this._redraw.bind(this))
@@ -888,7 +902,7 @@
       }
 
       _redraw(force) {
-        if (!(this.opened && this._chart && this._chart.select)) return;
+        if (!(this._chart && this._chart.select)) return;
 
         if (force || !this.domainY || !this.domainX) {
           this.redraw();
@@ -897,6 +911,7 @@
         var mounts = Object.keys(this._graphs), g;
         for (var i = 0; mounts && i < mounts.length; i++) {
           g = this._graphs[mounts[i]];
+          if (!(g && g._isAttached)) continue;
           g.redraw();
         }
 
@@ -911,7 +926,7 @@
 
       brushed() {
         // var s = d3.event.selection;
-        // this._hideInfo();
+        // this._debouncedHideInfo();
         // if (s) {
         //   this._isBrushed = true;
         //   this._isZoomed = true;
@@ -991,6 +1006,7 @@
         var mounts = Object.keys(this._graphs), g;
         for (var i = 0; mounts && i < mounts.length; i++) {
           g = this._graphs[mounts[i]];
+          if (!(g && g._isAttached)) continue;
           if (g.item && g.item.mount && data[g.item.mount])
             g.insertValues(data[g.item.mount]);
         }
@@ -1000,6 +1016,7 @@
         var mounts = Object.keys(this._graphs), g;
         for (var i = 0; mounts && i < mounts.length; i++) {
           g = this._graphs[mounts[i]];
+          if (!(g && g._isAttached)) continue;
           if (g.item && g.item.mount)
             g.clearValues();
         }
@@ -1011,6 +1028,7 @@
           var mounts = Object.keys(this._graphs), g;
           for (var i = 0; mounts && i < mounts.length; i++) {
             g = this._graphs[mounts[i]];
+            if (!(g && g._isAttached)) continue;
             if (g.item && g.item.mount)
               p.push(g.requestRange(key));
           }
@@ -1068,11 +1086,16 @@
         this._delta.attr('hidden', null);
       }
 
-      _hideInfo() {
-        this.debounce('hideinfo', this._debounceHideInfo, 1000);
+      _debouncedHideInfo() {
+        if (this._activeHideInfoJob) {
+          clearTimeout(this._activeHideInfoJob);
+        }
+        this._activeHideInfoJob = setTimeout(() => {
+          // this._hideInfo();
+        }, 1000);
       }
 
-      _debounceHideInfo() {
+      _hideInfo() {
         this._info.attr('hidden', '');
         this._focus.attr('hidden', '');
         this._hideDelta();
@@ -1124,9 +1147,9 @@
               this._hideDelta();
             }
           case 'integral':
-          default:
-            this._focusX.attr('x1', 0).attr('x2', x).attr('y2', y).attr('y1', y);
-            this._focusY.attr('y1', this._height).attr('y2', y).attr('x2', x).attr('x1', x);
+          default: // always performed
+            this._focusX.attr('x1', focP._y_axis).attr('x2', x).attr('y2', y).attr('y1', y);
+            this._focusY.attr('y1', focP._x_axis).attr('y2', y).attr('x2', x).attr('x1', x);
             this._focusDot.attr('cy', y).attr('cx', x);
         }
 
@@ -1245,6 +1268,7 @@
         var mounts = Object.keys(this._graphs), g;
         for (var i = 0; mounts && i < mounts.length; i++) {
           g = this._graphs[mounts[i]];
+          if (!(g && g._isAttached)) continue;
           g.set('interpolation', interpolation);
         }
       }
@@ -1260,7 +1284,7 @@
         //     domainY[1] = Number.EPSILON;
         //   }
         // }
-        // this._hideInfo();
+        // this._debouncedHideInfo();
         // this._y = this._createScaleFn(this.yScale);
         // this._y.domain(domainY).nice(this.yTicks);
         // this.set('domainY', domainY);
@@ -1276,7 +1300,7 @@
         this._isZoomed = false;
         this._fixedValue = null;
         this._focusedValue = null;
-        this._debounceHideInfo();
+        this._hideInfo();
         this.redraw();
       }
 
@@ -1285,6 +1309,7 @@
         var mounts = Object.keys(this._graphs), g;
         for (var i = 0; mounts && i < mounts.length; i++) {
           g = this._graphs[mounts[i]];
+          if (!(g && g._isAttached)) continue;
           g.clearValues(true);
           g.requestValues(null, null, this.viewLength)
             .then(function(data) {
