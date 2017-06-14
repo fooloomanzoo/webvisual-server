@@ -99,7 +99,7 @@
         stroke-opacity: 0.5;
         transition: fill-opacity 150ms linear;
       }
-      .axis path:hover {
+      .axis:hover path {
         fill-opacity: 0.25;
       }
       .axis.expanded path, .axis.expanded line {
@@ -457,8 +457,8 @@
         this._bounderies = {};
         this._focusedValue = null;
         this._fixedValue = null;
-        this._x = Function.prototype;
-        this._y = Function.prototype;
+        this.xFn = Function.prototype;
+        this.yFn = Function.prototype;
         this._xAxes = {};
         this._yAxes = {};
         // this._xAxisFn = {};
@@ -559,8 +559,8 @@
         this._svg = d3.select(this.$.svgChart)
           .attr('height', null)
           .attr('width', null);
-        this._x = this._createScaleFn(this.xScale);
-        this._y = this._createScaleFn(this.yScale);
+        this.xFn = this._createScaleFn(this.xScale);
+        this.yFn = this._createScaleFn(this.yScale);
 
         this._chart = d3.select(this.$.chart);
         this._control = d3.select(this.$.control);
@@ -629,7 +629,7 @@
                 g = this._graphs[mounts[i]]
                 if (g.values && g.values.length) {
                   var d = g._closestPoint(m);
-                  var currentMin2 = Math.pow(m[0] - this._x(d.x), 2) + Math.pow(m[1] - this._y(d.y), 2); // in px²
+                  var currentMin2 = Math.pow(m[0] - g.xFn(d.x), 2) + Math.pow(m[1] - g.yFn(d.y), 2); // in px²
                   if (closestDistance === undefined || currentMin2 < closestDistance) {
                     closestDistance = currentMin2;
                     closestPoint = d;
@@ -733,8 +733,8 @@
         this._width = bRect.width - Math.abs(left || 0) - Math.abs(right || 0) - (this.margin.left || 0) - (this.margin.right || 0);
         this._height = bRect.height - Math.abs(bottom || 0) - Math.abs(top || 0) - (this.margin.bottom || 0) - (this.margin.top || 0);
 
-        this._x.range([0, this._width]);
-        this._y.range([this._height, 0]);
+        this.xFn.range([0, this._width]);
+        this.yFn.range([this._height, 0]);
 
         this.xTicks = Math.ceil(this._width / 75);
         this.yTicks = Math.ceil(this._height / 50);
@@ -743,20 +743,30 @@
           g = this._graphs[mounts[i]];
           if (!(g && g._isAttached)) continue;
           if (g.hasXAxis) {
+            g.xFn.range([0, this._width]);
             xexp = g.xAxisExpanded;
             g.xAxisFn.tickFormat(xexp ? null : '').tickSize(this.tickSize);
             if (g.xAxisPosition === 'bottom') { // bottom x-axis
               g._x_bottom += this._height;
+              g.xAxisBrush.extent([[0, 0], [this._width, this.tickSize]]);
+            } else {
+              g.xAxisBrush.extent([[0, -this.tickSize], [this._width, 0]]);
             }
             g.xAxisNode.call(g.xAxisFn).transition(150).attr('transform', 'translate(0,' + (g._x_top + g._x_bottom) + ')');
+            g.xAxisBrushNode.raise().call(g.xAxisBrush);
           }
           if (g.hasYAxis) {
+            g.yFn.range([this._height, 0]);
             yexp = g.yAxisExpanded;
             g.yAxisFn.tickFormat(yexp ? null : '').tickSize(this.tickSize);
             if (g.yAxisPosition === 'right') { // right y-axis
               g._y_right += this._width;
+              g.yAxisBrush.extent([[0, 0], [this.tickSize, this._height]]);
+            } else{
+              g.yAxisBrush.extent([[-this.tickSize, 0], [0, this._height]]);
             }
             g.yAxisNode.call(g.yAxisFn).transition(150).attr('transform', 'translate('+ (g._y_left + g._y_right) + ',0)');
+            g.yAxisBrushNode.raise().call(g.yAxisBrush);
           }
         }
         top -= (this.margin.top || 0);
@@ -799,13 +809,13 @@
         //   .call(this._yGrid)
         //   .attr('transform', 'translate(0,' + 0 + ')');;
 
-        if (this._isBrushed !== true || this._isZoomed !== true) {
-          this._brushBehavior.extent([
-            [0, 0],
-            [this._width, this._height]
-          ])
-          this._brush.call(this._brushBehavior);
-        }
+        // if (this._isBrushed !== true || this._isZoomed !== true) {
+        //   this._brushBehavior.extent([
+        //     [0, 0],
+        //     [this._width, this._height]
+        //   ])
+        //   this._brush.call(this._brushBehavior);
+        // }
 
         this._svg.selectAll('g,line,text,path,rect')
           .classed('style-scope device-chart', true)
@@ -859,6 +869,7 @@
           axis.ticks(ticks).tickFormat(this.timeFormat.bind(this));
         else if (scale.base && scale.base() === Math.E)
           axis.tickFormat(d => {
+            // TODO: different conception for log scales needed
             return (d < 1 || d > 1000 ? (Math.log(d)).toExponential(3) : (Math.log(d)).toFixed(2));
           })
 
@@ -930,8 +941,8 @@
         // if (s) {
         //   this._isBrushed = true;
         //   this._isZoomed = true;
-        //   this._x.domain([s[0][0], s[1][0]].map(this._x.invert, this._x)).nice(this.xTicks);
-        //   this._y.domain([s[1][1], s[0][1]].map(this._y.invert, this._y)).nice(this.yTicks);
+        //   this.xFn.domain([s[0][0], s[1][0]].map(this.xFn.invert, this.xFn)).nice(this.xTicks);
+        //   this.yFn.domain([s[1][1], s[0][1]].map(this.yFn.invert, this.yFn)).nice(this.yTicks);
         //   this._brush.call(this._brushBehavior.move, null);
         //   return;
         // } else if (this._isBrushed === true) {
@@ -945,61 +956,61 @@
       }
 
       setDomains() {
-        return new Promise((resolve, reject) => {
-          if (!Object.keys(this._graphs).length)
-            reject('No Graphs are attached');
-          if (this._isZoomed === true || this._isBrushed === true) {
-            resolve();
-          }
-
-          this.requestRange('x')
-            .then(rangeX => {
-              var domainX = rangeX;
-              this.requestRange('y')
-                .then(rangeY => {
-
-                  var domainY = rangeY;
-
-                  // if min, max are equal, add a little space
-                  if (domainY[0] !== undefined && domainY[1] !== undefined && domainY[0] === domainY[1]) {
-                    domainY[0] -= 0.5;
-                    domainY[1] += 0.5;
-                  }
-
-                  if (this.yScale === 'ln' || this.yScale === 'log₁₀') {
-                    if (domainY[0] <= 0) {
-                      domainY[0] = Number.EPSILON;
-                    }
-                    if (domainY[1] <= 0) {
-                      domainY[1] = Number.EPSILON;
-                    }
-                  }
-
-                  this._x.domain(domainX);
-                  this.set('domainX', domainX);
-                  this._y.domain(domainY).nice(this.yTicks);
-
-                  // if domain is on the edge of data, add a little space
-                  domainY = this._y.domain();
-                  if (domainY[0] === rangeY[0]) {
-                    domainY[0] -= (rangeY[1] - rangeY[0]) / this.yTicks;
-                  }
-                  if (domainY[1] === rangeY[1]) {
-                    domainY[1] += (rangeY[1] - rangeY[0]) / this.yTicks;
-                  }
-                  this._y.domain(domainY);
-                  this.set('domainY', domainY);
-                  resolve();
-
-                })
-                .catch(err => {
-                  reject(err);
-                });
-            })
-            .catch(err => {
-              reject(err);
-            });
-        });
+        // return new Promise((resolve, reject) => {
+        //   if (!Object.keys(this._graphs).length)
+        //     reject('No Graphs are attached');
+        //   if (this._isZoomed === true || this._isBrushed === true) {
+        //     resolve();
+        //   }
+        //
+        //   this.requestRange('x')
+        //     .then(rangeX => {
+        //       var domainX = rangeX;
+        //       this.requestRange('y')
+        //         .then(rangeY => {
+        //
+        //           var domainY = rangeY;
+        //
+        //           // if min, max are equal, add a little space
+        //           if (domainY[0] !== undefined && domainY[1] !== undefined && domainY[0] === domainY[1]) {
+        //             domainY[0] -= 0.5;
+        //             domainY[1] += 0.5;
+        //           }
+        //
+        //           if (this.yScale === 'ln' || this.yScale === 'log₁₀') {
+        //             if (domainY[0] <= 0) {
+        //               domainY[0] = Number.EPSILON;
+        //             }
+        //             if (domainY[1] <= 0) {
+        //               domainY[1] = Number.EPSILON;
+        //             }
+        //           }
+        //
+        //           this.xFn.domain(domainX);
+        //           this.set('domainX', domainX);
+        //           this.yFn.domain(domainY).nice(this.yTicks);
+        //
+        //           // if domain is on the edge of data, add a little space
+        //           domainY = this.yFn.domain();
+        //           if (domainY[0] === rangeY[0]) {
+        //             domainY[0] -= (rangeY[1] - rangeY[0]) / this.yTicks;
+        //           }
+        //           if (domainY[1] === rangeY[1]) {
+        //             domainY[1] += (rangeY[1] - rangeY[0]) / this.yTicks;
+        //           }
+        //           this.yFn.domain(domainY);
+        //           this.set('domainY', domainY);
+        //           resolve();
+        //
+        //         })
+        //         .catch(err => {
+        //           reject(err);
+        //         });
+        //     })
+        //     .catch(err => {
+        //       reject(err);
+        //     });
+        // });
       }
 
       insertValues(data) {
@@ -1054,8 +1065,8 @@
       }
 
       _moveInfo(d) {
-        if (Number.isFinite(this._y(d.y))) {
-          var x = this.timeFormatRange.call(this, d.x, this._x.domain(), this._width);
+        if (Number.isFinite(this.yFn(d.y))) {
+          var x = this.timeFormatRange.call(this, d.x, this.xFn.domain(), this._width);
           var y = this.format.Number(d.y);
           this._info.text(x + ' ' + y);
           var fixP = this._fixedValue;
@@ -1117,8 +1128,8 @@
       _updateInfo() {
         if (!this._focusedValue || this._info.attr('hidden') === '') return;
         var focP = this._focusedValue;
-        var x = this._x(+focP.x),
-          y = this._y(+focP.y);
+        var x = this.xFn(+focP.x),
+          y = this.yFn(+focP.y);
         if (!x || !y) {
           return;
         }
@@ -1128,8 +1139,8 @@
           case 'delta':
             var fixP = this._fixedValue;
             if (fixP && fixP.x && focP.x !== fixP.x && fixP.y && focP.y !== fixP.y) {
-              var xFix = this._x(+fixP.x),
-                yFix = this._y(+fixP.y);
+              var xFix = this.xFn(+fixP.x),
+                yFix = this.yFn(+fixP.y);
               var x1D, x2D, y1D, y2D;
               this._deltaX.attr('x1', x).attr('x2', xFix).attr('y1', yFix).attr('y2', yFix);
               this._deltaY.attr('y1', y).attr('y2', yFix);
@@ -1226,10 +1237,10 @@
       _dotClicked(d) {
         switch (this.modus) {
           case 'zoom':
-            var offsetX = (this._x(this._x.domain()[1]) - this._x(this._x.domain()[0])) / 4,
-              offsetY = (this._y(this._y.domain()[0]) - this._y(this._y.domain()[1])) / 4,
-              x = this._x(+d.x),
-              y = this._y(+d.y) || 0;
+            var offsetX = (this.xFn(this.xFn.domain()[1]) - this.xFn(this.xFn.domain()[0])) / 4,
+              offsetY = (this.yFn(this.yFn.domain()[0]) - this.yFn(this.yFn.domain()[1])) / 4,
+              x = this.xFn(+d.x),
+              y = this.yFn(+d.y) || 0;
             d3.event.selection = [
               [x - offsetX, y - offsetY],
               [x + offsetX, y + offsetY]
@@ -1247,10 +1258,10 @@
             this._fixedValue = d;
             this._deltaDot.datum(this._fixedValue)
               .attr('cx', d => {
-                return this._x(d.x)
+                return this.xFn(d.x)
               })
               .attr('cy', d => {
-                return this._y(d.y)
+                return this.yFn(d.y)
               })
               .attr('r', this._focusDot.attr('r'))
               .attr('fill', this._focusDot.attr('fill'));
@@ -1275,7 +1286,7 @@
 
       changeScale(newValue, oldValue) {
         // if (oldValue === undefined) return;
-        // var domainY = this._y.domain();
+        // var domainY = this.yFn.domain();
         // if (this.yScale === 'ln' || this.yScale === 'log₁₀') {
         //   if (domainY[0] <= 0) {
         //     domainY[0] = Number.EPSILON;
@@ -1285,8 +1296,8 @@
         //   }
         // }
         // this._debouncedHideInfo();
-        // this._y = this._createScaleFn(this.yScale);
-        // this._y.domain(domainY).nice(this.yTicks);
+        // this.yFn = this._createScaleFn(this.yScale);
+        // this.yFn.domain(domainY).nice(this.yTicks);
         // this.set('domainY', domainY);
         // this._sizeChanged();
       }

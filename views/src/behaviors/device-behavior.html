@@ -247,6 +247,7 @@
         var req = {
           target: 'cache',
           operation: 'range',
+          forced: true,
           args: {
             mounts: [this.item.mount],
             key: key
@@ -266,7 +267,7 @@
             }
             else {
               // reject('no values are set');
-              resolve( [ ] );
+              resolve( [ 0, 1 ] );
             }
           });
         }
@@ -279,6 +280,7 @@
         var n = array.length;
         while (++i < n) if ((b = array[i][key]) !== null && b >= b) { a = b; break; }
         while (++i < n) if ((b = array[i][key]) !== null && a > b) a = b;
+        console.log('min', a, array);
         return a;
       }
 

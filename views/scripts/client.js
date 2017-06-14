@@ -8,6 +8,8 @@ function WebvisualClient() {
 
   this.messageId = 0;
   this.messageMap = {};
+
+  this.requests = [];
 }
 
 WebvisualClient.prototype = {
@@ -37,6 +39,10 @@ WebvisualClient.prototype = {
                 case 'initial':
                   this.resetNodes();
                   this.updateNodes(e.data.values, e.data.splices);
+                  for (var i = 0; i < this.requests.length; i++) {
+                    this.webworker.postMessage(this.requests[i]);
+                  }
+                  this.requests.length = 0;
                   break;
                 case 'update':
                   this.updateNodes(e.data.values, e.data.splices);
@@ -105,7 +111,11 @@ WebvisualClient.prototype = {
     this.messageMap[this.messageId] = resolve;
     req.args = req.args || {};
     req.args.messageId = this.messageId;
-    this.webworker.postMessage(req);
+    if (this.webworker) {
+      this.webworker.postMessage(req);
+    } else if (req.forced) {
+      this.requests.push(req);
+    }
   },
 
   updateStatus: function(status) {

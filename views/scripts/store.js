@@ -107,7 +107,6 @@ if (!self.Promise) {
     },
 
     range: function(opts) {
-      console.log(opts);
       if (opts.key) {
           return new Promise( function(resolve, reject) {
               resolve([this.min(opts), this.max(opts)]);

@@ -63,7 +63,9 @@ export {
 } from "d3-zoom";
 
 export {
-  brush
+  brush,
+  brushX,
+  brushY,
 } from "d3-brush";
 
 export {

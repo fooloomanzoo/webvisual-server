@@ -103,7 +103,7 @@
 
           storeInside: {
             type: Boolean,
-            value: true,
+            value: false,
             readOnly: true
           }
         }
@@ -120,29 +120,33 @@
         this.xAxisFn = null;
         this.yAxisNode = null;
         this.yAxisFn = null;
+        this.yAxisBrush = null;
+        this.xAxisBrush = null;
+        this.xFn = Function.prototype;
+        this.yFn = Function.prototype;
         this.areaFn = d3.area()
           .defined(this._defined.bind(this))
           .x(d => {
-            return this.chartElement._x(d.x);
+            return this.xFn(d.x);
           })
           .y0(d => {
-            if (this.chartElement.yScale === 'ln' || this.chartElement.yScale === 'log₁₀') {
+            if (this.yScale === 'ln' || this.yScale === 'log₁₀') {
               return this.chartElement._height;
             } else {
-              return this.chartElement._y(0)
+              return this.yFn(0)
             }
           })
           .y1(d => {
-            return this.chartElement._y(d.y);
+            return this.yFn(d.y);
           });
 
         this.lineFn = d3.line()
           .defined(this._defined.bind(this))
           .x(d => {
-            return this.chartElement._x(d.x);
+            return this.xFn(d.x);
           })
           .y(d => {
-            return this.chartElement._y(d.y);
+            return this.yFn(d.y);
           });
 
         this.bisectDate = d3.bisector((d, x) => {
@@ -196,10 +200,10 @@
             }
             this.chartElement = containerRoot;
             this.chartElement._graphs[this.item.mount] = this;
-            this._areaChanged(this.hasArea);
-            this._lineChanged(this.hasLine);
             this._xAxisChanged(this.hasXAxis);
             this._yAxisChanged(this.hasYAxis);
+            this._areaChanged(this.hasArea);
+            this._lineChanged(this.hasLine);
             this._setColorProperties();
 
             // if (!this.chartElement._height || !this.chartElement._width) {
@@ -210,7 +214,7 @@
             this.chartElement._sizeChanged();
           })
           .catch(err => {
-            console.warn('No parentElement (chart) for graph found. Registration of Graph Element failed');
+            console.warn('Error in building graph:', err.stack);
           })
       }
 
@@ -269,6 +273,7 @@
         if (!(this.chartElement && this.chartElement._xAxes)) return;
 
         if (hasXAxis === false) {
+          this.xFn = this.chartElement.xFn;
           // remove y axis
           if (this.xAxisNode && this.xAxisNode.node) {
             node = this.xAxisNode.node();
@@ -278,10 +283,14 @@
             this.xAxisFn = null;
           }
         } else {
+          // add scale function
+          this.xFn = this.chartElement._createScaleFn(this.xScale);
           if (!this.xAxisFn) {
-            this.xAxisFn = this._createAxisFn(this.chartElement._x, this.xAxisPosition, this.xScale);
+            // add x axis function
+            this.xAxisFn = this._createAxisFn(this.xFn, this.xAxisPosition, this.xScale);
           }
-          if (!(this.xAxisNode && this.xAxisNode.node)) { // add y axis
+          if (!(this.xAxisNode && this.xAxisNode.node)) {
+            // add x axis
             this.xAxisNode = this.chartElement._xAxes.append('svg:g')
           }
           // update x axis node properties
@@ -290,6 +299,24 @@
             .classed('expanded', this.xAxisExpanded)
             .attr('data-name', this.item.mount)
             .on('click', this._toggleXAxisExpansion.bind(this));
+
+          if (!this.xAxisBrush) {
+            // add x brush
+            this.xAxisBrush = d3.brushX().on("brush end", this.brushedX.bind(this));
+          }
+          if (!this.xAxisBrushNode) {
+            // add x brush node
+            this.xAxisBrushNode = this.xAxisNode.append('svg:g');
+          }
+          // update x brush
+          this.xAxisBrush.extent([[0, (this.xAxisPosition === 'top') ? (-this.chartElement.tickSize) : 0], [this.chartElement._width, (this.xAxisPosition === 'top') ? 0 :   this.chartElement.tickSize]]);
+          this.xAxisBrushNode.raise().call(this.xAxisBrush);
+          // getting a domain range for x
+          this._setDomain('x').then( () => {
+            // add scale function for axis brush
+            this.xFnBrush = this.chartElement._createScaleFn(this.xScale);
+            this.xFnBrush.domain(this.xFn.domain());
+          })
         }
       }
 
@@ -297,19 +324,25 @@
         if (!(this.chartElement && this.chartElement._yAxes)) return;
 
         if (hasYAxis === false) {
+          this.yFn = this.chartElement.yFn;
           // remove y axis
           if (this.yAxisNode && this.yAxisNode.node) {
             node = this.yAxisNode.node();
             if (node && node.parentElement)
               node.parentElement.removeChild(node);
-            this.yAxisNode = null;
-            this.yAxisFn = null;
           }
+          this.yAxisNode = null;
+          this.yAxisFn = null;
         } else {
+          // add scale function
+          this.yFn = this.chartElement._createScaleFn(this.yScale);
+
           if (!this.yAxisFn) {
-            this.yAxisFn = this._createAxisFn(this.chartElement._y, this.yAxisPosition, this.yScale);
+            // add y axis function
+            this.yAxisFn = this._createAxisFn(this.yFn, this.yAxisPosition, this.yScale);
           }
-          if (!(this.yAxisNode && this.yAxisNode.node)) { // add y axis
+          if (!(this.yAxisNode && this.yAxisNode.node)) {
+            // add y axis
             this.yAxisNode = this.chartElement._yAxes.append('svg:g')
           }
           // update y axis node properties
@@ -318,7 +351,113 @@
             .classed('expanded', this.yAxisExpanded)
             .attr('data-name', this.item.mount)
             .on('click', this._toggleYAxisExpansion.bind(this));
+          if (!this.yAxisBrush) {
+            // add y brush
+            this.yAxisBrush = d3.brushY().on("brush end", this.brushedY.bind(this));
+          }
+          if (!this.yAxisBrushNode) {
+            // add x brush node
+            this.yAxisBrushNode = this.yAxisNode.append('svg:g');
+          }
+          // update y brush
+          this.yAxisBrush.extent([[this.yAxisPosition === 'left' ? -this.chartElement.tickSize : 0, 0], [this.yAxisPosition === 'left' ? 0 : this.chartElement.tickSize, this.chartElement._height]]);
+          this.yAxisBrushNode.raise().call(this.yAxisBrush);
+
+          // getting a domain range for y
+          this._setDomain('y').then( () => {
+            // add scale function for axis brush
+            this.yFnBrush = this.chartElement._createScaleFn(this.yScale);
+            this.yFnBrush.domain(this.yFn.domain());
+          })
         }
+      }
+
+      brushedY() {
+        // if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
+        var s = d3.event.selection || this.yFnBrush.range();
+        console.log(s,s.map(this.yFnBrush.invert, this.yFnBrush));
+        this.yFn.domain(s.map(this.yFnBrush.invert, this.yFnBrush));
+        if (this.hasArea) {
+          this.areaNode.attr("d", this.areaFn);
+        }
+        if (this.hasLine) {
+          this.lineNode.attr("d", this.lineFn);
+        }
+        this.yAxisNode.call(this.yAxisFn);
+      }
+
+      brushedX() {
+        // if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
+        var s = d3.event.selection || this.xFnBrush.range();
+        console.log(s,s.map(this.xFnBrush.invert, this.xFnBrush));
+        this.xFn.domain(s.map(this.xFnBrush.invert, this.xFnBrush));
+        if (this.hasArea) {
+          this.areaNode.attr("d", this.areaFn);
+        }
+        if (this.hasLine) {
+          this.lineNode.attr("d", this.lineFn);
+        }
+        this.xAxisNode.call(this.xAxisFn);
+      }
+
+      _setDomain(key) {
+        if (!(this.chartElement && (key === 'x' || key === 'y'))) return;
+
+        var ticks, scale, setDomain;
+        if (key === 'x') {
+          ticks = this.xTicks || this.chartElement.xTicks;
+          scale = this.xScale || this.chartElement.xScale;
+          setDomain = 'domainX';
+        } else {
+          ticks = this.yTicks || this.chartElement.yTicks;
+          scale = this.yScale || this.chartElement.yScale;
+          setDomain = 'domainY';
+        }
+
+        return new Promise((resolve, reject) => {
+
+          this.requestRange(key)
+            .then(range => {
+              var domain = range;
+              if (key === 'y') {
+                // if min, max are equal, add a little space
+                if (domain[0] !== undefined && domain[1] !== undefined && domain[0] === domain[1]) {
+                  domain[0] -= 0.5;
+                  domain[1] += 0.5;
+                }
+              }
+
+              if (scale === 'ln' || scale === 'log₁₀') {
+                if (domain[0] <= 0) {
+                  domain[0] = Number.EPSILON;
+                }
+                if (domain[1] <= 0) {
+                  domain[1] = Number.EPSILON;
+                }
+              }
+
+              if (key === 'y') {
+                this.yFn.domain(domain).nice(ticks);
+                domain = this.yFn.domain();
+                // if domain is on the edge of data, add a little space
+                if (domain[0] === range[0]) {
+                  domain[0] -= (range[1] - range[0]) / ticks;
+                }
+                if (domain[1] === range[1]) {
+                  domain[1] += (range[1] - range[0]) / ticks;
+                }
+                this.yFn.domain(domain);
+              } else {
+                this.xFn.domain(domain);
+              }
+
+              this.set(setDomain, domain);
+              resolve();
+            })
+            .catch(err => {
+              reject(err);
+            });
+        });
       }
 
       _thresholdChanged(threshold) {
@@ -438,7 +577,7 @@
 
       spliceValues(splices) {
         // requestAnimationFrame( () => {
-        var changeRecord = [];
+        // var changeRecord = [];
 
         for (var i = 0; i < splices.length; i++) {
           for (var j = this.values.length - 1; j >= 0; j--) {
@@ -460,10 +599,10 @@
         if (!this._isAttached && this.item) {
           this.addNodes();
         } else if (this.chartElement) {
-          if (this.chartElement._isZoomed === false)
+          // if (this.chartElement._isZoomed === false)
             this.chartElement.redraw();
-          else
-            this.redraw();
+          // else
+          //   this.redraw();
         }
       }
 
@@ -505,7 +644,7 @@
             i_color = this.item.color || '#000';
 
           if (this.item.threshold.from !== undefined) {
-            y = ((1 - Math.ceil(this.chartElement._y(this.item.threshold.from) + this.lineWidth * 1.25) / this.chartElement._height) * 100);
+            y = ((1 - Math.ceil(this.yFn(this.item.threshold.from) + this.lineWidth * 1.25) / this.chartElement._height) * 100);
             if (Number.isFinite(y)) {
               b_line.push({
                 o: y + '%',
@@ -518,7 +657,7 @@
             }
           }
           if (this.item.threshold.to !== undefined) {
-            y = ((1 - Math.floor(this.chartElement._y(this.item.threshold.to) - this.lineWidth * 1.25) / this.chartElement._height) * 100);
+            y = ((1 - Math.floor(this.yFn(this.item.threshold.to) - this.lineWidth * 1.25) / this.chartElement._height) * 100);
             if (Number.isFinite(y)) {
               b_line.push({
                 o: y + '%',
@@ -530,7 +669,6 @@
               });
             }
           }
-          // for area
           var gradients = this.bounderyLineGradientNode
             .attr('x1', 0).attr('y1', this.chartElement._height)
             .attr('x2', 0).attr('y2', 0)
@@ -559,9 +697,8 @@
         // TODO(?): update line, animated http://bl.ocks.org/benjchristensen/1148374
       }
 
-      _defined(d, i, data) {
-        var domainX = this.chartElement._x.domain(),
-          yScale = this.chartElement.yScale;
+      _defined(d, i) {
+        var yScale = this.yScale;
 
         if (!Number.isFinite(d.y))
           return null;
@@ -626,8 +763,8 @@
         return values[pos];
 
         function pixdistance2(p) {
-          var dx = _x(new Date(p.x)) - m[0],
-            dy = _y(p.y) - m[1];
+          var dx = xFn(new Date(p.x)) - m[0],
+            dy = yFn(p.y) - m[1];
           return dx * dx + dy * dy;
         }
       }
@@ -669,8 +806,8 @@
         }
 
         best = {
-          x: this.chartElement._x(best.x),
-          y: this.chartElement._y(best.y)
+          x: this.xFn(best.x),
+          y: this.yFn(best.y)
         };
         best.distance = Math.sqrt(bestDistance);
         return best;
@@ -712,7 +849,7 @@
 
       changeScale(newValue, oldValue) {
         // if (oldValue === undefined) return;
-        // var domainY = this._y.domain();
+        // var domainY = this.yFn.domain();
         // if (this.yScale === 'ln' || this.yScale === 'log₁₀') {
         //   if (domainY[0] <= 0) {
         //     domainY[0] = Number.EPSILON;
@@ -721,17 +858,14 @@
         //     domainY[1] = Number.EPSILON;
         //   }
         // }
-        // this._hideInfo();
-        // this._y = this._createScaleFn(this.yScale);
-        // this._y.domain(domainY).nice(this.yTicks);
+        // this._debouncedHideInfo();
+        // this.yFn = this._createScaleFn(this.yScale);
+        // this.yFn.domain(domainY).nice(this.yTicks);
         // this.set('domainY', domainY);
         // this._sizeChanged();
       }
 
       _interpolationChanged(interpolation) {
-        if (!this._inialized) {
-          return;
-        }
         var curve;
         switch (interpolation) {
           case 'Basis Spline':
