@@ -68,13 +68,10 @@
       text.info {
         fill: var(--primary-text-color);
       }
-      g#chart .axis {
-        font-size: inherit;
-      }
-      g#brush .selection {
+      /*g#brush .selection {
         stroke: currentColor;
         stroke-opacity: 0.7;
-      }
+      }*/
       rect#plot {
         fill: var(--chart-plot-background-color, #fff);
         stroke: currentColor;
@@ -92,6 +89,9 @@
       .grid path {
         stroke-width: 0;
       }
+      /*.axis {
+        font-size: inherit;
+      }*/
       .axis path, .axis line {
         fill: currentColor;
         fill-opacity: 0.01;
@@ -104,9 +104,6 @@
       }
       .axis.expanded path, .axis.expanded line {
         stroke-opacity: 0.75;
-      }
-      .axis {
-        font-family: inherit;
       }
       .axis.button {
         pointer-events: all;
@@ -123,6 +120,11 @@
       }
       .y.axis > .tick:last-of-type:not(:only-of-type) > text {
         alignment-baseline: before-edge;
+      }
+      .brush .selection {
+        fill: currentColor;
+        stroke: currentColor;
+        stroke-width: 0;
       }
       #graphs .area {
         fill-opacity: 0.3;

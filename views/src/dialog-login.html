@@ -158,11 +158,6 @@
             notify: true
           },
 
-          offline: {
-            type: Boolean,
-            observer: '_offlineChanged'
-          },
-
           signInUrl: {
             type: String,
             value: '/login'
@@ -175,10 +170,12 @@
         }
       }
 
-      _offlineChanged(offline) {
-        if (!offline) {
-          this.autoSignIn(false);
-        }
+      connectedCallback() {
+        super.connectedCallback();
+        this.autoSignIn(false);
+        Polymer.RenderStatus.afterNextRender(this, function() {
+          window.addEventListener('online', this.autoSignIn);
+        });
       }
 
       /**

@@ -350,7 +350,7 @@
       _debounceResize() {
         setTimeout(() => {
           if (this.narrowLayout) {
-            this.$.elementDrawer.open();
+            this.$.elementDrawer.opened = true;
           }
           if (this.selectedCheckboxes && this.selectedCheckboxes.length) {
             this.selectedCheckboxes[this.selectedCheckboxes.length-1].scrollIntoViewIfNeeded(true);

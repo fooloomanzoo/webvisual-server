@@ -205,7 +205,6 @@
     <dialog-login id="loginDialog"
       icon="{{loginIcon}}"
       logged-in="{{loggedIn}}"
-      offline="[[offline]]"
       language="[[language]]"
       language-resources="[[languageResources]]">
     </dialog-login>
@@ -223,7 +222,6 @@
       socket-room="[[queryParams.room]]"
       socket-status="{{socketStatus}}"
       logged-in="[[loggedIn]]"
-      offline="[[offline]]"
       lazy-connect="[[loadComplete]]"></device-socket-data>
 
     <iron-media-query query="(min-width: 768px)" query-matches="{{wideLayout}}"></iron-media-query>

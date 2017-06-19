@@ -222,7 +222,8 @@
           opened: {
             type: Boolean,
             reflectToAttribute: true,
-            notify: true
+            notify: true,
+            observer: '_openedChanged'
           },
 
           /**
@@ -295,7 +296,6 @@
       static get observers() {
         return [
           '_styleTransitionDuration(transitionDuration)',
-          '_debouncedResetDrawerState(opened, persistent)',
           '_addTrackListeners(horizontal)'
         ]
       }
@@ -345,7 +345,6 @@
        */
       open() {
         this.opened = true;
-        this._autoCloseChanged(this.autoClose);
       }
 
       /**
@@ -353,7 +352,6 @@
        */
       close() {
         this.opened = false;
-        this._autoCloseChanged(false);
       }
 
       /**
@@ -364,6 +362,16 @@
           this.close();
         } else {
           this.open();
+        }
+      }
+
+      _openedChanged(opened) {
+        if (opened) {
+          if (this.autoClose) {
+            this._autoCloseChanged(this.autoClosePeriod);
+          }
+        } else {
+          this._autoCloseChanged(false);
         }
       }
 
@@ -673,7 +681,7 @@
           clearTimeout(this._activeResetJob);
         }
         this._activeResetJob = setTimeout(() => {
-          this._resetDrawerState;
+          this._resetDrawerState();
           this._activeResetJob = null;
         }, this.transitionDuration);
       }

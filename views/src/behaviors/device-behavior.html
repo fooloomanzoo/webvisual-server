@@ -263,12 +263,11 @@
             if (this.values && this.values.length) {
               var min = this.min(this.values, key);
               var max = this.max(this.values, key);
-              resolve( [ min, max ] );
+              if (!(min === undefined && max === undefined)) {
+                resolve( [ min, max ] );
+              }
             }
-            else {
-              // reject('no values are set');
-              resolve( [ 0, 1 ] );
-            }
+            reject();
           });
         }
       }

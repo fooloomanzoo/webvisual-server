@@ -36,23 +36,18 @@
 
           loggedIn: {
             type: Boolean
-          },
-
-          offline: {
-            type: Boolean
           }
-
         }
       }
 
       static get observers() {
         return [
-          '_connect(loggedIn, offline, lazyConnect)'
+          '_connect(loggedIn, lazyConnect)'
         ]
       }
 
-      _connect(loggedIn, offline, lazyConnect) {
-        if (loggedIn && !offline && lazyConnect) {
+      _connect(loggedIn, lazyConnect) {
+        if (loggedIn && lazyConnect) {
           this._createSocketConnection(this.locationHost, this.nameSpace);
         } else {
           this.socketStatus = 'sync-problem';

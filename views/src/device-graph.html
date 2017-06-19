@@ -23,18 +23,6 @@
             observer: '_interpolationChanged'
           },
 
-          xScale: {
-            type: String,
-            value: 'time',
-            observer: 'changeScale'
-          },
-
-          yScale: {
-            type: String,
-            value: 'linear',
-            observer: 'changeScale'
-          },
-
           hasLine: {
             type: Boolean,
             value: true,
@@ -50,45 +38,40 @@
           hasXAxis: {
             type: Boolean,
             value: true,
-            observer: '_xAxisChanged'
+            observer: '_axisChanged'
           },
 
           hasYAxis: {
             type: Boolean,
             value: true,
-            observer: '_yAxisChanged'
-          },
-
-          xAxisExpanded: {
-            type: Boolean,
-            value: false
-          },
-
-          yAxisExpanded: {
-            type: Boolean,
-            value: false
-          },
-
-          xAxisPosition: {
-            type: String,
-            value: function() {
-              var rdn = Math.random();
-              return rdn < 0.5 ? 'bottom' : 'top'
-            }
-          },
-
-          yAxisPosition: {
-            type: String,
-            value: function() {
-              var rdn = Math.random();
-              return rdn < 0.5 ? 'left' : 'right'
-            }
+            observer: '_axisChanged'
           },
 
           lineWidth: {
             type: Number,
             value: 1,
             observer: '_lineWidthChanged'
+          },
+
+          axis: {
+            type: Object,
+            value: function() {
+              return {
+                x: {
+                  dependend: false,
+                  scale: 'time',
+                  expanded: false,
+                  position: 'bottom'
+                },
+                y: {
+                  dependend: false,
+                  scale: 'linear',
+                  expanded: false,
+                  position: 'left'
+                }
+              }
+            },
+            observer: '_axesChanged'
           },
 
           dotRadius: {
@@ -113,40 +96,48 @@
         super();
         this._isAttached = false;
         this.chartElement = null;
-        this.areaNode = null;
-        this.lineNode = null;
-        this.bounderyLineGradientNode = null;
-        this.xAxisNode = null;
-        this.xAxisFn = null;
-        this.yAxisNode = null;
-        this.yAxisFn = null;
-        this.yAxisBrush = null;
-        this.xAxisBrush = null;
-        this.xFn = Function.prototype;
-        this.yFn = Function.prototype;
-        this.areaFn = d3.area()
+        this._nodes = {
+          area: {},
+          line: {},
+          boundery: {},
+          axis: {},
+          brush: {}
+        };
+        this._fn = {
+          var: {},
+          axis: {},
+          brush: {}
+        }
+        this._generators: {
+          brush: {},
+          axis: {},
+          area: {},
+          line: {}
+        }
+
+        this._generators.area = d3.area()
           .defined(this._defined.bind(this))
           .x(d => {
-            return this.xFn(d.x);
+            return this._fn.var.x(d.x);
           })
           .y0(d => {
             if (this.yScale === 'ln' || this.yScale === 'log₁₀') {
               return this.chartElement._height;
             } else {
-              return this.yFn(0)
+              return this._fn.var.y(0)
             }
           })
           .y1(d => {
-            return this.yFn(d.y);
+            return this._fn.var.y(d.y);
           });
 
-        this.lineFn = d3.line()
+        this._generators.line = d3.line()
           .defined(this._defined.bind(this))
           .x(d => {
-            return this.xFn(d.x);
+            return this._fn.var.x(d.x);
           })
           .y(d => {
-            return this.yFn(d.y);
+            return this._fn.var.y(d.y);
           });
 
         this.bisectDate = d3.bisector((d, x) => {
@@ -200,8 +191,8 @@
             }
             this.chartElement = containerRoot;
             this.chartElement._graphs[this.item.mount] = this;
-            this._xAxisChanged(this.hasXAxis);
-            this._yAxisChanged(this.hasYAxis);
+            this._axisChanged(this.hasXAxis, 'x');
+            this._axisChanged(this.hasYAxis, 'y');
             this._areaChanged(this.hasArea);
             this._lineChanged(this.hasLine);
             this._setColorProperties();
@@ -223,23 +214,23 @@
 
         if (hasArea === false) {
           // remove fill area
-          if (this.areaNode && this.areaNode.node) {
-            node = this.areaNode.node();
+          if (this._nodes.area && this._nodes.area.node) {
+            node = this._nodes.area.node();
             if (node && node.parentElement)
               node.parentElement.removeChild(node);
-            this.areaNode = null;
+            this._nodes.area = null;
           }
         } else {
-          if (!(this.areaNode && this.areaNode.node)) { // add fill area
-            this.areaNode = this.chartElement._areas.append('svg:path')
+          if (!(this._nodes.area && this._nodes.area.node)) { // add fill area
+            this._nodes.area = this.chartElement._areas.append('svg:path')
           }
           // update fill area node properties
-          this.areaNode
+          this._nodes.area
             .attr('data-name', this.item.mount)
             .attr('class', 'area')
             .attr('stroke-width', 0)
             .datum([])
-            .attr('d', this.areaFn);
+            .attr('d', this._generators.area);
         }
       }
 
@@ -248,75 +239,96 @@
 
         if (hasLine === false) {
           // remove line
-          if (this.lineNode && this.lineNode.node) {
-            node = this.lineNode.node();
+          if (this._nodes.line && this._nodes.line.node) {
+            node = this._nodes.line.node();
             if (node && node.parentElement)
               node.parentElement.removeChild(node);
-            this.lineNode = null;
+            this._nodes.line = null;
           }
         } else {
-          if (!(this.lineNode && this.lineNode.node)) { // add line node
-            this.lineNode = this.chartElement._lines.append('svg:path')
+          if (!(this._nodes.line && this._nodes.line.node)) { // add line node
+            this._nodes.line = this.chartElement._lines.append('svg:path')
           }
           // update line node properties
-          this.lineNode
+          this._nodes.line
             .attr('data-name', this.item.mount)
             .attr('class', 'line')
             .attr('fill', 'none')
             .attr('stroke-width', this.lineWidth)
             .datum([])
-            .attr('d', this.lineFn);
+            .attr('d', this._generators.line);
         }
       }
 
-      _xAxisChanged(hasXAxis) {
-        if (!(this.chartElement && this.chartElement._xAxes)) return;
+      _axisChanged(hasAxis, kind) {
+        if (!(this.chartElement && this.chartElement._axes)) return;
 
-        if (hasXAxis === false) {
-          this.xFn = this.chartElement.xFn;
-          // remove y axis
-          if (this.xAxisNode && this.xAxisNode.node) {
-            node = this.xAxisNode.node();
+        if (!kind) {
+          this._axisChanged(hasAxis, 'x');
+          this._axisChanged(hasAxis, 'y');
+          return;
+        }
+
+        if (hasAxis === false) {
+          this.fn[kind] = this.chartElement.fn[kind];
+          // remove axis
+          if (this.axis[kind] && this.axis[kind].node) {
+            node = this.axis[kind].node();
             if (node && node.parentElement)
               node.parentElement.removeChild(node);
-            this.xAxisNode = null;
-            this.xAxisFn = null;
+            this.axis[kind].node = null;
           }
-        } else {
+        } else if (hasAxis === true) {
           // add scale function
-          this.xFn = this.chartElement._createScaleFn(this.xScale);
-          if (!this.xAxisFn) {
-            // add x axis function
-            this.xAxisFn = this._createAxisFn(this.xFn, this.xAxisPosition, this.xScale);
-          }
-          if (!(this.xAxisNode && this.xAxisNode.node)) {
+          this.fn[kind] = this.chartElement._createScaleFn(this.scale[kind]);
+          // add scale function for axis brush
+          // this.brushFn[kind] = this.chartElement._createScaleFn(this.scale[kind]);
+          // add x axis function
+          this.axisFn[kind] = this._createAxisFn(this.fn[kind], this.axisPosition[kind], this.scale[kind]);
+
+          if (!(this.axis[kind] && this.axis[kind].node)) {
             // add x axis
-            this.xAxisNode = this.chartElement._xAxes.append('svg:g')
+            this.axis[kind] = this.chartElement._axes.append('svg:g')
+              .classed('axis', true)
+              .classed(kind, true);
           }
-          // update x axis node properties
-          this.xAxisNode
-            .classed('x axis', true)
-            .classed('expanded', this.xAxisExpanded)
+          // update axis node properties
+          this.axisNode[kind]
+            .classed('expanded', this.axisExpanded[kind])
             .attr('data-name', this.item.mount)
             .on('click', this._toggleXAxisExpansion.bind(this));
 
-          if (!this.xAxisBrush) {
-            // add x brush
-            this.xAxisBrush = d3.brushX().on("brush end", this.brushedX.bind(this));
+          if (!this.brush[kind]) {
+            // add brush
+            switch (kind) {
+              case 'x':
+                this.brush.x = d3.brushX();
+                break;
+              case 'y':
+                this.brush.y = d3.brushY();
+                break;
+              default:
+                this.brush[kind] = d3.brush();
+            }
           }
-          if (!this.xAxisBrushNode) {
-            // add x brush node
-            this.xAxisBrushNode = this.xAxisNode.append('svg:g');
+
+          this.brush[kind].on("move", this.brushMove.bind(this, kind))
+                          .on("end", this.brushEnd.bind(this, kind));
+          if (!this.brushNode[kind]) {
+            // add brush node
+            this.xAxisBrushNode = this.xAxisNode.append('svg:g').classed('brush', true).classed('x', true);
           }
           // update x brush
           this.xAxisBrush.extent([[0, (this.xAxisPosition === 'top') ? (-this.chartElement.tickSize) : 0], [this.chartElement._width, (this.xAxisPosition === 'top') ? 0 :   this.chartElement.tickSize]]);
           this.xAxisBrushNode.raise().call(this.xAxisBrush);
           // getting a domain range for x
-          this._setDomain('x').then( () => {
-            // add scale function for axis brush
-            this.xFnBrush = this.chartElement._createScaleFn(this.xScale);
-            this.xFnBrush.domain(this.xFn.domain());
-          })
+          this._getDomain('x', this.xScale)
+            .then( domain => {
+              console.log(domain);
+              this._fn.var.x.domain(domain);
+              // this._fn.var.xBrush.domain(domain);
+            })
+            .catch( err => {});
         }
       }
 
@@ -324,7 +336,7 @@
         if (!(this.chartElement && this.chartElement._yAxes)) return;
 
         if (hasYAxis === false) {
-          this.yFn = this.chartElement.yFn;
+          this._fn.var.y = this.chartElement._fn.var.y;
           // remove y axis
           if (this.yAxisNode && this.yAxisNode.node) {
             node = this.yAxisNode.node();
@@ -335,11 +347,13 @@
           this.yAxisFn = null;
         } else {
           // add scale function
-          this.yFn = this.chartElement._createScaleFn(this.yScale);
+          this._fn.var.y = this.chartElement._createScaleFn(this.yScale);
+          // add scale function for axis brush
+          // this._fn.var.yBrush = this.chartElement._createScaleFn(this.yScale);
 
           if (!this.yAxisFn) {
             // add y axis function
-            this.yAxisFn = this._createAxisFn(this.yFn, this.yAxisPosition, this.yScale);
+            this.yAxisFn = this._createAxisFn(this._fn.var.y, this.yAxisPosition, this.yScale);
           }
           if (!(this.yAxisNode && this.yAxisNode.node)) {
             // add y axis
@@ -353,69 +367,99 @@
             .on('click', this._toggleYAxisExpansion.bind(this));
           if (!this.yAxisBrush) {
             // add y brush
-            this.yAxisBrush = d3.brushY().on("brush end", this.brushedY.bind(this));
+            this.yAxisBrush = d3.brushY().on("end", this.brushMoveY.bind(this));
           }
           if (!this.yAxisBrushNode) {
             // add x brush node
-            this.yAxisBrushNode = this.yAxisNode.append('svg:g');
+            this.yAxisBrushNode = this.yAxisNode.append('svg:g').classed('brush', true).classed('y', true);
           }
           // update y brush
           this.yAxisBrush.extent([[this.yAxisPosition === 'left' ? -this.chartElement.tickSize : 0, 0], [this.yAxisPosition === 'left' ? 0 : this.chartElement.tickSize, this.chartElement._height]]);
           this.yAxisBrushNode.raise().call(this.yAxisBrush);
 
           // getting a domain range for y
-          this._setDomain('y').then( () => {
-            // add scale function for axis brush
-            this.yFnBrush = this.chartElement._createScaleFn(this.yScale);
-            this.yFnBrush.domain(this.yFn.domain());
-          })
+          this._getDomain('y', this.yScale)
+            .then( range => {
+              this._fn.var.y.domain(range).nice(this.yTicks);
+              var domain = this._fn.var.y.domain();
+              // if domain is on the edge of data, add a little space
+              if (domain[0] === range[0]) {
+                domain[0] -= (range[1] - range[0]) / ticks;
+              }
+              if (domain[1] === range[1]) {
+                domain[1] += (range[1] - range[0]) / ticks;
+              }
+              console.log(domain);
+              this._fn.var.y.domain(domain);
+              // this._fn.var.yBrush.domain(domain);
+            })
+            .catch( err => {console.log(err);});
+
         }
       }
 
-      brushedY() {
+      brushMoveY() {
         // if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
-        var s = d3.event.selection || this.yFnBrush.range();
-        console.log(s,s.map(this.yFnBrush.invert, this.yFnBrush));
-        this.yFn.domain(s.map(this.yFnBrush.invert, this.yFnBrush));
+        console.log(d3.event.selection);
+        var s = (d3.event.selection || this._fn.var.y.range()).map(this._fn.var.y.invert, this._fn.var.y);
+        console.log(s);
+        this._fn.var.y.domain(s);
         if (this.hasArea) {
-          this.areaNode.attr("d", this.areaFn);
+          this._nodes.area.attr("d", this._generators.area);
         }
         if (this.hasLine) {
-          this.lineNode.attr("d", this.lineFn);
+          this._nodes.line.attr("d", this._generators.line);
         }
         this.yAxisNode.call(this.yAxisFn);
       }
 
-      brushedX() {
+      brushEndY() {
         // if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
-        var s = d3.event.selection || this.xFnBrush.range();
-        console.log(s,s.map(this.xFnBrush.invert, this.xFnBrush));
-        this.xFn.domain(s.map(this.xFnBrush.invert, this.xFnBrush));
+        console.log(d3.event.selection);
+        var s = (d3.event.selection || this._fn.var.y.range()).map(this._fn.var.y.invert, this._fn.var.y);
+        console.log(s);
+        this._fn.var.y.domain(s);
         if (this.hasArea) {
-          this.areaNode.attr("d", this.areaFn);
+          this._nodes.area.attr("d", this._generators.area);
         }
         if (this.hasLine) {
-          this.lineNode.attr("d", this.lineFn);
+          this._nodes.line.attr("d", this._generators.line);
+        }
+        this.yAxisNode.call(this.yAxisFn);
+      }
+
+      brushMoveX() {
+        // if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
+        var s = (d3.event.selection || this._fn.var.x.range()).map(this._fn.var.x.invert, this._fn.var.x);
+        console.log(s);
+        this._fn.var.x.domain(s);
+        if (this.hasArea) {
+          this._nodes.area.attr("d", this._generators.area);
+        }
+        if (this.hasLine) {
+          this._nodes.line.attr("d", this._generators.line);
         }
         this.xAxisNode.call(this.xAxisFn);
       }
 
-      _setDomain(key) {
+      brushEndX() {
+        // if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
+        var s = (d3.event.selection || this._fn.var.x.range()).map(this._fn.var.x.invert, this._fn.var.x);
+        console.log(s);
+        this._fn.var.x.domain(s);
+        if (this.hasArea) {
+          this._nodes.area.attr("d", this._generators.area);
+        }
+        if (this.hasLine) {
+          this._nodes.line.attr("d", this._generators.line);
+        }
+        this.xAxisNode.call(this.xAxisFn);
+      }
+
+      _getDomain(key, scale) {
         if (!(this.chartElement && (key === 'x' || key === 'y'))) return;
 
-        var ticks, scale, setDomain;
-        if (key === 'x') {
-          ticks = this.xTicks || this.chartElement.xTicks;
-          scale = this.xScale || this.chartElement.xScale;
-          setDomain = 'domainX';
-        } else {
-          ticks = this.yTicks || this.chartElement.yTicks;
-          scale = this.yScale || this.chartElement.yScale;
-          setDomain = 'domainY';
-        }
-
         return new Promise((resolve, reject) => {
-
           this.requestRange(key)
             .then(range => {
               var domain = range;
@@ -435,24 +479,7 @@
                   domain[1] = Number.EPSILON;
                 }
               }
-
-              if (key === 'y') {
-                this.yFn.domain(domain).nice(ticks);
-                domain = this.yFn.domain();
-                // if domain is on the edge of data, add a little space
-                if (domain[0] === range[0]) {
-                  domain[0] -= (range[1] - range[0]) / ticks;
-                }
-                if (domain[1] === range[1]) {
-                  domain[1] += (range[1] - range[0]) / ticks;
-                }
-                this.yFn.domain(domain);
-              } else {
-                this.xFn.domain(domain);
-              }
-
-              this.set(setDomain, domain);
-              resolve();
+              resolve(domain);
             })
             .catch(err => {
               reject(err);
@@ -509,8 +536,8 @@
         if (!this.chartElement) return;
         if (this.item && this.item.color) {
           var colorForGraph = this.item.theshold ? ('url(#boundery-line-' + this.item.mount + ')') : this.item.color || '#000';
-          if (this.areaNode && this.areaNode.attr) this.areaNode.attr('fill', colorForGraph);
-          if (this.lineNode && this.lineNode.attr) this.lineNode.attr('stroke', colorForGraph);
+          if (this._nodes.area && this._nodes.area.attr) this._nodes.area.attr('fill', colorForGraph);
+          if (this._nodes.line && this._nodes.line.attr) this._nodes.line.attr('stroke', colorForGraph);
           if (this.yAxisNode && this.yAxisNode.attr) this.yAxisNode.style('color', this.item.color || '#000');
           if (this.xAxisNode && this.xAxisNode.attr) this.xAxisNode.style('color', this.item.color || '#000');
         }
@@ -614,22 +641,22 @@
 
         // fill area
         if (this.hasArea) {
-          if (!(this.areaNode && this.areaNode.node)) {
+          if (!(this._nodes.area && this._nodes.area.node)) {
             this._areaChanged(true);
           }
-          this.areaNode
+          this._nodes.area
             .datum(data)
-            .attr('d', this.areaFn);
+            .attr('d', this._generators.area);
         }
 
         // line
         if (this.hasLine) {
-          if (!(this.lineNode && this.lineNode.node)) {
+          if (!(this._nodes.line && this._nodes.line.node)) {
             this._lineChanged(true);
           }
-          this.lineNode
+          this._nodes.line
             .datum(data)
-            .attr('d', this.lineFn);
+            .attr('d', this._generators.line);
         }
 
         // threshold gradients
@@ -644,7 +671,7 @@
             i_color = this.item.color || '#000';
 
           if (this.item.threshold.from !== undefined) {
-            y = ((1 - Math.ceil(this.yFn(this.item.threshold.from) + this.lineWidth * 1.25) / this.chartElement._height) * 100);
+            y = ((1 - Math.ceil(this._fn.var.y(this.item.threshold.from) + this.lineWidth * 1.25) / this.chartElement._height) * 100);
             if (Number.isFinite(y)) {
               b_line.push({
                 o: y + '%',
@@ -657,7 +684,7 @@
             }
           }
           if (this.item.threshold.to !== undefined) {
-            y = ((1 - Math.floor(this.yFn(this.item.threshold.to) - this.lineWidth * 1.25) / this.chartElement._height) * 100);
+            y = ((1 - Math.floor(this._fn.var.y(this.item.threshold.to) - this.lineWidth * 1.25) / this.chartElement._height) * 100);
             if (Number.isFinite(y)) {
               b_line.push({
                 o: y + '%',
@@ -763,8 +790,8 @@
         return values[pos];
 
         function pixdistance2(p) {
-          var dx = xFn(new Date(p.x)) - m[0],
-            dy = yFn(p.y) - m[1];
+          var dx = _fn.var.x(new Date(p.x)) - m[0],
+            dy = _fn.var.y(p.y) - m[1];
           return dx * dx + dy * dy;
         }
       }
@@ -773,7 +800,7 @@
       // https://bl.ocks.org/mbostock/8027637
       // https://pomax.github.io/bezierinfo/#projections
       _closestInterpolatedPoint(point, pathNode) {
-        pathNode = pathNode || this.areaNode.node() || this.lineNode.node();
+        pathNode = pathNode || this._nodes.area.node() || this._nodes.line.node();
         var pathLength = pathNode.getTotalLength(),
           precision = Math.ceil(pathLength / this.chartElement._width / 2.0) * 2,
           best,
@@ -806,8 +833,8 @@
         }
 
         best = {
-          x: this.xFn(best.x),
-          y: this.yFn(best.y)
+          x: this._fn.var.x(best.x),
+          y: this._fn.var.y(best.y)
         };
         best.distance = Math.sqrt(bestDistance);
         return best;
@@ -842,14 +869,14 @@
       }
 
       _lineWidthChanged(lineWidth) {
-        if (this.lineNode && this.lineNode.attr) {
-          this.lineNode.attr('stroke-width', lineWidth);
+        if (this._nodes.line && this._nodes.line.attr) {
+          this._nodes.line.attr('stroke-width', lineWidth);
         }
       }
 
       changeScale(newValue, oldValue) {
         // if (oldValue === undefined) return;
-        // var domainY = this.yFn.domain();
+        // var domainY = this._fn.var.y.domain();
         // if (this.yScale === 'ln' || this.yScale === 'log₁₀') {
         //   if (domainY[0] <= 0) {
         //     domainY[0] = Number.EPSILON;
@@ -859,8 +886,8 @@
         //   }
         // }
         // this._debouncedHideInfo();
-        // this.yFn = this._createScaleFn(this.yScale);
-        // this.yFn.domain(domainY).nice(this.yTicks);
+        // this._fn.var.y = this._createScaleFn(this.yScale);
+        // this._fn.var.y.domain(domainY).nice(this.yTicks);
         // this.set('domainY', domainY);
         // this._sizeChanged();
       }
@@ -896,8 +923,8 @@
             curve = d3.curveLinear;
             break;
         }
-        this.areaFn.curve(curve);
-        this.lineFn.curve(curve);
+        this._generators.area.curve(curve);
+        this._generators.line.curve(curve);
 
         if (this.chartElement)
           this.chartElement.redraw();
