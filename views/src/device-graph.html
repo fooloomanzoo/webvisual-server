@@ -55,7 +55,6 @@
             value: false
           },
 
-
           lineWidth: {
             type: Number,
             value: 1,
@@ -101,7 +100,7 @@
           area: {},
           line: {},
           brush: {},
-          axis: { x: Function.prototype, y: Function.prototype }
+          axis: {}
         }
 
         this._generators.area = d3.area()
@@ -254,112 +253,7 @@
         }
       }
 
-      _axesChanged(axes) {
-        if (!(this._chartElement && this._chartElement._nodes.axis)) return;
-
-        for (var kind in axes) {
-          this._generateAxis(axes[kind], kind, this.axisPosition[kind], this.scale[kind]);
-        }
-      }
-
       _axisPositionChanged(axisPosition) {
-
-      }
-
-      _generateAxis(hasAxis, kind, position, scale) {
-        if (!(this._chartElement && this._chartElement._nodes.axis)) return;
-
-        if (hasAxis === false) {
-          this._fn.var[kind] = this._chartElement._fn.var[kind];
-          // remove axis
-          if (this._nodes.axis[kind] && this._nodes.axis[kind].node) {
-            node = this._nodes.axis[kind].node();
-            if (node && node.parentElement)
-              node.parentElement.removeChild(node);
-            this._nodes.axis[kind].node = null;
-          }
-        } else if (hasAxis === true) {
-          this._fn.var[kind] = this._chartElement._createScaleFn(scale);
-
-          if (!(this._nodes.axis[kind] && this._nodes.axis[kind].node)) {
-            // add axis
-            this._nodes.axis[kind] = this._chartElement._nodes.axis.append('svg:g')
-              .classed('axis', true)
-              .classed(kind, true);
-          }
-
-          // add axis generator
-          // if (!this._generators.axis[kind]) {
-            this._generators.axis[kind] = this._createAxisFn(this._fn.var[kind], position, scale);
-          // }
-          //
-          this._nodes.axis[kind].call(this._generators.axis[kind]);
-
-          // add scale function for axis brush
-          this._fn.brush[kind] = this._chartElement._createScaleFn(scale);
-          // add x axis function
-          this._fn.axis[kind] = this._createAxisFn(this._fn.var[kind], position, scale);
-
-          // update axis node properties
-          this._nodes.axis[kind]
-            .attr('data-name', this.item.mount)
-            .on('click', this._toggleAxisExpansion.bind(this));
-
-          // add brush generator
-          // if (!this._generators.brush[kind]) {
-            switch (kind) {
-              case 'x':
-                this._generators.brush.x = d3.brushX();
-                break;
-              case 'y':
-                this._generators.brush.y = d3.brushY();
-                break;
-              default:
-                this._generators.brush[kind] = d3.brush();
-            }
-          // }
-
-          // add event-listeners to brush
-          this._generators.brush[kind]
-                .on('brush', this.brushMove.bind(this, kind))
-                .on('end', this.brushEnd.bind(this, kind));
-
-          if (!this._nodes.brush[kind]) {
-            // add axis-brush node
-            this._nodes.brush[kind] = this._nodes.axis[kind].append('svg:g').classed('brush', true).classed('x', true);
-          }
-          this._nodes.brush[kind].raise().call(this._generators.brush[kind]);
-        }
-      }
-
-      brushMove(kind) {
-        // if (d3.event.sourceEvent && d3.event.sourceEvent.type === 'zoom') return; // ignore brush-by-zoom
-        console.log('brushmove', this.item.mount, d3.event.selection);
-        var s = (d3.event.selection || this._fn.var[kind].range()).map(this._fn.var[kind].invert, this._fn.var[kind]);
-        console.log(kind, s);
-        this._fn.var[kind].domain(s);
-        if (this.hasArea) {
-          this._nodes.area.attr('d', this._generators.area);
-        }
-        if (this.hasLine) {
-          this._nodes.line.attr('d', this._generators.line);
-        }
-        this._nodes.axis[kind].call(this._fn.var[kind]);
-      }
-
-      brushEnd(kind) {
-        // if (d3.event.sourceEvent && d3.event.sourceEvent.type === 'zoom') return; // ignore brush-by-zoom
-        console.log('brushend', this.item.mount, d3.event.selection);
-        var s = (d3.event.selection || this._fn.var[kind].range()).map(this._fn.var[kind].invert, this._fn.var[kind]);
-        console.log(kind, s);
-        this._fn.var[kind].domain(s);
-        if (this.hasArea) {
-          this._nodes.area.attr('d', this._generators.area);
-        }
-        if (this.hasLine) {
-          this._nodes.line.attr('d', this._generators.line);
-        }
-        this._nodes.axis[kind].call(this._fn.var[kind]);
       }
 
       _getDomain(key) {
@@ -417,13 +311,6 @@
             this.boundery = null;
           }
         }
-      }
-
-      _createAxisFn(transFn, axisPosition, scale) {
-        if (!(this._chartElement && transFn && axisPosition && scale)) {
-          return null;
-        }
-        return this._chartElement._createAxisFn(transFn, axisPosition, scale);
       }
 
       _createScaleFn(type) {
