@@ -325,7 +325,7 @@
       _hasSvg(item, svgPaths) {
         // notify the chart to resize
         var _withSvg = Boolean(item && item.svg && item.svg.path && svgPaths && svgPaths[item.svg.path])
-        if (_withSvg !== this._withSvg) {
+        if (this.isAttached === true && _withSvg !== this._withSvg) {
           this._debounceResize();
         }
         return _withSvg;
@@ -347,9 +347,15 @@
         this.$.elementDrawer.toggle();
       }
 
+      _fireResize() {
+        this.dispatchEvent(new CustomEvent('iron-resize', {
+          bubbles: false, composed: true, node: this
+        }));
+      }
+
       _debounceResize() {
         setTimeout(() => {
-          if (this.narrowLayout) {
+          if (this.narrowLayout && this.$.elementDrawer) {
             this.$.elementDrawer.opened = true;
           }
           if (this.selectedCheckboxes && this.selectedCheckboxes.length) {

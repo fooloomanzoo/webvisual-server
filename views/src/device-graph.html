@@ -23,55 +23,43 @@
             observer: '_interpolationChanged'
           },
 
+          scale: {
+            type: Object,
+            value: function() {
+              return {
+                x: 'time',
+                y: 'linear'
+              };
+            },
+            observer: '_scaleChanged'
+          },
+
+          axisPosition: {
+            type: Object,
+            value: function() {
+              return {
+                x: 'bottom',
+                y: 'left'
+              }
+            },
+            observer: '_axisPositionChanged'
+          },
+
           hasLine: {
             type: Boolean,
-            value: true,
-            observer: '_lineChanged'
+            value: true
           },
 
           hasArea: {
             type: Boolean,
-            value: false,
-            observer: '_areaChanged'
+            value: false
           },
 
-          hasXAxis: {
-            type: Boolean,
-            value: true,
-            observer: '_axisChanged'
-          },
-
-          hasYAxis: {
-            type: Boolean,
-            value: true,
-            observer: '_axisChanged'
-          },
 
           lineWidth: {
             type: Number,
             value: 1,
             observer: '_lineWidthChanged'
-          },
-
-          axis: {
-            type: Object,
-            value: function() {
-              return {
-                x: {
-                  dependend: false,
-                  scale: 'time',
-                  expanded: false,
-                  position: 'bottom'
-                },
-                y: {
-                  dependend: false,
-                  scale: 'linear',
-                  expanded: false,
-                  position: 'left'
-                }
-              }
-            },
-            observer: '_axesChanged'
           },
 
           dotRadius: {
@@ -94,8 +82,9 @@
 
       constructor() {
         super();
+
         this._isAttached = false;
-        this.chartElement = null;
+        this._chartElement = null;
         this._nodes = {
           area: {},
           line: {},
@@ -104,15 +93,15 @@
           brush: {}
         };
         this._fn = {
-          var: {},
-          axis: {},
-          brush: {}
-        }
-        this._generators: {
-          brush: {},
-          axis: {},
+          var: { x: Function.prototype, y: Function.prototype },
+          axis: { x: Function.prototype, y: Function.prototype },
+          brush: { x: Function.prototype, y: Function.prototype }
+        };
+        this._generators = {
           area: {},
-          line: {}
+          line: {},
+          brush: {},
+          axis: { x: Function.prototype, y: Function.prototype }
         }
 
         this._generators.area = d3.area()
@@ -122,7 +111,7 @@
           })
           .y0(d => {
             if (this.yScale === 'ln' || this.yScale === 'log₁₀') {
-              return this.chartElement._height;
+              return this._chartElement._height;
             } else {
               return this._fn.var.y(0)
             }
@@ -145,22 +134,23 @@
         });
       }
 
-      _getContainerRoot() {
-        return new Promise((resolve, reject) => {
-          var root = Polymer.dom(this).getOwnerRoot();
-          if (!root)
-            resolve(Polymer.dom(this).parentNode);
-          else if (root.host || root.nodeType === Node.DOCUMENT_FRAGMENT_NODE)
-            resolve(root.host);
-          else
-            reject();
-        });
-      }
-
       static get observers() {
         return [
-          '_itemChanged(item)'
+          '_itemChanged(item)',
+          '_lineChanged(hasLine, "line")',
+          '_areaChanged(hasArea, "area")',
+          '_thresholdChanged(item.threshold, "boundery")'
         ]
+      }
+
+      get _containerRoot() {
+        var root = Polymer.dom(this).getOwnerRoot();
+        if (!root)
+          return Polymer.dom(this).parentNode;
+        else if (root.host || root.nodeType === Node.DOCUMENT_FRAGMENT_NODE)
+          return root.host;
+        else
+          return;
       }
 
       connectedCallback() {
@@ -176,41 +166,44 @@
       }
 
       addNodes() {
-        console.log('addNotes');
+        console.log('addNotes', this.item.mount);
         if (this._isAttached) {
           this.clearValues(true);
         }
-        this._getContainerRoot()
-          .then(containerRoot => {
-            if (!containerRoot || containerRoot.nodeName !== 'DEVICE-CHART') {
-              console.warn('No parentElement (chart) for graph found. Registration of Graph Element failed', containerRoot);
-              return;
-            } else if (!containerRoot._isAttached) {
-              console.warn('Chart has not been attached yet for adding a graph. Registration of Graph Element failed');
-              return;
-            }
-            this.chartElement = containerRoot;
-            this.chartElement._graphs[this.item.mount] = this;
-            this._axisChanged(this.hasXAxis, 'x');
-            this._axisChanged(this.hasYAxis, 'y');
-            this._areaChanged(this.hasArea);
-            this._lineChanged(this.hasLine);
-            this._setColorProperties();
+        var _containerRoot = this._containerRoot;
+        if (!_containerRoot || _containerRoot.nodeName !== 'DEVICE-CHART') {
+          console.warn('No parentElement (chart) for graph found. Registration of Graph Element failed', _containerRoot);
+          return;
+        } else if (!_containerRoot._isAttached) {
+          console.warn('Chart has not been attached yet for adding a graph. Registration of Graph Element failed');
+          return;
+        }
+        this._chartElement = _containerRoot;
+        this._chartElement._graphs[this.item.mount] = this;
 
-            // if (!this.chartElement._height || !this.chartElement._width) {
-            //   this.chartElement._sizeChanged();
-            // }
+        this._areaChanged(this.hasArea);
+        this._lineChanged(this.hasLine);
+        this._axesChanged(this._chartElement.multiAxes);
+        this._setColorProperties();
 
-            this._isAttached = true;
-            this.chartElement._sizeChanged();
-          })
-          .catch(err => {
-            console.warn('Error in building graph:', err.stack);
-          })
+        // if (!this._chartElement._height || !this._chartElement._width) {
+        //   this._chartElement._sizeChanged();
+        // }
+
+        this._isAttached = true;
+        this._chartElement._sizeChanged();
       }
 
-      _areaChanged(hasArea) {
-        if (!(this.chartElement && this.chartElement._areas)) return;
+      _scaleChanged(scale) {
+        for (var kind in scale) {
+          // add scale function
+          this._fn.var[kind] = this._createScaleFn(scale[kind]);
+        }
+      }
+
+      _areaChanged(hasArea, type) {
+        console.log('_areaChanged', this.item.mount, hasArea, type);
+        if (!(this._chartElement && this._chartElement._nodes.area)) return;
 
         if (hasArea === false) {
           // remove fill area
@@ -222,7 +215,7 @@
           }
         } else {
           if (!(this._nodes.area && this._nodes.area.node)) { // add fill area
-            this._nodes.area = this.chartElement._areas.append('svg:path')
+            this._nodes.area = this._chartElement._nodes.area.append('svg:path')
           }
           // update fill area node properties
           this._nodes.area
@@ -234,8 +227,9 @@
         }
       }
 
-      _lineChanged(hasLine) {
-        if (!(this.chartElement && this.chartElement._lines)) return;
+      _lineChanged(hasLine, type) {
+        console.log('_lineChanged', this.item.mount, hasLine, type);
+        if (!(this._chartElement && this._chartElement._nodes.line)) return;
 
         if (hasLine === false) {
           // remove line
@@ -247,7 +241,7 @@
           }
         } else {
           if (!(this._nodes.line && this._nodes.line.node)) { // add line node
-            this._nodes.line = this.chartElement._lines.append('svg:path')
+            this._nodes.line = this._chartElement._nodes.line.append('svg:path')
           }
           // update line node properties
           this._nodes.line
@@ -260,204 +254,118 @@
         }
       }
 
-      _axisChanged(hasAxis, kind) {
-        if (!(this.chartElement && this.chartElement._axes)) return;
+      _axesChanged(axes) {
+        if (!(this._chartElement && this._chartElement._nodes.axis)) return;
 
-        if (!kind) {
-          this._axisChanged(hasAxis, 'x');
-          this._axisChanged(hasAxis, 'y');
-          return;
+        for (var kind in axes) {
+          this._generateAxis(axes[kind], kind, this.axisPosition[kind], this.scale[kind]);
         }
+      }
+
+      _axisPositionChanged(axisPosition) {
+
+      }
+
+      _generateAxis(hasAxis, kind, position, scale) {
+        if (!(this._chartElement && this._chartElement._nodes.axis)) return;
 
         if (hasAxis === false) {
-          this.fn[kind] = this.chartElement.fn[kind];
+          this._fn.var[kind] = this._chartElement._fn.var[kind];
           // remove axis
-          if (this.axis[kind] && this.axis[kind].node) {
-            node = this.axis[kind].node();
+          if (this._nodes.axis[kind] && this._nodes.axis[kind].node) {
+            node = this._nodes.axis[kind].node();
             if (node && node.parentElement)
               node.parentElement.removeChild(node);
-            this.axis[kind].node = null;
+            this._nodes.axis[kind].node = null;
           }
         } else if (hasAxis === true) {
-          // add scale function
-          this.fn[kind] = this.chartElement._createScaleFn(this.scale[kind]);
-          // add scale function for axis brush
-          // this.brushFn[kind] = this.chartElement._createScaleFn(this.scale[kind]);
-          // add x axis function
-          this.axisFn[kind] = this._createAxisFn(this.fn[kind], this.axisPosition[kind], this.scale[kind]);
+          this._fn.var[kind] = this._chartElement._createScaleFn(scale);
 
-          if (!(this.axis[kind] && this.axis[kind].node)) {
-            // add x axis
-            this.axis[kind] = this.chartElement._axes.append('svg:g')
+          if (!(this._nodes.axis[kind] && this._nodes.axis[kind].node)) {
+            // add axis
+            this._nodes.axis[kind] = this._chartElement._nodes.axis.append('svg:g')
               .classed('axis', true)
               .classed(kind, true);
           }
-          // update axis node properties
-          this.axisNode[kind]
-            .classed('expanded', this.axisExpanded[kind])
-            .attr('data-name', this.item.mount)
-            .on('click', this._toggleXAxisExpansion.bind(this));
 
-          if (!this.brush[kind]) {
-            // add brush
+          // add axis generator
+          // if (!this._generators.axis[kind]) {
+            this._generators.axis[kind] = this._createAxisFn(this._fn.var[kind], position, scale);
+          // }
+          //
+          this._nodes.axis[kind].call(this._generators.axis[kind]);
+
+          // add scale function for axis brush
+          this._fn.brush[kind] = this._chartElement._createScaleFn(scale);
+          // add x axis function
+          this._fn.axis[kind] = this._createAxisFn(this._fn.var[kind], position, scale);
+
+          // update axis node properties
+          this._nodes.axis[kind]
+            .attr('data-name', this.item.mount)
+            .on('click', this._toggleAxisExpansion.bind(this));
+
+          // add brush generator
+          // if (!this._generators.brush[kind]) {
             switch (kind) {
               case 'x':
-                this.brush.x = d3.brushX();
+                this._generators.brush.x = d3.brushX();
                 break;
               case 'y':
-                this.brush.y = d3.brushY();
+                this._generators.brush.y = d3.brushY();
                 break;
               default:
-                this.brush[kind] = d3.brush();
+                this._generators.brush[kind] = d3.brush();
             }
-          }
+          // }
 
-          this.brush[kind].on("move", this.brushMove.bind(this, kind))
-                          .on("end", this.brushEnd.bind(this, kind));
-          if (!this.brushNode[kind]) {
-            // add brush node
-            this.xAxisBrushNode = this.xAxisNode.append('svg:g').classed('brush', true).classed('x', true);
+          // add event-listeners to brush
+          this._generators.brush[kind]
+                .on('brush', this.brushMove.bind(this, kind))
+                .on('end', this.brushEnd.bind(this, kind));
+
+          if (!this._nodes.brush[kind]) {
+            // add axis-brush node
+            this._nodes.brush[kind] = this._nodes.axis[kind].append('svg:g').classed('brush', true).classed('x', true);
           }
-          // update x brush
-          this.xAxisBrush.extent([[0, (this.xAxisPosition === 'top') ? (-this.chartElement.tickSize) : 0], [this.chartElement._width, (this.xAxisPosition === 'top') ? 0 :   this.chartElement.tickSize]]);
-          this.xAxisBrushNode.raise().call(this.xAxisBrush);
-          // getting a domain range for x
-          this._getDomain('x', this.xScale)
-            .then( domain => {
-              console.log(domain);
-              this._fn.var.x.domain(domain);
-              // this._fn.var.xBrush.domain(domain);
-            })
-            .catch( err => {});
+          this._nodes.brush[kind].raise().call(this._generators.brush[kind]);
         }
       }
 
-      _yAxisChanged(hasYAxis) {
-        if (!(this.chartElement && this.chartElement._yAxes)) return;
-
-        if (hasYAxis === false) {
-          this._fn.var.y = this.chartElement._fn.var.y;
-          // remove y axis
-          if (this.yAxisNode && this.yAxisNode.node) {
-            node = this.yAxisNode.node();
-            if (node && node.parentElement)
-              node.parentElement.removeChild(node);
-          }
-          this.yAxisNode = null;
-          this.yAxisFn = null;
-        } else {
-          // add scale function
-          this._fn.var.y = this.chartElement._createScaleFn(this.yScale);
-          // add scale function for axis brush
-          // this._fn.var.yBrush = this.chartElement._createScaleFn(this.yScale);
-
-          if (!this.yAxisFn) {
-            // add y axis function
-            this.yAxisFn = this._createAxisFn(this._fn.var.y, this.yAxisPosition, this.yScale);
-          }
-          if (!(this.yAxisNode && this.yAxisNode.node)) {
-            // add y axis
-            this.yAxisNode = this.chartElement._yAxes.append('svg:g')
-          }
-          // update y axis node properties
-          this.yAxisNode
-            .classed('y axis', true)
-            .classed('expanded', this.yAxisExpanded)
-            .attr('data-name', this.item.mount)
-            .on('click', this._toggleYAxisExpansion.bind(this));
-          if (!this.yAxisBrush) {
-            // add y brush
-            this.yAxisBrush = d3.brushY().on("end", this.brushMoveY.bind(this));
-          }
-          if (!this.yAxisBrushNode) {
-            // add x brush node
-            this.yAxisBrushNode = this.yAxisNode.append('svg:g').classed('brush', true).classed('y', true);
-          }
-          // update y brush
-          this.yAxisBrush.extent([[this.yAxisPosition === 'left' ? -this.chartElement.tickSize : 0, 0], [this.yAxisPosition === 'left' ? 0 : this.chartElement.tickSize, this.chartElement._height]]);
-          this.yAxisBrushNode.raise().call(this.yAxisBrush);
-
-          // getting a domain range for y
-          this._getDomain('y', this.yScale)
-            .then( range => {
-              this._fn.var.y.domain(range).nice(this.yTicks);
-              var domain = this._fn.var.y.domain();
-              // if domain is on the edge of data, add a little space
-              if (domain[0] === range[0]) {
-                domain[0] -= (range[1] - range[0]) / ticks;
-              }
-              if (domain[1] === range[1]) {
-                domain[1] += (range[1] - range[0]) / ticks;
-              }
-              console.log(domain);
-              this._fn.var.y.domain(domain);
-              // this._fn.var.yBrush.domain(domain);
-            })
-            .catch( err => {console.log(err);});
-
-        }
-      }
-
-      brushMoveY() {
-        // if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
-        console.log(d3.event.selection);
-        var s = (d3.event.selection || this._fn.var.y.range()).map(this._fn.var.y.invert, this._fn.var.y);
-        console.log(s);
-        this._fn.var.y.domain(s);
+      brushMove(kind) {
+        // if (d3.event.sourceEvent && d3.event.sourceEvent.type === 'zoom') return; // ignore brush-by-zoom
+        console.log('brushmove', this.item.mount, d3.event.selection);
+        var s = (d3.event.selection || this._fn.var[kind].range()).map(this._fn.var[kind].invert, this._fn.var[kind]);
+        console.log(kind, s);
+        this._fn.var[kind].domain(s);
         if (this.hasArea) {
-          this._nodes.area.attr("d", this._generators.area);
+          this._nodes.area.attr('d', this._generators.area);
         }
         if (this.hasLine) {
-          this._nodes.line.attr("d", this._generators.line);
+          this._nodes.line.attr('d', this._generators.line);
         }
-        this.yAxisNode.call(this.yAxisFn);
+        this._nodes.axis[kind].call(this._fn.var[kind]);
       }
 
-      brushEndY() {
-        // if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
-        console.log(d3.event.selection);
-        var s = (d3.event.selection || this._fn.var.y.range()).map(this._fn.var.y.invert, this._fn.var.y);
-        console.log(s);
-        this._fn.var.y.domain(s);
+      brushEnd(kind) {
+        // if (d3.event.sourceEvent && d3.event.sourceEvent.type === 'zoom') return; // ignore brush-by-zoom
+        console.log('brushend', this.item.mount, d3.event.selection);
+        var s = (d3.event.selection || this._fn.var[kind].range()).map(this._fn.var[kind].invert, this._fn.var[kind]);
+        console.log(kind, s);
+        this._fn.var[kind].domain(s);
         if (this.hasArea) {
-          this._nodes.area.attr("d", this._generators.area);
+          this._nodes.area.attr('d', this._generators.area);
         }
         if (this.hasLine) {
-          this._nodes.line.attr("d", this._generators.line);
+          this._nodes.line.attr('d', this._generators.line);
         }
-        this.yAxisNode.call(this.yAxisFn);
+        this._nodes.axis[kind].call(this._fn.var[kind]);
       }
 
-      brushMoveX() {
-        // if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
-        var s = (d3.event.selection || this._fn.var.x.range()).map(this._fn.var.x.invert, this._fn.var.x);
-        console.log(s);
-        this._fn.var.x.domain(s);
-        if (this.hasArea) {
-          this._nodes.area.attr("d", this._generators.area);
-        }
-        if (this.hasLine) {
-          this._nodes.line.attr("d", this._generators.line);
-        }
-        this.xAxisNode.call(this.xAxisFn);
-      }
+      _getDomain(key) {
+        if (!(this._chartElement && this.scale[kind])) return;
 
-      brushEndX() {
-        // if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
-        var s = (d3.event.selection || this._fn.var.x.range()).map(this._fn.var.x.invert, this._fn.var.x);
-        console.log(s);
-        this._fn.var.x.domain(s);
-        if (this.hasArea) {
-          this._nodes.area.attr("d", this._generators.area);
-        }
-        if (this.hasLine) {
-          this._nodes.line.attr("d", this._generators.line);
-        }
-        this.xAxisNode.call(this.xAxisFn);
-      }
-
-      _getDomain(key, scale) {
-        if (!(this.chartElement && (key === 'x' || key === 'y'))) return;
+        var scale = this.scale[kind];
 
         return new Promise((resolve, reject) => {
           this.requestRange(key)
@@ -488,70 +396,74 @@
       }
 
       _thresholdChanged(threshold) {
-        if (!(this.chartElement && this.chartElement._bounderies)) return;
+        if (!(this._chartElement && this._chartElement._nodes.boundery)) return;
 
         if (threshold) {
-          if (!this.bounderyLineGradientNode) { // add threshold node
-            this.bounderyLineGradientNode = this.chartElement._bounderies.append('linearGradient');
+          if (!this.boundery) { // add threshold node
+            this.boundery = this._chartElement._nodes.boundery.append('linearGradient');
           }
           // update threshold node properties
-          this.bounderyLineGradientNode
+          this.boundery
             .attr('id', 'boundery-line-' + this.item.mount)
             .attr('gradientUnits', 'userSpaceOnUse')
-            .attr('x1', 0).attr('y1', this.chartElement._height)
+            .attr('x1', 0).attr('y1', this._chartElement._height)
             .attr('x2', 0).attr('y2', 0);
         } else {
           // remove threshold colors
-          if (this.bounderyLineGradientNode && this.bounderyLineGradientNode.node) {
-            node = this.bounderyLineGradientNode.node();
+          if (this.boundery && this.boundery.node) {
+            node = this.boundery.node();
             if (node && node.parentElement)
               node.parentElement.removeChild(node);
-            this.bounderyLineGradientNode = null;
+            this.boundery = null;
           }
         }
       }
 
       _createAxisFn(transFn, axisPosition, scale) {
-        if (!(this.chartElement && transFn && axisPosition && scale)) {
+        if (!(this._chartElement && transFn && axisPosition && scale)) {
           return null;
         }
-        return this.chartElement._createAxisFn(transFn, axisPosition, scale);
+        return this._chartElement._createAxisFn(transFn, axisPosition, scale);
       }
 
-      _toggleYAxisExpansion() {
-        this.yAxisExpanded = !this.yAxisExpanded;
-        //this.yAxisNode.lower();
-        this.yAxisNode.classed('expanded', this.yAxisExpanded);
-        this.chartElement._sizeChanged();
+      _createScaleFn(type) {
+        if (!(this._chartElement && type)) {
+          return null;
+        }
+        return this._chartElement._createScaleFn(type);
       }
 
-      _toggleXAxisExpansion() {
-        this.xAxisExpanded = !this.xAxisExpanded;
-        //this.xAxisNode.lower();
-        this.xAxisNode.classed('expanded', this.xAxisExpanded);
-        this.chartElement._sizeChanged();
+      _toggleAxisExpansion(kind) {
+        if (!(this._chartElement && this.axis && this.axis[kind] && this._nodes.axis && this._nodes.axis[kind])) return;
+
+        this.axis[kind].expanded = !this.axis[kind].expanded;
+        //this._nodes.axis[kind].lower();
+        this._nodes.axis[kind].classed('expanded', this.axis[kind].expanded);
+        this._chartElement._sizeChanged();
       }
 
       _setColorProperties() {
-        if (!this.chartElement) return;
+        if (!this._chartElement) return;
         if (this.item && this.item.color) {
           var colorForGraph = this.item.theshold ? ('url(#boundery-line-' + this.item.mount + ')') : this.item.color || '#000';
           if (this._nodes.area && this._nodes.area.attr) this._nodes.area.attr('fill', colorForGraph);
           if (this._nodes.line && this._nodes.line.attr) this._nodes.line.attr('stroke', colorForGraph);
-          if (this.yAxisNode && this.yAxisNode.attr) this.yAxisNode.style('color', this.item.color || '#000');
-          if (this.xAxisNode && this.xAxisNode.attr) this.xAxisNode.style('color', this.item.color || '#000');
+          for (var kind in this._chartElement.multiAxes) {
+            if (this._chartElement.multiAxes[kind] === true && this._nodes.axis[kind] && this._nodes.axis[kind].attr) {
+              this._nodes.axis[kind].style('color', this.item.color || '#000');
+            }
+          }
         }
       }
 
       removeNodes() {
-        console.log('removeNodes');
+        console.log('removeNodes', this.item.mount);
         this._areaChanged();
         this._lineChanged();
-        this._xAxisChanged();
-        this._yAxisChanged();
+        this._axesChanged();
         this._thresholdChanged();
-        if (this.chartElement && this.chartElement._graphs)
-          delete this.chartElement._graphs[this.item.mount];
+        if (this._chartElement && this._chartElement._graphs)
+          delete this._chartElement._graphs[this.item.mount];
         this._isAttached = false;
       }
 
@@ -625,18 +537,21 @@
       renderInsertedValues(values) {
         if (!this._isAttached && this.item) {
           this.addNodes();
-        } else if (this.chartElement) {
-          // if (this.chartElement._isZoomed === false)
-            this.chartElement.redraw();
+        } else if (this._chartElement) {
+          // if (this._chartElement._isZoomed === false)
+            this._chartElement.redraw();
           // else
           //   this.redraw();
         }
       }
 
       redraw() {
-        if (!(this.chartElement && this.chartElement._isAttached && this.item && this.values && this.values.length)) return;
+        if (!(this._chartElement && this._chartElement._isAttached && this.item && this.values && this.values.length)) return;
 
         console.log('redraw');
+        // TODO: call sizeChanged from chartElement
+        this.sizeChanged()
+
         var data = this.values || [];
 
         // fill area
@@ -661,7 +576,7 @@
 
         // threshold gradients
         if (this.item && this.item.threshold) {
-          if (!(this.bounderyLineGradientNode && this.bounderyLineGradientNode.node)) {
+          if (!(this.boundery && this.boundery.node)) {
             this._thresholdChanged(this.item.threshold);
           }
           var b_line = [],
@@ -671,7 +586,7 @@
             i_color = this.item.color || '#000';
 
           if (this.item.threshold.from !== undefined) {
-            y = ((1 - Math.ceil(this._fn.var.y(this.item.threshold.from) + this.lineWidth * 1.25) / this.chartElement._height) * 100);
+            y = ((1 - Math.ceil(this._fn.var.y(this.item.threshold.from) + this.lineWidth * 1.25) / this._chartElement._height) * 100);
             if (Number.isFinite(y)) {
               b_line.push({
                 o: y + '%',
@@ -684,7 +599,7 @@
             }
           }
           if (this.item.threshold.to !== undefined) {
-            y = ((1 - Math.floor(this._fn.var.y(this.item.threshold.to) - this.lineWidth * 1.25) / this.chartElement._height) * 100);
+            y = ((1 - Math.floor(this._fn.var.y(this.item.threshold.to) - this.lineWidth * 1.25) / this._chartElement._height) * 100);
             if (Number.isFinite(y)) {
               b_line.push({
                 o: y + '%',
@@ -696,8 +611,8 @@
               });
             }
           }
-          var gradients = this.bounderyLineGradientNode
-            .attr('x1', 0).attr('y1', this.chartElement._height)
+          var gradients = this.boundery
+            .attr('x1', 0).attr('y1', this._chartElement._height)
             .attr('x2', 0).attr('y2', 0)
             .selectAll('stop')
             .data(b_line);
@@ -724,13 +639,41 @@
         // TODO(?): update line, animated http://bl.ocks.org/benjchristensen/1148374
       }
 
+
+      sizeChanged() {
+        for (var kind in this._chartElement.multiAxes) {
+          if (this._chartElement.multiAxes[kind] === true) {
+            // update x brush
+            this._generators.brush[kind].extent([[0, (this.axisPosition[kind] === 'top') ? (-this._chartElement.tickSize) : 0], [this._chartElement._width, (this.axisPosition[kind] === 'top') ? 0 : this._chartElement.tickSize]]);
+            this._nodes.brush[kind].call(this._generators.brush[kind]);
+
+            // update axes
+            for (var kind in this._chartElement.multiAxes) {
+              if (this._chartElement.multiAxes[kind] === true) {
+                this._nodes.axis[kind].call(this._generators.axis[kind]);
+              }
+            }
+
+            // getting a domain range for x
+            // TODO: do not when brushed or zoomed
+            this._getDomain(kind)
+              .then( domain => {
+                console.log(domain);
+                this._fn.var[kind].domain(domain);
+                // this._fn.var.xBrush.domain(domain);
+              })
+              .catch( err => {});
+          }
+        }
+      }
+
       _defined(d, i) {
         var yScale = this.yScale;
 
         if (!Number.isFinite(d.y))
           return null;
         else if ((yScale === 'ln' || yScale === 'log₁₀') && d.y <= 0)
-          return null; // log- and sqrt-scales require larger than 0-Values
+          return null; // log- and sqrt-scale require larger than 0-Values
         // else if ((d.x >= domainX[0] && d.x <= domainX[1]) ||
         //   (data[i + 1] && data[i + 1].x >= domainX[0] && data[i + 1].x <= domainX[1]) ||
         //   (data[i - 1] && data[i - 1].x >= domainX[0] && data[i - 1].x <= domainX[1]))
@@ -744,12 +687,12 @@
       // if looking just at to path (instabil): https://bl.ocks.org/mbostock/8027637 https://pomax.github.io/bezierinfo/#projections
       _closestPoint(m) {
         // find good prediction
-        var _x = this.chartElement._x,
-          _y = this.chartElement._y,
+        var _x = this._chartElement._x,
+          _y = this._chartElement._y,
           values = this.values,
           x_0 = _x.invert(m[0]),
-          precision = Math.ceil(this.chartElement._width / values.length),
-          variance = Math.pow(Math.ceil(values.length / this.chartElement._width), 2),
+          precision = Math.ceil(this._chartElement._width / values.length),
+          variance = Math.pow(Math.ceil(values.length / this._chartElement._width), 2),
           mid = this.bisectDate.left(values, x_0, 0, values.length - 1),
           r2 = pixdistance2(values[mid]),
           searchRadius = Math.sqrt(r2) / variance;
@@ -802,7 +745,7 @@
       _closestInterpolatedPoint(point, pathNode) {
         pathNode = pathNode || this._nodes.area.node() || this._nodes.line.node();
         var pathLength = pathNode.getTotalLength(),
-          precision = Math.ceil(pathLength / this.chartElement._width / 2.0) * 2,
+          precision = Math.ceil(pathLength / this._chartElement._width / 2.0) * 2,
           best,
           bestLength,
           bestDistance = Infinity;
@@ -874,24 +817,6 @@
         }
       }
 
-      changeScale(newValue, oldValue) {
-        // if (oldValue === undefined) return;
-        // var domainY = this._fn.var.y.domain();
-        // if (this.yScale === 'ln' || this.yScale === 'log₁₀') {
-        //   if (domainY[0] <= 0) {
-        //     domainY[0] = Number.EPSILON;
-        //   }
-        //   if (domainY[1] <= 0) {
-        //     domainY[1] = Number.EPSILON;
-        //   }
-        // }
-        // this._debouncedHideInfo();
-        // this._fn.var.y = this._createScaleFn(this.yScale);
-        // this._fn.var.y.domain(domainY).nice(this.yTicks);
-        // this.set('domainY', domainY);
-        // this._sizeChanged();
-      }
-
       _interpolationChanged(interpolation) {
         var curve;
         switch (interpolation) {
@@ -926,8 +851,8 @@
         this._generators.area.curve(curve);
         this._generators.line.curve(curve);
 
-        if (this.chartElement)
-          this.chartElement.redraw();
+        if (this._chartElement)
+          this._chartElement.redraw();
       }
     }
     customElements.define(DeviceGraph.is, DeviceGraph);

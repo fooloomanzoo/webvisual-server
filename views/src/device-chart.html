@@ -234,9 +234,9 @@
           <!-- <g id="xGrid" class="grid" clip-path="url(#clip)"></g> -->
           <g id="yGrid" class="grid" clip-path="url(#clip)"></g>
           <g id="graphs" clip-path="url(#clip)">
-            <g id="areas"></g>
-            <g id="lines"></g>
-            <g id="bounderies"></g>
+            <g id="area"></g>
+            <g id="line"></g>
+            <g id="boundery"></g>
             <g id="brush"></g>
           </g>
           <g id="delta" hidden>
@@ -249,8 +249,7 @@
             <line id="focusY" class="line y" marker-start="url(#stub)" marker-end="url(#arrowToRight)"></line>
             <circle id="focusDot" class="dot"></circle>
           </g>
-          <g id="xAxes" on-tap="_resetZoom"></g>
-          <g id="yAxes" on-tap="_resetZoom"></g>
+          <g id="axis" on-tap="_resetZoom"></g>
           <text id="info" class="focus info" x="0" y="0" filter="url(#solid)" hidden></text>
           <text id="infoDeltaX" class="delta info" x="0" y="0" filter="url(#solid)" hidden></text>
           <text id="infoDeltaY" class="delta info" x="0" y="0" filter="url(#solid)" hidden></text>
@@ -313,8 +312,8 @@
 
   </template>
   <script>
-    class DeviceChart extends WebvisualBehaviors.FullscreenBehavior(Polymer.mixinBehaviors(
-      [Polymer.IronResizableBehavior], Polymer.Element)) {
+    class DeviceChart extends Polymer.mixinBehaviors(
+      [Polymer.IronResizableBehavior], WebvisualBehaviors.FullscreenBehavior(Polymer.Element)) {
 
       static get is() {
         return 'device-chart';
@@ -340,24 +339,25 @@
             value: 2
           },
 
-          multiYAxis: {
-            type: Boolean,
-            value: true
+          multiAxes: {
+            type: Object,
+            value: function() {
+              return {
+                x: false,
+                y: true
+              };
+            },
+            observer: '_axesChanged'
           },
 
-          multiXAxis: {
-            type: Boolean,
-            value: true
-          },
-
-          yAxisWidth: {
-            type: Number,
-            value: 48
-          },
-
-          xAxisHeight: {
-            type: Number,
-            value: 24
+          axisSize: {
+            type: Object,
+            value: function() {
+              return {
+                x: 24,
+                y: 48
+              };
+            }
           },
 
           tickSize: {
@@ -370,16 +370,26 @@
             value: 6
           },
 
-          xScale: {
-            type: String,
-            value: 'time',
-            observer: 'changeScale'
+          scale: {
+            type: Object,
+            value: function() {
+              return {
+                x: 'time',
+                y: 'linear'
+              };
+            },
+            observer: '_scaleChanged'
           },
 
-          yScale: {
-            type: String,
-            value: 'linear',
-            observer: 'changeScale'
+          domain: {
+            type: Object,
+            value: function() {
+              return {
+                x: [null, null],
+                y: [null, null]
+              };
+            },
+            notify: true
           },
 
           domainX: {
@@ -454,15 +464,29 @@
         this._deltaX = {};
         this._deltaY = {};
         this._deltaDot = {};
-        this._areas = {};
-        this._lines = {};
-        this._bounderies = {};
         this._focusedValue = null;
         this._fixedValue = null;
-        this.xFn = Function.prototype;
-        this.yFn = Function.prototype;
-        this._xAxes = {};
-        this._yAxes = {};
+        this._fn = {
+          var: {
+            x: Function.prototype,
+            y: Function.prototype
+          },
+          axis: {
+            x: Function.prototype,
+            y: Function.prototype
+          },
+          brush: {
+            x: Function.prototype,
+            y: Function.prototype
+          },
+        };
+        this._nodes = {
+          area: {},
+          line: {},
+          boundery: {},
+          axis: {},
+          brush: {}
+        };
         // this._xAxisFn = {};
         // this._yAxisFn = {};
         this._isAttached = false;
@@ -530,14 +554,15 @@
         }
       }
 
-      _self() {
+      get _self() {
         return this;
       }
 
-      static get listeners() {
-        return {
-          'iron-resize': '_sizeChanged'
-        }
+      _fireResize() {
+        this.dispatchEvent(new CustomEvent('iron-resize', {
+          bubbles: false, composed: true, node: this
+        }));
+        this._sizeChanged();
       }
 
       connectedCallback() {
@@ -547,6 +572,7 @@
 
       _sizeChanged() {
         // only resize if initialized
+        console.log('_sizeChanged');
         if (this._isAttached) {
           if (this._activeSizeJob) {
             clearTimeout(this._activeSizeJob);
@@ -561,27 +587,25 @@
         this._svg = d3.select(this.$.svgChart)
           .attr('height', null)
           .attr('width', null);
-        this.xFn = this._createScaleFn(this.xScale);
-        this.yFn = this._createScaleFn(this.yScale);
+        this._fn.var.x = this._createScaleFn(this.xScale);
+        this._fn.var.y = this._createScaleFn(this.yScale);
 
         this._chart = d3.select(this.$.chart);
         this._control = d3.select(this.$.control);
 
-        this._xAxes = d3.select(this.$.xAxes);
-        this._yAxes = d3.select(this.$.yAxes);
-
-        this._areas = d3.select(this.$.areas);
-        this._lines = d3.select(this.$.lines);
-        this._bounderies = d3.select(this.$.bounderies);
+        this._nodes.axis = d3.select(this.$.axis);
+        this._nodes.area = d3.select(this.$.area);
+        this._nodes.line = d3.select(this.$.line);
+        this._nodes.boundery = d3.select(this.$.boundery);
 
         // Test
-        // this._xAxes
+        // this._nodes.axis
         //   .append('svg:g')
         //   .classed('x axis', true);
-        // this._yAxes
+        // this._nodes.axis
         //   .append('svg:g')
         //   .classed('y axis', true);
-        // this._yAxes
+        // this._nodes.axis
         //   .append('svg:g')
         //   .classed('y axis', true);
         //
@@ -631,7 +655,7 @@
                 g = this._graphs[mounts[i]]
                 if (g.values && g.values.length) {
                   var d = g._closestPoint(m);
-                  var currentMin2 = Math.pow(m[0] - g.xFn(d.x), 2) + Math.pow(m[1] - g.yFn(d.y), 2); // in px²
+                  var currentMin2 = Math.pow(m[0] - g._fn.var.x(d.x), 2) + Math.pow(m[1] - g._fn.var.y(d.y), 2); // in px²
                   if (closestDistance === undefined || currentMin2 < closestDistance) {
                     closestDistance = currentMin2;
                     closestPoint = d;
@@ -653,8 +677,8 @@
                 }
                 this._focusedValue = closestPoint;
                 this._focusedValue.g = closestGraph;
-                this._focusedValue._y_axis = this.multiYAxis ? (closestGraph._y_left + closestGraph._y_right) : 0;
-                this._focusedValue._x_axis = this.multiXAxis ? (closestGraph._x_bottom + closestGraph._x_top) : this._height;
+                this._focusedValue._y_axis = this.multiAxis.y ? (closestGraph._y_left + closestGraph._y_right) : 0;
+                this._focusedValue._x_axis = this.multiAxis.x ? (closestGraph._x_bottom + closestGraph._x_top) : this._height;
                 this._focusDot.datum(closestPoint)
                   .attr('fill', fill)
                   .attr('r', closestGraph.dotRadius);
@@ -693,8 +717,8 @@
           right = 0,
           bottom = 0,
           left = 0,
-          yAxisWidth = this.yAxisWidth,
-          xAxisHeight = this.xAxisHeight,
+          yAxisWidth = this.axisSize.y,
+          xAxisHeight = this.axisSize.x,
           condensedSize = this.tickSize + this.axisMargin,
           lineWidth = 1;
 
@@ -735,40 +759,42 @@
         this._width = bRect.width - Math.abs(left || 0) - Math.abs(right || 0) - (this.margin.left || 0) - (this.margin.right || 0);
         this._height = bRect.height - Math.abs(bottom || 0) - Math.abs(top || 0) - (this.margin.bottom || 0) - (this.margin.top || 0);
 
-        this.xFn.range([0, this._width]);
-        this.yFn.range([this._height, 0]);
+        this._fn.var.x.range([0, this._width]);
+        this._fn.var.y.range([this._height, 0]);
 
         this.xTicks = Math.ceil(this._width / 75);
         this.yTicks = Math.ceil(this._height / 50);
 
+        var verticalAxis;
         for (var i = 0; mounts && i < mounts.length; i++) {
           g = this._graphs[mounts[i]];
           if (!(g && g._isAttached)) continue;
-          if (g.hasXAxis) {
-            g.xFn.range([0, this._width]);
-            xexp = g.xAxisExpanded;
-            g.xAxisFn.tickFormat(xexp ? null : '').tickSize(this.tickSize);
-            if (g.xAxisPosition === 'bottom') { // bottom x-axis
+
+          if (this.multiAxes.x === true) {
+            g._fn.var.x.range([0, this._width]);
+            xexp = g._nodes.axis.x.classed('expanded');
+            g._generators.axis.x.tickFormat(xexp ? null : '').tickSize(this.tickSize);
+            if (g.axisPosition.x === 'bottom') { // bottom x-axis
               g._x_bottom += this._height;
-              g.xAxisBrush.extent([[0, 0], [this._width, this.tickSize]]);
+              g._generators.brush.x.extent([[0, 0], [this._width, this.tickSize]]);
             } else {
-              g.xAxisBrush.extent([[0, -this.tickSize], [this._width, 0]]);
+              g._generators.brush.x.extent([[0, -this.tickSize], [this._width, 0]]);
             }
-            g.xAxisNode.call(g.xAxisFn).transition(150).attr('transform', 'translate(0,' + (g._x_top + g._x_bottom) + ')');
-            g.xAxisBrushNode.raise().call(g.xAxisBrush);
+            g._nodes.axis.x.call(g._generators.axis.x).transition(150).attr('transform', 'translate(0,' + (g._x_top + g._x_bottom) + ')');
+            g._nodes.brush.x.raise().call(g._generators.brush);
           }
-          if (g.hasYAxis) {
-            g.yFn.range([this._height, 0]);
-            yexp = g.yAxisExpanded;
-            g.yAxisFn.tickFormat(yexp ? null : '').tickSize(this.tickSize);
-            if (g.yAxisPosition === 'right') { // right y-axis
+          if (this.multiAxes.y === true) {
+            g._fn.var.y.range([this._height, 0]);
+            yexp = g._nodes.axis.y.classed('expanded');
+            g._generators.axis.y.tickFormat(yexp ? null : '').tickSize(this.tickSize);
+            if (g.axisPosition.y === 'right') { // right y-axis
               g._y_right += this._width;
-              g.yAxisBrush.extent([[0, 0], [this.tickSize, this._height]]);
-            } else{
-              g.yAxisBrush.extent([[-this.tickSize, 0], [0, this._height]]);
+              g._generators.brush.y.extent([[0, 0], [this.tickSize, this._height]]);
+            } else {
+              g._generators.brush.y.extent([[-this.tickSize, 0], [0, this._height]]);
             }
-            g.yAxisNode.call(g.yAxisFn).transition(150).attr('transform', 'translate('+ (g._y_left + g._y_right) + ',0)');
-            g.yAxisBrushNode.raise().call(g.yAxisBrush);
+            g._nodes.axis.y.call(g._generators.axis.y).transition(150).attr('transform', 'translate('+ (g._y_left + g._y_right) + ',0)');
+            g._nodes.brush.y.raise().call(g._generators.brush.y);
           }
         }
         top -= (this.margin.top || 0);
@@ -797,10 +823,10 @@
         //   .tickSize(-this._width)
         //   .tickFormat('');
 
-        // this._xAxes.selectAll('.x.axis')
+        // this._nodes.axis.selectAll('.x.axis')
         //   .call(this._xAxisFn)
         //   .attr('transform', 'translate(0,' + this._height + ')');
-        // this._yAxes.selectAll('.y.axis')
+        // this._nodes.axis.selectAll('.y.axis')
         //   .call(this._yAxisFn)
         //   .attr('transform', 'translate(0,' + 0 + ')');
 
@@ -826,12 +852,26 @@
         this._redraw(true);
       }
 
+      _axesChanged(axes) {
+        var graphProto = window.customElements.get('device-graph').prototype;
+        for (var kind in axes) {
+          // if (axes[kind] === true) {
+          //   graphProto._axesChanged.call(this, axes);
+          // } else if (axes[kind] === false) {
+          //
+          // }
+          for (var i = 0; i < this._graphs.length; i++) {
+            this._graphs[i]._axesChanged(axes);
+          }
+        }
+      }
+
       _addGraph(g) {
 
       }
 
-      _createScaleFn(option) {
-        switch (option) {
+      _createScaleFn(type) {
+        switch (type) {
           case 'time':
             return d3.scaleTime();
             break;
@@ -943,8 +983,8 @@
         // if (s) {
         //   this._isBrushed = true;
         //   this._isZoomed = true;
-        //   this.xFn.domain([s[0][0], s[1][0]].map(this.xFn.invert, this.xFn)).nice(this.xTicks);
-        //   this.yFn.domain([s[1][1], s[0][1]].map(this.yFn.invert, this.yFn)).nice(this.yTicks);
+        //   this._fn.var.x.domain([s[0][0], s[1][0]].map(this._fn.var.x.invert, this._fn.var.x)).nice(this.xTicks);
+        //   this._fn.var.y.domain([s[1][1], s[0][1]].map(this._fn.var.y.invert, this._fn.var.y)).nice(this.yTicks);
         //   this._brush.call(this._brushBehavior.move, null);
         //   return;
         // } else if (this._isBrushed === true) {
@@ -988,19 +1028,19 @@
         //             }
         //           }
         //
-        //           this.xFn.domain(domainX);
+        //           this._fn.var.x.domain(domainX);
         //           this.set('domainX', domainX);
-        //           this.yFn.domain(domainY).nice(this.yTicks);
+        //           this._fn.var.y.domain(domainY).nice(this.yTicks);
         //
         //           // if domain is on the edge of data, add a little space
-        //           domainY = this.yFn.domain();
+        //           domainY = this._fn.var.y.domain();
         //           if (domainY[0] === rangeY[0]) {
         //             domainY[0] -= (rangeY[1] - rangeY[0]) / this.yTicks;
         //           }
         //           if (domainY[1] === rangeY[1]) {
         //             domainY[1] += (rangeY[1] - rangeY[0]) / this.yTicks;
         //           }
-        //           this.yFn.domain(domainY);
+        //           this._fn.var.y.domain(domainY);
         //           this.set('domainY', domainY);
         //           resolve();
         //
@@ -1067,8 +1107,8 @@
       }
 
       _moveInfo(d) {
-        if (Number.isFinite(this.yFn(d.y))) {
-          var x = this.timeFormatRange.call(this, d.x, this.xFn.domain(), this._width);
+        if (Number.isFinite(this._fn.var.y(d.y))) {
+          var x = this.timeFormatRange.call(this, d.x, this._fn.var.x.domain(), this._width);
           var y = this.format.Number(d.y);
           this._info.text(x + ' ' + y);
           var fixP = this._fixedValue;
@@ -1114,8 +1154,8 @@
         this._hideDelta();
         // this._xAxisFn = this._createAxisFn(this._x, 'bottom', this.xScale, this.xTicks);
         // this._yAxisFn = this._createAxisFn(this._y, 'left', this.yScale, this.yTicks);
-        // this._xAxes.select('.x.axis').call(this._xAxisFn);
-        // this._yAxes.select('.y.axis').call(this._yAxisFn);
+        // this._nodes.axis.select('.x.axis').call(this._xAxisFn);
+        // this._nodes.axis.select('.y.axis').call(this._yAxisFn);
         this._svg.selectAll('g,line,text,path,rect')
           .classed('style-scope', true)
           .classed('device-chart', true);
@@ -1130,8 +1170,8 @@
       _updateInfo() {
         if (!this._focusedValue || this._info.attr('hidden') === '') return;
         var focP = this._focusedValue;
-        var x = this.xFn(+focP.x),
-          y = this.yFn(+focP.y);
+        var x = this._fn.var.x(+focP.x),
+          y = this._fn.var.y(+focP.y);
         if (!x || !y) {
           return;
         }
@@ -1141,8 +1181,8 @@
           case 'delta':
             var fixP = this._fixedValue;
             if (fixP && fixP.x && focP.x !== fixP.x && fixP.y && focP.y !== fixP.y) {
-              var xFix = this.xFn(+fixP.x),
-                yFix = this.yFn(+fixP.y);
+              var xFix = this._fn.var.x(+fixP.x),
+                yFix = this._fn.var.y(+fixP.y);
               var x1D, x2D, y1D, y2D;
               this._deltaX.attr('x1', x).attr('x2', xFix).attr('y1', yFix).attr('y2', yFix);
               this._deltaY.attr('y1', y).attr('y2', yFix);
@@ -1170,8 +1210,8 @@
         // this._xAxisFn.tickFormat(null);
         // this._yAxisFn.tickValues([this._focusedValue.y]);
         // this._yAxisFn.tickFormat(null);
-        // this._xAxes.select('.x.axis').call(this._xAxisFn);
-        // this._yAxes.select('.y.axis').call(this._yAxisFn);
+        // this._nodes.axis.select('.x.axis').call(this._xAxisFn);
+        // this._nodes.axis.select('.y.axis').call(this._yAxisFn);
         this._svg.selectAll('g,line,text,path,rect')
           .classed('style-scope', true)
           .classed('device-chart', true);
@@ -1239,10 +1279,10 @@
       _dotClicked(d) {
         switch (this.modus) {
           case 'zoom':
-            var offsetX = (this.xFn(this.xFn.domain()[1]) - this.xFn(this.xFn.domain()[0])) / 4,
-              offsetY = (this.yFn(this.yFn.domain()[0]) - this.yFn(this.yFn.domain()[1])) / 4,
-              x = this.xFn(+d.x),
-              y = this.yFn(+d.y) || 0;
+            var offsetX = (this._fn.var.x(this._fn.var.x.domain()[1]) - this._fn.var.x(this._fn.var.x.domain()[0])) / 4,
+              offsetY = (this._fn.var.y(this._fn.var.y.domain()[0]) - this._fn.var.y(this._fn.var.y.domain()[1])) / 4,
+              x = this._fn.var.x(+d.x),
+              y = this._fn.var.y(+d.y) || 0;
             d3.event.selection = [
               [x - offsetX, y - offsetY],
               [x + offsetX, y + offsetY]
@@ -1260,10 +1300,10 @@
             this._fixedValue = d;
             this._deltaDot.datum(this._fixedValue)
               .attr('cx', d => {
-                return this.xFn(d.x)
+                return this._fn.var.x(d.x)
               })
               .attr('cy', d => {
-                return this.yFn(d.y)
+                return this._fn.var.y(d.y)
               })
               .attr('r', this._focusDot.attr('r'))
               .attr('fill', this._focusDot.attr('fill'));
@@ -1286,23 +1326,30 @@
         }
       }
 
-      changeScale(newValue, oldValue) {
-        // if (oldValue === undefined) return;
-        // var domainY = this.yFn.domain();
-        // if (this.yScale === 'ln' || this.yScale === 'log₁₀') {
-        //   if (domainY[0] <= 0) {
-        //     domainY[0] = Number.EPSILON;
-        //   }
-        //   if (domainY[1] <= 0) {
-        //     domainY[1] = Number.EPSILON;
-        //   }
-        // }
-        // this._debouncedHideInfo();
-        // this.yFn = this._createScaleFn(this.yScale);
-        // this.yFn.domain(domainY).nice(this.yTicks);
-        // this.set('domainY', domainY);
-        // this._sizeChanged();
+      _scaleChanged(scale) {
+        for (var kind in scale) {
+          // add scale function
+          this._fn.var[kind] = this._createScaleFn(scale[kind]);
+        }
       }
+      //
+      // changeScale(newValue, oldValue) {
+      //   // if (oldValue === undefined) return;
+      //   // var domainY = this._fn.var.y.domain();
+      //   // if (this.yScale === 'ln' || this.yScale === 'log₁₀') {
+      //   //   if (domainY[0] <= 0) {
+      //   //     domainY[0] = Number.EPSILON;
+      //   //   }
+      //   //   if (domainY[1] <= 0) {
+      //   //     domainY[1] = Number.EPSILON;
+      //   //   }
+      //   // }
+      //   // this._debouncedHideInfo();
+      //   // this._fn.var.y = this._createScaleFn(this.yScale);
+      //   // this._fn.var.y.domain(domainY).nice(this.yTicks);
+      //   // this.set('domainY', domainY);
+      //   // this._sizeChanged();
+      // }
 
       _resetZoom(e) {
         if (d3.event)
