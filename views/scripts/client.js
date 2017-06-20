@@ -25,41 +25,38 @@ WebvisualClient.prototype = {
 
         this.webworker.onmessage = function(e) {
           if (e.data) {
-            // console.log(e.data);
             if (e.data.messageId) {
               var resolve = this.messageMap[e.data.messageId];
               if (resolve) {
-                // this.messageMap.delete(e.data.messageId);
-                delete this.messageMap[e.data.messageId];
-                // console.log(e);
                 resolve(e.data.response);
+                delete this.messageMap[e.data.messageId];
+                return;
               }
-            } else {
-              switch (e.data.type) {
-                case 'initial':
-                  this.resetNodes();
-                  this.updateNodes(e.data.values, e.data.splices);
-                  for (var i = 0; i < this.requests.length; i++) {
-                    this.webworker.postMessage(this.requests[i]);
-                  }
-                  this.requests.length = 0;
-                  break;
-                case 'update':
-                  this.updateNodes(e.data.values, e.data.splices);
-                  break;
-                case 'status':
-                  this.updateStatus(e.data.status);
-                  break;
-                case 'reload':
-                  if (this.reloadJob) {
-                    clearTimeout(this.reloadJob);
-                    this.reloadJob = null;
-                  }
-                  this.reloadJob = setTimeout(() => {
-                    window.location.reload();
-                  }, 1500);
-                  break;
-              }
+            }
+            switch (e.data.type) {
+              case 'initial':
+                this.resetNodes();
+                this.updateNodes(e.data.values, e.data.splices);
+                for (var i = 0; i < this.requests.length; i++) {
+                  this.webworker.postMessage(this.requests[i]);
+                }
+                this.requests.length = 0;
+                break;
+              case 'update':
+                this.updateNodes(e.data.values, e.data.splices);
+                break;
+              case 'status':
+                this.updateStatus(e.data.status);
+                break;
+              case 'reload':
+                if (this.reloadJob) {
+                  clearTimeout(this.reloadJob);
+                  this.reloadJob = null;
+                }
+                this.reloadJob = setTimeout(() => {
+                  window.location.reload();
+                }, 1500);
+                break;
             }
           }
         }.bind(this)

@@ -63,6 +63,10 @@ export {
 } from "d3-zoom";
 
 export {
+  drag
+} from "d3-drag";
+
+export {
   brush,
   brushX,
   brushY,
@@ -72,6 +76,8 @@ export {
   event,
   mouse,
   select,
+  selection,
   selectAll,
+  selectorAll,
   touch
 } from "d3-selection";

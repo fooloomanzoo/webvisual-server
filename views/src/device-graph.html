@@ -68,12 +68,12 @@
 
           viewLength: {
             type: Number,
-            value: Number.POSITIVE_INFINITY
+            value: 20000
           },
 
           storeInside: {
             type: Boolean,
-            value: false,
+            value: true,
             readOnly: true
           }
         }
@@ -92,9 +92,9 @@
           brush: {}
         };
         this._fn = {
-          var: { x: Function.prototype, y: Function.prototype },
-          axis: { x: Function.prototype, y: Function.prototype },
-          brush: { x: Function.prototype, y: Function.prototype }
+          var: {},
+          axis: {},
+          brush: {}
         };
         this._generators = {
           area: {},
@@ -165,7 +165,7 @@
       }
 
       addNodes() {
-        console.log('addNotes', this.item.mount);
+        // console.log('addNotes', this.item.mount);
         if (this._isAttached) {
           this.clearValues(true);
         }
@@ -182,7 +182,7 @@
 
         this._areaChanged(this.hasArea);
         this._lineChanged(this.hasLine);
-        this._axesChanged(this._chartElement.multiAxes);
+        this._chartElement._multiAxesChanged(this._chartElement.multiAxes);
         this._setColorProperties();
 
         // if (!this._chartElement._height || !this._chartElement._width) {
@@ -190,18 +190,20 @@
         // }
 
         this._isAttached = true;
+        this._scaleChanged(this.scale);
+        this._chartElement._addGraph(this);
         this._chartElement._sizeChanged();
       }
 
       _scaleChanged(scale) {
-        for (var kind in scale) {
-          // add scale function
-          this._fn.var[kind] = this._createScaleFn(scale[kind]);
+        if (!(this._isAttached === true)) return;
+        for (var key in scale) {
+          this._fn.var[key] = this._chartElement.multiAxes[key] ? this._chartElement._createScaleFn(scale[key]) : this._chartElement._fn.var[key];
         }
       }
 
       _areaChanged(hasArea, type) {
-        console.log('_areaChanged', this.item.mount, hasArea, type);
+        // console.log('_areaChanged', this.item.mount, hasArea, type);
         if (!(this._chartElement && this._chartElement._nodes.area)) return;
 
         if (hasArea === false) {
@@ -227,7 +229,7 @@
       }
 
       _lineChanged(hasLine, type) {
-        console.log('_lineChanged', this.item.mount, hasLine, type);
+        // console.log('_lineChanged', this.item.mount, hasLine, type);
         if (!(this._chartElement && this._chartElement._nodes.line)) return;
 
         if (hasLine === false) {
@@ -256,39 +258,6 @@
       _axisPositionChanged(axisPosition) {
       }
 
-      _getDomain(key) {
-        if (!(this._chartElement && this.scale[kind])) return;
-
-        var scale = this.scale[kind];
-
-        return new Promise((resolve, reject) => {
-          this.requestRange(key)
-            .then(range => {
-              var domain = range;
-              if (key === 'y') {
-                // if min, max are equal, add a little space
-                if (domain[0] !== undefined && domain[1] !== undefined && domain[0] === domain[1]) {
-                  domain[0] -= 0.5;
-                  domain[1] += 0.5;
-                }
-              }
-
-              if (scale === 'ln' || scale === 'log₁₀') {
-                if (domain[0] <= 0) {
-                  domain[0] = Number.EPSILON;
-                }
-                if (domain[1] <= 0) {
-                  domain[1] = Number.EPSILON;
-                }
-              }
-              resolve(domain);
-            })
-            .catch(err => {
-              reject(err);
-            });
-        });
-      }
-
       _thresholdChanged(threshold) {
         if (!(this._chartElement && this._chartElement._nodes.boundery)) return;
 
@@ -313,45 +282,29 @@
         }
       }
 
-      _createScaleFn(type) {
-        if (!(this._chartElement && type)) {
-          return null;
-        }
-        return this._chartElement._createScaleFn(type);
-      }
-
-      _toggleAxisExpansion(kind) {
-        if (!(this._chartElement && this.axis && this.axis[kind] && this._nodes.axis && this._nodes.axis[kind])) return;
-
-        this.axis[kind].expanded = !this.axis[kind].expanded;
-        //this._nodes.axis[kind].lower();
-        this._nodes.axis[kind].classed('expanded', this.axis[kind].expanded);
-        this._chartElement._sizeChanged();
-      }
-
       _setColorProperties() {
         if (!this._chartElement) return;
         if (this.item && this.item.color) {
           var colorForGraph = this.item.theshold ? ('url(#boundery-line-' + this.item.mount + ')') : this.item.color || '#000';
           if (this._nodes.area && this._nodes.area.attr) this._nodes.area.attr('fill', colorForGraph);
           if (this._nodes.line && this._nodes.line.attr) this._nodes.line.attr('stroke', colorForGraph);
-          for (var kind in this._chartElement.multiAxes) {
-            if (this._chartElement.multiAxes[kind] === true && this._nodes.axis[kind] && this._nodes.axis[kind].attr) {
-              this._nodes.axis[kind].style('color', this.item.color || '#000');
+          for (var key in this._chartElement.multiAxes) {
+            if (this._chartElement.multiAxes[key] === true && this._nodes.axis[key] && this._nodes.axis[key].attr) {
+              this._nodes.axis[key].style('color', this.item.color || '#000');
             }
           }
         }
       }
 
       removeNodes() {
-        console.log('removeNodes', this.item.mount);
+        // console.log('removeNodes', this.item.mount);
+        this._isAttached = false;
         this._areaChanged();
         this._lineChanged();
-        this._axesChanged();
         this._thresholdChanged();
         if (this._chartElement && this._chartElement._graphs)
           delete this._chartElement._graphs[this.item.mount];
-        this._isAttached = false;
+        this._chartElement._multiAxesChanged(this._chartElement.multiAxes);
       }
 
       _itemChanged(item) {
@@ -369,9 +322,7 @@
         if (values === undefined) {
           return;
         }
-
         var len = len || (this.viewLength > 0 ? this.viewLength : values.length);
-
         if (!len) {
           values.map(function(v) {
             return {
@@ -424,7 +375,8 @@
       renderInsertedValues(values) {
         if (!this._isAttached && this.item) {
           this.addNodes();
-        } else if (this._chartElement) {
+        }
+        if (this._chartElement) {
           // if (this._chartElement._isZoomed === false)
             this._chartElement.redraw();
           // else
@@ -433,11 +385,9 @@
       }
 
       redraw() {
-        if (!(this._chartElement && this._chartElement._isAttached && this.item && this.values && this.values.length)) return;
+        if (!this._isAttached) return;
 
-        console.log('redraw');
-        // TODO: call sizeChanged from chartElement
-        this.sizeChanged()
+        // console.log('graph redraw', this.item.mount, this.values.length);
 
         var data = this.values || [];
 
@@ -526,32 +476,37 @@
         // TODO(?): update line, animated http://bl.ocks.org/benjchristensen/1148374
       }
 
+      _getDomain(key) {
+        if (!this._isAttached) return;
 
-      sizeChanged() {
-        for (var kind in this._chartElement.multiAxes) {
-          if (this._chartElement.multiAxes[kind] === true) {
-            // update x brush
-            this._generators.brush[kind].extent([[0, (this.axisPosition[kind] === 'top') ? (-this._chartElement.tickSize) : 0], [this._chartElement._width, (this.axisPosition[kind] === 'top') ? 0 : this._chartElement.tickSize]]);
-            this._nodes.brush[kind].call(this._generators.brush[kind]);
+        var scale = this.scale[key];
 
-            // update axes
-            for (var kind in this._chartElement.multiAxes) {
-              if (this._chartElement.multiAxes[kind] === true) {
-                this._nodes.axis[kind].call(this._generators.axis[kind]);
+        return new Promise((resolve, reject) => {
+          this.requestRange(key)
+            .then(range => {
+              var domain = range;
+              if (key === 'y') {
+                // if min, max are equal, add a little space
+                if (domain[0] !== undefined && domain[1] !== undefined && domain[0] === domain[1]) {
+                  domain[0] -= 0.5;
+                  domain[1] += 0.5;
+                }
               }
-            }
 
-            // getting a domain range for x
-            // TODO: do not when brushed or zoomed
-            this._getDomain(kind)
-              .then( domain => {
-                console.log(domain);
-                this._fn.var[kind].domain(domain);
-                // this._fn.var.xBrush.domain(domain);
-              })
-              .catch( err => {});
-          }
-        }
+              if (scale === 'ln' || scale === 'log₁₀') {
+                if (domain[0] <= 0) {
+                  domain[0] = Number.EPSILON;
+                }
+                if (domain[1] <= 0) {
+                  domain[1] = Number.EPSILON;
+                }
+              }
+              resolve(domain);
+            })
+            .catch(err => {
+              reject(err);
+            });
+        });
       }
 
       _defined(d, i) {
