@@ -43,8 +43,9 @@
         --control-right: 16px;
       }
       #chart {
+        margin: 0 4px 8px 12px;
         --chart-plot-background-color: #e1e1e1;
-        --chart-plot-background-opacity: 1;
+        --chart-plot-background-opacity: 0.5;
         --focus-color: var(--primary-text-color);
         /*--control-bottom: 20px;*/
       }
@@ -64,25 +65,25 @@
         flex: 0 0 auto;
         padding: 0.25em;
       }
-      #elementTable,
-      #deviceTabs {
+      #table,
+      #tabs {
         height: 50%;
         width: 100%;
         position: relative;
         box-sizing: border-box;
       }
-      #deviceTabs {
+      #tabs {
         padding-bottom: 0.1em;
         --highlight-color: var(--secondary-color, white);
       }
-      #elementTable {
+      #table {
         padding-top: 0.1em;
         height: 50%;
       }
-      #elementDrawer {
+      #drawer {
         position: absolute;
       }
-      :host(.fullscreen) #elementDrawer {
+      :host(.fullscreen) #drawer {
         display: none;
       }
       .checkbox {
@@ -104,7 +105,7 @@
         --caption-color: currentColor;
       }
       @media (max-width: 600px) {
-        #elementDrawer {
+        #drawer {
           --drawer-background: rgba(255,255,255,0.33);
         }
       }
@@ -112,7 +113,7 @@
         #content {
           margin-right: 16em;
         }
-        #elementDrawer {
+        #drawer {
           right: -16em;
           --drawer-background: rgba(255,255,255,0.0);
         }
@@ -126,43 +127,42 @@
       logged-in="[[loggedIn]]"
       data="{{svgData}}"></svg-data>
 
-    <template is="dom-if" if="[[visible]]">
-      <div id="content">
+    <dom-if if="[[visible]]">
+      <template>
+        <div id="content">
 
-        <device-chart id="chart" opened="[[visible]]" fullheight$="[[!_withSvg]]"
-          items="[[items]]" multi></device-chart>
+          <template is="dom-if" if="[[_withSvg]]">
+            <device-svg id="svg"
+              opened="[[visible]]"
+              url-prefix="/images/[[room]]/"
+              src="[[item.svg.path]]"
+              selectable-items="[[_getSvgSelectable(item.svg.path, svgData.paths)]]"
+              items="[[items]]"
+              multi
+              exceeding="[[exceeding]]"></device-svg>
+          </template>
 
-        <template is="dom-if" if="[[_withSvg]]">
-          <device-svg id="svg"
-            opened="[[visible]]"
-            url-prefix="/images/[[room]]/"
-            src="[[item.svg.path]]"
-            selectable-items="[[_getSvgSelectable(item.svg.path, svgData.paths)]]"
-            items="[[items]]"
-            multi
-            exceeding="[[exceeding]]"></device-svg>
-        </template>
+          <device-chart id="chart" opened="[[visible]]" fullheight$="[[!_withSvg]]"
+            items="[[items]]" multi></device-chart>
 
-        <drawer-element id="elementDrawer" opened$="[[_ensureOpened(narrowLayout)]]" swipe-open$="[[narrowLayout]]" scrim persistent$="[[!narrowLayout]]" align="right" stretch>
-
-          <tabs-container id="deviceTabs" vertical selected-values="{{selectedMounts}}" attr-for-selected="mount" selected-items="{{selectedCheckboxes}}" multi selected-attribute="checked">
-
-            <template is="dom-repeat" items="[[_getListItems(elements)]]">
-              <device-checkbox class="checkbox"
-                mount$="[[item.mount]]"
-                item="[[item]]"
-                tap-event="detail-request"
-                selectable>
-                <device-caption class="caption"
-                  keys="[[item.keys]]"></device-caption>
-              </device-checkbox>
-            </template>
-          </tabs-container>
-
-          <device-table-group id="elementTable" items="[[items]]"></device-table-group>
-        </drawer-element>
-      </div>
-    </template>
+          <drawer-element id="drawer" opened$="[[_ensureOpened(narrowLayout)]]" swipe-open$="[[narrowLayout]]" scrim persistent$="[[!narrowLayout]]" align="right" stretch>
+            <tabs-container id="tabs" vertical selected-values="{{selectedMounts}}" attr-for-selected="mount" selected-items="{{selectedCheckboxes}}" multi selected-attribute="checked">
+              <template is="dom-repeat" items="[[_getListItems(elements)]]">
+                <device-checkbox class="checkbox"
+                  mount$="[[item.mount]]"
+                  item="[[item]]"
+                  tap-event="detail-request"
+                  selectable>
+                  <device-caption class="caption"
+                    keys="[[item.keys]]"></device-caption>
+                </device-checkbox>
+              </template>
+            </tabs-container>
+            <device-table-group id="table" items="[[items]]"></device-table-group>
+          </drawer-element>
+        </div>
+      </template>
+    </dom-if>
   </template>
 
   <script>
@@ -344,7 +344,12 @@
       }
 
       toggleControlDrawer() {
-        this.$.elementDrawer.toggle();
+        if (!this._drawer) {
+          this._drawer = this.$$('#drawer');
+        }
+        if (this._drawer) {
+          this._drawer.toggle();
+        }
       }
 
       _fireResize() {
@@ -355,8 +360,13 @@
 
       _debounceResize() {
         setTimeout(() => {
-          if (this.narrowLayout && this.$.elementDrawer) {
-            this.$.elementDrawer.opened = true;
+          if (this.narrowLayout) {
+            if (!this._drawer) {
+              this._drawer = this.$$('#drawer');
+            }
+            if (this._drawer) {
+              this._drawer.opened = true;
+            }
           }
           if (this.selectedCheckboxes && this.selectedCheckboxes.length) {
             this.selectedCheckboxes[this.selectedCheckboxes.length-1].scrollIntoViewIfNeeded(true);

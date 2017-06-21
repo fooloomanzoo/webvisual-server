@@ -59,7 +59,9 @@
       }
       text {
         fill: currentColor;
-        stroke: none;
+        stroke: white;
+        stroke-width: 0.2;
+        stroke-opacity: 0.1;
         font-size: 10px;
         letter-spacing: normal !important;
         font-family: inherit !important;
@@ -89,9 +91,6 @@
       .grid path {
         stroke-width: 0;
       }
-      .axis {
-        fill-opacity: 0.01;
-      }
       .axis path, .axis line {
         fill: currentColor;
         fill-opacity: 0.01;
@@ -102,34 +101,45 @@
       .axis:hover path {
         fill-opacity: 0.25;
       }
-      .axis[expanded] path, .axis[expanded] line {
+      .axis.expanded path, .axis.expanded line {
         stroke-opacity: 0.75;
       }
-      .axis.button {
-        pointer-events: all;
-        cursor: pointer;
+      .axis {
+        cursor: -webkit-grab;
+        cursor: grab;
       }
-      .x.axis > .tick:first-of-type:not(:only-of-type) > text {
-        text-anchor: start;
+      .axis.dragged {
+        cursor: -webkit-grabbing;
+        cursor: grabbing;
       }
-      .x.axis > .tick:last-of-type:not(:only-of-type) > text {
-        text-anchor: end;
+      .axis.dragged path {
+        fill-opacity: 0.3;
       }
-      .y.axis > .tick:first-of-type:not(:only-of-type) > text {
+      .axis.horizontal .tick > text {
         alignment-baseline: after-edge;
       }
-      .y.axis > .tick:last-of-type:not(:only-of-type) > text {
-        alignment-baseline: before-edge;
+      .axis.horizontal .tick:first-of-type:not(:only-of-type) > text {
+        text-anchor: start;
+      }
+      .axis.horizontal .tick:nth-last-of-type(2):not(:only-of-type) > text {
+        text-anchor: end;
+      }
+      .axis.vertical[position="left"] .tick > text {
+        text-anchor: end;
+      }
+      .axis.vertical[position="right"] .tick > text {
+        text-anchor: start;
       }
       .brush .selection {
         fill: currentColor;
+        fill-opacity: 0.5;
         stroke: currentColor;
         stroke-width: 0;
       }
-      .axis[dir="vertical"] .brush .overlay {
+      .axis.vertical .brush .overlay {
         cursor: ns-resize;
       }
-      .axis[dir="horizontal"] .brush .overlay {
+      .axis.horizontal .brush .overlay {
         cursor: ew-resize;
       }
       #graphs .area {
@@ -296,26 +306,20 @@
       <icon-button icon="[[fullscreenIcon]]" on-tap="toggleFullscreen"></icon-button>
     </section>
 
-    <template is="dom-if" if="[[multi]]" restamp>
-      <template is="dom-repeat" items="[[items]]">
-        <device-graph
-          item="[[item]]"
-          interpolation="[[interpolation]]"
-          store-inside
-          no-link="[[noLink]]">
-        </device-graph>
+    <dom-if if="[[multi]]" restamp>
+      <template>
+        <dom-repeat items="[[items]]">
+          <template>
+            <device-graph item="[[item]]" interpolation="[[interpolation]]" no-link="[[noLink]]"></device-graph>
+          </template>
+        </dom-repeat>
       </template>
-    </template>
-
-    <template is="dom-if" if="[[!multi]]" restamp>
-      <device-graph
-        item="[[item]]"
-        interpolation="[[interpolation]]"
-        store-inside
-        no-link="[[noLink]]">
-      </device-graph>
-    </template>
-
+    </dom-if>
+    <dom-if if="[[!multi]]" restamp>
+      <template>
+        <device-graph item="[[item]]" interpolation="[[interpolation]]" no-link="[[noLink]]"></device-graph>
+      </template>
+    </dom-if>
   </template>
   <script>
     class DeviceChart extends Polymer.mixinBehaviors(
@@ -358,7 +362,7 @@
 
           tickSize: {
             type: Number,
-            value: 6
+            value: 8
           },
 
           axisMargin: {
@@ -370,8 +374,8 @@
             type: Object,
             value: function() {
               return {
-                x: 24,
-                y: 48
+                x: 20,
+                y: 54
               };
             }
           },
@@ -405,24 +409,7 @@
                 x: [null, null],
                 y: [null, null]
               };
-            },
-            notify: true
-          },
-
-          domainX: {
-            type: Array,
-            value: function() {
-              return [null, null];
-            },
-            notify: true
-          },
-
-          domainY: {
-            type: Array,
-            value: function() {
-              return [null, null];
-            },
-            notify: true
+            }
           },
 
           interpolation: {
@@ -483,14 +470,25 @@
         this._deltaDot = {};
         this._focusedValue = null;
         this._fixedValue = null;
+        this._axes = new Set();
         this._nodes = {
           axis: {},
-          brush: {}
+          brush: {},
+          axes: {}
         };
         this._fn = {
-          var: { x: Function.prototype, y: Function.prototype },
-          axis: { x: Function.prototype, y: Function.prototype },
-          brush: { x: Function.prototype, y: Function.prototype }
+          scale: {
+            x: Function.prototype,
+            y: Function.prototype
+          },
+          axis: {
+            x: Function.prototype,
+            y: Function.prototype
+          },
+          brush: {
+            x: Function.prototype,
+            y: Function.prototype
+          }
         };
         this._generators = {
           brush: {},
@@ -502,8 +500,7 @@
         this._isBrushed = false;
         this._isZoomed = false;
         this._brushBehavior = Function.prototype;
-        this._graphs = {};
-        this._graphElements = [];
+        this._graphs = new Set();
         this._ticks = {};
         var localeDateFormat = {
           'dateTime': '%x %X',
@@ -571,7 +568,9 @@
 
       _fireResize() {
         this.dispatchEvent(new CustomEvent('iron-resize', {
-          bubbles: false, composed: true, node: this
+          bubbles: false,
+          composed: true,
+          node: this
         }));
         this._sizeChanged();
       }
@@ -584,22 +583,23 @@
       _sizeChanged() {
         // only resize if initialized
         if (this._isAttached) {
+          console.log('_sizeChanged called')
           if (this._activeSizeJob) {
-            clearTimeout(this._activeSizeJob);
+            cancelAnimationFrame(this._activeSizeJob);
           }
-          this._activeSizeJob = setTimeout( () => {
+          this._activeSizeJob = requestAnimationFrame(() => {
             this._sizeLayout();
-          }, 0);
+          });
         }
       }
 
       _buildLayout() {
-        console.log('_sizeChanged');
+        console.log('_buildLayout');
         this._svg = d3.select(this.$.svgChart)
           .attr('height', null)
           .attr('width', null);
-        this._fn.var.x = this._createScaleFn(this.scale.x);
-        this._fn.var.y = this._createScaleFn(this.scale.y);
+        this._fn.scale.x = this._createScaleFn(this.scale.x);
+        this._fn.scale.y = this._createScaleFn(this.scale.y);
 
         this._chart = d3.select(this.$.chart);
         this._control = d3.select(this.$.control);
@@ -666,7 +666,7 @@
         //         g = this._graphs[mounts[i]]
         //         if (g.values && g.values.length) {
         //           var d = g._closestPoint(m);
-        //           var currentMin2 = Math.pow(m[0] - g._fn.var.x(d.x), 2) + Math.pow(m[1] - g._fn.var.y(d.y), 2); // in px²
+        //           var currentMin2 = Math.pow(m[0] - g._fn.scale.x(d.x), 2) + Math.pow(m[1] - g._fn.scale.y(d.y), 2); // in px²
         //           if (closestDistance === undefined || currentMin2 < closestDistance) {
         //             closestDistance = currentMin2;
         //             closestPoint = d;
@@ -713,6 +713,7 @@
         this._isAttached = true;
 
         this._modusChanged(this.modus);
+        this._multiAxesChanged(this.multiAxes);
         this._sizeChanged();
       }
 
@@ -720,150 +721,140 @@
         if (!this._isAttached) return;
 
         var bRect = this.$.svgChart.getBoundingClientRect();
-        // console.log('sizeLayout', bRect);
+        console.log('sizeLayout', bRect.height, bRect.width);
 
-        if (bRect.height === 0 || bRect.width === 0) return;
+        if (bRect.height === 0 || bRect.width === 0) {
+          this._activeSizeJob = requestAnimationFrame(() => {
+            this._sizeLayout();
+          });
+          return;
+        }
 
-        let top = 0,
+        if (this._activeSizeJob) {
+          cancelAnimationFrame(this._activeSizeJob);
+        }
+
+        var top = 0,
           right = 0,
           bottom = 0,
           left = 0,
           axisSize = this.axisSize,
           tickSize = this.tickSize,
-          condensedSize = tickSize + this.axisMargin,
-          size,
-          lineWidth = 1,
-          height,
-          width,
-          graphs = this._graphs,
-          self = this,
-          mounts = Object.keys(graphs),
-          ax,
-          g,
-          exp,
-          pos,
-          axes,
-          dir,
-          mount;
+          axisMargin = this.axisMargin,
+          expandedSize = axisSize - axisMargin,
+          condensedSize = tickSize + axisMargin;
+
+        var q = [];
 
         function incremPosition(axis, pos, size) {
-          switch (pos) {
-            case 'left':
-              axis._left = left; axis._right = 0;
-              left -= size;
-              break;
-            case 'right':
-              axis._left = 0; axis._right = right;
-              right += size;
-              break;
-            default:
-              axis._left = 0; axis._right = 0;
-          }
-          switch (pos) {
-            case 'top':
-              axis._bottom = 0; axis._top = top;
-              top -= size;
-              break;
-            case 'bottom':
-              axis._bottom = bottom; axis._top = 0;
-              bottom += size;
-              break;
-            default:
-              axis._bottom = 0; axis._top = 0;
-          }
-        }
-
-        function finalizePosition(g, ax, pos, dir, exp) {
           if (pos === 'left') {
-            g._generators.brush[key].extent([[-tickSize, 0], [0, height]]);
+            axis._left = left;
+            axis._right = 0;
+            left -= size;
+          } else if (pos === 'right') {
+            axis._left = 0;
+            axis._right = right;
+            right += size;
+          } else {
+            axis._left = 0;
+            axis._right = 0;
           }
-          else if (pos === 'right') {
-            ax._right += width;
-            g._generators.brush[key].extent([[0, 0], [tickSize, height]]);
+          if (pos === 'top') {
+            axis._bottom = 0;
+            axis._top = top;
+            top -= size;
+          } else if (pos === 'bottom') {
+            axis._bottom = bottom;
+            axis._top = 0;
+            bottom += size;
+          } else {
+            axis._bottom = 0;
+            axis._top = 0;
           }
-          else if (pos === 'top') {
-            g._generators.brush[key].extent([[0, -tickSize], [width, 0]]);
-          }
-          else if (pos === 'bottom') {
-            ax._bottom += height;
-            g._generators.brush[key].extent([[0, 0], [width, tickSize]]);
-          }
-          switch (dir) {
-            case 'vertical':
-              g._fn.var[key].range([height, 0]);
-              break;
-            case 'horizontal':
-              g._fn.var[key].range([0, width]);
-              break;
-            default:
-              g._fn.var[key].range([height, width]);
-          }
-          g._generators.axis[key].tickFormat(exp ? null : '').tickSize(tickSize);
-          g._nodes.axis[key].call(g._generators.axis[key]).transition(150).attr('transform', 'translate('+ (ax._left + ax._right) +',' + (ax._top + ax._bottom) + ')');
-          g._nodes.brush[key].raise().call(g._generators.brush[key]);
+          return true;
         }
 
-        for (let key in this.multiAxes) {
-          let g, ax, size;
-          for (let i = 0; i < mounts.length; i++) {
-            g = graphs[mounts[i]];
-            ax = g._nodes.axis[key];
-            if (ax) {
-              size = ax.attr('expanded') ? axisSize[key] : condensedSize;
-              incremPosition(ax, g.axisPosition[key], size);
+        function finalizePosition(axis, pos) {
+          axis._left += axis._right;
+          axis._top += axis._bottom;
+          if (pos === 'right') {
+            axis._left += this._width;
+          } else if (pos === 'bottom') {
+            axis._top += this._height;
+          }
+          axis._bottom = axis._right = 0;
+          return true;
+        }
+
+        for (var key in this.multiAxes) {
+          this._graphs.forEach( g => {
+            if (g._nodes.axis[key]) {
+              var size = g._nodes.axis[key].classed('expanded') ? axisSize[key] : condensedSize;
+              q.push(incremPosition(g._nodes.axis[key].node(), g._nodes.axis[key].attr('position'), size));
             }
-          }
-          ax = this._nodes.axis[key];
-          if (ax) {
-            size = ax.attr('expanded') ? axisSize[key] : condensedSize;
-            incremPosition(ax, this.axisPosition[key], size);
+          })
+          if (this._nodes.axis[key] && !this._nodes.axis[key].attr('hidden')) {
+            var size = this._nodes.axis[key].classed('expanded') ? axisSize[key] : condensedSize;
+            q.push(incremPosition(this._nodes.axis[key].node(), this._nodes.axis[key].attr('position'), size));
           }
         }
-
-        this._width = width = bRect.width - Math.abs(left || 0) - Math.abs(right || 0) - (this.margin.left || 0) - (this.margin.right || 0);
-        this._height = height = bRect.height - Math.abs(bottom || 0) - Math.abs(top || 0) - (this.margin.bottom || 0) - (this.margin.top || 0);
 
         // this.xTicks = Math.ceil(this._width / 75);
         // this.yTicks = Math.ceil(this._height / 50);
 
-        for (var key in this.multiAxes) {
-          let g, ax, pos;
-          if (this.multiAxes[key] === true) {
-            for (let i = 0; i < mounts.length; i++) {
-              g = graphs[mounts[i]];
-              ax = g._nodes.axis[key];
-              pos = g.axisPosition[key];
-              if (ax) {
-                finalizePosition(g, ax, pos, ax.attr('dir'), ax.attr('expanded'));
-                console.log(key, g._fn.var[key].range(), g._fn.var[key].domain());
-              }
+        Promise.all(q).then(() => {
+          var bRect = this.$.svgChart.getBoundingClientRect();
+          this._width = bRect.width - Math.abs(left || 0) - Math.abs(right || 0) - (this.margin.left || 0) - (this.margin.right || 0);
+          this._height = bRect.height - Math.abs(bottom || 0) - Math.abs(top || 0) - (this.margin.bottom || 0) - (this.margin.top || 0);
+
+          var p = [];
+          for (var key in this.multiAxes) {
+            if (this.multiAxes[key] === true) {
+              this._graphs.forEach( g => {
+                if (g._nodes.axis[key]) {
+                  p.push(finalizePosition.call(this, g._nodes.axis[key].node(), g._nodes.axis[key].attr('position')));
+                }
+              })
+            }
+            if (this._nodes.axis[key] && !this._nodes.axis[key].attr('hidden')) {
+              p.push(finalizePosition.call(this, this._nodes.axis[key].node(), this._nodes.axis[key].attr('position')));
             }
           }
-          g = this;
-          ax = this._nodes.axis[key];
-          pos = g.axisPosition[key];
-          if (ax) {
-            finalizePosition(g, ax, pos, ax.attr('dir'), ax.attr('expanded'));
-            console.log(key, g._fn.var[key].range(), g._fn.var[key].domain());
-          }
-        }
 
-        top -= (this.margin.top || 0);
-        right += (this.margin.right || 0);
-        bottom += (this.margin.bottom || 0);
-        left -= (this.margin.left || 0);
-        this._control.transition(150).style('transform', 'translate(-'+right+'px,-'+bottom+'px)');
+          Promise.all(p).then(() => {
+            top -= (this.margin.top || 0);
+            right += (this.margin.right || 0);
+            bottom += (this.margin.bottom || 0);
+            left -= (this.margin.left || 0);
 
-        // Limiting Projection to Margin
-        this._chart.select('clipPath#clip rect').transition(150)
-          .attr('width', this._width)
-          .attr('height', this._height);
+            this._control.transition(100).style('transform', 'translate(-' + right + 'px,-' + bottom + 'px)');
 
-        this._chart.select('rect#plot').transition(150)
-          .attr('width', this._width)
-          .attr('height', this._height);
+            // Limiting Projection to Margin
+            this._chart.select('clipPath#clip rect').transition(100)
+              .attr('width', this._width)
+              .attr('height', this._height);
 
-        this._chart.transition(150).attr('transform', 'translate(' + (-left || 0) + ',' + (-top || 0) + ')');
+            this._chart.select('rect#plot').transition(100)
+              .attr('width', this._width)
+              .attr('height', this._height);
+
+            this._chart.transition(100).attr('transform', 'translate(' + (-left || 0) + ',' + (-top || 0) + ')');
+
+            for (var key in this.multiAxes) {
+              this._graphs.forEach( g => {
+                this._updateAxis(g, key);
+              })
+              this._updateAxis(this, key);
+            }
+
+            this._focusY.attr('y1', this._height);
+
+            this._svg.selectAll('g,line,text,path,rect')
+              .classed('style-scope device-chart', true)
+
+            this._redraw();
+          })
+        })
 
         // this._xGrid = this._createAxisFn(this._x, 'bottom', this.xScale, this.xTicks*this.gridMult)
         //   .tickSize(-this._height)
@@ -886,158 +877,247 @@
         //   ])
         //   this._brush.call(this._brushBehavior);
         // }
-
-        this._svg.selectAll('g,line,text,path,rect')
-          .classed('style-scope device-chart', true)
-        this._focusY.attr('y1', this._height);
-
-        this._redraw(true);
       }
 
       _multiAxesChanged(multiAxes) {
         if (!this._isAttached) return;
 
-        var mounts = Object.keys(this._graphs), axesMounts = [], graphs = this._graphs, self = this;
-        this.axes = this.axes || {};
-
         for (var key in multiAxes) {
-          this.axes[key] = this.axes[key] || {};
-          axesMounts = multiAxes[key] ? mounts : [''];
-
-          this.axes[key] = d3.select(this.$.axis).selectAll('g.axis.'+key).data(axesMounts);
-
-          // enter new axes
-          this.axes[key].enter()
-            .append('svg:g')
-              .classed('axis', true)
-              .classed(key, true)
-              .attr('expanded', d => {
-                return d ? null : true; // main axis is expanded by default, others not
-              })
-              .attr('data-mount', d => {
-                return d || '';
-              })
-              .attr('dir', d => {
-                let g = graphs[d] || self, dir;
-                switch (g.axisPosition[key]) {
-                  case 'left':
-                  case 'right':
-                    dir = 'vertical';
-                    break;
-                  case 'bottom':
-                  case 'top':
-                    dir = 'horizontal';
-                }
-                return dir || null;
-              })
-              .on('click', function(d) {
-                let a = d3.select(this), exp = a.attr('expanded');
-                a.attr('expanded', exp ? null : true);
-                self._sizeChanged();
-              })
-              .each( function(d) {
-                let g = graphs[d] || self;
-                console.log('add axis', key, d);
-                switch (g.axisPosition[key]) {
-                  case 'left':
-                  case 'right':
-                    g._generators.brush[key] = d3.brushY();
-                    break;
-                  case 'bottom':
-                  case 'top':
-                    g._generators.brush[key] = d3.brushX();
-                    break;
-                  // default:
-                  //   this._graphs[d]._generators.brush[key] = d3.brush();
-                }
-
-                g._fn.var[key] = self._createScaleFn(g.scale[key]);
-                g._generators.brush[key]
-                      .on('brush', self.axisBrushMove.bind(g, key))
-                      .on('end', self.axisBrushEnd.bind(g, key));
-                g._generators.axis[key] = self._createAxisFn(g._fn.var[key], g.axisPosition[key], g.scale[key]);
-                g._nodes.axis[key] = d3.select(this);
-              })
-              .call(d3.drag().on('drag', self.axisDragged))
-              .append('svg:g')
-                .classed('brush', true)
-                .each( function(d) {
-                  let g = graphs[d] || self;
-                  g._nodes.brush[key] = d3.select(this);
-                })
-
-          // update all axes
-          // this.axes[key].each( function(d) {
-          //   if (d && graphs[d]) {
-          //     graphs[d]._nodes.axis[key].call(graphs[d]._generators.axis[key]);
-          //   }
-          // })
-
-          // remove not used axes
-          this.axes[key].exit()
-            .each( (d, i) => {
-              console.log('remove axis', key, d);
-              let g = graphs[d] || this;
-              if (d) { // only reset graphs
-                g._generators.brush[key] = null;
-                g._generators.axis[key] = null;
-                g._fn.var[key] = this._fn.var[key];
-              }
-              // remove axis & brush node
-              if (g._nodes.axis[key]) {
-                var node = g._nodes.axis[key].node();
-                if (node && node.parentElement)
-                  node.parentElement.removeChild(node);
-              }
-              g._nodes.axis[key] = null;
-              g._nodes.brush[key] = null;
-              this._sizeChanged();
-            })
-            .remove();
+          this._graphs.forEach( g => {
+            if (this.multiAxes[key] === true) {
+              this._addAxis(g, key, g.item.mount);
+              this._updateAxis(g, key);
+            } else {
+              this._removeAxis(g, key);
+            }
+          })
+          if (!this._nodes.axis[key]) {
+            this._addAxis(this, key, null, true);
+          }
+          if (this.multiAxes[key] === true) {
+            // hide main axis
+            this._nodes.axis[key].attr('hidden', true);
+          } else {
+            this._nodes.axis[key].attr('hidden', null);
+            this._updateAxis(this, key);
+          }
         }
+      }
+
+      _addAxis(g, key, mount, expanded) {
+        if (g._nodes.axis[key]) return;
+        console.log('_addAxis', key, mount)
+        this._nodes.axes[key] = this._nodes.axes[key] || d3.select(this.$.axis).append('svg:g').classed(key, true);
+        var self = this,
+          vertical,
+          pos = g.axisPosition[key];
+        // enter axes node
+        g._nodes.axis[key] = this._nodes.axes[key]
+          .append('svg:g')
+          .classed('axis', true)
+          .classed(key, true)
+          .classed('expanded', expanded)
+          .attr('mount', mount)
+          .attr('position', pos)
+          .on('click', function() {
+            var a = d3.select(this),
+              exp = a.classed('expanded');
+            a.classed('expanded', !exp);
+            self._sizeChanged();
+          })
+          .call(d3.drag()
+            .on("start", this._axisDragStarted)
+            .on("drag", this._axisDragged)
+            .on("end", this._axisDragEnded));
+
+        // add title
+        g._nodes.axis[key].append('svg:title').text(mount);
+        // set scale
+        g._fn.scale[key] = this._createScaleFn(g.scale[key]).domain(g.domain[key]);
+        g._generators.axis[key] = this._createAxisFn(g._fn.scale[key], pos, g.scale[key]);
+        switch (pos) {
+          case 'left':
+          case 'right':
+            g._fn.scale[key].range([this._height, 0]);
+            g._generators.brush[key] = d3.brushY();
+            vertical = true;
+            break;
+          case 'bottom':
+          case 'top':
+            g._fn.scale[key].range([0, this._width]);
+            g._generators.brush[key] = d3.brushX();
+            break;
+        }
+        // enter brush node
+        g._nodes.brush[key] = g._nodes.axis[key].append('svg:g').classed('brush', true);
+        g._nodes.axis[key].classed('vertical', vertical).classed('horizontal', !vertical);
+      }
+
+      _updateAxis(g, key) {
+        g = g || this;
+        if (!g._nodes.axis[key] || g._nodes.axis[key].attr('hidden')) return;
+        var expanded = g._nodes.axis[key].classed('expanded'),
+          tickSize = this.tickSize,
+          pos = g._nodes.axis[key].attr('position');
+        // update axis
+        if (pos === 'left' || pos === 'right') {
+          this._updateScale(g, key, this.multiAxes[key], true);
+          if (pos === 'left') {
+            g._generators.brush[key].extent([
+              [-tickSize, 0], [0, this._height]
+            ]);
+          } else if (pos === 'right') {
+            g._generators.brush[key].extent([
+              [0, 0], [tickSize, this._height]
+            ]);
+          }
+        } else if (pos === 'bottom' || pos === 'top') {
+          this._updateScale(g, key, this.multiAxes[key], false);
+          if (pos === 'top') {
+            g._generators.brush[key].extent([
+              [0, -tickSize], [this._width, 0]
+            ]);
+          } else if (pos === 'bottom') {
+            g._generators.brush[key].extent([
+              [0, 0], [this._width, tickSize]
+            ]);
+          }
+        }
+        g._nodes.axis[key].node()._width = this._width;
+        g._nodes.axis[key].node()._height = this._height;
+        g._generators.axis[key] = this._createAxisFn(g._fn.scale[key], pos, g.scale[key]).tickFormat(expanded ? null : '').tickSize(tickSize);
+        g._nodes.brush[key].raise().call(g._generators.brush[key]);
+        g._nodes.axis[key].call(g._generators.axis[key]).transition(100)
+          .attr('transform', 'translate(' + (g._nodes.axis[key].node()._left || 0) + ',' + (g._nodes.axis[key].node()._top || 0) + ')');
+      }
+
+      _removeAxis(g, key) {
+        g = g || this;
+        if (!g._nodes.axis[key]) return;
+        console.log('_removeAxis', key)
+        var node;
+        g._generators.brush[key] = null;
+        g._generators.axis[key] = null;
+        g._fn.scale[key] = this._fn.scale[key];
+        // remove axis & brush node
+        if (g._nodes.brush[key]) {
+          node = g._nodes.brush[key].node();
+          if (node && node.parentElement)
+            node.parentElement.removeChild(node);
+        }
+        if (g._nodes.axis[key]) {
+          node = g._nodes.axis[key].node();
+          if (node && node.parentElement)
+            node.parentElement.removeChild(node);
+        }
+        g._nodes.axis[key] = null;
+        g._nodes.brush[key] = null;
+      }
+
+      _updateScales(keys) {
+        keys = keys || Object.keys(this.multiAxes);
+        keys.forEach(key => {
+          this._updateScale(this, key, this.multiAxes[key], this._nodes.axis[key].classed('vertical'));
+          this._graphs.forEach( g => {
+            this._updateScale(g, key, this.multiAxes[key], this.multiAxes[key] ? g._nodes.axis[key].classed('vertical') : this._nodes.axis[key].classed('vertical'));
+          })
+        })
+      }
+
+      _updateScale(g, key, multiAxes, vertical) {
+        if (multiAxes) {
+          g._fn.scale[key].domain(g.domain[key]).range(vertical ? [this._height, 0] : [0, this._width]);
+        } else {
+          g._fn.scale[key].domain(this.domain[key]).range(vertical ? [this._height, 0] : [0, this._width]);
+        }
+      }
+
+      _callAxes() {
+        var keys = Object.keys(this.multiAxes);
+        keys.forEach(key => {
+          this._graphs.forEach( g => {
+            if (g._nodes.axis[key] && g._generators.axis[key]) {
+              g._nodes.brush[key].raise().call(g._generators.brush[key]);
+              g._nodes.axis[key].call(g._generators.axis[key]).transition(100)
+                .attr('transform', 'translate(' + (g._nodes.axis[key].node()._left || 0) + ',' + (g._nodes.axis[key].node()._top || 0) + ')');
+            }
+          })
+          if (this._nodes.axis[key] && this._generators.axis[key]) {
+            this._nodes.brush[key].raise().call(this._generators.brush[key]);
+            this._nodes.axis[key].call(this._generators.axis[key]).transition(100)
+              .attr('transform', 'translate(' + (this._nodes.axis[key].node()._left || 0) + ',' + (this._nodes.axis[key].node()._top || 0) + ')');
+          }
+        })
       }
 
       axisBrushMove(key) {
         // if (d3.event.sourceEvent && d3.event.sourceEvent.type === 'zoom') return; // ignore brush-by-zoom
         console.log('brushmove', key, d3.event.selection);
-        var s = (d3.event.selection || this._fn.var[key].range()).map(this._fn.var[key].invert, this._fn.var[key]);
+        var s = (d3.event.selection || this._fn.scale[key].range()).map(this._fn.scale[key].invert, this._fn.scale[key]);
         console.log(key, s);
-        // this._fn.var[key].domain(s);
+        // this._fn.scale[key].domain(s);
         // if (this.hasArea) {
         //   this._nodes.area.attr('d', this._generators.area);
         // }
         // if (this.hasLine) {
         //   this._nodes.line.attr('d', this._generators.line);
         // }
-        this._nodes.axis[key].call(this._fn.var[key]);
+        this._nodes.axis[key].call(this._fn.scale[key]);
       }
 
       axisBrushEnd(key) {
         // if (d3.event.sourceEvent && d3.event.sourceEvent.type === 'zoom') return; // ignore brush-by-zoom
         console.log('brushend', key, d3.event.selection);
-        var s = (d3.event.selection || this._fn.var[key].range()).map(this._fn.var[key].invert, this._fn.var[key]);
+        var s = (d3.event.selection || this._fn.scale[key].range()).map(this._fn.scale[key].invert, this._fn.scale[key]);
         console.log(key, s);
-        // this._fn.var[key].domain(s);
+        // this._fn.scale[key].domain(s);
         // if (this.hasArea) {
         //   this._nodes.area.attr('d', this._generators.area);
         // }
         // if (this.hasLine) {
         //   this._nodes.line.attr('d', this._generators.line);
         // }
-        this._nodes.axis[key].call(this._fn.var[key]);
+        this._nodes.axis[key].call(this._fn.scale[key]);
       }
 
-      axisDragged(position) {
-        console.log('dragged', position, d3.event);
+      _axisDragStarted(e) {
+        d3.select(this).raise().classed("dragged", true);
+        console.log('dragged', e, d3.event, this._left, this._top);
+      }
+      _axisDragged(e) {
+        var vertical = d3.select(this).classed('vertical'), left = 0, top = 0, pos = this.position;
+        if (vertical) {
+          left = d3.event.x;
+          if (this._width) {
+            pos = (left > this._width / 2) ? 'right' : 'left';
+          }
+        } else {
+          top = d3.event.y;
+          if (this._height) {
+            pos = (top > this._height / 2) ? 'bottom' : 'top';
+          }
+        }
+        d3.select(this).attr('transform', 'translate(' + left + ',' + top + ')').attr('position', pos);
+
+        // d3.select(this).attr("cx", d.x = d3.event.x).attr("cy", d.y = d3.event.y);
+      }
+      _axisDragEnded(e) {
+        d3.select(this).classed("dragged", false);
+        this.dispatchEvent(new CustomEvent('iron-resize', {
+          bubbles: true,
+          composed: true,
+          node: this
+        }));
+        console.log('dragged', this, d3.event);
       }
 
-      _axisPositionChanged(axisPosition) {
-      }
+      _axisPositionChanged(axisPosition) {}
 
       _addGraph(g) {
-        if (this._graphElements.indexOf(g) === -1) {
-          this._graphElements.push(g);
-        }
+        this._graphs.add(g);
+      }
+      _removeGraph(g) {
+        this._graphs.delete(g);
       }
 
       _createScaleFn(type) {
@@ -1049,7 +1129,7 @@
             return d3.scaleLog().base(Math.E);
             break;
           case 'log₁₀':
-            return d3.scaleLog();
+            return d3.scaleLog().base(10);
             break;
           case '√':
             return d3.scaleSqrt();
@@ -1113,7 +1193,8 @@
 
       redraw() {
         if (!this._isAttached) return;
-        Promise.resolve(this.setDomains.call(this))
+
+        Promise.resolve(this._getDomains.call(this))
           .then(this._redraw.bind(this, false))
           .catch(err => {
             if (err) {
@@ -1129,12 +1210,14 @@
           this.redraw();
           return;
         }
-        var mounts = Object.keys(this._graphs), g;
-        for (var i = 0; mounts && i < mounts.length; i++) {
-          g = this._graphs[mounts[i]];
-          if (!(g && g._isAttached)) continue;
-          g.redraw();
-        }
+
+        this._updateScales();
+        this._callAxes();
+
+        this._graphs.forEach( g => {
+          if (g && g._isAttached)
+            g.redraw();
+        })
 
         // this._chart.transition(50).select('#xGrid').call(this._xGrid);
         // this._chart.transition(50).select('#yGrid').call(this._yGrid);
@@ -1151,8 +1234,8 @@
         // if (s) {
         //   this._isBrushed = true;
         //   this._isZoomed = true;
-        //   this._fn.var.x.domain([s[0][0], s[1][0]].map(this._fn.var.x.invert, this._fn.var.x)).nice(this.xTicks);
-        //   this._fn.var.y.domain([s[1][1], s[0][1]].map(this._fn.var.y.invert, this._fn.var.y)).nice(this.yTicks);
+        //   this._fn.scale.x.domain([s[0][0], s[1][0]].map(this._fn.scale.x.invert, this._fn.scale.x)).nice(this.xTicks);
+        //   this._fn.scale.y.domain([s[1][1], s[0][1]].map(this._fn.scale.y.invert, this._fn.scale.y)).nice(this.yTicks);
         //   this._brush.call(this._brushBehavior.move, null);
         //   return;
         // } else if (this._isBrushed === true) {
@@ -1165,30 +1248,24 @@
         // this._redraw();
       }
 
-      setDomains() {
-        var mounts = Object.keys(this._graphs),
-            p = [];
+      _getDomains() {
+        var p = [];
 
         return new Promise((resolve, reject) => {
-          if (!Object.keys(this._graphs).length)
-            reject('No Graphs are attached');
-          // if (this._isZoomed === true || this._isBrushed === true) {
-          //   resolve();
-          // }
 
-          for (var key in this.axes) {
+          for (var key in this.multiAxes) {
             if (this.multiAxes[key] === true) {
-              for (let i = 0; i < mounts.length; i++) {
-                if (!this._graphs[mounts[i]]._isAttached || this._graphs[mounts[i]]._isBrushed === true) continue;
-                p.push(this._graphs[mounts[i]]._getDomain(key).then( res => {
-                  this._graphs[mounts[i]]._fn.var[key].domain(res);
-                }));
-              }
+              this._graphs.forEach( g => {
+                if (g._isAttached & !g._isBrushed) {
+                  p.push( g._getDomain(key) )
+                }
+              })
             } else {
-              p.push(this.requestRange(key, mounts).then(res => {
-                this._fn.var[key].domain(res);
-                console.log(res)
-              }));
+              p.push(
+                this.requestRange(key)
+                      .then(res => {
+                        this.set('domain.' + res.key, res.domain);
+                      }) )
             }
           }
 
@@ -1219,19 +1296,19 @@
           //           }
           //         }
           //
-          //         this._fn.var.x.domain(domainX);
+          //         this._fn.scale.x.domain(domainX);
           //         this.set('domainX', domainX);
-          //         this._fn.var.y.domain(domainY).nice(this.yTicks);
+          //         this._fn.scale.y.domain(domainY).nice(this.yTicks);
           //
           //         // if domain is on the edge of data, add a little space
-          //         domainY = this._fn.var.y.domain();
+          //         domainY = this._fn.scale.y.domain();
           //         if (domainY[0] === rangeY[0]) {
           //           domainY[0] -= (rangeY[1] - rangeY[0]) / this.yTicks;
           //         }
           //         if (domainY[1] === rangeY[1]) {
           //           domainY[1] += (rangeY[1] - rangeY[0]) / this.yTicks;
           //         }
-          //         this._fn.var.y.domain(domainY);
+          //         this._fn.scale.y.domain(domainY);
           //         this.set('domainY', domainY);
           //         resolve();
           //
@@ -1247,55 +1324,46 @@
       }
 
       insertValues(data) {
-        var mounts = Object.keys(this._graphs), g;
-        for (var i = 0; mounts && i < mounts.length; i++) {
-          g = this._graphs[mounts[i]];
-          if (!(g && g._isAttached)) continue;
-          if (g.item && g.item.mount && data[g.item.mount])
+        this._graphs.forEach( g => {
+          if (g && g._isAttached && g.item && g.item.mount && data[g.item.mount])
             g.insertValues(data[g.item.mount]);
-        }
+        })
       }
 
       clearValues() {
-        var mounts = Object.keys(this._graphs), g;
-        for (var i = 0; mounts && i < mounts.length; i++) {
-          g = this._graphs[mounts[i]];
-          if (!(g && g._isAttached)) continue;
-          if (g.item && g.item.mount)
+        this._graphs.forEach( g => {
+          if (g && g._isAttached)
             g.clearValues();
-        }
+        })
       }
 
-      requestRange(key, mounts) {
-        var p = [],
-            g;
-
+      requestRange(key) {
         return new Promise((resolve, reject) => {
-          for (var i = 0; mounts && i < mounts.length; i++) {
-            g = this._graphs[mounts[i]];
-            if (!(g && g._isAttached)) continue;
-            if (g.item && g.item.mount)
-              p.push(g.requestRange(key));
-          }
+          var p = [];
+          this._graphs.forEach( g => {
+            if (g && g._isAttached && g.item && g.item.mount)
+              p.push(g._getDomain(key));
+          })
           Promise.all(p)
-            .then( (res) => {
-              var min, max;
+            .then(res => {
+              var min, max, key;
               for (var i = 0; i < res.length; i++) {
-                min = (min === undefined || min > res[i][0]) ? res[i][0] : min;
-                max = (max === undefined || max < res[i][1]) ? res[i][1] : max;
+                min = (min === undefined || min > res[i].domain[0]) ? res[i].domain[0] : min;
+                max = (max === undefined || max < res[i].domain[1]) ? res[i].domain[1] : max;
+                key = key || res[i].key;
               }
               if (min === undefined || max === undefined) {
                 reject();
               }
-              resolve([min, max]);
+              resolve({domain: [min, max], key: key});
             })
             .catch(err => {});
         });
       }
 
       _moveInfo(d) {
-        if (Number.isFinite(this._fn.var.y(d.y))) {
-          var x = this.timeFormatRange.call(this, d.x, this._fn.var.x.domain(), this._width);
+        if (Number.isFinite(this._fn.scale.y(d.y))) {
+          var x = this.timeFormatRange.call(this, d.x, this._fn.scale.x.domain(), this._width);
           var y = this.format.Number(d.y);
           this._info.text(x + ' ' + y);
           var fixP = this._fixedValue;
@@ -1357,8 +1425,8 @@
       _updateInfo() {
         if (!this._focusedValue || this._info.attr('hidden') === '') return;
         var focP = this._focusedValue;
-        var x = this._fn.var.x(+focP.x),
-          y = this._fn.var.y(+focP.y);
+        var x = this._fn.scale.x(+focP.x),
+          y = this._fn.scale.y(+focP.y);
         if (!x || !y) {
           return;
         }
@@ -1368,8 +1436,8 @@
           case 'delta':
             var fixP = this._fixedValue;
             if (fixP && fixP.x && focP.x !== fixP.x && fixP.y && focP.y !== fixP.y) {
-              var xFix = this._fn.var.x(+fixP.x),
-                yFix = this._fn.var.y(+fixP.y);
+              var xFix = this._fn.scale.x(+fixP.x),
+                yFix = this._fn.scale.y(+fixP.y);
               var x1D, x2D, y1D, y2D;
               this._deltaX.attr('x1', x).attr('x2', xFix).attr('y1', yFix).attr('y2', yFix);
               this._deltaY.attr('y1', y).attr('y2', yFix);
@@ -1466,10 +1534,10 @@
       _dotClicked(d) {
         switch (this.modus) {
           case 'zoom':
-            var offsetX = (this._fn.var.x(this._fn.var.x.domain()[1]) - this._fn.var.x(this._fn.var.x.domain()[0])) / 4,
-              offsetY = (this._fn.var.y(this._fn.var.y.domain()[0]) - this._fn.var.y(this._fn.var.y.domain()[1])) / 4,
-              x = this._fn.var.x(+d.x),
-              y = this._fn.var.y(+d.y) || 0;
+            var offsetX = (this._fn.scale.x(this._fn.scale.x.domain()[1]) - this._fn.scale.x(this._fn.scale.x.domain()[0])) / 4,
+              offsetY = (this._fn.scale.y(this._fn.scale.y.domain()[0]) - this._fn.scale.y(this._fn.scale.y.domain()[1])) / 4,
+              x = this._fn.scale.x(+d.x),
+              y = this._fn.scale.y(+d.y) || 0;
             d3.event.selection = [
               [x - offsetX, y - offsetY],
               [x + offsetX, y + offsetY]
@@ -1487,10 +1555,10 @@
             this._fixedValue = d;
             this._deltaDot.datum(this._fixedValue)
               .attr('cx', d => {
-                return this._fn.var.x(d.x)
+                return this._fn.scale.x(d.x)
               })
               .attr('cy', d => {
-                return this._fn.var.y(d.y)
+                return this._fn.scale.y(d.y)
               })
               .attr('r', this._focusDot.attr('r'))
               .attr('fill', this._focusDot.attr('fill'));
@@ -1505,24 +1573,22 @@
       }
 
       changeInterpolation(interpolation, oldValue) {
-        var mounts = Object.keys(this._graphs), g;
-        for (var i = 0; mounts && i < mounts.length; i++) {
-          g = this._graphs[mounts[i]];
-          if (!(g && g._isAttached)) continue;
-          g.set('interpolation', interpolation);
-        }
+        this._graphs.forEach( g => {
+          if (g && g._isAttached)
+            g.set('interpolation', interpolation);
+        })
       }
 
       _scaleChanged(scale) {
         for (var key in scale) {
           // add scale function
-          this._fn.var[key] = this._createScaleFn(scale[key]);
+          this._fn.scale[key] = this._createScaleFn(scale[key]).domain(this.domain[key]);
         }
       }
       //
       // changeScale(newValue, oldValue) {
       //   // if (oldValue === undefined) return;
-      //   // var domainY = this._fn.var.y.domain();
+      //   // var domainY = this._fn.scale.y.domain();
       //   // if (this.yScale === 'ln' || this.yScale === 'log₁₀') {
       //   //   if (domainY[0] <= 0) {
       //   //     domainY[0] = Number.EPSILON;
@@ -1532,8 +1598,8 @@
       //   //   }
       //   // }
       //   // this._debouncedHideInfo();
-      //   // this._fn.var.y = this._createScaleFn(this.yScale);
-      //   // this._fn.var.y.domain(domainY).nice(this.yTicks);
+      //   // this._fn.scale.y = this._createScaleFn(this.yScale);
+      //   // this._fn.scale.y.domain(domainY).nice(this.yTicks);
       //   // this.set('domainY', domainY);
       //   // this._sizeChanged();
       // }
@@ -1553,26 +1619,23 @@
 
       // _refresh() {
       //   this._buildLayout();
-      //   var mounts = Object.keys(this._graphs), g;
-      //   for (var i = 0; mounts && i < mounts.length; i++) {
-      //     g = this._graphs[mounts[i]];
-      //     if (!(g && g._isAttached)) continue;
-      //     g.clearValues(true);
-      //     g.requestValues(null, null, this.viewLength)
-      //       .then(function(data) {
-      //         for (var mount in data) {
-      //           if (mount === this.item.mount) {
-      //             this.insertValues(data[mount]);
-      //             break;
+      //   this._graphs.forEach( g => {
+      //     if (g && g._isAttached) {
+      //       g.clearValues(true);
+      //       g.requestValues(null, null, this.viewLength)
+      //         .then(function(data) {
+      //           for (var mount in data) {
+      //             if (mount === this.item.mount) {
+      //               this.insertValues(data[mount]);
+      //               break;
+      //             }
       //           }
-      //         }
-      //       }.bind(g))
-      //       .catch(err => {
-      //         if (err) {
-      //           console.log(err);
-      //         }
-      //       });
-      //   }
+      //         }.bind(g))
+      //         .catch(err => {
+      //           if (err) console.log(err);
+      //         });
+      //     }
+      //   })
       //   this._isZoomed = false;
       //   this.redraw();
       // }

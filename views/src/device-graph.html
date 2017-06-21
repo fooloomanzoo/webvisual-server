@@ -34,6 +34,16 @@
             observer: '_scaleChanged'
           },
 
+          domain: {
+            type: Object,
+            value: function() {
+              return {
+                x: [null, null],
+                y: [null, null]
+              };
+            }
+          },
+
           axisPosition: {
             type: Object,
             value: function() {
@@ -92,7 +102,7 @@
           brush: {}
         };
         this._fn = {
-          var: {},
+          scale: {},
           axis: {},
           brush: {}
         };
@@ -106,26 +116,26 @@
         this._generators.area = d3.area()
           .defined(this._defined.bind(this))
           .x(d => {
-            return this._fn.var.x(d.x);
+            return this._fn.scale.x(d.x);
           })
           .y0(d => {
             if (this.yScale === 'ln' || this.yScale === 'log₁₀') {
               return this._chartElement._height;
             } else {
-              return this._fn.var.y(0)
+              return this._fn.scale.y(0)
             }
           })
           .y1(d => {
-            return this._fn.var.y(d.y);
+            return this._fn.scale.y(d.y);
           });
 
         this._generators.line = d3.line()
           .defined(this._defined.bind(this))
           .x(d => {
-            return this._fn.var.x(d.x);
+            return this._fn.scale.x(d.x);
           })
           .y(d => {
-            return this._fn.var.y(d.y);
+            return this._fn.scale.y(d.y);
           });
 
         this.bisectDate = d3.bisector((d, x) => {
@@ -178,27 +188,42 @@
           return;
         }
         this._chartElement = _containerRoot;
-        this._chartElement._graphs[this.item.mount] = this;
 
         this._areaChanged(this.hasArea);
         this._lineChanged(this.hasLine);
-        this._chartElement._multiAxesChanged(this._chartElement.multiAxes);
-        this._setColorProperties();
 
-        // if (!this._chartElement._height || !this._chartElement._width) {
-        //   this._chartElement._sizeChanged();
-        // }
+        this._chartElement._addGraph(this);
 
         this._isAttached = true;
-        this._scaleChanged(this.scale);
-        this._chartElement._addGraph(this);
+
+        for (var key in this._chartElement.multiAxes) {
+          if (this._chartElement.multiAxes[key] === true) {
+            this._chartElement._addAxis(this, key, this.item.mount);
+          } else {
+            this._fn.scale[key] = this._chartElement._fn.scale[key];
+          }
+        }
+        this._setColorProperties();
         this._chartElement._sizeChanged();
       }
 
+      removeNodes() {
+        // console.log('removeNodes', this.item.mount);
+        this._isAttached = false;
+        this._areaChanged();
+        this._lineChanged();
+        this._thresholdChanged();
+        for (var key in this._chartElement.multiAxes) {
+          this._chartElement._removeAxis(this, key);
+          this._chartElement._sizeChanged();
+        }
+        this._chartElement._removeGraph(this);
+      }
+
       _scaleChanged(scale) {
-        if (!(this._isAttached === true)) return;
+        if (!this._isAttached) return;
         for (var key in scale) {
-          this._fn.var[key] = this._chartElement.multiAxes[key] ? this._chartElement._createScaleFn(scale[key]) : this._chartElement._fn.var[key];
+          this._fn.scale[key] = this._chartElement.multiAxes[key] ? this._chartElement._createScaleFn(scale[key]) : this._chartElement._fn.scale[key];
         }
       }
 
@@ -216,11 +241,12 @@
           }
         } else {
           if (!(this._nodes.area && this._nodes.area.node)) { // add fill area
-            this._nodes.area = this._chartElement._nodes.area.append('svg:path')
+            this._nodes.area = this._chartElement._nodes.area.append('svg:path');
+            this._nodes.line.append('svg:title').text(this.item.mount);
           }
           // update fill area node properties
           this._nodes.area
-            .attr('data-name', this.item.mount)
+            .attr('mount', this.item.mount)
             .attr('class', 'area')
             .attr('stroke-width', 0)
             .datum([])
@@ -242,16 +268,18 @@
           }
         } else {
           if (!(this._nodes.line && this._nodes.line.node)) { // add line node
-            this._nodes.line = this._chartElement._nodes.line.append('svg:path')
+            this._nodes.line = this._chartElement._nodes.line.append('svg:path');
+            this._nodes.line.append('svg:title').text(this.item.mount);
           }
           // update line node properties
           this._nodes.line
-            .attr('data-name', this.item.mount)
+            .attr('mount', this.item.mount)
             .attr('class', 'line')
             .attr('fill', 'none')
             .attr('stroke-width', this.lineWidth)
             .datum([])
             .attr('d', this._generators.line);
+
         }
       }
 
@@ -294,17 +322,6 @@
             }
           }
         }
-      }
-
-      removeNodes() {
-        // console.log('removeNodes', this.item.mount);
-        this._isAttached = false;
-        this._areaChanged();
-        this._lineChanged();
-        this._thresholdChanged();
-        if (this._chartElement && this._chartElement._graphs)
-          delete this._chartElement._graphs[this.item.mount];
-        this._chartElement._multiAxesChanged(this._chartElement.multiAxes);
       }
 
       _itemChanged(item) {
@@ -377,17 +394,25 @@
           this.addNodes();
         }
         if (this._chartElement) {
-          // if (this._chartElement._isZoomed === false)
-            this._chartElement.redraw();
-          // else
-          //   this.redraw();
+          if (!this._isBrushed) {
+            console.log('is not Brushed')
+            // for (var key in this._chartElement.multiAxes) {
+              // if (this._chartElement.multiAxes[key] === true) {
+              //   this._getDomain(key).then(this.redraw.bind(this));
+              // } else {
+                this._chartElement.redraw();
+            //   }
+            // }
+          } else {
+            this.redraw();
+          }
         }
       }
 
       redraw() {
         if (!this._isAttached) return;
 
-        // console.log('graph redraw', this.item.mount, this.values.length);
+        console.log('graph redraw', this.item.mount, this.values.length);
 
         var data = this.values || [];
 
@@ -423,7 +448,7 @@
             i_color = this.item.color || '#000';
 
           if (this.item.threshold.from !== undefined) {
-            y = ((1 - Math.ceil(this._fn.var.y(this.item.threshold.from) + this.lineWidth * 1.25) / this._chartElement._height) * 100);
+            y = ((1 - Math.ceil(this._fn.scale.y(this.item.threshold.from) + this.lineWidth * 1.25) / this._chartElement._height) * 100);
             if (Number.isFinite(y)) {
               b_line.push({
                 o: y + '%',
@@ -436,7 +461,7 @@
             }
           }
           if (this.item.threshold.to !== undefined) {
-            y = ((1 - Math.floor(this._fn.var.y(this.item.threshold.to) - this.lineWidth * 1.25) / this._chartElement._height) * 100);
+            y = ((1 - Math.floor(this._fn.scale.y(this.item.threshold.to) - this.lineWidth * 1.25) / this._chartElement._height) * 100);
             if (Number.isFinite(y)) {
               b_line.push({
                 o: y + '%',
@@ -477,11 +502,9 @@
       }
 
       _getDomain(key) {
-        if (!this._isAttached) return;
-
-        var scale = this.scale[key];
-
         return new Promise((resolve, reject) => {
+          if (!this._isAttached) reject();
+          var scale = this.scale[key];
           this.requestRange(key)
             .then(range => {
               var domain = range;
@@ -501,7 +524,8 @@
                   domain[1] = Number.EPSILON;
                 }
               }
-              resolve(domain);
+              this.set('domain.' + key, domain);
+              resolve({domain: domain, key: key});
             })
             .catch(err => {
               reject(err);
@@ -575,8 +599,8 @@
         return values[pos];
 
         function pixdistance2(p) {
-          var dx = _fn.var.x(new Date(p.x)) - m[0],
-            dy = _fn.var.y(p.y) - m[1];
+          var dx = _fn.scale.x(new Date(p.x)) - m[0],
+            dy = _fn.scale.y(p.y) - m[1];
           return dx * dx + dy * dy;
         }
       }
@@ -618,8 +642,8 @@
         }
 
         best = {
-          x: this._fn.var.x(best.x),
-          y: this._fn.var.y(best.y)
+          x: this._fn.scale.x(best.x),
+          y: this._fn.scale.y(best.y)
         };
         best.distance = Math.sqrt(bestDistance);
         return best;

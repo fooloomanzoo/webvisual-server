@@ -15,8 +15,8 @@
 				--tab-overlay: {
           background-color: rgba(0, 0, 0, 0.3);
           color: var(--bright-text-color);
-					border-top: thin solid var(--secondary-color);
-					border-bottom: thin solid var(--secondary-color);
+					/*border-top: thin solid var(--secondary-color);*/
+					border-bottom: medium solid var(--secondary-color);
 					border-left: none;
 				}
 			}
@@ -37,16 +37,16 @@
 
     </style>
 
-    <iron-pages id="tables" selected="[[currentTable]]">
-      <template is="dom-repeat" items="[[items]]">
-        <device-table title$="[[item.id]]" item="[[item]]" full-date></device-table>
-      </template>
-    </iron-pages>
     <tabs-container id="select" selected="{{currentTable}}" fallback-selection="0">
       <template is="dom-repeat" items="[[items]]">
         <tab-element class="tab" title$="[[item.id]]">[[item.id]]</tab-element>
       </template>
     </tabs-container>
+    <iron-pages id="tables" selected="[[currentTable]]">
+      <template is="dom-repeat" items="[[items]]">
+        <device-table title$="[[item.id]]" item="[[item]]" full-date></device-table>
+      </template>
+    </iron-pages>
 
   </template>
 
