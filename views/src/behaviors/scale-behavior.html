@@ -1,0 +1,154 @@
+<script>
+  window.WebvisualBehaviors = window.WebvisualBehaviors || {};
+
+  WebvisualBehaviors.ScaleBehavior = function(superClass) {
+    /**
+     * Behavior that adds a scale function using d3 to an element
+     *
+     * @mixinClass
+     * @polymer
+     */
+    return class extends superClass {
+
+      constructor() {
+        super();
+      }
+
+      static get properties() {
+        return {
+          /**
+           * keys that define the variables of the values
+           */
+          keys: {
+            type: Array,
+            value: function() {
+              return [
+                {
+                  key: 'x', type: 'time', coordinate: 'x', base: null
+                }, {
+                  key: 'y', type: 'linear', coordinate: 'y', base: null
+                }
+              ];
+            }
+          },
+
+          /**
+           * the computed objects of scale functions for each key
+           */
+          scale: {
+            type: Object
+          },
+
+          /**
+           * the base on how the values will be scaled (only for pow- and log-scale)
+           * e.g. :
+           *  {
+           *    y: [0, 10]
+           *  }
+           */
+          scaleBase: {
+            type: Object
+          },
+
+          /**
+           * domain to scale for each key
+           * e.g. :
+           *  {
+           *    x: [1000000, 5000000],
+           *    y: [0, 10]
+           *  }
+           */
+          domain: {
+            type: Object
+          },
+
+          /**
+           * pixel-whise range for each key
+           * e.g. :
+           *  {
+           *    x: [0, width=500],
+           *    y: [height=300, 0]
+           *  }
+           */
+          range: {
+            type: Object
+          }
+        }
+      }
+
+      static get observers() {
+        return [
+          '_computeScale(keys)',
+          '_rangeChanged(range, scale)',
+          '_domainChanged(domain, scale)',
+        ]
+      }
+
+      _computeScale(keys) {
+        if (keys === undefined) return;
+        console.log('_computeScale',keys)
+        var ret = {};
+        keys.forEach(k => {
+          ret[k.key] = this._createScaleFn(k.type, k.base);
+        });
+        this.set('scale', ret);
+      }
+
+      _createScaleFn(type, base) {
+        switch (type) {
+          case 'time':
+            return d3.scaleTime();
+            break;
+          case 'ln':
+            return d3.scaleLog().base(Math.E);
+            break;
+          case 'log':
+            return d3.scaleLog().base(base || 1);
+            break;
+          case 'log₂':
+            return d3.scaleLog().base(2);
+            break;
+          case 'log₁₀':
+            return d3.scaleLog().base(10);
+            break;
+          case '√':
+            return d3.scalePow().exponent(0.5);
+            break;
+          case 'pow':
+            return d3.scalePow().exponent(base || 1);
+            break;
+          default:
+            return d3.scaleLinear();
+        }
+      }
+
+      _domainChanged(domain) {
+        if (this.scale === undefined) return;
+
+        for (var key in domain) {
+          if (this.scale.hasOwnProperty(key)) {
+            this.scale[key].domain(domain[key]);
+          }
+        }
+      }
+
+      _rangeChanged(range) {
+        if (this.scale === undefined) return;
+
+        for (var key in range) {
+          if (this.scale.hasOwnProperty(key)) {
+            this.scale[key].range(range[key]);
+          }
+        }
+      }
+
+      static get _VALID_SCALES() {
+        return ['time', 'ln', 'log', 'log₂', 'log₁₀', '√', 'pow'];
+      }
+
+      _SCALE_USES_BASE(scale) {
+        return scale === 'log' || scale === 'pow';
+      }
+    }
+  }
+</script>

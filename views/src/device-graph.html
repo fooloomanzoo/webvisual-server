@@ -1,5 +1,6 @@
 <!-- Dependent to be content of device-chart -->
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="behaviors/scale-behavior.html" />
 <link rel="import" href="behaviors/device-behavior.html" />
 <link rel="import" href="behaviors/color-behavior.html" />
 
@@ -8,7 +9,7 @@
     <style></style>
   </template>
   <script>
-    class DeviceGraph extends WebvisualBehaviors.ColorBehavior(WebvisualBehaviors.DeviceBehavior(Polymer.Element)) {
+    class DeviceGraph extends WebvisualBehaviors.ScaleBehavior(WebvisualBehaviors.ColorBehavior(WebvisualBehaviors.DeviceBehavior(Polymer.Element))) {
 
       static get is() {
         return 'device-graph';
@@ -16,44 +17,6 @@
 
       static get properties() {
         return {
-
-          interpolation: {
-            type: String,
-            value: 'Lineare Verbindung',
-            observer: '_interpolationChanged'
-          },
-
-          scale: {
-            type: Object,
-            value: function() {
-              return {
-                x: 'time',
-                y: 'linear'
-              };
-            },
-            observer: '_scaleChanged'
-          },
-
-          domain: {
-            type: Object,
-            value: function() {
-              return {
-                x: [null, null],
-                y: [null, null]
-              };
-            }
-          },
-
-          axisPosition: {
-            type: Object,
-            value: function() {
-              return {
-                x: 'bottom',
-                y: 'left'
-              }
-            },
-            observer: '_axisPositionChanged'
-          },
 
           hasLine: {
             type: Boolean,
@@ -63,6 +26,12 @@
           hasArea: {
             type: Boolean,
             value: false
+          },
+
+          interpolation: {
+            type: String,
+            value: 'Lineare Verbindung',
+            observer: '_interpolationChanged'
           },
 
           lineWidth: {
@@ -85,57 +54,61 @@
             type: Boolean,
             value: true,
             readOnly: true
+          },
+
+          multiAxes: {
+            type: Object
           }
         }
       }
 
       constructor() {
         super();
-
-        this._isAttached = false;
-        this._chartElement = null;
         this._nodes = {
-          area: {},
-          line: {},
-          boundery: {},
           axis: {},
-          brush: {}
+          brush: {},
+          axes: {}
         };
         this._fn = {
-          scale: {},
-          axis: {},
-          brush: {}
+          axis: {
+            x: Function.prototype,
+            y: Function.prototype
+          },
+          brush: {
+            x: Function.prototype,
+            y: Function.prototype
+          }
         };
         this._generators = {
-          area: {},
-          line: {},
           brush: {},
           axis: {}
         }
+        this._isAttached = false;
+        this._chart = null;
 
         this._generators.area = d3.area()
           .defined(this._defined.bind(this))
           .x(d => {
-            return this._fn.scale.x(d.x);
+            return this.scale.x(d.x);
           })
           .y0(d => {
             if (this.yScale === 'ln' || this.yScale === 'log₁₀') {
-              return this._chartElement._height;
+              return this._chart._height;
             } else {
-              return this._fn.scale.y(0)
+              return this.scale.y(0)
             }
           })
           .y1(d => {
-            return this._fn.scale.y(d.y);
+            return this.scale.y(d.y);
           });
 
         this._generators.line = d3.line()
           .defined(this._defined.bind(this))
           .x(d => {
-            return this._fn.scale.x(d.x);
+            return this.scale.x(d.x);
           })
           .y(d => {
-            return this._fn.scale.y(d.y);
+            return this.scale.y(d.y);
           });
 
         this.bisectDate = d3.bisector((d, x) => {
@@ -187,24 +160,24 @@
           console.warn('Chart has not been attached yet for adding a graph. Registration of Graph Element failed');
           return;
         }
-        this._chartElement = _containerRoot;
+        this._chart = _containerRoot;
 
         this._areaChanged(this.hasArea);
         this._lineChanged(this.hasLine);
 
-        this._chartElement._addGraph(this);
+        this._chart._addGraph(this);
 
         this._isAttached = true;
 
-        for (var key in this._chartElement.multiAxes) {
-          if (this._chartElement.multiAxes[key] === true) {
-            this._chartElement._addAxis(this, key, this.item.mount);
-          } else {
-            this._fn.scale[key] = this._chartElement._fn.scale[key];
-          }
-        }
+        // for (var key in this._chart.multiAxes) {
+        //   if (this._chart.multiAxes[key] === true) {
+        //     this._chart._addAxis(this, key, this.item.mount);
+        //   } else {
+        //     this.scale[key] = this._chart.scale[key];
+        //   }
+        // }
         this._setColorProperties();
-        this._chartElement._sizeChanged();
+        this._chart._sizeChanged();
       }
 
       removeNodes() {
@@ -213,23 +186,16 @@
         this._areaChanged();
         this._lineChanged();
         this._thresholdChanged();
-        for (var key in this._chartElement.multiAxes) {
-          this._chartElement._removeAxis(this, key);
-          this._chartElement._sizeChanged();
+        for (var key in this._chart.multiAxes) {
+          this._chart._removeAxis(this, key);
+          this._chart._sizeChanged();
         }
-        this._chartElement._removeGraph(this);
-      }
-
-      _scaleChanged(scale) {
-        if (!this._isAttached) return;
-        for (var key in scale) {
-          this._fn.scale[key] = this._chartElement.multiAxes[key] ? this._chartElement._createScaleFn(scale[key]) : this._chartElement._fn.scale[key];
-        }
+        this._chart._removeGraph(this);
       }
 
       _areaChanged(hasArea, type) {
         // console.log('_areaChanged', this.item.mount, hasArea, type);
-        if (!(this._chartElement && this._chartElement._nodes.area)) return;
+        if (!(this._chart && this._chart._nodes.area)) return;
 
         if (hasArea === false) {
           // remove fill area
@@ -241,7 +207,7 @@
           }
         } else {
           if (!(this._nodes.area && this._nodes.area.node)) { // add fill area
-            this._nodes.area = this._chartElement._nodes.area.append('svg:path');
+            this._nodes.area = this._chart._nodes.area.append('svg:path');
             this._nodes.line.append('svg:title').text(this.item.mount);
           }
           // update fill area node properties
@@ -256,7 +222,7 @@
 
       _lineChanged(hasLine, type) {
         // console.log('_lineChanged', this.item.mount, hasLine, type);
-        if (!(this._chartElement && this._chartElement._nodes.line)) return;
+        if (!(this._chart && this._chart._nodes.line)) return;
 
         if (hasLine === false) {
           // remove line
@@ -268,7 +234,7 @@
           }
         } else {
           if (!(this._nodes.line && this._nodes.line.node)) { // add line node
-            this._nodes.line = this._chartElement._nodes.line.append('svg:path');
+            this._nodes.line = this._chart._nodes.line.append('svg:path');
             this._nodes.line.append('svg:title').text(this.item.mount);
           }
           // update line node properties
@@ -287,17 +253,17 @@
       }
 
       _thresholdChanged(threshold) {
-        if (!(this._chartElement && this._chartElement._nodes.boundery)) return;
+        if (!(this._chart && this._chart._nodes.boundery)) return;
 
         if (threshold) {
           if (!this.boundery) { // add threshold node
-            this.boundery = this._chartElement._nodes.boundery.append('linearGradient');
+            this.boundery = this._chart._nodes.boundery.append('linearGradient');
           }
           // update threshold node properties
           this.boundery
             .attr('id', 'boundery-line-' + this.item.mount)
             .attr('gradientUnits', 'userSpaceOnUse')
-            .attr('x1', 0).attr('y1', this._chartElement._height)
+            .attr('x1', 0).attr('y1', this._chart._height)
             .attr('x2', 0).attr('y2', 0);
         } else {
           // remove threshold colors
@@ -311,13 +277,13 @@
       }
 
       _setColorProperties() {
-        if (!this._chartElement) return;
+        if (!this._chart) return;
         if (this.item && this.item.color) {
           var colorForGraph = this.item.theshold ? ('url(#boundery-line-' + this.item.mount + ')') : this.item.color || '#000';
           if (this._nodes.area && this._nodes.area.attr) this._nodes.area.attr('fill', colorForGraph);
           if (this._nodes.line && this._nodes.line.attr) this._nodes.line.attr('stroke', colorForGraph);
-          for (var key in this._chartElement.multiAxes) {
-            if (this._chartElement.multiAxes[key] === true && this._nodes.axis[key] && this._nodes.axis[key].attr) {
+          for (var key in this._chart.multiAxes) {
+            if (this._chart.multiAxes[key] === true && this._nodes.axis[key] && this._nodes.axis[key].attr) {
               this._nodes.axis[key].style('color', this.item.color || '#000');
             }
           }
@@ -393,14 +359,14 @@
         if (!this._isAttached && this.item) {
           this.addNodes();
         }
-        if (this._chartElement) {
+        if (this._chart) {
           if (!this._isBrushed) {
             console.log('is not Brushed')
-            // for (var key in this._chartElement.multiAxes) {
-              // if (this._chartElement.multiAxes[key] === true) {
+            // for (var key in this._chart.multiAxes) {
+              // if (this._chart.multiAxes[key] === true) {
               //   this._getDomain(key).then(this.redraw.bind(this));
               // } else {
-                this._chartElement.redraw();
+                this._chart.redraw();
             //   }
             // }
           } else {
@@ -448,7 +414,7 @@
             i_color = this.item.color || '#000';
 
           if (this.item.threshold.from !== undefined) {
-            y = ((1 - Math.ceil(this._fn.scale.y(this.item.threshold.from) + this.lineWidth * 1.25) / this._chartElement._height) * 100);
+            y = ((1 - Math.ceil(this.scale.y(this.item.threshold.from) + this.lineWidth * 1.25) / this._chart._height) * 100);
             if (Number.isFinite(y)) {
               b_line.push({
                 o: y + '%',
@@ -461,7 +427,7 @@
             }
           }
           if (this.item.threshold.to !== undefined) {
-            y = ((1 - Math.floor(this._fn.scale.y(this.item.threshold.to) - this.lineWidth * 1.25) / this._chartElement._height) * 100);
+            y = ((1 - Math.floor(this.scale.y(this.item.threshold.to) - this.lineWidth * 1.25) / this._chart._height) * 100);
             if (Number.isFinite(y)) {
               b_line.push({
                 o: y + '%',
@@ -474,7 +440,7 @@
             }
           }
           var gradients = this.boundery
-            .attr('x1', 0).attr('y1', this._chartElement._height)
+            .attr('x1', 0).attr('y1', this._chart._height)
             .attr('x2', 0).attr('y2', 0)
             .selectAll('stop')
             .data(b_line);
@@ -553,12 +519,12 @@
       // if looking just at to path (instabil): https://bl.ocks.org/mbostock/8027637 https://pomax.github.io/bezierinfo/#projections
       _closestPoint(m) {
         // find good prediction
-        var _x = this._chartElement._x,
-          _y = this._chartElement._y,
+        var _x = this._chart._x,
+          _y = this._chart._y,
           values = this.values,
           x_0 = _x.invert(m[0]),
-          precision = Math.ceil(this._chartElement._width / values.length),
-          variance = Math.pow(Math.ceil(values.length / this._chartElement._width), 2),
+          precision = Math.ceil(this._chart._width / values.length),
+          variance = Math.pow(Math.ceil(values.length / this._chart._width), 2),
           mid = this.bisectDate.left(values, x_0, 0, values.length - 1),
           r2 = pixdistance2(values[mid]),
           searchRadius = Math.sqrt(r2) / variance;
@@ -611,7 +577,7 @@
       _closestInterpolatedPoint(point, pathNode) {
         pathNode = pathNode || this._nodes.area.node() || this._nodes.line.node();
         var pathLength = pathNode.getTotalLength(),
-          precision = Math.ceil(pathLength / this._chartElement._width / 2.0) * 2,
+          precision = Math.ceil(pathLength / this._chart._width / 2.0) * 2,
           best,
           bestLength,
           bestDistance = Infinity;
@@ -642,8 +608,8 @@
         }
 
         best = {
-          x: this._fn.scale.x(best.x),
-          y: this._fn.scale.y(best.y)
+          x: this.scale.x(best.x),
+          y: this.scale.y(best.y)
         };
         best.distance = Math.sqrt(bestDistance);
         return best;
@@ -717,8 +683,8 @@
         this._generators.area.curve(curve);
         this._generators.line.curve(curve);
 
-        if (this._chartElement)
-          this._chartElement.redraw();
+        if (this._chart)
+          this._chart.redraw();
       }
     }
     customElements.define(DeviceGraph.is, DeviceGraph);

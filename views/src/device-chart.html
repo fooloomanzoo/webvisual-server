@@ -2,13 +2,14 @@
 <link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
 <link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
 
-<link rel="import" href="behaviors/fullscreen-behavior.html" />
+<link rel="import" href="behaviors/scale-behavior.html">
+<link rel="import" href="behaviors/fullscreen-behavior.html">
 
-<link rel="import" href="components/icon-button.html" />
-<link rel="import" href="style/selectbox-style.html" />
-<link rel="import" href="style/button-style.html" />
+<link rel="import" href="components/icon-button.html">
+<link rel="import" href="style/selectbox-style.html">
+<link rel="import" href="style/button-style.html">
 
-<link rel="import" href="device-graph.html" />
+<link rel="import" href="device-graph.html">
 
 <dom-module id="device-chart">
   <template strip-whitespace>
@@ -50,19 +51,19 @@
         position: fixed;
         padding: 1em 1em 3em 1em !important;
       }
-      #svgChart {
+      #svg {
         position: absolute;
         top: 0; bottom: 0; left: 0; right: 0;
         width: 100%; height: 100%;
         overflow: visible;
-        font-family: inherit;
+        font-family: inherit !important;
       }
       text {
         fill: currentColor;
         stroke: white;
         stroke-width: 0.2;
         stroke-opacity: 0.1;
-        font-size: 10px;
+        font-size: 1em;
         letter-spacing: normal !important;
         font-family: inherit !important;
         -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
@@ -91,29 +92,30 @@
       .grid path {
         stroke-width: 0;
       }
-      .axis path, .axis line {
-        fill: currentColor;
-        fill-opacity: 0.01;
-        stroke: currentColor;
-        stroke-opacity: 0.5;
-        transition: fill-opacity 150ms linear;
-      }
-      .axis:hover path {
-        fill-opacity: 0.25;
-      }
-      .axis.expanded path, .axis.expanded line {
-        stroke-opacity: 0.75;
-      }
       .axis {
         cursor: -webkit-grab;
         cursor: grab;
+        font-family: inherit !important;
       }
       .axis.dragged {
         cursor: -webkit-grabbing;
         cursor: grabbing;
       }
-      .axis.dragged path {
+      .axis path, .axis line {
+        fill: currentColor;
+        fill-opacity: 0.01;
+        stroke: currentColor;
+        stroke-opacity: 0.75;
+        transition: fill-opacity 150ms linear;
+      }
+      .axis:hover path {
         fill-opacity: 0.3;
+      }
+      .axis.expanded path, .axis.expanded line {
+        stroke-opacity: 0.9;
+      }
+      .axis.dragged path {
+        fill-opacity: 0.2;
       }
       .axis.horizontal .tick > text {
         alignment-baseline: after-edge;
@@ -124,12 +126,12 @@
       .axis.horizontal .tick:nth-last-of-type(2):not(:only-of-type) > text {
         text-anchor: end;
       }
-      .axis.vertical[position="left"] .tick > text {
+      /*.axis.vertical[position="left"]:not(.dragged) .tick > text {
         text-anchor: end;
       }
-      .axis.vertical[position="right"] .tick > text {
+      .axis.vertical[position="right"]:not(.dragged) .tick > text {
         text-anchor: start;
-      }
+      }*/
       .brush .selection {
         fill: currentColor;
         fill-opacity: 0.5;
@@ -195,7 +197,7 @@
       }
       .selectbox,
       .button {
-        font-size: 12px;
+        font-size: 0.8em;
         margin-top: 0.25em;
         margin-left: 0.25em;
         margin-right: 0.25em;
@@ -210,11 +212,11 @@
         top: 0;
         right: 0;
         display: flex;
-        flex-dir: column;
+        flex-direction: column;
         background-color: rgba(255, 255, 255, 0.25);
       }
       icon-button {
-        mix-blend-mode: overlay;
+        mix-blend-mode: exclusion;
       }
       [hidden] {
         display: none !important;
@@ -222,7 +224,7 @@
     </style>
 
     <div id="svgContainer" on-contextmenu="_resetZoom">
-      <svg id="svgChart" version="1.1" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet">
+      <svg id="svg" version="1.1" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet">
         <defs>
           <marker id="arrowToLeft" markerWidth="20" markerHeight="20" refX="0" refY="0" orient="auto" markerUnits="strokeWidth" viewBox="-10 0 15 10">
             <path d="m 5.29167,-1.7197893 v 3.439581 L 0,2.6966667e-6 Z"/>
@@ -310,20 +312,20 @@
       <template>
         <dom-repeat items="[[items]]">
           <template>
-            <device-graph item="[[item]]" interpolation="[[interpolation]]" no-link="[[noLink]]"></device-graph>
+            <device-graph item="[[item]]" interpolation="[[interpolation]]" no-link="[[noLink]]" multi-axes=[[multiAxes]]></device-graph>
           </template>
         </dom-repeat>
       </template>
     </dom-if>
     <dom-if if="[[!multi]]" restamp>
       <template>
-        <device-graph item="[[item]]" interpolation="[[interpolation]]" no-link="[[noLink]]"></device-graph>
+        <device-graph item="[[item]]" interpolation="[[interpolation]]" no-link="[[noLink]]" multi-axes=[[multiAxes]]></device-graph>
       </template>
     </dom-if>
   </template>
   <script>
     class DeviceChart extends Polymer.mixinBehaviors(
-      [Polymer.IronResizableBehavior], WebvisualBehaviors.FullscreenBehavior(Polymer.Element)) {
+      [Polymer.IronResizableBehavior], WebvisualBehaviors.ScaleBehavior(WebvisualBehaviors.FullscreenBehavior(Polymer.Element))) {
 
       static get is() {
         return 'device-chart';
@@ -389,17 +391,6 @@
               }
             },
             observer: '_axisPositionChanged'
-          },
-
-          scale: {
-            type: Object,
-            value: function() {
-              return {
-                x: 'time',
-                y: 'linear'
-              };
-            },
-            observer: '_scaleChanged'
           },
 
           domain: {
@@ -477,10 +468,6 @@
           axes: {}
         };
         this._fn = {
-          scale: {
-            x: Function.prototype,
-            y: Function.prototype
-          },
           axis: {
             x: Function.prototype,
             y: Function.prototype
@@ -595,11 +582,11 @@
 
       _buildLayout() {
         console.log('_buildLayout');
-        this._svg = d3.select(this.$.svgChart)
+        this._svg = d3.select(this.$.svg)
           .attr('height', null)
           .attr('width', null);
-        this._fn.scale.x = this._createScaleFn(this.scale.x);
-        this._fn.scale.y = this._createScaleFn(this.scale.y);
+        // this.scale.x = this._createScaleFn(this.scale.x);
+        // this.scale.y = this._createScaleFn(this.scale.y);
 
         this._chart = d3.select(this.$.chart);
         this._control = d3.select(this.$.control);
@@ -666,7 +653,7 @@
         //         g = this._graphs[mounts[i]]
         //         if (g.values && g.values.length) {
         //           var d = g._closestPoint(m);
-        //           var currentMin2 = Math.pow(m[0] - g._fn.scale.x(d.x), 2) + Math.pow(m[1] - g._fn.scale.y(d.y), 2); // in px²
+        //           var currentMin2 = Math.pow(m[0] - g.scale.x(d.x), 2) + Math.pow(m[1] - g.scale.y(d.y), 2); // in px²
         //           if (closestDistance === undefined || currentMin2 < closestDistance) {
         //             closestDistance = currentMin2;
         //             closestPoint = d;
@@ -720,7 +707,7 @@
       _sizeLayout() {
         if (!this._isAttached) return;
 
-        var bRect = this.$.svgChart.getBoundingClientRect();
+        var bRect = this.$.svg.getBoundingClientRect();
         console.log('sizeLayout', bRect.height, bRect.width);
 
         if (bRect.height === 0 || bRect.width === 0) {
@@ -746,43 +733,47 @@
 
         var q = [];
 
-        function incremPosition(axis, pos, size) {
+        function incremPosition(size) {
+          var pos = this._position;
           if (pos === 'left') {
-            axis._left = left;
-            axis._right = 0;
+            this._left = left;
+            this._right = 0;
             left -= size;
           } else if (pos === 'right') {
-            axis._left = 0;
-            axis._right = right;
+            this._left = 0;
+            this._right = right;
             right += size;
           } else {
-            axis._left = 0;
-            axis._right = 0;
+            this._left = 0;
+            this._right = 0;
           }
           if (pos === 'top') {
-            axis._bottom = 0;
-            axis._top = top;
+            this._bottom = 0;
+            this._top = top;
             top -= size;
           } else if (pos === 'bottom') {
-            axis._bottom = bottom;
-            axis._top = 0;
+            this._bottom = bottom;
+            this._top = 0;
             bottom += size;
           } else {
-            axis._bottom = 0;
-            axis._top = 0;
+            this._bottom = 0;
+            this._top = 0;
           }
+          console.log(this._position, this._mount, this._top, this._bottom, this._right, this._left)
           return true;
         }
 
-        function finalizePosition(axis, pos) {
-          axis._left += axis._right;
-          axis._top += axis._bottom;
+        function finalizePosition(width, height) {
+          var pos = this._position;
+          this._left += this._right;
+          this._top += this._bottom;
           if (pos === 'right') {
-            axis._left += this._width;
+            this._left += width;
           } else if (pos === 'bottom') {
-            axis._top += this._height;
+            this._top += height;
           }
-          axis._bottom = axis._right = 0;
+          this._bottom = this._right = 0;
+          console.log(this._position, this._mount, this._top, this._bottom, this._right, this._left)
           return true;
         }
 
@@ -790,12 +781,12 @@
           this._graphs.forEach( g => {
             if (g._nodes.axis[key]) {
               var size = g._nodes.axis[key].classed('expanded') ? axisSize[key] : condensedSize;
-              q.push(incremPosition(g._nodes.axis[key].node(), g._nodes.axis[key].attr('position'), size));
+              q.push(incremPosition.call(g._nodes.axis[key].node(), size));
             }
           })
           if (this._nodes.axis[key] && !this._nodes.axis[key].attr('hidden')) {
             var size = this._nodes.axis[key].classed('expanded') ? axisSize[key] : condensedSize;
-            q.push(incremPosition(this._nodes.axis[key].node(), this._nodes.axis[key].attr('position'), size));
+            q.push(incremPosition.call(this._nodes.axis[key].node(), size));
           }
         }
 
@@ -803,21 +794,23 @@
         // this.yTicks = Math.ceil(this._height / 50);
 
         Promise.all(q).then(() => {
-          var bRect = this.$.svgChart.getBoundingClientRect();
+          var bRect = this.$.svg.getBoundingClientRect();
           this._width = bRect.width - Math.abs(left || 0) - Math.abs(right || 0) - (this.margin.left || 0) - (this.margin.right || 0);
           this._height = bRect.height - Math.abs(bottom || 0) - Math.abs(top || 0) - (this.margin.bottom || 0) - (this.margin.top || 0);
+
+          this.set('range', {x: [0, this._width], y: [this._height, 0]});
 
           var p = [];
           for (var key in this.multiAxes) {
             if (this.multiAxes[key] === true) {
               this._graphs.forEach( g => {
                 if (g._nodes.axis[key]) {
-                  p.push(finalizePosition.call(this, g._nodes.axis[key].node(), g._nodes.axis[key].attr('position')));
+                  p.push(finalizePosition.call(g._nodes.axis[key].node(), this._width, this._height));
                 }
               })
             }
             if (this._nodes.axis[key] && !this._nodes.axis[key].attr('hidden')) {
-              p.push(finalizePosition.call(this, this._nodes.axis[key].node(), this._nodes.axis[key].attr('position')));
+              p.push(finalizePosition.call(this._nodes.axis[key].node(), this._width, this._height));
             }
           }
 
@@ -906,11 +899,8 @@
 
       _addAxis(g, key, mount, expanded) {
         if (g._nodes.axis[key]) return;
-        console.log('_addAxis', key, mount)
         this._nodes.axes[key] = this._nodes.axes[key] || d3.select(this.$.axis).append('svg:g').classed(key, true);
-        var self = this,
-          vertical,
-          pos = g.axisPosition[key];
+        var self = this, vertical = false, pos = g.axisPosition[key];
         // enter axes node
         g._nodes.axis[key] = this._nodes.axes[key]
           .append('svg:g')
@@ -918,11 +908,11 @@
           .classed(key, true)
           .classed('expanded', expanded)
           .attr('mount', mount)
-          .attr('position', pos)
           .on('click', function() {
             var a = d3.select(this),
               exp = a.classed('expanded');
             a.classed('expanded', !exp);
+            this._expanded = exp;
             self._sizeChanged();
           })
           .call(d3.drag()
@@ -933,24 +923,28 @@
         // add title
         g._nodes.axis[key].append('svg:title').text(mount);
         // set scale
-        g._fn.scale[key] = this._createScaleFn(g.scale[key]).domain(g.domain[key]);
-        g._generators.axis[key] = this._createAxisFn(g._fn.scale[key], pos, g.scale[key]);
+        // this.scale[key] = this._createScaleFn(this.scale[key]).domain(this.domain[key]);
+        g._generators.axis[key] = this._createAxisFn(this.scale[key], pos, this.keys[key]);
         switch (pos) {
           case 'left':
           case 'right':
-            g._fn.scale[key].range([this._height, 0]);
-            g._generators.brush[key] = d3.brushY();
+            // this.scale[key].range([this._height, 0]);
+            this._generators.brush[key] = d3.brushY();
             vertical = true;
             break;
           case 'bottom':
           case 'top':
-            g._fn.scale[key].range([0, this._width]);
-            g._generators.brush[key] = d3.brushX();
+            // this.scale[key].range([0, this._width]);
+            this._generators.brush[key] = d3.brushX();
             break;
         }
         // enter brush node
         g._nodes.brush[key] = g._nodes.axis[key].append('svg:g').classed('brush', true);
         g._nodes.axis[key].classed('vertical', vertical).classed('horizontal', !vertical);
+        g._nodes.axis[key].node()._vertical = vertical;
+        g._nodes.axis[key].node()._position = pos;
+        g._nodes.axis[key].node()._caller = g;
+        console.log('_addAxis', key, mount, pos)
       }
 
       _updateAxis(g, key) {
@@ -958,7 +952,7 @@
         if (!g._nodes.axis[key] || g._nodes.axis[key].attr('hidden')) return;
         var expanded = g._nodes.axis[key].classed('expanded'),
           tickSize = this.tickSize,
-          pos = g._nodes.axis[key].attr('position');
+          pos = g._nodes.axis[key].node()._position;
         // update axis
         if (pos === 'left' || pos === 'right') {
           this._updateScale(g, key, this.multiAxes[key], true);
@@ -983,12 +977,12 @@
             ]);
           }
         }
-        g._nodes.axis[key].node()._width = this._width;
-        g._nodes.axis[key].node()._height = this._height;
-        g._generators.axis[key] = this._createAxisFn(g._fn.scale[key], pos, g.scale[key]).tickFormat(expanded ? null : '').tickSize(tickSize);
+        g._generators.axis[key] = this._createAxisFn(g.scale[key], pos, g.keys[key]).tickFormat(expanded ? null : '').tickSize(tickSize);
         g._nodes.brush[key].raise().call(g._generators.brush[key]);
         g._nodes.axis[key].call(g._generators.axis[key]).transition(100)
           .attr('transform', 'translate(' + (g._nodes.axis[key].node()._left || 0) + ',' + (g._nodes.axis[key].node()._top || 0) + ')');
+        g._nodes.axis[key].node()._width = this._width;
+        g._nodes.axis[key].node()._height = this._height;
       }
 
       _removeAxis(g, key) {
@@ -998,7 +992,7 @@
         var node;
         g._generators.brush[key] = null;
         g._generators.axis[key] = null;
-        g._fn.scale[key] = this._fn.scale[key];
+        g.scale[key] = this.scale[key];
         // remove axis & brush node
         if (g._nodes.brush[key]) {
           node = g._nodes.brush[key].node();
@@ -1015,21 +1009,23 @@
       }
 
       _updateScales(keys) {
-        keys = keys || Object.keys(this.multiAxes);
-        keys.forEach(key => {
-          this._updateScale(this, key, this.multiAxes[key], this._nodes.axis[key].classed('vertical'));
-          this._graphs.forEach( g => {
-            this._updateScale(g, key, this.multiAxes[key], this.multiAxes[key] ? g._nodes.axis[key].classed('vertical') : this._nodes.axis[key].classed('vertical'));
-          })
-        })
+        // keys = keys || Object.keys(this.multiAxes);
+        // keys.forEach(key => {
+        //   this._updateScale(this, key, this.multiAxes[key], this._nodes.axis[key].classed('vertical'));
+        //   this._graphs.forEach( g => {
+        //     if (g._nodes.axis[key]) {
+        //       this._updateScale(g, key, this.multiAxes[key], this.multiAxes[key] ? g._nodes.axis[key].classed('vertical') : this._nodes.axis[key].classed('vertical'));
+        //     }
+        //   })
+        // })
       }
 
       _updateScale(g, key, multiAxes, vertical) {
-        if (multiAxes) {
-          g._fn.scale[key].domain(g.domain[key]).range(vertical ? [this._height, 0] : [0, this._width]);
-        } else {
-          g._fn.scale[key].domain(this.domain[key]).range(vertical ? [this._height, 0] : [0, this._width]);
-        }
+        // if (multiAxes) {
+        //   g.scale[key].domain(g.domain[key]).range(vertical ? [this._height, 0] : [0, this._width]);
+        // } else {
+        //   g.scale[key].domain(this.domain[key]).range(vertical ? [this._height, 0] : [0, this._width]);
+        // }
       }
 
       _callAxes() {
@@ -1053,31 +1049,31 @@
       axisBrushMove(key) {
         // if (d3.event.sourceEvent && d3.event.sourceEvent.type === 'zoom') return; // ignore brush-by-zoom
         console.log('brushmove', key, d3.event.selection);
-        var s = (d3.event.selection || this._fn.scale[key].range()).map(this._fn.scale[key].invert, this._fn.scale[key]);
+        var s = (d3.event.selection || this.scale[key].range()).map(this.scale[key].invert, this.scale[key]);
         console.log(key, s);
-        // this._fn.scale[key].domain(s);
+        // this.scale[key].domain(s);
         // if (this.hasArea) {
         //   this._nodes.area.attr('d', this._generators.area);
         // }
         // if (this.hasLine) {
         //   this._nodes.line.attr('d', this._generators.line);
         // }
-        this._nodes.axis[key].call(this._fn.scale[key]);
+        this._nodes.axis[key].call(this.scale[key]);
       }
 
       axisBrushEnd(key) {
         // if (d3.event.sourceEvent && d3.event.sourceEvent.type === 'zoom') return; // ignore brush-by-zoom
         console.log('brushend', key, d3.event.selection);
-        var s = (d3.event.selection || this._fn.scale[key].range()).map(this._fn.scale[key].invert, this._fn.scale[key]);
+        var s = (d3.event.selection || this.scale[key].range()).map(this.scale[key].invert, this.scale[key]);
         console.log(key, s);
-        // this._fn.scale[key].domain(s);
+        // this.scale[key].domain(s);
         // if (this.hasArea) {
         //   this._nodes.area.attr('d', this._generators.area);
         // }
         // if (this.hasLine) {
         //   this._nodes.line.attr('d', this._generators.line);
         // }
-        this._nodes.axis[key].call(this._fn.scale[key]);
+        this._nodes.axis[key].call(this.scale[key]);
       }
 
       _axisDragStarted(e) {
@@ -1085,24 +1081,31 @@
         console.log('dragged', e, d3.event, this._left, this._top);
       }
       _axisDragged(e) {
-        var vertical = d3.select(this).classed('vertical'), left = 0, top = 0, pos = this.position;
+        var vertical = d3.select(this).classed('vertical'), left = 0, top = 0;
         if (vertical) {
           left = d3.event.x;
-          if (this._width) {
-            pos = (left > this._width / 2) ? 'right' : 'left';
-          }
         } else {
           top = d3.event.y;
-          if (this._height) {
-            pos = (top > this._height / 2) ? 'bottom' : 'top';
-          }
         }
-        d3.select(this).attr('transform', 'translate(' + left + ',' + top + ')').attr('position', pos);
+        d3.select(this).attr('transform', 'translate(' + left + ',' + top + ')');
 
         // d3.select(this).attr("cx", d.x = d3.event.x).attr("cy", d.y = d3.event.y);
       }
       _axisDragEnded(e) {
         d3.select(this).classed("dragged", false);
+        var vertical = d3.select(this).classed('vertical'), left = 0, top = 0;
+        if (vertical) {
+          left = d3.event.x;
+          if (this._width) {
+            this._position = (left > this._width / 2) ? 'right' : 'left';
+          }
+        } else {
+          top = d3.event.y;
+          if (this._height) {
+            this._position = (top > this._height / 2) ? 'bottom' : 'top';
+          }
+        }
+        d3.select(this).attr('transform', 'translate(' + left + ',' + top + ')');
         this.dispatchEvent(new CustomEvent('iron-resize', {
           bubbles: true,
           composed: true,
@@ -1120,29 +1123,11 @@
         this._graphs.delete(g);
       }
 
-      _createScaleFn(type) {
-        switch (type) {
-          case 'time':
-            return d3.scaleTime();
-            break;
-          case 'ln':
-            return d3.scaleLog().base(Math.E);
-            break;
-          case 'log₁₀':
-            return d3.scaleLog().base(10);
-            break;
-          case '√':
-            return d3.scaleSqrt();
-            break;
-          default:
-            return d3.scaleLinear();
-        }
-      }
-
-      _createAxisFn(scale, orient, kind, ticks) {
+      _createAxisFn(scalefn, pos, scale, ticks) {
+        console.log('_createAxisFn', pos, scale, ticks)
         var axis;
         ticks = ticks || 5;
-        switch (orient) {
+        switch (pos) {
           case 'top':
             axis = d3.axisTop();
             break;
@@ -1155,10 +1140,10 @@
           default:
             axis = d3.axisLeft();
         }
-        axis.scale(scale).ticks(ticks);
-        if (kind === 'time')
+        axis.scale(scalefn).ticks(ticks);
+        if (scale === 'time')
           axis.ticks(ticks).tickFormat(this.timeFormat.bind(this));
-        else if (scale.base && scale.base() === Math.E)
+        else if (scalefn.base && scalefn.base() === Math.E)
           axis.tickFormat(d => {
             // TODO: different conception for log scales needed
             return (d < 1 || d > 1000 ? (Math.log(d)).toExponential(3) : (Math.log(d)).toFixed(2));
@@ -1234,8 +1219,8 @@
         // if (s) {
         //   this._isBrushed = true;
         //   this._isZoomed = true;
-        //   this._fn.scale.x.domain([s[0][0], s[1][0]].map(this._fn.scale.x.invert, this._fn.scale.x)).nice(this.xTicks);
-        //   this._fn.scale.y.domain([s[1][1], s[0][1]].map(this._fn.scale.y.invert, this._fn.scale.y)).nice(this.yTicks);
+        //   this.scale.x.domain([s[0][0], s[1][0]].map(this.scale.x.invert, this.scale.x)).nice(this.xTicks);
+        //   this.scale.y.domain([s[1][1], s[0][1]].map(this.scale.y.invert, this.scale.y)).nice(this.yTicks);
         //   this._brush.call(this._brushBehavior.move, null);
         //   return;
         // } else if (this._isBrushed === true) {
@@ -1296,19 +1281,19 @@
           //           }
           //         }
           //
-          //         this._fn.scale.x.domain(domainX);
+          //         this.scale.x.domain(domainX);
           //         this.set('domainX', domainX);
-          //         this._fn.scale.y.domain(domainY).nice(this.yTicks);
+          //         this.scale.y.domain(domainY).nice(this.yTicks);
           //
           //         // if domain is on the edge of data, add a little space
-          //         domainY = this._fn.scale.y.domain();
+          //         domainY = this.scale.y.domain();
           //         if (domainY[0] === rangeY[0]) {
           //           domainY[0] -= (rangeY[1] - rangeY[0]) / this.yTicks;
           //         }
           //         if (domainY[1] === rangeY[1]) {
           //           domainY[1] += (rangeY[1] - rangeY[0]) / this.yTicks;
           //         }
-          //         this._fn.scale.y.domain(domainY);
+          //         this.scale.y.domain(domainY);
           //         this.set('domainY', domainY);
           //         resolve();
           //
@@ -1362,8 +1347,8 @@
       }
 
       _moveInfo(d) {
-        if (Number.isFinite(this._fn.scale.y(d.y))) {
-          var x = this.timeFormatRange.call(this, d.x, this._fn.scale.x.domain(), this._width);
+        if (Number.isFinite(this.scale.y(d.y))) {
+          var x = this.timeFormatRange.call(this, d.x, this.scale.x.domain(), this._width);
           var y = this.format.Number(d.y);
           this._info.text(x + ' ' + y);
           var fixP = this._fixedValue;
@@ -1425,8 +1410,8 @@
       _updateInfo() {
         if (!this._focusedValue || this._info.attr('hidden') === '') return;
         var focP = this._focusedValue;
-        var x = this._fn.scale.x(+focP.x),
-          y = this._fn.scale.y(+focP.y);
+        var x = this.scale.x(+focP.x),
+          y = this.scale.y(+focP.y);
         if (!x || !y) {
           return;
         }
@@ -1436,8 +1421,8 @@
           case 'delta':
             var fixP = this._fixedValue;
             if (fixP && fixP.x && focP.x !== fixP.x && fixP.y && focP.y !== fixP.y) {
-              var xFix = this._fn.scale.x(+fixP.x),
-                yFix = this._fn.scale.y(+fixP.y);
+              var xFix = this.scale.x(+fixP.x),
+                yFix = this.scale.y(+fixP.y);
               var x1D, x2D, y1D, y2D;
               this._deltaX.attr('x1', x).attr('x2', xFix).attr('y1', yFix).attr('y2', yFix);
               this._deltaY.attr('y1', y).attr('y2', yFix);
@@ -1534,10 +1519,10 @@
       _dotClicked(d) {
         switch (this.modus) {
           case 'zoom':
-            var offsetX = (this._fn.scale.x(this._fn.scale.x.domain()[1]) - this._fn.scale.x(this._fn.scale.x.domain()[0])) / 4,
-              offsetY = (this._fn.scale.y(this._fn.scale.y.domain()[0]) - this._fn.scale.y(this._fn.scale.y.domain()[1])) / 4,
-              x = this._fn.scale.x(+d.x),
-              y = this._fn.scale.y(+d.y) || 0;
+            var offsetX = (this.scale.x(this.scale.x.domain()[1]) - this.scale.x(this.scale.x.domain()[0])) / 4,
+              offsetY = (this.scale.y(this.scale.y.domain()[0]) - this.scale.y(this.scale.y.domain()[1])) / 4,
+              x = this.scale.x(+d.x),
+              y = this.scale.y(+d.y) || 0;
             d3.event.selection = [
               [x - offsetX, y - offsetY],
               [x + offsetX, y + offsetY]
@@ -1555,10 +1540,10 @@
             this._fixedValue = d;
             this._deltaDot.datum(this._fixedValue)
               .attr('cx', d => {
-                return this._fn.scale.x(d.x)
+                return this.scale.x(d.x)
               })
               .attr('cy', d => {
-                return this._fn.scale.y(d.y)
+                return this.scale.y(d.y)
               })
               .attr('r', this._focusDot.attr('r'))
               .attr('fill', this._focusDot.attr('fill'));
@@ -1580,15 +1565,15 @@
       }
 
       _scaleChanged(scale) {
-        for (var key in scale) {
-          // add scale function
-          this._fn.scale[key] = this._createScaleFn(scale[key]).domain(this.domain[key]);
-        }
+        // for (var key in scale) {
+        //   // add scale function
+        //   this.scale[key] = this._createScaleFn(scale[key]).domain(this.domain[key]);
+        // }
       }
       //
       // changeScale(newValue, oldValue) {
       //   // if (oldValue === undefined) return;
-      //   // var domainY = this._fn.scale.y.domain();
+      //   // var domainY = this.scale.y.domain();
       //   // if (this.yScale === 'ln' || this.yScale === 'log₁₀') {
       //   //   if (domainY[0] <= 0) {
       //   //     domainY[0] = Number.EPSILON;
@@ -1598,8 +1583,8 @@
       //   //   }
       //   // }
       //   // this._debouncedHideInfo();
-      //   // this._fn.scale.y = this._createScaleFn(this.yScale);
-      //   // this._fn.scale.y.domain(domainY).nice(this.yTicks);
+      //   // this.scale.y = this._createScaleFn(this.yScale);
+      //   // this.scale.y.domain(domainY).nice(this.yTicks);
       //   // this.set('domainY', domainY);
       //   // this._sizeChanged();
       // }

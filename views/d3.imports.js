@@ -46,7 +46,6 @@ export {
   scaleLinear,
   scaleLog,
   scalePow,
-  scaleSqrt,
   scaleTime,
 } from "d3-scale";
 

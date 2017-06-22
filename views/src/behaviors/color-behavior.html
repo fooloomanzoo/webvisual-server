@@ -12,12 +12,8 @@
 
       constructor() {
         super();
-      }
-
-      static get observers() {
-        return [
-          'setColor(item.color)'
-        ]
+        this._createPropertyObserver('item.color', 'setColor', true);
+        this._createPropertyObserver('color', 'setColor', true);
       }
 
       setColor(color) {
@@ -40,7 +36,7 @@
       }
 
       resetColor() {
-        this.setColor(this.item ? this.item.color || '' : '');
+        this.setColor(this.color || (this.item && this.item.color) || '');
       }
 
       getComputedStyleValue(property) {

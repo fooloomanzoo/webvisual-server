@@ -85,14 +85,18 @@
       }
 
       _linkElement(item, noLink) {
-        if (!(item && item.mount && !noLink)) {
+        if (!(item && item.mount)) {
           return;
         }
         if (this._olditem) {
-          if (item.mount === this._olditem.mount) {
+          if (item.mount === this._olditem.mount && !noLink) {
             return;
           }
           this._unlinkElement(this._olditem);
+        }
+
+        if (noLink) {
+          return;
         }
 
         if (window.Webvisual && window.Webvisual.assignElement) {
