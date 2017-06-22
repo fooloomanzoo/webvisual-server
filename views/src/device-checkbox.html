@@ -1,8 +1,8 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
-<link rel="import" href="behaviors/device-behavior.html" />
-<link rel="import" href="behaviors/color-behavior.html" />
-<link rel="import" href="behaviors/checked-and-select-behavior.html" />
+<link rel="import" href="mixins/device-mixin.html" />
+<link rel="import" href="mixins/color-mixin.html" />
+<link rel="import" href="mixins/checked-and-select-mixin.html" />
 
 <dom-module id="device-checkbox">
   <template strip-whitespace>
@@ -176,7 +176,7 @@
   </template>
 
   <script>
-    class DeviceCheckbox extends WebvisualBehaviors.CheckedAndSelectBehavior(WebvisualBehaviors.ColorBehavior(WebvisualBehaviors.DeviceBehavior(Polymer.Element))) {
+    class DeviceCheckbox extends WebvisualMixins.CheckedAndSelectMixin(WebvisualMixins.ColorMixin(WebvisualMixins.DeviceMixin(Polymer.Element))) {
 
       static get is() {
         return 'device-checkbox';

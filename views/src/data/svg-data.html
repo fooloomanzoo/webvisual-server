@@ -1,10 +1,10 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
-<link rel="import" href="../behaviors/fetch-behavior.html" />
+<link rel="import" href="../mixins/fetch-mixin.html" />
 
 <dom-module id="svg-data">
 
   <script>
-    class SVGData extends WebvisualBehaviors.FetchBehavior(Polymer.Element) {
+    class SVGData extends WebvisualMixins.FetchMixin(Polymer.Element) {
 
       static get is() {
         return 'svg-data'

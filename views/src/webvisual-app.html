@@ -2,8 +2,8 @@
 <link rel="import" href="../bower_components/polymer/lib/elements/dom-if.html">
 <link rel="import" href="../bower_components/polymer/lib/elements/dom-repeat.html">
 
-<link rel="import" href="behaviors/localize-behavior.html">
-<link rel="import" href="behaviors/fetch-behavior.html">
+<link rel="import" href="mixins/localize-mixin.html">
+<link rel="import" href="mixins/fetch-mixin.html">
 
 <link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
 <link rel="import" href="../bower_components/iron-a11y-keys-behavior/iron-a11y-keys-behavior.html">
@@ -429,9 +429,9 @@
   </template>
 
   <script>
-    class WebvisualApp extends WebvisualBehaviors.LocalizeBehavior(Polymer.mixinBehaviors(
-      [ Polymer.IronA11yKeysBehavior,
-        Polymer.IronResizableBehavior ], Polymer.Element)) {
+    class WebvisualApp extends WebvisualMixins.LocalizeMixin(Polymer.mixinMixins(
+      [ Polymer.IronA11yKeysMixin,
+        Polymer.IronResizableMixin ], Polymer.Element)) {
 
       static get is() {
         return 'webvisual-app';

@@ -1,6 +1,6 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html" />
-<link rel="import" href="behaviors/fullscreen-behavior.html" />
-<link rel="import" href="behaviors/fetch-behavior.html" />
+<link rel="import" href="mixins/fullscreen-mixin.html" />
+<link rel="import" href="mixins/fetch-mixin.html" />
 
 <!--
 'device-svg' provides rendering a svg in a container.
@@ -166,7 +166,7 @@
 </template>
 
   <script>
-    class DeviceSVG extends WebvisualBehaviors.FetchBehavior(WebvisualBehaviors.FullscreenBehavior(Polymer.Element)) {
+    class DeviceSVG extends WebvisualMixins.FetchMixin(WebvisualMixins.FullscreenMixin(Polymer.Element)) {
 
       static get is() {
         return 'device-svg';

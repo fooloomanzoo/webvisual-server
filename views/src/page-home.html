@@ -1,5 +1,5 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
-<link rel="import" href="behaviors/localize-behavior.html">
+<link rel="import" href="mixins/localize-mixin.html">
 
 <dom-module id="page-home">
 
@@ -157,7 +157,7 @@
   </template>
 
   <script>
-    class PageHome extends WebvisualBehaviors.LocalizeBehavior(Polymer.Element) {
+    class PageHome extends WebvisualMixins.LocalizeMixin(Polymer.Element) {
 
       static get is() {
         return 'page-home';

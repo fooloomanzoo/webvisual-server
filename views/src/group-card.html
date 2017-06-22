@@ -1,5 +1,5 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
-<link rel="import" href="behaviors/container-behavior.html">
+<link rel="import" href="mixins/container-mixin.html">
 
 <dom-module id='group-card'>
   <template strip-whitespace>
@@ -191,7 +191,7 @@
   </template>
 
   <script>
-    class GroupCard extends WebvisualBehaviors.ContainerBehavior(Polymer.Element) {
+    class GroupCard extends WebvisualMixins.ContainerMixin(Polymer.Element) {
 
       static get is() {
         return 'group-card';

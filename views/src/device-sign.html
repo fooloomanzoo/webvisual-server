@@ -1,7 +1,7 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
-<link rel="import" href="behaviors/device-behavior.html"/>
-<link rel="import" href="behaviors/color-behavior.html"/>
-<link rel="import" href="behaviors/checked-and-select-behavior.html"/>
+<link rel="import" href="mixins/device-mixin.html"/>
+<link rel="import" href="mixins/color-mixin.html"/>
+<link rel="import" href="mixins/checked-and-select-mixin.html"/>
 
 <dom-module id="device-sign">
   <template strip-whitespace>
@@ -175,7 +175,7 @@
   </template>
 
   <script>
-  class DeviceSign extends WebvisualBehaviors.CheckedAndSelectBehavior(WebvisualBehaviors.ColorBehavior(WebvisualBehaviors.DeviceBehavior(Polymer.Element))) {
+  class DeviceSign extends WebvisualMixins.CheckedAndSelectMixin(WebvisualMixins.ColorMixin(WebvisualMixins.DeviceMixin(Polymer.Element))) {
 
     static get is() {
       return 'device-sign';

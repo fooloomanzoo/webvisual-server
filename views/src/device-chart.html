@@ -2,8 +2,8 @@
 <link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
 <link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
 
-<link rel="import" href="behaviors/scale-behavior.html">
-<link rel="import" href="behaviors/fullscreen-behavior.html">
+<link rel="import" href="mixins/scale-mixin.html">
+<link rel="import" href="mixins/fullscreen-mixin.html">
 
 <link rel="import" href="components/icon-button.html">
 <link rel="import" href="style/selectbox-style.html">
@@ -320,8 +320,8 @@
     </dom-if>
   </template>
   <script>
-    class DeviceChart extends Polymer.mixinBehaviors(
-      [Polymer.IronResizableBehavior], WebvisualBehaviors.ScaleBehavior(WebvisualBehaviors.FullscreenBehavior(Polymer.Element))) {
+    class DeviceChart extends Polymer.mixinMixins(
+      [Polymer.IronResizableMixin], WebvisualMixins.ScaleMixin(WebvisualMixins.FullscreenMixin(Polymer.Element))) {
 
       static get is() {
         return 'device-chart';
@@ -482,7 +482,7 @@
         this._isAttached = false;
         this._isBrushed = false;
         this._isZoomed = false;
-        this._brushBehavior = Function.prototype;
+        this._brushMixin = Function.prototype;
         this._graphs = new Set();
         this._ticks = {};
         var localeDateFormat = {
@@ -629,7 +629,7 @@
         this._deltaY = d3.select(this.$.deltaY);
         this._deltaDot = d3.select(this.$.deltaDot);
 
-        // this._brushBehavior = d3.brush()
+        // this._brushMixin = d3.brush()
         //   // .on('end', this.brushed.bind(this._self()));
         //   .on('end', this.brushed.bind(this));
         // this._brush = d3.select(this.$.brush);
@@ -860,11 +860,11 @@
         //   .attr('transform', 'translate(0,' + 0 + ')');;
 
         // if (this._isBrushed !== true || this._isZoomed !== true) {
-        //   this._brushBehavior.extent([
+        //   this._brushMixin.extent([
         //     [0, 0],
         //     [this._width, this._height]
         //   ])
-        //   this._brush.call(this._brushBehavior);
+        //   this._brush.call(this._brushMixin);
         // }
       }
 
@@ -1206,7 +1206,7 @@
         //   this._isZoomed = true;
         //   this.scale.x.domain([s[0][0], s[1][0]].map(this.scale.x.invert, this.scale.x)).nice(this.xTicks);
         //   this.scale.y.domain([s[1][1], s[0][1]].map(this.scale.y.invert, this.scale.y)).nice(this.yTicks);
-        //   this._brush.call(this._brushBehavior.move, null);
+        //   this._brush.call(this._brushMixin.move, null);
         //   return;
         // } else if (this._isBrushed === true) {
         //   this._isBrushed = false;

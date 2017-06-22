@@ -1,9 +1,9 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
-<link rel="import" href="../behaviors/fetch-behavior.html">
+<link rel="import" href="../mixins/fetch-mixin.html">
 
 <dom-module id="facility-data">
   <script>
-    class FacilityData extends WebvisualBehaviors.FetchBehavior(Polymer.Element) {
+    class FacilityData extends WebvisualMixins.FetchMixin(Polymer.Element) {
 
       static get is() {
         return 'facility-data'

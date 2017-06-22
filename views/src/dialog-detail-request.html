@@ -2,7 +2,7 @@
 
 <link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
 
-<link rel="import" href="behaviors/localize-behavior.html">
+<link rel="import" href="mixins/localize-mixin.html">
 
 <link rel="import" href="style/button-style.html">
 
@@ -142,7 +142,7 @@
 </dom-module>
 
 <script>
-  class DialogDetailRequest extends WebvisualBehaviors.LocalizeBehavior(Polymer.Element) {
+  class DialogDetailRequest extends WebvisualMixins.LocalizeMixin(Polymer.Element) {
 
     static get is() {
       return 'dialog-detail-request'

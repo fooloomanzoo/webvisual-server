@@ -1,15 +1,15 @@
 <!-- Dependent to be content of device-chart -->
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
-<link rel="import" href="behaviors/scale-behavior.html" />
-<link rel="import" href="behaviors/device-behavior.html" />
-<link rel="import" href="behaviors/color-behavior.html" />
+<link rel="import" href="mixins/scale-mixin.html" />
+<link rel="import" href="mixins/device-mixin.html" />
+<link rel="import" href="mixins/color-mixin.html" />
 
 <dom-module id="device-graph">
   <template>
     <style></style>
   </template>
   <script>
-    class DeviceGraph extends WebvisualBehaviors.ScaleBehavior(WebvisualBehaviors.ColorBehavior(WebvisualBehaviors.DeviceBehavior(Polymer.Element))) {
+    class DeviceGraph extends WebvisualMixins.ScaleMixin(WebvisualMixins.ColorMixin(WebvisualMixins.DeviceMixin(Polymer.Element))) {
 
       static get is() {
         return 'device-graph';
