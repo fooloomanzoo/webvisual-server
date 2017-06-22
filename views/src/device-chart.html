@@ -126,12 +126,12 @@
       .axis.horizontal .tick:nth-last-of-type(2):not(:only-of-type) > text {
         text-anchor: end;
       }
-      /*.axis.vertical[position="left"]:not(.dragged) .tick > text {
+      .axis.vertical[position="left"]:not(.dragged) .tick > text {
         text-anchor: end;
       }
       .axis.vertical[position="right"]:not(.dragged) .tick > text {
         text-anchor: start;
-      }*/
+      }
       .brush .selection {
         fill: currentColor;
         fill-opacity: 0.5;
@@ -188,6 +188,7 @@
         position: absolute;
         bottom: var(--control-bottom, 0px);
         right: var(--control-right, 0px);
+        mix-blend-mode: exclusion;
       }
       #control > *:not(:first-of-type) {
         margin-left: var(--control-button-distance, 0px);
@@ -201,7 +202,6 @@
         margin-top: 0.25em;
         margin-left: 0.25em;
         margin-right: 0.25em;
-        color: var(--primary-text-color);
       }
       .button {
         padding: 0.3em;
@@ -214,9 +214,6 @@
         display: flex;
         flex-direction: column;
         background-color: rgba(255, 255, 255, 0.25);
-      }
-      icon-button {
-        mix-blend-mode: exclusion;
       }
       [hidden] {
         display: none !important;
@@ -300,7 +297,6 @@
           <select value="{{modus::change}}">
             <option value="zoom">zoom</option>
             <option value="delta">delta</option>
-            <!-- <option value="integral">integral</option> -->
           </select>
         </div>
       </iron-collapse>
@@ -312,14 +308,14 @@
       <template>
         <dom-repeat items="[[items]]">
           <template>
-            <device-graph item="[[item]]" interpolation="[[interpolation]]" no-link="[[noLink]]" multi-axes=[[multiAxes]]></device-graph>
+            <device-graph item="[[item]]" interpolation="[[interpolation]]" no-link="[[noLink]]" multi-axes=[[multiAxes]] range=[[range]]></device-graph>
           </template>
         </dom-repeat>
       </template>
     </dom-if>
     <dom-if if="[[!multi]]" restamp>
       <template>
-        <device-graph item="[[item]]" interpolation="[[interpolation]]" no-link="[[noLink]]" multi-axes=[[multiAxes]]></device-graph>
+        <device-graph item="[[item]]" interpolation="[[interpolation]]" no-link="[[noLink]]" multi-axes=[[multiAxes]] range=[[range]]></device-graph>
       </template>
     </dom-if>
   </template>
@@ -924,18 +920,18 @@
         g._nodes.axis[key].append('svg:title').text(mount);
         // set scale
         // this.scale[key] = this._createScaleFn(this.scale[key]).domain(this.domain[key]);
-        g._generators.axis[key] = this._createAxisFn(this.scale[key], pos, this.keys[key]);
+        g._generators.axis[key] = this._createAxisFn(this.scale[key], pos, this.keys[key].scale);
         switch (pos) {
           case 'left':
           case 'right':
-            // this.scale[key].range([this._height, 0]);
-            this._generators.brush[key] = d3.brushY();
+            this.scale[key].range([this._height, 0]);
+            g._generators.brush[key] = d3.brushY();
             vertical = true;
             break;
           case 'bottom':
           case 'top':
-            // this.scale[key].range([0, this._width]);
-            this._generators.brush[key] = d3.brushX();
+            this.scale[key].range([0, this._width]);
+            g._generators.brush[key] = d3.brushX();
             break;
         }
         // enter brush node
@@ -955,7 +951,7 @@
           pos = g._nodes.axis[key].node()._position;
         // update axis
         if (pos === 'left' || pos === 'right') {
-          this._updateScale(g, key, this.multiAxes[key], true);
+          this._updateScale.call(g);
           if (pos === 'left') {
             g._generators.brush[key].extent([
               [-tickSize, 0], [0, this._height]
@@ -966,7 +962,7 @@
             ]);
           }
         } else if (pos === 'bottom' || pos === 'top') {
-          this._updateScale(g, key, this.multiAxes[key], false);
+          this._updateScale.call(g);
           if (pos === 'top') {
             g._generators.brush[key].extent([
               [0, -tickSize], [this._width, 0]
@@ -977,7 +973,7 @@
             ]);
           }
         }
-        g._generators.axis[key] = this._createAxisFn(g.scale[key], pos, g.keys[key]).tickFormat(expanded ? null : '').tickSize(tickSize);
+        g._generators.axis[key] = this._createAxisFn(g.scale[key], pos, g.keys[key].scale).tickFormat(expanded ? null : '').tickSize(tickSize);
         g._nodes.brush[key].raise().call(g._generators.brush[key]);
         g._nodes.axis[key].call(g._generators.axis[key]).transition(100)
           .attr('transform', 'translate(' + (g._nodes.axis[key].node()._left || 0) + ',' + (g._nodes.axis[key].node()._top || 0) + ')');
@@ -1009,23 +1005,12 @@
       }
 
       _updateScales(keys) {
-        // keys = keys || Object.keys(this.multiAxes);
-        // keys.forEach(key => {
-        //   this._updateScale(this, key, this.multiAxes[key], this._nodes.axis[key].classed('vertical'));
-        //   this._graphs.forEach( g => {
-        //     if (g._nodes.axis[key]) {
-        //       this._updateScale(g, key, this.multiAxes[key], this.multiAxes[key] ? g._nodes.axis[key].classed('vertical') : this._nodes.axis[key].classed('vertical'));
-        //     }
-        //   })
-        // })
-      }
-
-      _updateScale(g, key, multiAxes, vertical) {
-        // if (multiAxes) {
-        //   g.scale[key].domain(g.domain[key]).range(vertical ? [this._height, 0] : [0, this._width]);
-        // } else {
-        //   g.scale[key].domain(this.domain[key]).range(vertical ? [this._height, 0] : [0, this._width]);
-        // }
+        this._updateScale();
+        this._graphs.forEach( g => {
+          // if (g._nodes.axis[key]) {
+            g._updateScale();
+          // }
+        })
       }
 
       _callAxes() {
@@ -1564,12 +1549,6 @@
         })
       }
 
-      _scaleChanged(scale) {
-        // for (var key in scale) {
-        //   // add scale function
-        //   this.scale[key] = this._createScaleFn(scale[key]).domain(this.domain[key]);
-        // }
-      }
       //
       // changeScale(newValue, oldValue) {
       //   // if (oldValue === undefined) return;

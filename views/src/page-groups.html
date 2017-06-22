@@ -193,7 +193,7 @@
 
       _groupedKeyChanged(groupedKey, old) {
         if (old !== undefined) {
-          var sel = Polymer.dom(this.root).querySelectorAll('[element]');
+          var sel = Polymer.dom(this.root).querySelectorAll('[is-device]');
           sel.forEach(function(el) {
             el.resetState();
           });

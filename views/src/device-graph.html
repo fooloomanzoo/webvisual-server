@@ -58,6 +58,17 @@
 
           multiAxes: {
             type: Object
+          },
+
+          axisPosition: {
+            type: Object,
+            value: function() {
+              return {
+                x: 'bottom',
+                y: 'left'
+              }
+            },
+            observer: '_axisPositionChanged'
           }
         }
       }
@@ -169,13 +180,13 @@
 
         this._isAttached = true;
 
-        // for (var key in this._chart.multiAxes) {
-        //   if (this._chart.multiAxes[key] === true) {
-        //     this._chart._addAxis(this, key, this.item.mount);
-        //   } else {
-        //     this.scale[key] = this._chart.scale[key];
-        //   }
-        // }
+        for (var key in this._chart.multiAxes) {
+          if (this._chart.multiAxes[key] === true) {
+            this._chart._addAxis(this, key, this.item.mount);
+          } else {
+            this.scale[key] = this._chart.scale[key];
+          }
+        }
         this._setColorProperties();
         this._chart._sizeChanged();
       }
@@ -470,11 +481,12 @@
       _getDomain(key) {
         return new Promise((resolve, reject) => {
           if (!this._isAttached) reject();
-          var scale = this.scale[key];
+          var scale = this.keys[key].scale;
+          var vertical = this.keys[key].coordinate === 'y';
           this.requestRange(key)
             .then(range => {
               var domain = range;
-              if (key === 'y') {
+              if (vertical) {
                 // if min, max are equal, add a little space
                 if (domain[0] !== undefined && domain[1] !== undefined && domain[0] === domain[1]) {
                   domain[0] -= 0.5;
@@ -482,15 +494,18 @@
                 }
               }
 
-              if (scale === 'ln' || scale === 'log₁₀') {
+              // logarithmic scales need scales of same prefix
+              if (['ln', 'log', 'log₂', 'log₁₀'].indexOf(scale) > -1) {
                 if (domain[0] <= 0) {
-                  domain[0] = Number.EPSILON;
+                  domain[0] = Math.sign(domain[1])*Number.EPSILON;
                 }
                 if (domain[1] <= 0) {
-                  domain[1] = Number.EPSILON;
+                  domain[1] = Math.sign(domain[0])*Number.EPSILON;
                 }
               }
-              this.set('domain.' + key, domain);
+              this.domain = this.domain || {};
+              this.domain[key] = domain;
+              this.notifyPath('domain.' + key);
               resolve({domain: domain, key: key});
             })
             .catch(err => {

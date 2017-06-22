@@ -17,18 +17,21 @@
       static get properties() {
         return {
           /**
-           * keys that define the variables of the values
+           * Object of keys that define the variables of the values
+           *
+           * 'key'-property defines the key specifier and the defined Object-value the according properties.
+           *    The properties contain:
+           *       'type': either 'numeric' or 'date'
+           *       'scale': either 'time', 'ln', 'log', 'log₂', 'log₁₀', '√', 'pow'
+           *       'coordinate': either 'x' or 'y'
            */
           keys: {
-            type: Array,
+            type: Object,
             value: function() {
-              return [
-                {
-                  key: 'x', type: 'time', coordinate: 'x', base: null
-                }, {
-                  key: 'y', type: 'linear', coordinate: 'y', base: null
-                }
-              ];
+              return {
+                x: { type: 'date', scale: 'time', coordinate: 'x' },
+                y: { type: 'numeric', scale: 'linear', coordinate: 'y' }
+              };
             }
           },
 
@@ -40,10 +43,10 @@
           },
 
           /**
-           * the base on how the values will be scaled (only for pow- and log-scale)
+           * the object of scale base for each key (only available for 'pow' or 'log')
            * e.g. :
            *  {
-           *    y: [0, 10]
+           *    y: Math.E
            *  }
            */
           scaleBase: {
@@ -78,24 +81,29 @@
 
       static get observers() {
         return [
-          '_computeScale(keys)',
-          '_rangeChanged(range, scale)',
-          '_domainChanged(domain, scale)',
+          '_computeScale(keys, scaleBase)',
+          '_rangeChanged(range)',
+          '_domainChanged(domain)',
         ]
       }
 
-      _computeScale(keys) {
+      _computeScale(keys, base = {}) {
         if (keys === undefined) return;
-        console.log('_computeScale',keys)
         var ret = {};
-        keys.forEach(k => {
-          ret[k.key] = this._createScaleFn(k.type, k.base);
-        });
+        for (var k in keys) {
+          ret[k] = this._createScaleFn(keys[k].scale, base[k]).domain((this.domain && this.domain[k]) || [1,10]).range((this.range && this.range[k]) || [1,10]);
+        }
         this.set('scale', ret);
       }
 
-      _createScaleFn(type, base) {
-        switch (type) {
+      _updateScale() {
+        for (var k in this.scale) {
+          this.scale[k].domain((this.domain && this.domain[k]) || [null,null]).range((this.range && this.range[k]) || [null,null]);
+        }
+      }
+
+      _createScaleFn(scale, base) {
+        switch (scale) {
           case 'time':
             return d3.scaleTime();
             break;

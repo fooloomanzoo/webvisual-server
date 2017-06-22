@@ -16,12 +16,6 @@
 
       static get properties() {
         return {
-          element: {
-            type: Boolean,
-            value: true,
-            reflectToAttribute: true,
-            readOnly: true
-          },
 
           item: {
             type: Object
@@ -60,6 +54,13 @@
 
           _initialized: {
             type: Boolean
+          },
+
+          isDevice: {
+            type: Boolean,
+            value: true,
+            reflectToAttribute: true,
+            readOnly: true
           }
 
         }
