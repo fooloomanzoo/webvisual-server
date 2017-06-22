@@ -44,15 +44,12 @@
       }
       #chart {
         margin: 0 4px 8px 12px;
-        --chart-plot-background-color: #e1e1e1;
-        --chart-plot-background-opacity: 0.5;
-        --focus-color: var(--primary-text-color);
+        --chart-plot-background-color: #fff;
+        --chart-plot-background-opacity: 0.75;
         /*--control-bottom: 20px;*/
       }
-      :host([plain]) #chart,
       :host([dark]) #chart {
         --chart-plot-background-opacity: 0.2;
-        --focus-color: currentColor;
       }
       #chart[fullheight] {
         max-height: 100%;
