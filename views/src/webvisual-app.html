@@ -1,6 +1,4 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
-<link rel="import" href="../bower_components/polymer/lib/elements/dom-if.html">
-<link rel="import" href="../bower_components/polymer/lib/elements/dom-repeat.html">
 
 <link rel="import" href="mixins/localize-mixin.html">
 <link rel="import" href="mixins/fetch-mixin.html">
@@ -206,9 +204,7 @@
     <!-- login dialog-->
     <dialog-login id="loginDialog"
       icon="{{loginIcon}}"
-      logged-in="{{loggedIn}}"
-      language="[[language]]"
-      language-resources="[[languageResources]]">
+      logged-in="{{loggedIn}}">
     </dialog-login>
 
     <!-- Data -->
@@ -236,7 +232,7 @@
 
           <logo-element id="logo" href="/home" title$="[[localize('home', 'name')]]"></logo-element>
 
-          <iron-collapse opened="[[showTabs]]" hidden$="[[!wideLayout]]" horizontal style="align-self: flex-end;">
+          <iron-collapse opened$="[[showTabs]]" hidden$="[[!wideLayout]]" horizontal style="align-self: flex-end;">
             <div class="tab-drawer top">
 
               <div class="selectbox toolbar grouping top" title="[[groupedKey]]" hidden$="[[hideGroupSelect]]">
@@ -285,7 +281,7 @@
       <!-- Pages-->
       <iron-pages id="pages" role="main" selected="{{page}}" attr-for-selected="name" selected-attribute="visible" fallback-selection="home">
         <!-- home view for selecting the facility -->
-        <page-home name="home" dark$="[[dark]]" plain$="[[plain]]" class="fullbleed" facilities="[[facilities]]" logged-in="[[loggedIn]]" language="[[language]]" language-resources="[[languageResources]]">
+        <page-home name="home" dark$="[[dark]]" plain$="[[plain]]" class="fullbleed" facilities="[[facilities]]" logged-in="[[loggedIn]]" on-login-request="_openLoginDialog">
           <slot></slot>
         </page-home>
         <!-- list view of items in a facility -->
@@ -476,14 +472,9 @@
             notify: true
           },
 
-          language: {
+          languageResourcePrefix: {
             type: String,
-            notify: true
-          },
-
-          languageResourcePath: {
-            type: String,
-            value: '/locales/app.json'
+            value: '/locales/ui/'
           },
 
           dark: {
@@ -534,7 +525,6 @@
 
           showTabs: {
             type: Boolean,
-            value: false,
             observer: '_debouncedHideTabs'
           },
 
@@ -808,7 +798,7 @@
       }
 
       _openLoginDialog() {
-        this.$.loginDialog.opened = true;
+        this.$.loginDialog.open();
       }
 
       // detail-requests
@@ -819,8 +809,6 @@
             Polymer.dom(this.root).appendChild(this._detailRequestDialog);
           }
           this._detailRequestDialog.set('item', detail.item);
-          this._detailRequestDialog.set('language', this.language);
-          this._detailRequestDialog.set('languageResources', this.languageResources);
           this._detailRequestDialog.opened = true;
         });
       }

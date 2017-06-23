@@ -207,7 +207,7 @@
         if (hasArea === false) {
           // remove fill area
           if (this._nodes.area && this._nodes.area.node) {
-            node = this._nodes.area.node();
+            var node = this._nodes.area.node();
             if (node && node.parentElement)
               node.parentElement.removeChild(node);
             this._nodes.area = null;
@@ -234,7 +234,7 @@
         if (hasLine === false) {
           // remove line
           if (this._nodes.line && this._nodes.line.node) {
-            node = this._nodes.line.node();
+            var node = this._nodes.line.node();
             if (node && node.parentElement)
               node.parentElement.removeChild(node);
             this._nodes.line = null;
@@ -275,7 +275,7 @@
         } else {
           // remove threshold colors
           if (this.boundery && this.boundery.node) {
-            node = this.boundery.node();
+            var node = this.boundery.node();
             if (node && node.parentElement)
               node.parentElement.removeChild(node);
             this.boundery = null;
@@ -368,7 +368,7 @@
         }
         if (this._chart) {
           if (!this._isBrushed) {
-            console.log('is not Brushed')
+            // console.log('is not Brushed')
             // for (var key in this._chart.multiAxes) {
               // if (this._chart.multiAxes[key] === true) {
               //   this._getDomain(key).then(this.redraw.bind(this));
@@ -385,7 +385,7 @@
       redraw() {
         if (!this._isAttached) return;
 
-        console.log('graph redraw', this.item.mount, this.values.length);
+        // console.log('graph redraw', this.item.mount, this.values.length);
 
         var data = this.values || [];
 

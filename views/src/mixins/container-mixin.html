@@ -16,14 +16,16 @@
 
       static get properties() {
         return {
-          container: {
+          isContainer: {
             type: Boolean,
             value: true,
             reflectToAttribute: true,
             readOnly: true
           },
+
           opened: {
-            type: Boolean
+            type: Boolean,
+            notify: true
           },
 
           openOnSelect: {
@@ -41,7 +43,8 @@
           },
 
           isExceeding: {
-            type: Boolean
+            type: Boolean,
+            notify: true
           },
 
           selectNotify: {

@@ -26,87 +26,93 @@
           },
 
           language: {
-            type: String
+            type: String,
+            notify: true
           },
+
           fallbackLanguage: {
             type: String,
             value: 'en'
           },
+
           /**
            * For example, a valid dictionary would be:
-           * this.languageResources = {
+           * this.languageResource = {
            *  'en': { 'greeting': 'Hello!' }, 'fr' : { 'greeting': 'Bonjour!' }
            * }
            */
-          languageResources: {
-            type: Object
+
+          languageResource: {
+            type: Object,
+            notify: true
           },
-          languageResourcePath: {
+
+          languageResourcePrefix: {
             type: String
           },
+
           /**
            * Translates a string to the current 'language'. Any parameters to the
            * string should be passed in order, as follows:
            * 'localize(stringKey, param1Name, param1Value, param2Name, param2Value)'
            */
           localize: {
-            type: Function
-          },
-
-          __supportedLanguages: {
-            type: Array
+            type: Function,
+            computed: '__computeLocalize(languageResource)'
           }
         }
       }
 
       static get observers() {
         return [
-          '_loadLanguageResources(languageResourcePath)',
-          '_updateLanguage(language, languageResource)'
+          '_loadLanguageResources(languageResourcePrefix, language)'
         ]
       }
 
-      _loadLanguageResources(languageResourcePath) {
-        this._fetch(languageResourcePath, 'GET', 'include', 'json', 'languageResource', true, true)
+      _loadLanguageResources(languageResourcePrefix, language, attempts) {
+        if (languageResourcePrefix === undefined || !language || this._recentLanguage === language) return;
+        language = language.toLowerCase();
+        attempts = attempts || 0;
+
+        this._fetch(languageResourcePrefix + language + '.json', 'GET', 'include', 'json', 'languageResource', true, true)
+          .then(() => {
+            this._recentLanguage = language;
+            this.dispatchEvent(new CustomEvent('languagechange', {
+              bubbles: true,
+              composed: true,
+              detail: language,
+              node: this
+            }));
+          })
           .catch(err => {
-            console.log(err);
+            if (language.split('-').length > 0) {
+              this._loadLanguageResources(languageResourcePrefix, language.split('-')[0], attempts++);
+            } else if (attempts === undefined || attempts < 3){
+              this._loadLanguageResources(languageResourcePrefix, this.fallbackLanguage, attempts++);
+            } else {
+              console.log(languageResourcePrefix, language, err);
+            }
           });
       }
 
       /**
        * Returns a computed 'localize' method, based on the current 'language'.
        */
-      __computeLocalize(language, languageResources) {
-        var fallback = this.fallbackLanguage;
+      __computeLocalize(languageResource) {
         return function() {
-          var fallbackLanguage = fallback;
-
           if (!arguments[0])
             return '';
 
-          if (!languageResources) {
+          if (!languageResource) {
             return arguments[0];
           }
 
-          if (!(language && languageResources[language]))
-            language = fallbackLanguage;
+          var translatedValue = languageResource[arguments[0]];
 
-          var translatedValue = languageResources[language];
-
-          for (var i = 0; i < arguments.length; i++) {
+          for (var i = 1; i < arguments.length; i++) {
             if (!translatedValue)
               break;
             translatedValue = translatedValue[arguments[i]];
-          }
-
-          // if not present in resources, then use fallbackLanguage
-          if (!translatedValue) {
-            translatedValue = languageResources[fallbackLanguage];
-            for (var i = 0; i < arguments.length; i++) {
-              if (!translatedValue)
-                break;
-              translatedValue = translatedValue[arguments[i]];
-            }
           }
 
           // if not present in resources, then return the (requested) key
@@ -115,24 +121,6 @@
           }
           return translatedValue;
         };
-      }
-
-      _updateLanguage(language, languageResources) {
-        if (language === undefined || languageResources === undefined) return;
-
-        this.set('__supportedLanguages', Object.keys(languageResources));
-
-        language = language.toLowerCase();
-
-        // check for sub groups of languages and set them to main member of language sets (for simplification)
-        if (this.__supportedLanguages.indexOf(language) !== -1) {
-          language = language.split('-')[0];
-        }
-        if (this.__supportedLanguages.indexOf(language) !== -1) {
-          this.set('localize', this.__computeLocalize(language, languageResources));
-        } else {
-          this.set('localize', this.__computeLocalize(language, languageResources));
-        }
       }
 
       _windowLanguageListener(useWindowLanguage) {
@@ -144,9 +132,16 @@
         }
       }
 
-      _setLanguage(language) {
-        language = language || window.navigator.language;
-        this.set('language', language);
+      _setLanguage(e) {
+        if (e === undefined) return;
+        var type = Object.prototype.toString.call(e);
+        if (type === '[object CustomEvent]') {
+          if (e.detail) {
+            e = e.detail;
+          }
+        }
+        e = e || window.navigator.language;
+        this.set('language', e);
       }
 
     }

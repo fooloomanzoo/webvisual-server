@@ -81,19 +81,11 @@
             type: Object
           },
           /**
-           * local language for formatting
+           * folder for format file
            */
-          language: {
+          languageResourcePrefix: {
             type: String,
-            notify: true,
-            value: window.navigator.language
-          },
-          /**
-           * path for format file
-           */
-          languageResourcePath: {
-            type: String,
-            value: '/locales/time_and_numbers.json'
+            value: '/locales/dtf/'
           }
 
         }
@@ -112,7 +104,8 @@
         return [
           '_createAxisGenerator(axisPosition, scale, keys)',
           '_createAxis(_axisInsertionPoint, _axisGenerator)',
-          '_updateAxis(_axis)'
+          '_updateAxis(_axis)',
+          '_setDateNumberFormat(localize)'
         ]
       }
 
@@ -125,6 +118,7 @@
       }
 
       _updateAxis(axis) {
+        axis = axis || this._axis;
         if (axis === undefined) return;
         for (var key in axis) {
           this._axisBrush[key].raise().call(this._axisGenerator[key]);
@@ -157,7 +151,7 @@
 
       _createAxisGenerator(pos, scale, keys) {
         if (pos === undefined || scale === undefined) return;
-        console.log('_createAxisFn', pos, scale)
+        // console.log('_createAxisFn', pos, scale)
         var ret = {};
 
         for (var key in pos) {
@@ -178,16 +172,16 @@
           ret[key].scale(scale[key]);
         }
 
-        axis.scale(scalefn).ticks(ticks);
-        if (scale === 'time')
-          axis.ticks(ticks).tickFormat(this.timeFormat.bind(this));
-        else if (scalefn.base && scalefn.base() === Math.E)
-          axis.tickFormat(d => {
-            // TODO: different conception for log scales needed
-            return (d < 1 || d > 1000 ? (Math.log(d)).toExponential(3) : (Math.log(d)).toFixed(2));
-          })
-
-        return axis;
+        // axis.scale(scalefn).ticks(ticks);
+        // if (scale === 'time')
+        //   axis.ticks(ticks).tickFormat(this.timeFormat.bind(this));
+        // else if (scalefn.base && scalefn.base() === Math.E)
+        //   axis.tickFormat(d => {
+        //     // TODO: different conception for log scales needed
+        //     return (d < 1 || d > 1000 ? (Math.log(d)).toExponential(3) : (Math.log(d)).toFixed(2));
+        //   })
+        //
+        // return axis;
       }
 
       _onAxisDragStart() {
@@ -215,7 +209,13 @@
 
       }
 
-
+      _setDateNumberFormat() {
+        var dateLocale = this.localize('date'),
+          numberLocale = this.localize('number');
+        if (dateLocale) d3.timeFormatDefaultLocale(dateLocale);
+        if (numberLocale) d3.formatDefaultLocale(numberLocale);
+        if (dateLocale || numberLocale) this._updateAxis();
+      }
 
       static get _VALID_AXIS_POSITIONS() {
         return ['top', 'right', 'bottom', 'bottom'];

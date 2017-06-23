@@ -351,16 +351,14 @@
       }
 
       _srcChanged(src) {
-        if (src && this._recentSrc !== src) {
+        if ((src && this._recentSrc !== src)
+          //  || (this._svg && this._svg.empty())
+        ) {
           this._recentSrc = src;
-          this._svg = d3.select(this.$.svgContainer).select('svg#main');
-          if (this._svg && !this._svg.empty()) {
-            this.$.svgContainer.removeChild(this._svg.node());
-          }
 
           this._fetch(src, 'GET', 'include', 'xml').then(this._registerXML.bind(this))
-            .catch(function(statusCode, statusText) {
-              console.log(statusCode, statusText);
+            .catch(err => {
+              console.log(src, err);
             });
         }
       }
@@ -371,6 +369,10 @@
         // import svg to document
         var svgNode = document.importNode(xml.documentElement.cloneNode(true), true);
 
+        this._svg = d3.select(this.$.svgContainer).select('#main');
+        if (this._svg && !this._svg.empty()) {
+          this.$.svgContainer.removeChild(this._svg.node());
+        }
         // append imported svg to this element
         this.$.svgContainer.insertBefore(svgNode, this.$.svgContainer.firstChild);
         this._svg = d3.select(svgNode).attr('id', 'main')
@@ -451,6 +453,13 @@
           this._mainG.selectAll('.' + this.exceedingClass)
             .classed(this.exceedingClass, false);
         }
+      }
+
+      reset() {
+        this.opened = false;
+        this.set('item', {});
+        this.set('items', []);
+        this.set('exceeding', []);
       }
 
       _initialChanged(initial) {
@@ -584,7 +593,7 @@
         if (sel === '' ||
           (elems = this._mainG.selectAll(sel)).classed(selectedClass, true).empty()) {
           if (this.opened) {
-            this.resetZoom();
+            this._resetZoom();
           }
           return;
         }

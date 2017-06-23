@@ -82,6 +82,8 @@
       }
 
       disconnectedCallback() {
+        super.disconnectedCallback();
+        this.checkedChanged(false);
         this._removeTouchListeners();
       }
 
@@ -165,6 +167,19 @@
             this.checked = true;
           }
         }
+      }
+
+      deselect() {
+        if (this.checked === true && this.selectable === true) {
+          this.checked = false;
+        }
+      }
+
+      reset() {
+        if (super.reset) {
+          super.reset();
+        }
+        this.deselect();
       }
     }
   }

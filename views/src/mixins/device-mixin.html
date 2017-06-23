@@ -103,10 +103,9 @@
         if (window.Webvisual && window.Webvisual.assignElement) {
           window.Webvisual.assignElement(this);
 
-
         this._olditem = item;
         this.clearValues();
-        this.resetState();
+        this.reset();
 
         this.requestValues(null, null, this.viewLength)
           .then(data => {
@@ -334,9 +333,12 @@
 
       _hasExceededChanged() {}
 
-      resetState() {
+      reset() {
         if (this.resetColor)
           this.resetColor();
+        if (super.reset) {
+          super.reset();
+        }
         this.isExceeding = false;
         this.hasExceeded = false;
         this._initialized = false;

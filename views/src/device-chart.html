@@ -55,14 +55,14 @@
         position: absolute;
         top: 0; bottom: 0; left: 0; right: 0;
         width: 100%; height: 100%;
-        overflow: visible;
+        overflow: opened;
         font-family: inherit !important;
       }
       text {
         fill: currentColor;
         stroke: white;
-        stroke-width: 0.2;
-        stroke-opacity: 0.1;
+        stroke-width: 0.1;
+        stroke-opacity: 0.2;
         font-size: 1em;
         letter-spacing: normal !important;
         font-family: inherit !important;
@@ -304,20 +304,14 @@
       <icon-button icon="[[fullscreenIcon]]" on-tap="toggleFullscreen"></icon-button>
     </section>
 
-    <dom-if if="[[multi]]" restamp>
-      <template>
-        <dom-repeat items="[[items]]">
-          <template>
-            <device-graph item="[[item]]" interpolation="[[interpolation]]" no-link="[[noLink]]" multi-axes=[[multiAxes]] range=[[range]]></device-graph>
-          </template>
-        </dom-repeat>
+    <template is="dom-if" if="[[multi]]" restamp>
+      <template is="dom-repeat" items="[[items]]">
+        <device-graph item="[[item]]" interpolation="[[interpolation]]" no-link="[[noLink]]" multi-axes=[[multiAxes]] range=[[range]] no-link="[[!opened]]"></device-graph>
       </template>
-    </dom-if>
-    <dom-if if="[[!multi]]" restamp>
-      <template>
-        <device-graph item="[[item]]" interpolation="[[interpolation]]" no-link="[[noLink]]" multi-axes=[[multiAxes]] range=[[range]]></device-graph>
-      </template>
-    </dom-if>
+    </template>
+    <template is="dom-if" if="[[!multi]]" restamp>
+      <device-graph item="[[item]]" interpolation="[[interpolation]]" no-link="[[noLink]]" multi-axes=[[multiAxes]] range=[[range]] no-link="[[!opened]]"></device-graph>
+    </template>
   </template>
   <script>
     class DeviceChart extends Polymer.mixinBehaviors(
@@ -329,6 +323,10 @@
 
       static get properties() {
         return {
+
+          opened: {
+            type: Boolean
+          },
 
           margin: {
             type: Object,
@@ -485,24 +483,6 @@
         this._brushMixin = Function.prototype;
         this._graphs = new Set();
         this._ticks = {};
-        var localeDateFormat = {
-          'dateTime': '%x %X',
-          'date': '%d.%m.%Y',
-          'time': '%H:%M:%S',
-          'periods': ['', ''],
-          'days': ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'],
-          'shortDays': ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'],
-          'months': ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
-          'shortMonths': ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Dez']
-        }
-        var localeNumberFormat = {
-          'decimal': ',',
-          'thousands': '.',
-          'grouping': [3],
-          'currency': ['', '\u00a0€']
-        };
-        d3.timeFormatDefaultLocale(localeDateFormat);
-        d3.formatDefaultLocale(localeNumberFormat);
         this.format = {
           Millisecond: d3.timeFormat(':%S,%L'),
           LongSecond: d3.timeFormat(':%M:%S,%L'),
@@ -561,19 +541,6 @@
       connectedCallback() {
         super.connectedCallback();
         this._buildLayout();
-      }
-
-      _sizeChanged() {
-        // only resize if initialized
-        if (this._isAttached) {
-          console.log('_sizeChanged called')
-          if (this._activeSizeJob) {
-            cancelAnimationFrame(this._activeSizeJob);
-          }
-          this._activeSizeJob = requestAnimationFrame(() => {
-            this._sizeLayout();
-          });
-        }
       }
 
       _buildLayout() {
@@ -700,21 +667,41 @@
         this._sizeChanged();
       }
 
+      reset() {
+        this.opened = false;
+        this.set('item', {});
+        this.set('items', []);
+        this.set('exceeding', []);
+      }
+
+      _sizeChanged() {
+        // only resize if initialized
+        if (!(this.opened && this._isAttached)) return;
+        // console.log('_sizeChanged called', this.opened)
+        if (this._activeSizeJob) {
+          cancelAnimationFrame(this._activeSizeJob);
+        }
+        this._activeSizeJob = requestAnimationFrame(() => {
+          this._sizeLayout();
+        });
+
+      }
+
       _sizeLayout() {
-        if (!this._isAttached) return;
+        if (!(this.opened && this._isAttached)) return;
 
         var bRect = this.$.svg.getBoundingClientRect();
-        console.log('sizeLayout', bRect.height, bRect.width);
-
-        if (bRect.height === 0 || bRect.width === 0) {
-          this._activeSizeJob = requestAnimationFrame(() => {
-            this._sizeLayout();
-          });
-          return;
-        }
+        // console.log('sizeLayout', bRect.height, bRect.width);
 
         if (this._activeSizeJob) {
           cancelAnimationFrame(this._activeSizeJob);
+        }
+
+        if (bRect.height === 0 || bRect.width === 0) {
+          requestAnimationFrame(() => {
+            this._sizeChanged();
+          });
+          return;
         }
 
         var top = 0,
@@ -755,7 +742,7 @@
             this._bottom = 0;
             this._top = 0;
           }
-          console.log(this._position, this._mount, this._top, this._bottom, this._right, this._left)
+          // console.log(this._position, this._mount, this._top, this._bottom, this._right, this._left)
           return true;
         }
 
@@ -769,7 +756,7 @@
             this._top += height;
           }
           this._bottom = this._right = 0;
-          console.log(this._position, this._mount, this._top, this._bottom, this._right, this._left)
+          // console.log(this._position, this._mount, this._top, this._bottom, this._right, this._left)
           return true;
         }
 
@@ -940,7 +927,7 @@
         g._nodes.axis[key].node()._vertical = vertical;
         g._nodes.axis[key].node()._position = pos;
         g._nodes.axis[key].node()._caller = g;
-        console.log('_addAxis', key, mount, pos)
+        // console.log('_addAxis', key, mount, pos)
       }
 
       _updateAxis(g, key) {
@@ -984,7 +971,7 @@
       _removeAxis(g, key) {
         g = g || this;
         if (!g._nodes.axis[key]) return;
-        console.log('_removeAxis', key)
+        // console.log('_removeAxis', key)
         var node;
         g._generators.brush[key] = null;
         g._generators.axis[key] = null;
@@ -1109,7 +1096,7 @@
       }
 
       _createAxisFn(scalefn, pos, scale, ticks) {
-        console.log('_createAxisFn', pos, scale, ticks)
+        // console.log('_createAxisFn', pos, scale, ticks)
         var axis;
         ticks = ticks || 5;
         switch (pos) {

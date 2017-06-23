@@ -1,7 +1,8 @@
-<link rel="import" href="../bower_components/polymer/polymer-element.html" />
-<link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html" />
-<link rel="import" href="mixins/container-mixin.html" />
-<link rel="import" href="components/drawer-element.html" />
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/polymer/lib/mixins/mutable-data.html">
+<link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
+<link rel="import" href="mixins/container-mixin.html">
+<link rel="import" href="components/drawer-element.html">
 
 <link rel="import" href="style/shared-style.html">
 
@@ -53,8 +54,8 @@
       }
       #chart[fullheight] {
         max-height: 100%;
-        -webkit-flex-basis: auto;
-        flex-basis: auto;
+        -webkit-flex-basis: 1px;
+        flex-basis: 1px;
         flex-grow: 1;
         --chart-plot-background-opacity: 0.5;
       }
@@ -124,47 +125,43 @@
       logged-in="[[loggedIn]]"
       data="{{svgData}}"></svg-data>
 
-    <dom-if if="[[visible]]">
-      <template>
-        <div id="content">
+    <div id="content">
 
-          <template is="dom-if" if="[[_withSvg]]">
-            <device-svg id="svg"
-              opened="[[visible]]"
-              url-prefix="/images/[[room]]/"
-              src="[[item.svg.path]]"
-              selectable-items="[[_getSvgSelectable(item.svg.path, svgData.paths)]]"
-              items="[[items]]"
-              multi
-              exceeding="[[exceeding]]"></device-svg>
-          </template>
-
-          <device-chart id="chart" opened="[[visible]]" fullheight$="[[!_withSvg]]"
-            items="[[items]]" multi></device-chart>
-
-          <drawer-element id="drawer" opened$="[[_ensureOpened(narrowLayout)]]" swipe-open$="[[narrowLayout]]" scrim persistent$="[[!narrowLayout]]" align="right" stretch>
-            <tabs-container id="tabs" vertical selected-values="{{selectedMounts}}" attr-for-selected="mount" selected-items="{{selectedCheckboxes}}" multi selected-attribute="checked">
-              <template is="dom-repeat" items="[[_getListItems(elements)]]">
-                <device-checkbox class="checkbox"
-                  mount$="[[item.mount]]"
-                  item="[[item]]"
-                  tap-event="detail-request"
-                  selectable>
-                  <device-caption class="caption"
-                    keys="[[item.keys]]"></device-caption>
-                </device-checkbox>
-              </template>
-            </tabs-container>
-            <device-table-group id="table" items="[[items]]"></device-table-group>
-          </drawer-element>
-        </div>
+      <template is="dom-if" if="[[_withSvg]]">
+        <device-svg id="svg"
+          opened$="[[visible]]"
+          url-prefix="/images"
+          src="/[[room]]/[[item.svg.path]]"
+          selectable-items="[[_getSvgSelectable(item.svg.path, svgData.paths)]]"
+          items="[[items]]"
+          multi
+          exceeding="[[exceeding]]"></device-svg>
       </template>
-    </dom-if>
+
+      <device-chart id="chart" opened$="[[visible]]" fullheight$="[[!_withSvg]]"
+        items="[[items]]" multi></device-chart>
+
+      <drawer-element id="drawer" opened$="[[_ensureOpened(narrowLayout)]]" swipe-open$="[[narrowLayout]]" scrim persistent$="[[!narrowLayout]]" align="right" stretch>
+        <tabs-container id="tabs" multi vertical selected-items="[[selectedCheckboxes]]" activate-event="item-select">
+          <template id="tablist" is="dom-repeat" items="[[_getListItems(elements)]]">
+            <device-checkbox class="checkbox"
+              item="[[item]]"
+              no-link="[[!visible]]"
+              tap-event="detail-request"
+              selectable>
+              <device-caption class="caption" keys="[[item.keys]]"></device-caption>
+            </device-checkbox>
+          </template>
+        </tabs-container>
+        <device-table-group id="table" items="[[items]]" tab-key="[[groupedKey]]"></device-table-group>
+      </drawer-element>
+
+    </div>
   </template>
 
   <script>
-    class PageDetail extends WebvisualMixins.ContainerMixin(Polymer.MutableData(Polymer.mixinBehaviors(
-      [Polymer.IronResizableBehavior], Polymer.Element))) {
+    class PageDetail extends WebvisualMixins.ContainerMixin(Polymer.mixinBehaviors(
+      [Polymer.IronResizableBehavior], Polymer.Element)) {
 
       static get is() {
         return 'page-detail';
@@ -174,19 +171,17 @@
         return {
           query: {
             type: String,
-            notify: true,
-            observer: '_queryChanged'
+            notify: true
           },
 
           selectedMounts: {
             type: Array,
-            notify: true,
-            observer: '_selectedMountsChanged'
+            notify: true
           },
 
           selectedCheckboxes: {
             type: Array,
-            observer: '_selectedCheckboxesChanged'
+            notify: true
           },
 
           loggedIn: {
@@ -230,6 +225,7 @@
 
           visible: {
             type: Boolean,
+            notify: true,
             observer: '_visibleChanged'
           },
 
@@ -259,8 +255,14 @@
             notify: true,
             computed: '_computeShowToggleIcon(narrowLayout, visible)'
           }
-
         }
+      }
+
+      static get observers() {
+        return [
+          '_queryChanged(query, visible)',
+          '_selectedMountsChanged(_selectedMounts, visible)'
+        ]
       }
 
       connectedCallback() {
@@ -268,37 +270,42 @@
         this._debounceResize();
       }
 
-      _onItemsChanged(items) {
-        console.log('item-select', items);
-      }
+      _queryChanged(query, visible) {
+        if (query === undefined || !visible) return;
+        console.log(query, this.$.tablist)
 
-      _queryChanged(query) {
-        if (!query) {
-          return;
+        if (this.elements) {
+          this.set('query', query.split(',').filter(m => {
+            return !m || !this.elements.every( e => {e.mount !== m});
+          }).join(','));
+          query = this.query;
         }
-        this.set('selectedMounts', query.split(','));
+
+        var sel = Polymer.dom(this.root).querySelectorAll('device-checkbox');
+        var mounts = query.split(',');
+        console.log(sel, mounts)
+        sel.forEach(function(el) {
+          console.log(mounts.indexOf(el.item.mount))
+          if (mounts.indexOf(el.item.mount) !== -1 && !el.checked) {
+            el.checked = true;
+          } else {
+            el.checked = false;
+          }
+        });
+        // this.set('selectedMounts', query.split(',').filter((m) => {return !m}));
+        // this.set('selectedMounts', query.split(',').filter((m) => {return !m}));
       }
 
-      _selectedMountsChanged(selectedMounts) {
-        setTimeout(() => {
-          var mount;
-          if (selectedMounts && this.selectedCheckboxes) {
-            for (var i = 0; i < this.selectedCheckboxes.length; i++) {
-              mount = this.selectedCheckboxes[i].mount;
-              if (selectedMounts.indexOf(mount) === -1) {
-                this.splice('selectedCheckboxes', i, 1);
-                i--;
-              }
-            }
-            this.set('query', selectedMounts.join(','));
-          }
-        }, 0)
+      _selectedMountsChanged(selectedMounts,  visible) {
+        // if (selectedCheckboxes === undefined || elements === undefined || !visible) return;
+        //
+        // this.set('query', selectedMounts.filter((m) => {return !m}).join(','));
       }
 
       _selectedCheckboxesChanged(selectedCheckboxes) {
-        setTimeout(() => {
-          var selectedMounts = this.selectedMounts;
-          if (selectedMounts && selectedCheckboxes) {
+        var selectedMounts = this.selectedMounts;
+        if (selectedCheckboxes) {
+          if (selectedMounts) {
             var mount;
             for (var i = 0; i < selectedCheckboxes.length; i++) {
               mount = selectedCheckboxes[i].mount;
@@ -306,12 +313,13 @@
                 selectedMounts.push(mount);
               }
             }
-            if (selectedCheckboxes.length) {
-              selectedCheckboxes[selectedCheckboxes.length-1].scrollIntoViewIfNeeded(true);
-            }
-            this.set('selectedMounts', selectedMounts);
           }
-        }, 0)
+          if (selectedCheckboxes.length) {
+            selectedCheckboxes[selectedCheckboxes.length-1].scrollIntoViewIfNeeded(true);
+          }
+          this.selectedMounts = selectedMounts.filter((m) => {return m !== ''});
+          this.notifyPath('selectedMounts');
+        }
       }
 
       _getListItems(items) {
@@ -373,8 +381,13 @@
       }
 
       _visibleChanged(visible) {
-        if (visible) {
+        if (visible === true) {
           this._debounceResize();
+        } else if (visible === false) {
+          this.clearExceedings();
+          this.clearItems();
+          this.query = '';
+          this.notifyPath('query');
         }
       }
     }

@@ -46,6 +46,10 @@
         @apply --layout-center-center;
         text-decoration: none;
       }
+      span, div, h1, a {
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+        -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
+      }
       .item.facility {
         margin: 24px;
         border-radius: 12px;
@@ -116,42 +120,42 @@
     </style>
 
     <template is="dom-if" if="[[!loggedIn]]">
-      <div class="login" on-click="_requestLogin">
+      <div class="login" on-tap="_requestLogin">
         <icon-button icon="assignment-ind"></icon-button>
         <span>{{localize('login', 'title')}}</span>
       </div>
     </template>
 
     <div class="box">
-      <template is="dom-if" if="[[!_gotFacilityItems]]">
+      <template is="dom-if" if="[[!_hasFacilityItems]]">
         <slot></slot>
       </template>
-      <template is="dom-if" if="[[_gotFacilityItems]]">
+      <template is="dom-if" if="[[_hasFacilityItems]]">
         <header>
           <h1>{{localize('home', 'title')}}</h1>
         </header>
-      </template>
-      <iron-selector id="selector" selected="{{currentFacility}}" attr-for-selected="item-name" selectable=".facility">
-        <template is="dom-repeat" items="[[facilities]]">
-          <div raised class="button item facility" item-name="[[item.name]]" title$="[[item.title]]" tabindex="1">
-            <paper-ripple id="ripple" recenters></paper-ripple>
-            <div>[[item.title]]</div>
-          </div>
-
-          <iron-collapse opened="{{_computeOpened(item.name, currentFacility)}}">
-            <div class="collapse-content">
-              <template is="dom-repeat" items="[[item.systems]]" as="system">
-                <a href$="[[_computeHref(system.view, item.name, system.name)]]" tabindex="-1">
-                  <div raised class="button item system" title$="[[system.title]]" tabindex="1">
-                    <paper-ripple id="ripple" recenters></paper-ripple>
-                    <div>[[system.title]]</div>
-                  </div>
-                </a>
-              </template>
+        <iron-selector id="selector" selected="{{currentFacility}}" attr-for-selected="item-name" selectable=".facility">
+          <template is="dom-repeat" items="[[facilities]]">
+            <div raised class="button item facility" item-name="[[item.name]]" title$="[[item.title]]" tabindex="1">
+              <paper-ripple id="ripple" recenters></paper-ripple>
+              <div>[[item.title]]</div>
             </div>
-          </iron-collapse>
-        </template>
-      </iron-selector>
+
+            <iron-collapse opened="{{_computeOpened(item.name, currentFacility)}}">
+              <div class="collapse-content">
+                <template is="dom-repeat" items="[[item.systems]]" as="system">
+                  <a href$="[[_computeHref(system.view, item.name, system.name)]]" tabindex="-1">
+                    <div raised class="button item system" title$="[[system.title]]" tabindex="1">
+                      <paper-ripple id="ripple" recenters></paper-ripple>
+                      <div>[[system.title]]</div>
+                    </div>
+                  </a>
+                </template>
+              </div>
+            </iron-collapse>
+          </template>
+        </iron-selector>
+      </template>
     </div>
 
   </template>
@@ -182,9 +186,14 @@
             type: Boolean
           },
 
-          _gotFacilityItems: {
+          languageResourcePrefix: {
+            type: String,
+            value: '/locales/ui/'
+          },
+
+          _hasFacilityItems: {
             type: Boolean,
-            computed: '_computeFacilityItems(facilities)'
+            computed: '_computeHasFacilityItems(facilities)'
           }
         }
       }
@@ -197,7 +206,7 @@
         return (name === selected);
       }
 
-      _computeFacilityItems(facilities) {
+      _computeHasFacilityItems(facilities) {
         return facilities && facilities.length > 0;
       }
 

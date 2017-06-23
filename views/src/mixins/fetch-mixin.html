@@ -34,6 +34,8 @@
       }
 
       _fetch(uri, method, cred, type, property, saveInLocalStorage, noEqualityCheck, body) {
+        if (!uri) return Promis.resolve();
+
         var url = this.urlPrefix + uri;
         var saveInLocalStorage = saveInLocalStorage || this.saveInLocalStorage;
         var noEqualityCheck = noEqualityCheck || this.noEqualityCheck;
@@ -53,6 +55,7 @@
                 return res.text();
               }
             } else if (res = localStorage.getItem(url)) {
+              console.warn(url, res);
               return res;
             } else {
               return Promise.reject(res);
@@ -66,6 +69,9 @@
               }
             }
             if (saveInLocalStorage && url && data) {
+              if (type === 'json') {
+                data = JSON.stringify(data);
+              }
               localStorage.setItem(url, data);
             }
             if (type === 'xml' && data) {
@@ -75,9 +81,13 @@
           })
           .catch( res => {
             if (saveInLocalStorage && property && url) {
-              var items = localStorage.getItem(url);
-              if (items)
-                this.set(property, items);
+              var data = localStorage.getItem(url);
+              if (data) {
+                if (type === 'json') {
+                  data = JSON.parse(data);
+                }
+                this.set(property, data);
+              }
             }
             return Promise.reject(res);
           })
