@@ -15,12 +15,12 @@
     "fonts/**/*",
     "icons/**/*",
     "data/**/*",
+    "locales/**/*",
     "images/**/*"
   ],
   "extraDependencies": [
     "bower_components/webcomponentsjs/*",
     "manifest.json",
-    "locales.json",
     "app.yaml"
   ],
   "builds": [ {

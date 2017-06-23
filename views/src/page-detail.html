@@ -163,8 +163,8 @@
   </template>
 
   <script>
-    class PageDetail extends WebvisualMixins.ContainerMixin(Polymer.MutableData(Polymer.mixinMixins(
-      [Polymer.IronResizableMixin], Polymer.Element))) {
+    class PageDetail extends WebvisualMixins.ContainerMixin(Polymer.MutableData(Polymer.mixinBehaviors(
+      [Polymer.IronResizableBehavior], Polymer.Element))) {
 
       static get is() {
         return 'page-detail';

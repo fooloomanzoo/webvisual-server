@@ -1,0 +1,229 @@
+<link rel="import" href="scale-mixin.html">
+<link rel="import" href="localize-mixin.html">
+
+<script>
+  window.WebvisualMixins = window.WebvisualMixins || {};
+
+  WebvisualMixins.AxesMixin = function(superClass) {
+    /**
+     * Mixin that adds a multiple axis with scaling brushes to an svg using d3
+     *
+     * @mixinClass
+     * @polymer
+     */
+    return class extends WebvisualMixins.ScaleMixin(WebvisualMixins.LocalizeMixin(superClass)) {
+
+      constructor() {
+        super();
+      }
+
+      static get properties() {
+        return {
+          /**
+           * position of the axes by key
+           * e.this. :
+           *  {
+           *    x: 'bootom'
+           *    y: 'top'
+           *  }
+           */
+          axisPosition: {
+            type: Object,
+            value: function() {
+              return {
+                x: 'bottom',
+                y: 'left'
+              }
+            },
+            observer: '_axisPositionChanged'
+          },
+          /**
+           * transition time in ms when changing position
+           */
+          axisTransitionTime: {
+            type: Number,
+            value: 100
+          },
+          /**
+           * title to show, when hovering
+           */
+          axisTitle: {
+            type: String
+          },
+          /**
+           * insertion point of the axes
+           */
+          _axisInsertionPoint: {
+            type: Object
+          },
+          /**
+           * nodes of the axes by keys
+           */
+          _axis: {
+            type: Object
+          },
+          /**
+           * generator functions of the axes by keys
+           */
+          _axisGenerator: {
+            type: Object
+          },
+          /**
+           * nodes of the brush of the axes by keys
+           */
+          _axisBrush: {
+            type: Object
+          },
+          /**
+           * generator functions of the brushes axes by keys
+           */
+          _axisBrushGenerator: {
+            type: Object
+          },
+          /**
+           * local language for formatting
+           */
+          language: {
+            type: String,
+            notify: true,
+            value: window.navigator.language
+          },
+          /**
+           * path for format file
+           */
+          languageResourcePath: {
+            type: String,
+            value: '/locales/time_and_numbers.json'
+          }
+
+        }
+      }
+
+      connectedCallback() {
+        super.connectedCallback();
+      }
+
+      disconnectedCallback() {
+        super.disconnectedCallback();
+        this._removeAxis();
+      }
+
+      static get observers() {
+        return [
+          '_createAxisGenerator(axisPosition, scale, keys)',
+          '_createAxis(_axisInsertionPoint, _axisGenerator)',
+          '_updateAxis(_axis)'
+        ]
+      }
+
+      _axisPositionChanged(axisPosition) {
+
+      }
+
+      _createAxis(insertionPoint, scale, keys) {
+
+      }
+
+      _updateAxis(axis) {
+        if (axis === undefined) return;
+        for (var key in axis) {
+          this._axisBrush[key].raise().call(this._axisGenerator[key]);
+          axis[key].call(this._axisGenerator[key]).transition(this.axisTransitionTime || 0)
+        }
+      }
+
+      _removeAxis(key) {
+        if (!this._axis) return;
+        var keys = key ? [key] : Object.keys(this._axiss);
+        var node, key;
+
+        for (var i = 0; i < keys.length; i++) {
+          key = keys[i];
+          // remove axis & brush node
+          if (this._axisBrush[key]) {
+            node = this._axisBrush[key].node();
+            if (node && node.parentElement)
+              node.parentElement.removeChild(node);
+            this._axisBrush[key] = null;
+          }
+          if (this._axis[key]) {
+            node = this._axis[key].node();
+            if (node && node.parentElement)
+              node.parentElement.removeChild(node);
+            this._axis[key] = null;
+          }
+        }
+      }
+
+      _createAxisGenerator(pos, scale, keys) {
+        if (pos === undefined || scale === undefined) return;
+        console.log('_createAxisFn', pos, scale)
+        var ret = {};
+
+        for (var key in pos) {
+          if (scale[key] === undefined) continue;
+          switch (pos[key]) {
+            case 'top':
+              ret[key] = d3.axisTop();
+              break;
+            case 'bottom':
+              ret[key] = d3.axisBottom();
+              break;
+            case 'right':
+              ret[key] = d3.axisRight();
+              break;
+            default:
+              ret[key] = d3.axisLeft();
+          }
+          ret[key].scale(scale[key]);
+        }
+
+        axis.scale(scalefn).ticks(ticks);
+        if (scale === 'time')
+          axis.ticks(ticks).tickFormat(this.timeFormat.bind(this));
+        else if (scalefn.base && scalefn.base() === Math.E)
+          axis.tickFormat(d => {
+            // TODO: different conception for log scales needed
+            return (d < 1 || d > 1000 ? (Math.log(d)).toExponential(3) : (Math.log(d)).toFixed(2));
+          })
+
+        return axis;
+      }
+
+      _onAxisDragStart() {
+      }
+      _onAxisDragged() {
+      }
+      _onAxisDragEnd() {
+      }
+      _onAxisBrushStart() {
+      }
+      _onAxisBrushMove() {
+      }
+      _onAxisBrushEnd() {
+      }
+
+      _getFormatFunction(key) {
+
+      }
+
+      _formatTime() {
+
+      }
+
+      _formatNumber() {
+
+      }
+
+
+
+      static get _VALID_AXIS_POSITIONS() {
+        return ['top', 'right', 'bottom', 'bottom'];
+      }
+
+      _isVertical(pos) {
+        return pos === 'left' || pos === 'right';
+      }
+    }
+  }
+</script>

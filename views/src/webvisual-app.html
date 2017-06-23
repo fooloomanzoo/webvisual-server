@@ -429,9 +429,9 @@
   </template>
 
   <script>
-    class WebvisualApp extends WebvisualMixins.LocalizeMixin(Polymer.mixinMixins(
-      [ Polymer.IronA11yKeysMixin,
-        Polymer.IronResizableMixin ], Polymer.Element)) {
+    class WebvisualApp extends WebvisualMixins.LocalizeMixin(Polymer.mixinBehaviors(
+      [ Polymer.IronA11yKeysBehavior,
+        Polymer.IronResizableBehavior ], Polymer.Element)) {
 
       static get is() {
         return 'webvisual-app';
@@ -478,14 +478,12 @@
 
           language: {
             type: String,
-            notify: true,
-            value: window.navigator.language,
-            observer: '_checkLanguage'
+            notify: true
           },
 
           languageResourcePath: {
             type: String,
-            value: '/locales.json'
+            value: '/locales/app.json'
           },
 
           dark: {

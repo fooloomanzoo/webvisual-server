@@ -71,8 +71,8 @@
         super.disconnectedCallback();
         this.removeEventListener('fullscreenchange', this.fullScreenChanged.bind(this), false);
         this.removeEventListener('webkitfullscreenchange', this.fullScreenChanged.bind(this), false);
-        this.removeEventListener('mozfullscreenchange', this.fullScreenChanged.bind(this), false);
-        this.removeEventListener('MSFullscreenChange', this.fullScreenChanged.bind(this), false);
+        document.removeEventListener('mozfullscreenchange', this.fullScreenChanged.bind(this), false);
+        document.removeEventListener('MSFullscreenChange', this.fullScreenChanged.bind(this), false);
       }
 
       toggleFullscreen(e) {

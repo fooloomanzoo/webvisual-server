@@ -25,8 +25,8 @@
 </dom-module>
 
 <script>
-  class DialogElement extends Polymer.mixinMixins(
-    [Polymer.IronResizableMixin, Polymer.PaperDialogMixin], Polymer.Element) {
+  class DialogElement extends Polymer.mixinBehaviors(
+    [Polymer.IronResizableBehavior, Polymer.PaperDialogBehavior], Polymer.Element) {
 
     static get is() {
       return 'dialog-element';

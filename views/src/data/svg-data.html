@@ -51,12 +51,10 @@
           });
         if (names.length === 2) {
           var url = names[0] + '+' + names[1] + '+svgSource.json';
-          // this.debounce('svg-data', function() {
           this._fetch(url, 'GET', 'include', 'json', 'data')
-            .catch(function(statusCode, statusText) {
-              console.log(statusCode, statusText);
+            .catch(err => {
+              console.log(err);
             });
-          // }.bind(this), 25);
         } else {
           this.dispatchEvent(new CustomEvent('data-error', {
             bubbles: true,

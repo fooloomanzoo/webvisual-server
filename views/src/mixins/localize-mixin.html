@@ -1,3 +1,4 @@
+<link rel="import" href="fetch-mixin.html">
 <script>
   window.WebvisualMixins = window.WebvisualMixins || {};
 
@@ -9,7 +10,7 @@
      * @mixinClass
      * @polymer
      */
-    return class extends superClass {
+    return class extends WebvisualMixins.FetchMixin(superClass) {
 
       constructor() {
         super();
@@ -17,9 +18,15 @@
 
       static get properties() {
         return {
+
+          useWindowLanguage: {
+            type: Boolean,
+            value: true,
+            observer: '_windowLanguageListener'
+          },
+
           language: {
-            type: String,
-            observer: '_checkLanguage'
+            type: String
           },
           fallbackLanguage: {
             type: String,
@@ -43,51 +50,27 @@
            * 'localize(stringKey, param1Name, param1Value, param2Name, param2Value)'
            */
           localize: {
-            type: Function,
-            computed: '__computeLocalize(language, languageResources)'
+            type: Function
           },
 
           __supportedLanguages: {
-            type: Array,
-            value: function () {
-              return ['de', 'en', 'fr', 'es', 'it', 'ru', 'zh']
-            }
+            type: Array
           }
         }
       }
 
       static get observers() {
         return [
-          '_debouncesLoadResources(languageResourcePath)'
+          '_loadLanguageResources(languageResourcePath)',
+          '_updateLanguage(language, languageResource)'
         ]
       }
 
-      _debouncesLoadResources(languageResourcePath) {
-        this._url = languageResourcePath;
-        this.debounce('fetch-locales', this._loadLanguageResources, 15);
-      }
-
-      _loadLanguageResources() {
-        var xhr = new XMLHttpRequest();
-        xhr.addEventListener('load', e => {
-          if (e.target.status < 400) {
-            this.set('languageResources', JSON.parse(e.target.responseText));
-            localStorage.setItem('languageResources', e.target.responseText);
-          } else {
-            var items = localStorage.getItem('languageResources');
-            if (items)
-              this.set('languageResources', JSON.parse(items));
-          }
-        });
-        xhr.addEventListener('error', e => {
-          var items = localStorage.getItem('languageResources');
-          if (items)
-            this.set('languageResources', JSON.parse(items));
-        });
-
-        xhr.open('GET', this._url);
-        xhr.withCredentials = true;
-        xhr.send();
+      _loadLanguageResources(languageResourcePath) {
+        this._fetch(languageResourcePath, 'GET', 'include', 'json', 'languageResource', true, true)
+          .catch(err => {
+            console.log(err);
+          });
       }
 
       /**
@@ -134,19 +117,38 @@
         };
       }
 
-      _checkLanguage(language) {
-        if (!language)
-          return;
+      _updateLanguage(language, languageResources) {
+        if (language === undefined || languageResources === undefined) return;
+
+        this.set('__supportedLanguages', Object.keys(languageResources));
+
+        language = language.toLowerCase();
 
         // check for sub groups of languages and set them to main member of language sets (for simplification)
-        var lang = language.split('/')[0];
-
-        if (this.__supportedLanguages.indexOf(lang) !== -1) {
-          this.set('language', lang);
+        if (this.__supportedLanguages.indexOf(language) !== -1) {
+          language = language.split('-')[0];
+        }
+        if (this.__supportedLanguages.indexOf(language) !== -1) {
+          this.set('localize', this.__computeLocalize(language, languageResources));
         } else {
-          this.set('language', this.fallbackLanguage);
+          this.set('localize', this.__computeLocalize(language, languageResources));
         }
       }
+
+      _windowLanguageListener(useWindowLanguage) {
+        if (useWindowLanguage === true) {
+          this.set('language', window.navigator.language);
+          window.addEventListener('languagechange', this._setLanguage.bind(this));
+        } else {
+          window.removeEventListener('languagechange', this._setLanguage.bind(this));
+        }
+      }
+
+      _setLanguage(language) {
+        language = language || window.navigator.language;
+        this.set('language', language);
+      }
+
     }
   }
 </script>

@@ -65,8 +65,8 @@ Modification from Polymer Shop Demo App
   </template>
   <script>
 
-    class TabsContainer extends Polymer.mixinMixins(
-        [Polymer.IronMultiSelectableMixin], Polymer.Element ) {
+    class TabsContainer extends Polymer.mixinBehaviors(
+        [Polymer.IronMultiSelectableBehavior], Polymer.Element ) {
 
       static get is() { return 'tabs-container'; }
 

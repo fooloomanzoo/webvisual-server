@@ -1,0 +1,143 @@
+{
+  "de": {
+    "date": {
+      "dateTime": "%A, der %e. %B %Y, %X",
+      "date": "%d.%m.%Y",
+      "time": "%H:%M:%S",
+      "days": ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"],
+      "shortDays": ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"],
+      "months": ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"],
+      "shortMonths": ["Jan", "Feb", "Mrz", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"]
+    },
+    "number": {
+      "decimal": ",",
+      "thousands": ".",
+      "grouping": [3],
+      "currency": ["", "\u00a0€"]
+    }
+  },
+  "en": {
+    "date": {
+      "dateTime": "%a %e %b %X %Y",
+      "date": "%d/%m/%Y",
+      "time": "%H:%M:%S",
+      "periods": ["AM", "PM"],
+      "days": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+      "shortDays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+      "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+      "shortMonths": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    },
+    "number": {
+      "decimal": ".",
+      "thousands": ",",
+      "grouping": [3],
+      "currency": ["£", ""]
+    }
+  },
+  "en-us": {
+    "date": {
+      "dateTime": "%x, %X",
+      "date": "%-m/%-d/%Y",
+      "time": "%-I:%M:%S %p",
+      "periods": ["AM", "PM"],
+      "days": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+      "shortDays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+      "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+      "shortMonths": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    },
+    "number": {
+      "decimal": ".",
+      "thousands": ",",
+      "grouping": [3],
+      "currency": ["$", ""]
+
+    }
+  },
+  "fr": {
+    "date": {
+      "dateTime": "%A, le %e %B %Y, %X",
+      "date": "%d/%m/%Y",
+      "time": "%H:%M:%S",
+      "days": ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"],
+      "shortDays": ["dim.", "lun.", "mar.", "mer.", "jeu.", "ven.", "sam."],
+      "months": ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"],
+      "shortMonths": ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."]
+    },
+    "number": {
+      "decimal": ",",
+      "thousands": ".",
+      "grouping": [3],
+      "currency": ["", "\u00a0€"],
+      "percent": "\u202f%"
+    }
+  },
+  "es": {
+    "date": {
+      "dateTime": "%A, %e de %B de %Y, %X",
+      "date": "%d/%m/%Y",
+      "time": "%H:%M:%S",
+      "days": ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"],
+      "shortDays": ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"],
+      "months": ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"],
+      "shortMonths": ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"]
+    },
+    "number": {
+      "decimal": ",",
+      "thousands": ".",
+      "grouping": [3],
+      "currency": ["", "\u00a0€"]
+    }
+  },
+  "it": {
+    "date": {
+      "dateTime": "%A %e %B %Y, %X",
+      "date": "%d/%m/%Y",
+      "time": "%H:%M:%S",
+      "days": ["Domenica", "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato"],
+      "shortDays": ["Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab"],
+      "months": ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"],
+      "shortMonths": ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"]
+    },
+    "number": {
+      "decimal": ",",
+      "thousands": ".",
+      "grouping": [3],
+      "currency": ["€", ""]
+    }
+  },
+  "ru": {
+    "date": {
+      "dateTime": "%A, %e %B %Y г. %X",
+      "date": "%d.%m.%Y",
+      "time": "%H:%M:%S",
+      "days": ["воскресенье", "понедельник", "вторник", "среда", "четверг", "пятница", "суббота"],
+      "shortDays": ["вс", "пн", "вт", "ср", "чт", "пт", "сб"],
+      "months": ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"],
+      "shortMonths": ["янв", "фев", "мар", "апр", "май", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"]
+    },
+    "number": {
+      "decimal": ",",
+      "thousands": "\u00a0",
+      "grouping": [3],
+      "currency": ["", "\u00a0руб."]
+    }
+  },
+  "zh": {
+    "date": {
+      "dateTime": "%x %A %X",
+      "date": "%Y年%-m月%-d日",
+      "time": "%H:%M:%S",
+      "periods": ["上午", "下午"],
+      "days": ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"],
+      "shortDays": ["周日", "周一", "周二", "周三", "周四", "周五", "周六"],
+      "months": ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"],
+      "shortMonths": ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"]
+    },
+    "number": {
+      "decimal": ".",
+      "thousands": ",",
+      "grouping": [3],
+      "currency": ["¥", ""]
+    }
+  }
+}

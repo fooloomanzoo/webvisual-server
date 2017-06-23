@@ -52,6 +52,8 @@
               } else {
                 return res.text();
               }
+            } else if (res = localStorage.getItem(url)) {
+              return res;
             } else {
               return Promise.reject(res);
             }
@@ -63,8 +65,8 @@
                 this.set(property, data);
               }
             }
-            if (saveInLocalStorage && property && data) {
-              localStorage.setItem(property, data);
+            if (saveInLocalStorage && url && data) {
+              localStorage.setItem(url, data);
             }
             if (type === 'xml' && data) {
               return new window.DOMParser().parseFromString(data, "text/xml")
@@ -72,12 +74,12 @@
             return Promise.resolve(data);
           })
           .catch( res => {
-            if (saveInLocalStorage && property) {
-              var items = localStorage.getItem(property);
+            if (saveInLocalStorage && property && url) {
+              var items = localStorage.getItem(url);
               if (items)
-                this.set(request, items);
+                this.set(property, items);
             }
-            return Promise.reject(res.status, res.statusText);
+            return Promise.reject(res);
           })
       }
 

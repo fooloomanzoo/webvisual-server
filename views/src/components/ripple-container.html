@@ -21,8 +21,8 @@ Modification from Polymer Shop Demo App
   </template>
   <script>
 
-    class RippleContainer extends Polymer.mixinMixins(
-      [Polymer.PaperRippleMixin], Polymer.Element) {
+    class RippleContainer extends Polymer.mixinBehaviors(
+      [Polymer.PaperRippleBehavior], Polymer.Element) {
 
       static get is() { return 'ripple-container'; }
 

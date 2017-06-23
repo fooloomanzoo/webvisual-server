@@ -1,6 +1,6 @@
 <!-- Dependent to be content of device-chart -->
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
-<link rel="import" href="mixins/scale-mixin.html" />
+<link rel="import" href="mixins/axes-mixin.html" />
 <link rel="import" href="mixins/device-mixin.html" />
 <link rel="import" href="mixins/color-mixin.html" />
 
@@ -9,7 +9,7 @@
     <style></style>
   </template>
   <script>
-    class DeviceGraph extends WebvisualMixins.ScaleMixin(WebvisualMixins.ColorMixin(WebvisualMixins.DeviceMixin(Polymer.Element))) {
+    class DeviceGraph extends WebvisualMixins.AxesMixin(WebvisualMixins.ColorMixin(WebvisualMixins.DeviceMixin(Polymer.Element))) {
 
       static get is() {
         return 'device-graph';
@@ -197,10 +197,6 @@
         this._areaChanged();
         this._lineChanged();
         this._thresholdChanged();
-        for (var key in this._chart.multiAxes) {
-          this._chart._removeAxis(this, key);
-          this._chart._sizeChanged();
-        }
         this._chart._removeGraph(this);
       }
 
