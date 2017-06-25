@@ -21,7 +21,6 @@
            */
           active: {
             type: Boolean,
-            value: false,
             notify: true,
             reflectToAttribute: true
           },
@@ -34,10 +33,9 @@
 
           checked: {
             type: Boolean,
-            value: false,
             reflectToAttribute: true,
             notify: true,
-            observer: 'checkedChanged'
+            observer: '_checkedChanged'
           },
 
           toggles: {
@@ -67,7 +65,6 @@
           eventTarget: {
             type: String
           }
-
         }
       }
 
@@ -83,11 +80,12 @@
 
       disconnectedCallback() {
         super.disconnectedCallback();
-        this.checkedChanged(false);
+        this._checkedChanged(false, this.checked);
         this._removeTouchListeners();
       }
 
       _addTouchListeners(disabled, selectEvent, tapEvent) {
+        if (selectEvent === undefined) return;
         if (disabled) {
           this._removeTouchListeners();
         } else {
@@ -140,20 +138,21 @@
         }
       }
 
-      checkedChanged(checked, old) {
-        if (this.selectable && this.selectEvent) {
+      _checkedChanged(checked, old) {
+        if (this.selectable && this.selectEvent && !this._preventSelectEvent) {
           this.dispatchEvent(new CustomEvent(this.selectEvent, {
             bubbles: true, composed: true,
             detail: {
               item: this.item,
-              value: checked
+              value: this.checked
             }
           }));
         }
       }
 
-      select(value) {
+      select(value, preventEvent) {
         if (this.selectable === true) {
+          this._preventSelectEvent = preventEvent;
           if (value !== undefined) {
             this.checked = value;
           } else if (this.toggles === true) {

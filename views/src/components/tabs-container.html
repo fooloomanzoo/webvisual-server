@@ -84,9 +84,7 @@ Modification from Polymer Shop Demo App
       }}
 
       static get observers() { return [
-        '_onSelectedItemChanged(selectedItem)',
-        '_onSelectedItemsChanged(selectedItems)',
-        '_onSelectedValuesChanged(selectedValues)'
+        '_onSelectedItemChanged(selectedItem)'
       ]}
 
       connectedCallback() {
@@ -99,20 +97,15 @@ Modification from Polymer Shop Demo App
         this.$.container.addEventListener('wheel', e => this._onWheel(e), {passive: true});
       }
 
-      _onSelectedItemChanged(selectedItem, old) {
+      _onSelectedItemChanged(selectedItem) {
         // console.log('selectedItem', selectedItem);
-        if (selectedItem === undefined) return;
+        if (!selectedItem) return;
         if (!this.multi) {
           this.$.overlay.target = selectedItem;
         }
-      }
-
-      _onSelectedItemsChanged(selectedItems) {
-          console.log('selectedItems', selectedItems);
-      }
-
-      _onSelectedValuesChanged(selectedValues) {
-          console.log('selectedValues', selectedValues);
+        requestAnimationFrame(() => {
+          this.$.container.scrollTop = selectedItem.offsetTop - this.$.container.offsetTop - this.$.container.clientHeight / 2 + selectedItem.clientHeight / 2;
+        })
       }
 
       _onWheel(e) {

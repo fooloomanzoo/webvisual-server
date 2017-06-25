@@ -23,6 +23,7 @@
       display: inherit;
       fill: var(--highlight-color, #D75E5E);
       stroke: var(--highlight-color, #7ED75E);
+      animation: none;
       /* firefox positioning */
       transform-origin: 9px center;
       stroke-width: 0.5px;
@@ -176,11 +177,14 @@
         }
       }
 
-      static get listeners() {
-        return {
-          'mouseenter': '_addClass',
-          'mouseleave': '_removeClass'
-        }
+      connectedCallback() {
+        super.connectedCallback();
+        this._addListners();
+      }
+
+      _addListners() {
+        this.addEventListener('mouseenter', this._addClass.bind(this));
+        this.addEventListener('mouseleave', this._removeClass.bind(this));
       }
 
       _addClass() {

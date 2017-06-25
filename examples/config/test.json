@@ -80,7 +80,7 @@
             "selector": "path#path1358-1",
             "path": "berlin.svg"
           },
-          "color": "#2FFCA0"
+          "color": "#0dcf78"
         }, {
           "id": "Pankow",
           "keys": {
@@ -116,7 +116,7 @@
             "selector": "path#path1372-3",
             "path": "berlin.svg"
           },
-          "color": "#C7FC2F"
+          "color": "#b2e620"
         }, {
           "id": "Steglitz-Zehlendorf",
           "keys": {
