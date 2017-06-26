@@ -615,8 +615,8 @@
       connectedCallback() {
         super.connectedCallback();
         Polymer.RenderStatus.afterNextRender(this, function() {
-          window.addEventListener('online', this._notifyNetworkStatus);
-          window.addEventListener('offline', this._notifyNetworkStatus);
+          window.addEventListener('online', this._notifyNetworkStatus.bind(this));
+          window.addEventListener('offline', this._notifyNetworkStatus.bind(this));
         });
         this.removeAttribute('unresolved');
       }

@@ -72,7 +72,6 @@
       _loadLanguageResources(languageResourcePrefix, language, attempts) {
         if (languageResourcePrefix === undefined || !language || this._recentLanguage === language) return;
         language = language.toLowerCase();
-        attempts = attempts || 0;
 
         this._fetch(languageResourcePrefix + language + '.json', 'GET', 'include', 'json', 'languageResource', true, true)
           .then(() => {
@@ -85,10 +84,11 @@
             }));
           })
           .catch(err => {
-            if (language.split('-').length > 0) {
-              this._loadLanguageResources(languageResourcePrefix, language.split('-')[0], attempts++);
+            attempts = attempts || 0;
+            if (language.split('-').length > 1) {
+              this._loadLanguageResources(languageResourcePrefix, language.split('-')[0], ++attempts);
             } else if (attempts === undefined || attempts < 3){
-              this._loadLanguageResources(languageResourcePrefix, this.fallbackLanguage, attempts++);
+              this._loadLanguageResources(languageResourcePrefix, this.fallbackLanguage, ++attempts);
             } else {
               console.log(languageResourcePrefix, language, err);
             }

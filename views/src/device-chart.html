@@ -117,13 +117,13 @@
       .axis.dragged path {
         fill-opacity: 0.2;
       }
-      .axis.horizontal .tick > text {
+      .axis:not(.vertical) .tick > text {
         alignment-baseline: after-edge;
       }
-      .axis.horizontal .tick:first-of-type:not(:only-of-type) > text {
+      .axis:not(.vertical) .tick:first-of-type:not(:only-of-type) > text {
         text-anchor: start;
       }
-      .axis.horizontal .tick:nth-last-of-type(2):not(:only-of-type) > text {
+      .axis:not(.vertical) .tick:nth-last-of-type(2):not(:only-of-type) > text {
         text-anchor: end;
       }
       .axis.vertical[position="left"]:not(.dragged) .tick > text {
@@ -141,7 +141,7 @@
       .axis.vertical .brush .overlay {
         cursor: ns-resize;
       }
-      .axis.horizontal .brush .overlay {
+      .axis:not(.vertical) .brush .overlay {
         cursor: ew-resize;
       }
       #graphs .area {
@@ -352,8 +352,7 @@
                 x: false,
                 y: true
               };
-            },
-            observer: '_multiAxesChanged'
+            }
           },
 
           tickSize: {
@@ -372,27 +371,6 @@
               return {
                 x: 20,
                 y: 54
-              };
-            }
-          },
-
-          axisPosition: {
-            type: Object,
-            value: function() {
-              return {
-                x: 'bottom',
-                y: 'left'
-              }
-            },
-            observer: '_axisPositionChanged'
-          },
-
-          domain: {
-            type: Object,
-            value: function() {
-              return {
-                x: [null, null],
-                y: [null, null]
               };
             }
           },
@@ -455,74 +433,11 @@
         this._deltaDot = {};
         this._focusedValue = null;
         this._fixedValue = null;
-        this._axes = new Set();
-        this._nodes = {
-          axis: {},
-          brush: {},
-          axes: {}
-        };
-        this._fn = {
-          axis: {
-            x: Function.prototype,
-            y: Function.prototype
-          },
-          brush: {
-            x: Function.prototype,
-            y: Function.prototype
-          }
-        };
-        this._generators = {
-          brush: {},
-          axis: {}
-        }
         // this._xAxisFn = {};
         // this._yAxisFn = {};
         this._isAttached = false;
-        this._isBrushed = false;
         this._isZoomed = false;
-        this._brushMixin = Function.prototype;
         this._graphs = new Set();
-        this._ticks = {};
-        this.format = {
-          Millisecond: d3.timeFormat(':%S,%L'),
-          LongSecond: d3.timeFormat(':%M:%S,%L'),
-          Second: d3.timeFormat(':%M:%S'),
-          LongMinute: d3.timeFormat('%H:%M:%S'),
-          Minute: d3.timeFormat('%H:%M'),
-          Hour: d3.timeFormat('%X'),
-          Day: d3.timeFormat('%d.%m'),
-          Week: d3.timeFormat('%d.%m'),
-          Month: d3.timeFormat('%d. %b'),
-          Year: d3.timeFormat('%Y'),
-          timeDiff: function(date) {
-            // one year = 365.25 days = 315576E5ms (Julian Calendar)
-            var ry = date % 315576E5,
-              y = (date - ry) / 315576E5,
-              rd = ry % 864E5,
-              d = (ry - rd) / 864E5,
-              rh = rd % 36E5,
-              h = (rd - rh) / 36E5,
-              rm = rh % 6E4,
-              m = (rh - rm) / 6E4,
-              rs = rm % 1E3,
-              s = (rm - rs) / 1E3,
-              ret = '';
-            if (y)
-              ret += y + 'y ';
-            if (d)
-              ret += d + 'd ';
-            if (h)
-              ret += h + 'h ';
-            if (m)
-              ret += m + 'm ';
-            if (s)
-              ret += s + 's ';
-            if (rs)
-              ret += rs + 'ms';
-            return ret;
-          },
-          Number: d3.format(',')
-        }
       }
 
       get _self() {
@@ -554,19 +469,19 @@
         this._chart = d3.select(this.$.chart);
         this._control = d3.select(this.$.control);
 
-        this._nodes.axis = d3.select(this.$.axis);
-        this._nodes.area = d3.select(this.$.area);
-        this._nodes.line = d3.select(this.$.line);
-        this._nodes.boundery = d3.select(this.$.boundery);
+        this._axisInsertionPoint = d3.select(this.$.axis);
+        this._area = d3.select(this.$.area);
+        this._line = d3.select(this.$.line);
+        this._boundery = d3.select(this.$.boundery);
 
         // Test
-        // this._nodes.axis
+        // this._axis
         //   .append('svg:g')
         //   .classed('x axis', true);
-        // this._nodes.axis
+        // this._axis
         //   .append('svg:g')
         //   .classed('y axis', true);
-        // this._nodes.axis
+        // this._axis
         //   .append('svg:g')
         //   .classed('y axis', true);
         //
@@ -677,7 +592,6 @@
       _sizeChanged() {
         // only resize if initialized
         if (!(this.opened && this._isAttached)) return;
-        // console.log('_sizeChanged called', this.opened)
         if (this._activeSizeJob) {
           cancelAnimationFrame(this._activeSizeJob);
         }
@@ -689,9 +603,8 @@
 
       _sizeLayout() {
         if (!(this.opened && this._isAttached)) return;
-
+        console.log('_sizeLayout');
         var bRect = this.$.svg.getBoundingClientRect();
-        // console.log('sizeLayout', bRect.height, bRect.width);
 
         if (this._activeSizeJob) {
           cancelAnimationFrame(this._activeSizeJob);
@@ -711,7 +624,6 @@
           axisSize = this.axisSize,
           tickSize = this.tickSize,
           axisMargin = this.axisMargin,
-          expandedSize = axisSize - axisMargin,
           condensedSize = tickSize + axisMargin;
 
         var q = [];
@@ -742,7 +654,6 @@
             this._bottom = 0;
             this._top = 0;
           }
-          // console.log(this._position, this._mount, this._top, this._bottom, this._right, this._left)
           return true;
         }
 
@@ -756,21 +667,26 @@
             this._top += height;
           }
           this._bottom = this._right = 0;
-          // console.log(this._position, this._mount, this._top, this._bottom, this._right, this._left)
           return true;
         }
 
-        for (var key in this.multiAxes) {
-          this._graphs.forEach( g => {
-            if (g._nodes.axis[key]) {
-              var size = g._nodes.axis[key].classed('expanded') ? axisSize[key] : condensedSize;
-              q.push(incremPosition.call(g._nodes.axis[key].node(), size));
-            }
-          })
-          if (this._nodes.axis[key] && !this._nodes.axis[key].attr('hidden')) {
-            var size = this._nodes.axis[key].classed('expanded') ? axisSize[key] : condensedSize;
-            q.push(incremPosition.call(this._nodes.axis[key].node(), size));
+        this._graphs.forEach( g => {
+          if (this.multiAxes.x === true && g.axisX) {
+            var size = g.axisX.classed('expanded') ? axisSize.x : condensedSize;
+            q.push(incremPosition.call(g.axisX.node(), size));
           }
+          if (this.multiAxes.y === true && g.axisY) {
+            var size = g.axisY.classed('expanded') ? axisSize.y : condensedSize;
+            q.push(incremPosition.call(g.axisY.node(), size));
+          }
+        })
+        if (this.multiAxes.x === true && this.axisX) {
+          var size = this.axisX.classed('expanded') ? axisSize.x : condensedSize;
+          q.push(incremPosition.call(this.axisX.node(), size));
+        }
+        if (this.multiAxes.y === true && this.axisY) {
+          var size = this.axisY.classed('expanded') ? axisSize.y : condensedSize;
+          q.push(incremPosition.call(this.axisY.node(), size));
         }
 
         // this.xTicks = Math.ceil(this._width / 75);
@@ -781,20 +697,24 @@
           this._width = bRect.width - Math.abs(left || 0) - Math.abs(right || 0) - (this.margin.left || 0) - (this.margin.right || 0);
           this._height = bRect.height - Math.abs(bottom || 0) - Math.abs(top || 0) - (this.margin.bottom || 0) - (this.margin.top || 0);
 
-          this.set('range', {x: [0, this._width], y: [this._height, 0]});
+          this.set('rangeX', [0, this._width]);
+          this.set('rangeY', [this._height,0]);
 
           var p = [];
-          for (var key in this.multiAxes) {
-            if (this.multiAxes[key] === true) {
-              this._graphs.forEach( g => {
-                if (g._nodes.axis[key]) {
-                  p.push(finalizePosition.call(g._nodes.axis[key].node(), this._width, this._height));
-                }
-              })
+
+          this._graphs.forEach( g => {
+            if (this.multiAxes.x === true && g.axisX) {
+              p.push(finalizePosition.call(g.axisX.node(), this._width, this._height));
             }
-            if (this._nodes.axis[key] && !this._nodes.axis[key].attr('hidden')) {
-              p.push(finalizePosition.call(this._nodes.axis[key].node(), this._width, this._height));
+            if (this.multiAxes.y === true && g.axisY) {
+              p.push(finalizePosition.call(g.axisY.node(), this._width, this._height));
             }
+          })
+          if (this.multiAxes.x === true && this.axisX) {
+            p.push(finalizePosition.call(this.axisX.node(), this._width, this._height));
+          }
+          if (this.multiAxes.y === true && this.axisY) {
+            p.push(finalizePosition.call(this.axisY.node(), this._width, this._height));
           }
 
           Promise.all(p).then(() => {
@@ -816,19 +736,12 @@
 
             this._chart.transition(100).attr('transform', 'translate(' + (-left || 0) + ',' + (-top || 0) + ')');
 
-            for (var key in this.multiAxes) {
-              this._graphs.forEach( g => {
-                this._updateAxis(g, key);
-              })
-              this._updateAxis(this, key);
-            }
-
             this._focusY.attr('y1', this._height);
 
             this._svg.selectAll('g,line,text,path,rect')
               .classed('style-scope device-chart', true)
 
-            this._redraw();
+            this.redraw(true);
           })
         })
 
@@ -856,237 +769,167 @@
       }
 
       _multiAxesChanged(multiAxes) {
-        if (!this._isAttached) return;
-
-        for (var key in multiAxes) {
-          this._graphs.forEach( g => {
-            if (this.multiAxes[key] === true) {
-              this._addAxis(g, key, g.item.mount);
-              this._updateAxis(g, key);
-            } else {
-              this._removeAxis(g, key);
-            }
-          })
-          if (!this._nodes.axis[key]) {
-            this._addAxis(this, key, null, true);
-          }
-          if (this.multiAxes[key] === true) {
-            // hide main axis
-            this._nodes.axis[key].attr('hidden', true);
-          } else {
-            this._nodes.axis[key].attr('hidden', null);
-            this._updateAxis(this, key);
-          }
-        }
-      }
-
-      _addAxis(g, key, mount, expanded) {
-        if (g._nodes.axis[key]) return;
-        this._nodes.axes[key] = this._nodes.axes[key] || d3.select(this.$.axis).append('svg:g').classed(key, true);
-        var self = this, vertical = false, pos = g.axisPosition[key];
-        // enter axes node
-        g._nodes.axis[key] = this._nodes.axes[key]
-          .append('svg:g')
-          .classed('axis', true)
-          .classed(key, true)
-          .classed('expanded', expanded)
-          .attr('mount', mount)
-          .on('click', function() {
-            var a = d3.select(this),
-              exp = a.classed('expanded');
-            a.classed('expanded', !exp);
-            this._expanded = exp;
-            self._sizeChanged();
-          })
-          .call(d3.drag()
-            .on("start", this._axisDragStarted)
-            .on("drag", this._axisDragged)
-            .on("end", this._axisDragEnded));
-
-        // add title
-        g._nodes.axis[key].append('svg:title').text(mount);
-        // set scale
-        // this.scale[key] = this._createScaleFn(this.scale[key]).domain(this.domain[key]);
-        g._generators.axis[key] = this._createAxisFn(this.scale[key], pos, this.keys[key].scale);
-        switch (pos) {
-          case 'left':
-          case 'right':
-            this.scale[key].range([this._height, 0]);
-            g._generators.brush[key] = d3.brushY();
-            vertical = true;
-            break;
-          case 'bottom':
-          case 'top':
-            this.scale[key].range([0, this._width]);
-            g._generators.brush[key] = d3.brushX();
-            break;
-        }
-        // enter brush node
-        g._nodes.brush[key] = g._nodes.axis[key].append('svg:g').classed('brush', true);
-        g._nodes.axis[key].classed('vertical', vertical).classed('horizontal', !vertical);
-        g._nodes.axis[key].node()._vertical = vertical;
-        g._nodes.axis[key].node()._position = pos;
-        g._nodes.axis[key].node()._caller = g;
-        // console.log('_addAxis', key, mount, pos)
-      }
-
-      _updateAxis(g, key) {
-        g = g || this;
-        if (!g._nodes.axis[key] || g._nodes.axis[key].attr('hidden')) return;
-        var expanded = g._nodes.axis[key].classed('expanded'),
-          tickSize = this.tickSize,
-          pos = g._nodes.axis[key].node()._position;
-        // update axis
-        if (pos === 'left' || pos === 'right') {
-          this._updateScale.call(g);
-          if (pos === 'left') {
-            g._generators.brush[key].extent([
-              [-tickSize, 0], [0, this._height]
-            ]);
-          } else if (pos === 'right') {
-            g._generators.brush[key].extent([
-              [0, 0], [tickSize, this._height]
-            ]);
-          }
-        } else if (pos === 'bottom' || pos === 'top') {
-          this._updateScale.call(g);
-          if (pos === 'top') {
-            g._generators.brush[key].extent([
-              [0, -tickSize], [this._width, 0]
-            ]);
-          } else if (pos === 'bottom') {
-            g._generators.brush[key].extent([
-              [0, 0], [this._width, tickSize]
-            ]);
-          }
-        }
-        g._generators.axis[key] = this._createAxisFn(g.scale[key], pos, g.keys[key].scale).tickFormat(expanded ? null : '').tickSize(tickSize);
-        g._nodes.brush[key].raise().call(g._generators.brush[key]);
-        g._nodes.axis[key].call(g._generators.axis[key]).transition(100)
-          .attr('transform', 'translate(' + (g._nodes.axis[key].node()._left || 0) + ',' + (g._nodes.axis[key].node()._top || 0) + ')');
-        g._nodes.axis[key].node()._width = this._width;
-        g._nodes.axis[key].node()._height = this._height;
-      }
-
-      _removeAxis(g, key) {
-        g = g || this;
-        if (!g._nodes.axis[key]) return;
-        // console.log('_removeAxis', key)
-        var node;
-        g._generators.brush[key] = null;
-        g._generators.axis[key] = null;
-        g.scale[key] = this.scale[key];
-        // remove axis & brush node
-        if (g._nodes.brush[key]) {
-          node = g._nodes.brush[key].node();
-          if (node && node.parentElement)
-            node.parentElement.removeChild(node);
-        }
-        if (g._nodes.axis[key]) {
-          node = g._nodes.axis[key].node();
-          if (node && node.parentElement)
-            node.parentElement.removeChild(node);
-        }
-        g._nodes.axis[key] = null;
-        g._nodes.brush[key] = null;
-      }
-
-      _updateScales(keys) {
-        this._updateScale();
-        this._graphs.forEach( g => {
-          // if (g._nodes.axis[key]) {
-            g._updateScale();
-          // }
-        })
-      }
-
-      _callAxes() {
-        var keys = Object.keys(this.multiAxes);
-        keys.forEach(key => {
-          this._graphs.forEach( g => {
-            if (g._nodes.axis[key] && g._generators.axis[key]) {
-              g._nodes.brush[key].raise().call(g._generators.brush[key]);
-              g._nodes.axis[key].call(g._generators.axis[key]).transition(100)
-                .attr('transform', 'translate(' + (g._nodes.axis[key].node()._left || 0) + ',' + (g._nodes.axis[key].node()._top || 0) + ')');
-            }
-          })
-          if (this._nodes.axis[key] && this._generators.axis[key]) {
-            this._nodes.brush[key].raise().call(this._generators.brush[key]);
-            this._nodes.axis[key].call(this._generators.axis[key]).transition(100)
-              .attr('transform', 'translate(' + (this._nodes.axis[key].node()._left || 0) + ',' + (this._nodes.axis[key].node()._top || 0) + ')');
-          }
-        })
-      }
-
-      axisBrushMove(key) {
-        // if (d3.event.sourceEvent && d3.event.sourceEvent.type === 'zoom') return; // ignore brush-by-zoom
-        console.log('brushmove', key, d3.event.selection);
-        var s = (d3.event.selection || this.scale[key].range()).map(this.scale[key].invert, this.scale[key]);
-        console.log(key, s);
-        // this.scale[key].domain(s);
-        // if (this.hasArea) {
-        //   this._nodes.area.attr('d', this._generators.area);
+        // if (!this._isAttached) return;
+        // console.log('_multiAxesChanged', multiAxes);
+        // this._addAxis();
+        // for (var key in multiAxes) {
+        //   this._graphs.forEach( g => {
+        //     g._addAxis(key, g.item.mount, !multiAxes[key]);
+        //     if (multiAxes[key] === true) {
+        //       console.log('forced scale', key);
+        //       g._createScale(key);
+        //       Promise.resolve(g._getDomain(key));
+        //     } else {
+        //       g.scale[key] = this.scale[key].bind(g);
+        //     }
+        //     g._updateAxisGenerator(key);
+        //     g._updateAxisBrushGenerator(key);
+        //   })
+        //
+        //   if (multiAxes[key] === true) {
+        //     // hide main axis
+        //     this._axis[key].attr('hidden', true);
+        //   } else {
+        //     this._axis[key].attr('hidden', null);
+        //   }
+        //   this._updateAxisGenerator(key);
+        //   this._updateAxisBrushGenerator(key);
         // }
-        // if (this.hasLine) {
-        //   this._nodes.line.attr('d', this._generators.line);
-        // }
-        this._nodes.axis[key].call(this.scale[key]);
       }
 
-      axisBrushEnd(key) {
-        // if (d3.event.sourceEvent && d3.event.sourceEvent.type === 'zoom') return; // ignore brush-by-zoom
-        console.log('brushend', key, d3.event.selection);
-        var s = (d3.event.selection || this.scale[key].range()).map(this.scale[key].invert, this.scale[key]);
-        console.log(key, s);
-        // this.scale[key].domain(s);
-        // if (this.hasArea) {
-        //   this._nodes.area.attr('d', this._generators.area);
-        // }
-        // if (this.hasLine) {
-        //   this._nodes.line.attr('d', this._generators.line);
-        // }
-        this._nodes.axis[key].call(this.scale[key]);
-      }
+      // _addAxis(g, key, mount, expanded) {
+      //   if (g._axis[key]) return;
+      //   this._nodes.axes[key] = this._nodes.axes[key] || d3.select(this.$.axis).append('svg:g').classed(key, true);
+      //   var self = this, vertical = false, pos = g.axisPosition[key];
+      //   // enter axes node
+      //   g._axis[key] = this._nodes.axes[key]
+      //     .append('svg:g')
+      //     .classed('axis', true)
+      //     .classed(key, true)
+      //     .classed('expanded', expanded)
+      //     .attr('mount', mount)
+      //     .on('click', function() {
+      //       var a = d3.select(this),
+      //         exp = a.classed('expanded');
+      //       a.classed('expanded', !exp);
+      //       this._expanded = exp;
+      //       self._sizeChanged();
+      //     })
+      //     .call(d3.drag()
+      //       .on("start", this._axisDragStarted)
+      //       .on("drag", this._axisDragged)
+      //       .on("end", this._axisDragEnded));
+      //
+      //   // add title
+      //   g._axis[key].append('svg:title').text(mount);
+      //   // set scale
+      //   // this.scale[key] = this._createScaleFn(this.scale[key]).domain(this.domain[key]);
+      //   g._axisGenerator[key] = this._createAxisFn(this.scale[key], pos, this.keys[key].scale);
+      //   switch (pos) {
+      //     case 'left':
+      //     case 'right':
+      //       this.scale[key].range([this._height, 0]);
+      //       g._brushGenerator[key] = d3.brushY();
+      //       vertical = true;
+      //       break;
+      //     case 'bottom':
+      //     case 'top':
+      //       this.scale[key].range([0, this._width]);
+      //       g._brushGenerator[key] = d3.brushX();
+      //       break;
+      //   }
+      //   // enter brush node
+      //   g._brush[key] = g._axis[key].append('svg:g').classed('brush', true);
+      //   g._axis[key].classed('vertical', vertical);
+      //   g._axis[key].node()._vertical = vertical;
+      //   g._axis[key].node()._position = pos;
+      //   g._axis[key].node()._caller = g;
+      //   // console.log('_addAxis', key, mount, pos)
+      // }
 
-      _axisDragStarted(e) {
-        d3.select(this).raise().classed("dragged", true);
-        console.log('dragged', e, d3.event, this._left, this._top);
-      }
-      _axisDragged(e) {
-        var vertical = d3.select(this).classed('vertical'), left = 0, top = 0;
-        if (vertical) {
-          left = d3.event.x;
-        } else {
-          top = d3.event.y;
-        }
-        d3.select(this).attr('transform', 'translate(' + left + ',' + top + ')');
+      // _updateAxis(g, key) {
+      //   g = g || this;
+      //   if (!g._axis[key] || g._axis[key].attr('hidden')) return;
+      //   var expanded = g._axis[key].classed('expanded'),
+      //     tickSize = this.tickSize,
+      //     pos = g._axis[key].node()._position;
+      //   // update axis
+      //   if (pos === 'left' || pos === 'right') {
+      //     this._updateScale.call(g);
+      //     if (pos === 'left') {
+      //       g._brushGenerator[key].extent([
+      //         [-tickSize, 0], [0, this._height]
+      //       ]);
+      //     } else if (pos === 'right') {
+      //       g._brushGenerator[key].extent([
+      //         [0, 0], [tickSize, this._height]
+      //       ]);
+      //     }
+      //   } else if (pos === 'bottom' || pos === 'top') {
+      //     this._updateScale.call(g);
+      //     if (pos === 'top') {
+      //       g._brushGenerator[key].extent([
+      //         [0, -tickSize], [this._width, 0]
+      //       ]);
+      //     } else if (pos === 'bottom') {
+      //       g._brushGenerator[key].extent([
+      //         [0, 0], [this._width, tickSize]
+      //       ]);
+      //     }
+      //   }
+      //   g._axisGenerator[key] = this._createAxisFn(g.scale[key], pos, g.keys[key].scale).tickFormat(expanded ? null : '').tickSize(tickSize);
+      //   g._brush[key].raise().call(g._brushGenerator[key]);
+      //   g._axis[key].call(g._axisGenerator[key]).transition(100)
+      //     .attr('transform', 'translate(' + (g._axis[key].node()._left || 0) + ',' + (g._axis[key].node()._top || 0) + ')');
+      //   g._axis[key].node()._width = this._width;
+      //   g._axis[key].node()._height = this._height;
+      // }
+      //
+      // _removeAxis(g, key) {
+      //   g = g || this;
+      //   if (!g._axis[key]) return;
+      //   // console.log('_removeAxis', key)
+      //   var node;
+      //   g._brushGenerator[key] = null;
+      //   g._axisGenerator[key] = null;
+      //   g.scale[key] = this.scale[key];
+      //   // remove axis & brush node
+      //   if (g._brush[key]) {
+      //     node = g._brush[key].node();
+      //     if (node && node.parentElement)
+      //       node.parentElement.removeChild(node);
+      //   }
+      //   if (g._axis[key]) {
+      //     node = g._axis[key].node();
+      //     if (node && node.parentElement)
+      //       node.parentElement.removeChild(node);
+      //   }
+      //   g._axis[key] = null;
+      //   g._brush[key] = null;
+      // }
 
-        // d3.select(this).attr("cx", d.x = d3.event.x).attr("cy", d.y = d3.event.y);
-      }
-      _axisDragEnded(e) {
-        d3.select(this).classed("dragged", false);
-        var vertical = d3.select(this).classed('vertical'), left = 0, top = 0;
-        if (vertical) {
-          left = d3.event.x;
-          if (this._width) {
-            this._position = (left > this._width / 2) ? 'right' : 'left';
-          }
-        } else {
-          top = d3.event.y;
-          if (this._height) {
-            this._position = (top > this._height / 2) ? 'bottom' : 'top';
-          }
-        }
-        d3.select(this).attr('transform', 'translate(' + left + ',' + top + ')');
-        this.dispatchEvent(new CustomEvent('iron-resize', {
-          bubbles: true,
-          composed: true,
-          node: this
-        }));
-        console.log('dragged', this, d3.event);
-      }
-
-      _axisPositionChanged(axisPosition) {}
+      // _callAxes() {
+      //   if (!this._isAttached) return;
+      //   console.log('_callAxes');
+      //   this._graphs.forEach( g => {
+      //     g._updateAxis();
+      //     g._updateAxisBrush();
+      //   })
+      //   this._updateAxis();
+      //   this._updateAxisBrush();
+      // }
+      //
+      // _updateScales() {
+      //   super._updateScales();
+      //   this._graphs.forEach( g => {
+      //     for (var key in this.multiAxes) {
+      //       console.log(this.domain[key], key);
+      //       if (!this.multiAxes[key] && this.domain && this.domain[key]) {
+      //         g.set('domain.'+key, this.domain[key]);
+      //       }
+      //     }
+      //   })
+      // }
 
       _addGraph(g) {
         this._graphs.add(g);
@@ -1095,64 +938,11 @@
         this._graphs.delete(g);
       }
 
-      _createAxisFn(scalefn, pos, scale, ticks) {
-        // console.log('_createAxisFn', pos, scale, ticks)
-        var axis;
-        ticks = ticks || 5;
-        switch (pos) {
-          case 'top':
-            axis = d3.axisTop();
-            break;
-          case 'bottom':
-            axis = d3.axisBottom();
-            break;
-          case 'right':
-            axis = d3.axisRight();
-            break;
-          default:
-            axis = d3.axisLeft();
-        }
-        axis.scale(scalefn).ticks(ticks);
-        if (scale === 'time')
-          axis.ticks(ticks).tickFormat(this.timeFormat.bind(this));
-        else if (scalefn.base && scalefn.base() === Math.E)
-          axis.tickFormat(d => {
-            // TODO: different conception for log scales needed
-            return (d < 1 || d > 1000 ? (Math.log(d)).toExponential(3) : (Math.log(d)).toFixed(2));
-          })
-
-        return axis;
-      }
-
-      timeFormat(date) {
-        return (d3.timeSecond(date) < date ? this.format.Millisecond :
-          d3.timeMinute(date) < date ? this.format.Second :
-          d3.timeHour(date) < date ? this.format.Minute :
-          d3.timeDay(date) < date ? this.format.Hour :
-          d3.timeMonth(date) < date ? (d3.timeWeek(date) < date ? this.format.Day : this.format.Week) :
-          d3.timeYear(date) < date ? this.format.Month :
-          this.format.Year)(date);
-      }
-
-      timeFormatRange(date, r, pixels) {
-        var rangeRatio = (r[1] - r[0]).valueOf() / pixels;
-        return (rangeRatio < 100 ? this.format.Millisecond :
-          rangeRatio < 5E2 ? this.format.LongSecond :
-          rangeRatio < 5E3 ? this.format.Second :
-          rangeRatio < 2E4 ? this.format.LongMinute :
-          rangeRatio < 6E4 ? this.format.Minute :
-          rangeRatio < 36E5 ? this.format.Hour :
-          rangeRatio < 864E5 ? this.format.Day :
-          rangeRatio < 6048E5 ? this.format.Week :
-          rangeRatio < 24192E5 ? this.format.Month :
-          this.format.Year)(date);
-      }
-
-      redraw() {
+      _redomain() {
         if (!this._isAttached) return;
 
-        Promise.resolve(this._getDomains.call(this))
-          .then(this._redraw.bind(this, false))
+        Promise.resolve(this._getDomain.call(this))
+          .then(this.redraw.bind(this, false))
           .catch(err => {
             if (err) {
               console.warn(err);
@@ -1160,20 +950,22 @@
           });
       }
 
-      _redraw(force) {
+      redraw(force) {
         if (!this._isAttached) return;
 
+        console.log('_redraw');
         if (force) {
-          this.redraw();
+          this._redomain();
           return;
         }
 
-        this._updateScales();
-        this._callAxes();
+        super.redraw();
 
         this._graphs.forEach( g => {
-          if (g && g._isAttached)
-            g.redraw();
+          if (g && g._isAttached) {
+            if (this.multiAxes.x === true) g.redrawX();
+            if (this.multiAxes.y === true) g.redrawY();
+          }
         })
 
         // this._chart.transition(50).select('#xGrid').call(this._xGrid);
@@ -1199,13 +991,14 @@
         //   this._isBrushed = false;
         // } else {
         //   this._isZoomed = false;
-        //   this.redraw();
+        //   this._redomain();
         //   return;
         // }
-        // this._redraw();
+        // this.redraw();
       }
 
-      _getDomains() {
+      _getDomain() {
+        console.log('_getDomain');
         var p = [];
 
         return new Promise((resolve, reject) => {
@@ -1213,7 +1006,7 @@
           for (var key in this.multiAxes) {
             if (this.multiAxes[key] === true) {
               this._graphs.forEach( g => {
-                if (g._isAttached & !g._isBrushed) {
+                if (g._isAttached && !(g._axes && g._axes[key] && g._axes[key].node()._isBrushed)) {
                   p.push( g._getDomain(key) )
                 }
               })
@@ -1221,7 +1014,12 @@
               p.push(
                 this.requestRange(key)
                       .then(res => {
-                        this.set('domain.' + res.key, res.domain);
+                        if (res.key === 'x') {
+                          this.set('domainX', res.domain);
+                        }
+                        else if (res.key === 'y') {
+                          this.set('domainY', res.domain);
+                        }
                       }) )
             }
           }
@@ -1321,14 +1119,14 @@
       _moveInfo(d) {
         if (Number.isFinite(this.scale.y(d.y))) {
           var x = this.timeFormatRange.call(this, d.x, this.scale.x.domain(), this._width);
-          var y = this.format.Number(d.y);
+          var y = this.numberFormat.call(this, d.y);
           this._info.text(x + ' ' + y);
           var fixP = this._fixedValue;
           if (fixP) {
             var diffX = Math.abs(fixP.x - d.x),
               diffY = Math.abs(fixP.y - d.y);
-            diffX = this.format.timeDiff.call(this, diffX);
-            diffY = this.format.Number(diffY);
+            diffX = this.timeFormat.call(this, diffX);
+            diffY = this.numberFormat.call(this, diffY);
             this._infoDeltaX.text(diffX);
             this._infoDeltaY.text(diffY);
           }
@@ -1366,8 +1164,8 @@
         this._hideDelta();
         // this._xAxisFn = this._createAxisFn(this._x, 'bottom', this.xScale, this.xTicks);
         // this._yAxisFn = this._createAxisFn(this._y, 'left', this.yScale, this.yTicks);
-        // this._nodes.axis.select('.x.axis').call(this._xAxisFn);
-        // this._nodes.axis.select('.y.axis').call(this._yAxisFn);
+        // this._axis.select('.x.axis').call(this._xAxisFn);
+        // this._axis.select('.y.axis').call(this._yAxisFn);
         this._svg.selectAll('g,line,text,path,rect')
           .classed('style-scope', true)
           .classed('device-chart', true);
@@ -1422,8 +1220,8 @@
         // this._xAxisFn.tickFormat(null);
         // this._yAxisFn.tickValues([this._focusedValue.y]);
         // this._yAxisFn.tickFormat(null);
-        // this._nodes.axis.select('.x.axis').call(this._xAxisFn);
-        // this._nodes.axis.select('.y.axis').call(this._yAxisFn);
+        // this._axis.select('.x.axis').call(this._xAxisFn);
+        // this._axis.select('.y.axis').call(this._yAxisFn);
         this._svg.selectAll('g,line,text,path,rect')
           .classed('style-scope', true)
           .classed('device-chart', true);
@@ -1565,7 +1363,7 @@
         this._fixedValue = null;
         this._focusedValue = null;
         this._hideInfo();
-        this.redraw();
+        this._redomain();
       }
 
       // _refresh() {
@@ -1588,7 +1386,7 @@
       //     }
       //   })
       //   this._isZoomed = false;
-      //   this.redraw();
+      //   this._redomain();
       // }
     }
     customElements.define(DeviceChart.is, DeviceChart);

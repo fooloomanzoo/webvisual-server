@@ -180,7 +180,7 @@
         super.connectedCallback();
         this.autoSignIn(false);
         requestAnimationFrame(() => {
-          window.addEventListener('online', this.autoSignIn);
+          window.addEventListener('online', this.autoSignIn.bind(this));
           this.$.dialog.center();
         });
       }

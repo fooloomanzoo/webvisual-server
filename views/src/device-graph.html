@@ -58,52 +58,23 @@
 
           multiAxes: {
             type: Object
-          },
-
-          axisPosition: {
-            type: Object,
-            value: function() {
-              return {
-                x: 'bottom',
-                y: 'left'
-              }
-            },
-            observer: '_axisPositionChanged'
           }
         }
       }
 
       constructor() {
         super();
-        this._nodes = {
-          axis: {},
-          brush: {},
-          axes: {}
-        };
-        this._fn = {
-          axis: {
-            x: Function.prototype,
-            y: Function.prototype
-          },
-          brush: {
-            x: Function.prototype,
-            y: Function.prototype
-          }
-        };
-        this._generators = {
-          brush: {},
-          axis: {}
-        }
+
         this._isAttached = false;
         this._chart = null;
 
-        this._generators.area = d3.area()
+        this._areaGenerator = d3.area()
           .defined(this._defined.bind(this))
           .x(d => {
             return this.scale.x(d.x);
           })
           .y0(d => {
-            if (this.yScale === 'ln' || this.yScale === 'log₁₀') {
+            if (this.keys && this.keys.y && this._IS_LOG_SCALE(this.keys.y.scale)) {
               return this._chart._height;
             } else {
               return this.scale.y(0)
@@ -113,7 +84,7 @@
             return this.scale.y(d.y);
           });
 
-        this._generators.line = d3.line()
+        this._lineGenerator = d3.line()
           .defined(this._defined.bind(this))
           .x(d => {
             return this.scale.x(d.x);
@@ -163,30 +134,28 @@
         if (this._isAttached) {
           this.clearValues(true);
         }
-        var _containerRoot = this._containerRoot;
-        if (!_containerRoot || _containerRoot.nodeName !== 'DEVICE-CHART') {
-          console.warn('No parentElement (chart) for graph found. Registration of Graph Element failed', _containerRoot);
+        var containerRoot = this._containerRoot;
+        if (!containerRoot || containerRoot.nodeName !== 'DEVICE-CHART') {
+          console.warn('No parentElement (chart) for graph found. Registration of Graph Element failed', containerRoot);
           return;
-        } else if (!_containerRoot._isAttached) {
+        } else if (!containerRoot._isAttached) {
           console.warn('Chart has not been attached yet for adding a graph. Registration of Graph Element failed');
           return;
         }
-        this._chart = _containerRoot;
+        this._chart = containerRoot;
+        this._axisInsertionPoint = containerRoot._axisInsertionPoint;
 
         this._areaChanged(this.hasArea);
         this._lineChanged(this.hasLine);
 
+        // for (var key in this._chart.multiAxes) {
+        //   this.scale[key] = this._chart.multiAxes[key] ? this.scale[key] : this._chart.scale[key];
+        //   this._addAxis(key, this.item.mount, !this._chart.multiAxes[key]);
+        // }
+
         this._chart._addGraph(this);
 
         this._isAttached = true;
-
-        for (var key in this._chart.multiAxes) {
-          if (this._chart.multiAxes[key] === true) {
-            this._chart._addAxis(this, key, this.item.mount);
-          } else {
-            this.scale[key] = this._chart.scale[key];
-          }
-        }
         this._setColorProperties();
         this._chart._sizeChanged();
       }
@@ -197,74 +166,72 @@
         this._areaChanged();
         this._lineChanged();
         this._thresholdChanged();
+        this._removeAxis();
         this._chart._removeGraph(this);
       }
 
       _areaChanged(hasArea, type) {
         // console.log('_areaChanged', this.item.mount, hasArea, type);
-        if (!(this._chart && this._chart._nodes.area)) return;
+        if (!(this._chart && this._chart._area)) return;
 
         if (hasArea === false) {
           // remove fill area
-          if (this._nodes.area && this._nodes.area.node) {
-            var node = this._nodes.area.node();
+          if (this._area && this._area.node) {
+            var node = this._area.node();
             if (node && node.parentElement)
               node.parentElement.removeChild(node);
-            this._nodes.area = null;
+            this._area = null;
           }
         } else {
-          if (!(this._nodes.area && this._nodes.area.node)) { // add fill area
-            this._nodes.area = this._chart._nodes.area.append('svg:path');
-            this._nodes.line.append('svg:title').text(this.item.mount);
+          if (!(this._area && this._area.node)) { // add fill area
+            this._area = this._chart._area.append('svg:path');
+            this._area.append('svg:title').text(this.item.mount);
           }
           // update fill area node properties
-          this._nodes.area
+          this._area
             .attr('mount', this.item.mount)
             .attr('class', 'area')
             .attr('stroke-width', 0)
             .datum([])
-            .attr('d', this._generators.area);
+            .attr('d', this._areaGenerator);
         }
       }
 
       _lineChanged(hasLine, type) {
         // console.log('_lineChanged', this.item.mount, hasLine, type);
-        if (!(this._chart && this._chart._nodes.line)) return;
+        if (!(this._chart && this._chart._line)) return;
 
         if (hasLine === false) {
           // remove line
-          if (this._nodes.line && this._nodes.line.node) {
-            var node = this._nodes.line.node();
+          if (this._line && this._line.node) {
+            var node = this._line.node();
             if (node && node.parentElement)
               node.parentElement.removeChild(node);
-            this._nodes.line = null;
+            this._line = null;
           }
         } else {
-          if (!(this._nodes.line && this._nodes.line.node)) { // add line node
-            this._nodes.line = this._chart._nodes.line.append('svg:path');
-            this._nodes.line.append('svg:title').text(this.item.mount);
+          if (!(this._line && this._line.node)) { // add line node
+            this._line = this._chart._line.append('svg:path');
+            this._line.append('svg:title').text(this.item.mount);
           }
           // update line node properties
-          this._nodes.line
+          this._line
             .attr('mount', this.item.mount)
             .attr('class', 'line')
             .attr('fill', 'none')
             .attr('stroke-width', this.lineWidth)
             .datum([])
-            .attr('d', this._generators.line);
+            .attr('d', this._lineGenerator);
 
         }
       }
 
-      _axisPositionChanged(axisPosition) {
-      }
-
       _thresholdChanged(threshold) {
-        if (!(this._chart && this._chart._nodes.boundery)) return;
+        if (!(this._chart && this._chart._boundery)) return;
 
         if (threshold) {
           if (!this.boundery) { // add threshold node
-            this.boundery = this._chart._nodes.boundery.append('linearGradient');
+            this.boundery = this._chart._boundery.append('linearGradient');
           }
           // update threshold node properties
           this.boundery
@@ -286,14 +253,10 @@
       _setColorProperties() {
         if (!this._chart) return;
         if (this.item && this.item.color) {
+          this.axisColor = this.item.color;
           var colorForGraph = this.item.theshold ? ('url(#boundery-line-' + this.item.mount + ')') : this.item.color || '#000';
-          if (this._nodes.area && this._nodes.area.attr) this._nodes.area.attr('fill', colorForGraph);
-          if (this._nodes.line && this._nodes.line.attr) this._nodes.line.attr('stroke', colorForGraph);
-          for (var key in this._chart.multiAxes) {
-            if (this._chart.multiAxes[key] === true && this._nodes.axis[key] && this._nodes.axis[key].attr) {
-              this._nodes.axis[key].style('color', this.item.color || '#000');
-            }
-          }
+          if (this._area && this._area.attr) this._area.attr('fill', colorForGraph);
+          if (this._line && this._line.attr) this._line.attr('stroke', colorForGraph);
         }
       }
 
@@ -382,31 +345,50 @@
         }
       }
 
+      _updateScales() {
+        super._updateScales();
+        if (!this.domain && this._chart.domain) {
+          this.set('domain', this._chart.domain);
+          return;
+        }
+        for (var key in this.keys) {
+          if ((!this.domain.hasOwnProperty(key) || this._chart.multiAxes[key]) && this._chart.domain && this._chart.domain[key]) {
+            this.set('domain.' + key, this._chart.domain);
+          }
+        }
+      }
       redraw() {
-        if (!this._isAttached) return;
+        if (!this._isAttached || !this.domain) return;
 
-        // console.log('graph redraw', this.item.mount, this.values.length);
+        console.log('graph redraw', this.item.mount, this.values.length);
+        super.redraw(this);
+
+        for (var key in this.keys) {
+          if (!(this.scale.hasOwnProperty(key) && this.domain.hasOwnProperty(key) && this.range.hasOwnProperty(key))) {
+            return;
+          }
+        }
 
         var data = this.values || [];
 
         // fill area
         if (this.hasArea) {
-          if (!(this._nodes.area && this._nodes.area.node)) {
+          if (!(this._area && this._area.node)) {
             this._areaChanged(true);
           }
-          this._nodes.area
+          this._area
             .datum(data)
-            .attr('d', this._generators.area);
+            .attr('d', this._areaGenerator);
         }
 
         // line
         if (this.hasLine) {
-          if (!(this._nodes.line && this._nodes.line.node)) {
+          if (!(this._line && this._line.node)) {
             this._lineChanged(true);
           }
-          this._nodes.line
+          this._line
             .datum(data)
-            .attr('d', this._generators.line);
+            .attr('d', this._lineGenerator);
         }
 
         // threshold gradients
@@ -477,8 +459,8 @@
       _getDomain(key) {
         return new Promise((resolve, reject) => {
           if (!this._isAttached) reject();
-          var scale = this.keys[key].scale;
-          var vertical = this.keys[key].coordinate === 'y';
+          var scale = (key === 'y') ? this.scalingY : this.scalingX;
+          var vertical = (key === 'y');
           this.requestRange(key)
             .then(range => {
               var domain = range;
@@ -491,7 +473,7 @@
               }
 
               // logarithmic scales need scales of same prefix
-              if (['ln', 'log', 'log₂', 'log₁₀'].indexOf(scale) > -1) {
+              if (this._IS_LOG_SCALE(scale)) {
                 if (domain[0] <= 0) {
                   domain[0] = Math.sign(domain[1])*Number.EPSILON;
                 }
@@ -499,9 +481,12 @@
                   domain[1] = Math.sign(domain[0])*Number.EPSILON;
                 }
               }
-              this.domain = this.domain || {};
-              this.domain[key] = domain;
-              this.notifyPath('domain.' + key);
+              if (key === 'x') {
+                this.set('domainX', domain);
+              }
+              else if (key === 'y') {
+                this.set('domainY', domain);
+              }
               resolve({domain: domain, key: key});
             })
             .catch(err => {
@@ -511,11 +496,9 @@
       }
 
       _defined(d, i) {
-        var yScale = this.yScale;
-
         if (!Number.isFinite(d.y))
           return null;
-        else if ((yScale === 'ln' || yScale === 'log₁₀') && d.y <= 0)
+        else if (d.y <= 0 && this.keys && this.keys.y && this._IS_LOG_SCALE(this.keys.y.scale))
           return null; // log- and sqrt-scale require larger than 0-Values
         // else if ((d.x >= domainX[0] && d.x <= domainX[1]) ||
         //   (data[i + 1] && data[i + 1].x >= domainX[0] && data[i + 1].x <= domainX[1]) ||
@@ -586,7 +569,7 @@
       // https://bl.ocks.org/mbostock/8027637
       // https://pomax.github.io/bezierinfo/#projections
       _closestInterpolatedPoint(point, pathNode) {
-        pathNode = pathNode || this._nodes.area.node() || this._nodes.line.node();
+        pathNode = pathNode || this._area.node() || this._line.node();
         var pathLength = pathNode.getTotalLength(),
           precision = Math.ceil(pathLength / this._chart._width / 2.0) * 2,
           best,
@@ -655,8 +638,8 @@
       }
 
       _lineWidthChanged(lineWidth) {
-        if (this._nodes.line && this._nodes.line.attr) {
-          this._nodes.line.attr('stroke-width', lineWidth);
+        if (this._line && this._line.attr) {
+          this._line.attr('stroke-width', lineWidth);
         }
       }
 
@@ -691,8 +674,8 @@
             curve = d3.curveLinear;
             break;
         }
-        this._generators.area.curve(curve);
-        this._generators.line.curve(curve);
+        this._areaGenerator.curve(curve);
+        this._lineGenerator.curve(curve);
 
         if (this._chart)
           this._chart.redraw();

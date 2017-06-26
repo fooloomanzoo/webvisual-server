@@ -1,5 +1,5 @@
-<link rel="import" href="scale-mixin.html">
-<link rel="import" href="localize-mixin.html">
+<link rel='import' href='scale-mixin.html'>
+<link rel='import' href='localize-mixin.html'>
 
 <script>
   window.WebvisualMixins = window.WebvisualMixins || {};
@@ -11,7 +11,7 @@
      * @mixinClass
      * @polymer
      */
-    return class extends WebvisualMixins.ScaleMixin(WebvisualMixins.LocalizeMixin(superClass)) {
+    return class extends WebvisualMixins.ScaleMixin(superClass) {
 
       constructor() {
         super();
@@ -20,22 +20,21 @@
       static get properties() {
         return {
           /**
-           * position of the axes by key
+           * position of the axes
            * e.this. :
            *  {
-           *    x: 'bootom'
+           *    x: 'bottom'
            *    y: 'top'
            *  }
            */
-          axisPosition: {
-            type: Object,
-            value: function() {
-              return {
-                x: 'bottom',
-                y: 'left'
-              }
-            },
-            observer: '_axisPositionChanged'
+          axisPositionX: {
+            type: String,
+            value: 'left'
+          },
+
+          axisPositionY: {
+            type: String,
+            value: 'bottom'
           },
           /**
            * transition time in ms when changing position
@@ -51,6 +50,21 @@
             type: String
           },
           /**
+           * color for axis
+           */
+          axisColor: {
+            type: String,
+            observer: '_axisColorChanged'
+          },
+          /**
+           * tick size in pixel
+           */
+          tickSize: {
+            type: Number,
+            value: 8
+          },
+
+          /**
            * insertion point of the axes
            */
           _axisInsertionPoint: {
@@ -59,35 +73,36 @@
           /**
            * nodes of the axes by keys
            */
-          _axis: {
+          axisX: {
+            type: Object
+          },
+          axisY: {
             type: Object
           },
           /**
            * generator functions of the axes by keys
            */
-          _axisGenerator: {
-            type: Object
+          axisGeneratorX: {
+            type: Function,
+            computed: '_computeAxisGenerator(axisPositionX, scaleX, scalingX, scaleBaseX)'
           },
-          /**
-           * nodes of the brush of the axes by keys
-           */
-          _axisBrush: {
-            type: Object
+
+          axisGeneratorY: {
+            type: Function,
+            computed: '_computeAxisGenerator(axisPositionY, scaleY, scalingX, scaleBaseX)'
           },
           /**
            * generator functions of the brushes axes by keys
            */
-          _axisBrushGenerator: {
-            type: Object
+          axisBrushGeneratorX: {
+            type: Function,
+            computed: '_computeAxisBrushGenerator(axisPositionX)'
           },
-          /**
-           * folder for format file
-           */
-          languageResourcePrefix: {
-            type: String,
-            value: '/locales/dtf/'
-          }
 
+          axisBrushGeneratorY: {
+            type: Function,
+            computed: '_computeAxisBrushGenerator(axisPositionY)'
+          }
         }
       }
 
@@ -97,124 +112,341 @@
 
       disconnectedCallback() {
         super.disconnectedCallback();
-        this._removeAxis();
+        this._removeNodes();
       }
 
       static get observers() {
         return [
-          '_createAxisGenerator(axisPosition, scale, keys)',
-          '_createAxis(_axisInsertionPoint, _axisGenerator)',
-          '_updateAxis(_axis)',
-          '_setDateNumberFormat(localize)'
+          '_setAxisNode("axisX", _axisInsertionPoint)',
+          '_setAxisNode("axisY", _axisInsertionPoint)',
+          // '_callAxis(axisX, axisGeneratorX)',
+          // '_callAxis(axisY, axisGeneratorY)',
+          '_rangeChanged(axisBrushGeneratorX, rangeX, axisPositionX)',
+          '_rangeChanged(axisBrushGeneratorY, rangeY, axisPositionY)',
         ]
       }
 
-      _axisPositionChanged(axisPosition) {
-
+      _computeAxisGenerator(pos, scale, scaling, base) {
+        if (!pos || scale === undefined)  return;
+        var tickSize = this.tickSize || 6;
+        return (pos === 'left' ? d3.axisLeft(scale) :
+          (pos === 'right') ? axisGen = d3.axisRight(scale) :
+          (pos === 'top') ? axisGen = d3.axisTop(scale) :
+            d3.axisBottom(scale)).tickSize(tickSize).tickFormat(this._computeFormatFn(scaling, base));
       }
 
-      _createAxis(insertionPoint, scale, keys) {
-
+      _computeAxisBrushGenerator(pos) {
+        if (!pos)  return;
+        return (this._isVertical(pos) ? d3.brushY() : d3.brushX()).on('end', this._onAxisBrushEnd.bind(this));
       }
 
-      _updateAxis(axis) {
-        axis = axis || this._axis;
-        if (axis === undefined) return;
-        for (var key in axis) {
-          this._axisBrush[key].raise().call(this._axisGenerator[key]);
-          axis[key].call(this._axisGenerator[key]).transition(this.axisTransitionTime || 0)
+      _setAxisNode(key, insertionPoint) {
+        if (insertionPoint === undefined) return;
+        if (this[key] && this[key].attr) return;
+        var vertical = 'axisY' ? true : false;
+        var axis = insertionPoint.append('svg:g')
+          .classed('axis', true)
+          .classed('vertical', vertical)
+          .classed(key === 'axisY' ? 'y' : 'x', true)
+          .on('click', function() {
+            var expanded = d3.select(this).classed('expanded');
+            d3.select(this).classed('expanded', !expanded);
+          })
+          .call(d3.drag()
+            .on('start', this._onAxisDragStart)
+            .on('drag', this._onAxisDragged)
+            .on('end', this._onAxisDragEnd));
+
+        axis.append('svg:g')
+          .classed('brush', true)
+          .classed('vertical', vertical)
+          .classed(key, true);
+
+        axis.node()._genitor = this;
+        this.set(key, axis);
+      }
+
+      _callAxis(axis, axisGenerator) {
+        if (axis === undefined || axisGenerator === undefined) return;
+        axis.call(axisGenerator);
+      }
+
+      _rangeChanged(brushGenerator, range, pos) {
+        if (brushGenerator === undefined || range === undefined || pos === undefined) return;
+        var tickSize = this.tickSize || 6;
+        var extent = [[0,0],range]
+
+        if (pos === 'left') {
+          extent[0][0] = -tickSize;
+        } else if (pos === 'right') {
+          extent[1][0] = tickSize;
+        } else if (pos === 'top') {
+          extent[0][1] = -tickSize;
+        } else if (pos === 'bottom') {
+          extent[0][1] = tickSize;
         }
+        brushGenerator.extent(extent);
       }
 
-      _removeAxis(key) {
+      // _addAxis(key, mount, hidden) {
+      //   if (!this._axisInsertionPoint || !this.axisPosition) return;
+      //
+      //   var keys = key ? [key] : Object.keys(this.axisPosition),
+      //     insertionPoint = this._axisInsertionPoint,
+      //     axisPosition = this.axisPosition,
+      //     mount = mount || this.mount || '',
+      //     hidden = hidden || null,
+      //     color = this.axisColor || '',
+      //     title = this.axisTitle || mount,
+      //     self = this,
+      //     key,
+      //     pos,
+      //     vertical,
+      //     axis = this._axis || {},
+      //     brush = this._axisBrush || {};
+      //
+      //   for (var i = 0; i < keys.length; i++) {
+      //     key = keys[i];
+      //     pos = axisPosition[key];
+      //     vertical = this._isVertical(pos);
+      //     if (axis[key]) {
+      //       axis[key].classed('vertical', vertical).attr('mount', mount).attr('hidden', hidden);
+      //       brush[key].classed('vertical', vertical);
+      //       axis[key].node()._vertical = vertical;
+      //       axis[key].node()._position = pos;
+      //       continue;
+      //     }
+      //     // enter axes node
+      //     axis[key] = insertionPoint.append('svg:g')
+      //       .classed('axis', true)
+      //       .classed('vertical', vertical)
+      //       .classed(key, true)
+      //       .attr('hidden', hidden)
+      //       .attr('mount', mount)
+      //       .style('color', color)
+      //       .call(d3.drag()
+      //         .on('start', this._onAxisDragStart)
+      //         .on('drag', this._onAxisDragged)
+      //         .on('end', this._onAxisDragEnd));
+      //
+      //     // add title
+      //     axis[key].append('svg:title').text(title);
+      //
+      //     // add brush node
+      //     brush[key] = axis[key]
+      //       .append('svg:g')
+      //       .classed('brush', true)
+      //       .classed('vertical', vertical)
+      //       .classed(key, true)
+      //       .attr('mount', mount);
+      //
+      //     // extra properties needed for event handler
+      //     axis[key].node()._vertical = vertical;
+      //     axis[key].node()._position = pos;
+      //     axis[key].node()._top = 0;
+      //     axis[key].node()._right = 0;
+      //     axis[key].node()._bottom= 0;
+      //     axis[key].node()._left = 0;
+      //     axis[key].node()._genitor = this;
+      //     brush[key].node()._axis = axis[key];
+      //   }
+      //   this.setProperties({
+      //     _axis: axis,
+      //     _axisBrush: brush
+      //   })
+      //   this.redraw();
+      // }
+
+      _setAxisProperties(axis, axisGenerator, expanded) {
+        axis.classed('expanded', expanded);
+        axisGenerator.tickFormat(expanded ? null : '');
+      }
+
+      // _updateAxisBrush() {
+      //   for (var key in this._axisBrush) {
+      //     this._updateAxisBrushGenerator(key);
+      //   }
+      // }
+      //
+      // _updateAxisGenerator(key, expanded, tickCount) {
+      //   if (!(this._axisGenerator && this._axisGenerator[key])) {
+      //     this.__createAxisGenerator(key, true);
+      //   }
+      //   if (expanded !== undefined) {
+      //     this._axisGenerator[key].tickFormat(expanded ? null : '');
+      //   }
+      //   if (tickCount !== undefined) {
+      //     this._axisGenerator[key].ticks(tickCount);
+      //   }
+      // }
+      // _updateAxisBrushGenerator(key, forcedNew) {
+      //   if (forcedNew || !(this._axisBrushGenerator && this._axisBrushGenerator[key])) {
+      //     this.__createAxisBrushGenerator(key, true);
+      //   }
+      //   if (this.range) {
+      //     var tickSize = this.tickSize || 6,
+      //     pos = this.axisPosition[key];
+      //     var height = this.range.y[0],
+      //       width = this.range.x[1];
+      //     if (pos === 'left') {
+      //       this._axisBrushGenerator[key].extent([
+      //         [-tickSize, 0], [0, height]
+      //       ]);
+      //     } else if (pos === 'right') {
+      //       this._axisBrushGenerator[key].extent([
+      //         [0, 0], [tickSize, height]
+      //       ]);
+      //     }
+      //     if (pos === 'top') {
+      //       this._axisBrushGenerator[key].extent([
+      //         [0, -tickSize], [width, 0]
+      //       ]);
+      //     } else if (pos === 'bottom') {
+      //       this._axisBrushGenerator[key].extent([
+      //         [0, 0], [width, tickSize]
+      //       ]);
+      //     }
+      //   }
+      // }
+      _rescale(key, domain, range) {
+        super._rescale(key, domain, range);
+      }
+
+      redraw() {
+        this.redrawX();
+        this.redrawY();
+        // var expanded;
+        // for (var key in this.keys) {
+        //   if (!(this.domain[key] || this.range[key])) return;
+        //   this._updateScale(key);
+        //   expanded = this._axis[key].classed('expanded');
+        //   this._updateAxisBrushGenerator(key);
+        //   this._axisBrush[key].raise().call(this._axisBrushGenerator[key]);
+        //   this._updateAxisGenerator(key, expanded);
+        //   this._axis[key].call(this._axisGenerator[key])
+        //     .transition(this.axisTransitionTime || 0)
+        //     .attr('transform', 'translate(' + (this._axis[key].node()._left || 0) + ',' + (this._axis[key].node()._top || 0) + ')');
+        // }
+      }
+      redrawX() {
+        if (!(this.scaleX && this.rangeX && this.axisGeneratorX)) return;
+
+        this.axisGeneratorX.scale(this.scaleX);
+        this._rangeChanged(this.axisBrushGeneratorX, this.rangeX, this.axisPositionX);
+        this.axisX.select('.brush').call(this.axisBrushGeneratorX);
+        this.axisX.call(this.axisGeneratorX)
+          .transition(this.axisTransitionTime || 0)
+          .attr('transform', 'translate(' + (this.axisX.node()._left || 0) + ',' + (this.axisX.node()._top || 0) + ')');
+      }
+      redrawY() {
+        if (!(this.scaleY && this.rangeY && this.axisGeneratorY)) return;
+        this.axisGeneratorX.scale(this.scaleX);
+        this._rangeChanged(this.axisBrushGeneratorY, this.rangeY, this.axisPositionY);
+        this.axisY.select('.brush').call(this.axisBrushGeneratorY);
+        this.axisY.call(this.axisGeneratorY)
+          .transition(this.axisTransitionTime || 0)
+          .attr('transform', 'translate(' + (this.axisY.node()._left || 0) + ',' + (this.axisY.node()._top || 0) + ')');
+      }
+
+      _removeNodes() {
         if (!this._axis) return;
-        var keys = key ? [key] : Object.keys(this._axiss);
         var node, key;
-
-        for (var i = 0; i < keys.length; i++) {
-          key = keys[i];
-          // remove axis & brush node
-          if (this._axisBrush[key]) {
-            node = this._axisBrush[key].node();
-            if (node && node.parentElement)
-              node.parentElement.removeChild(node);
-            this._axisBrush[key] = null;
-          }
-          if (this._axis[key]) {
-            node = this._axis[key].node();
-            if (node && node.parentElement)
-              node.parentElement.removeChild(node);
-            this._axis[key] = null;
-          }
+        // remove axis & brush node
+        if (this.axisX) {
+          node = this.axisX.node();
+          if (node && node.parentElement)
+            node.parentElement.removeChild(node);
+          this.axisX = null;
+          this.axisGeneratorX = null;
+          this.axisBrushGeneratorX = null;
         }
-      }
-
-      _createAxisGenerator(pos, scale, keys) {
-        if (pos === undefined || scale === undefined) return;
-        // console.log('_createAxisFn', pos, scale)
-        var ret = {};
-
-        for (var key in pos) {
-          if (scale[key] === undefined) continue;
-          switch (pos[key]) {
-            case 'top':
-              ret[key] = d3.axisTop();
-              break;
-            case 'bottom':
-              ret[key] = d3.axisBottom();
-              break;
-            case 'right':
-              ret[key] = d3.axisRight();
-              break;
-            default:
-              ret[key] = d3.axisLeft();
-          }
-          ret[key].scale(scale[key]);
+        if (this.axisY) {
+          node = this.axisY.node();
+          if (node && node.parentElement)
+            node.parentElement.removeChild(node);
+          this.axisY = null;
+          this.axisGeneratorY = null;
+          this.axisBrushGeneratorY = null;
         }
-
-        // axis.scale(scalefn).ticks(ticks);
-        // if (scale === 'time')
-        //   axis.ticks(ticks).tickFormat(this.timeFormat.bind(this));
-        // else if (scalefn.base && scalefn.base() === Math.E)
-        //   axis.tickFormat(d => {
-        //     // TODO: different conception for log scales needed
-        //     return (d < 1 || d > 1000 ? (Math.log(d)).toExponential(3) : (Math.log(d)).toFixed(2));
-        //   })
-        //
-        // return axis;
       }
 
       _onAxisDragStart() {
+        d3.select(this).raise().classed('dragged', true);
+        console.log('dragged', d3.event, this._left, this._top);
       }
       _onAxisDragged() {
+        var vertical = d3.select(this).classed('vertical'), left = 0, top = 0;
+        if (vertical) {
+          left = d3.event.x;
+        } else {
+          top = d3.event.y;
+        }
+        d3.select(this).attr('transform', 'translate(' + left + ',' + top + ')');
+
+        // d3.select(this).attr('cx', d.x = d3.event.x).attr('cy', d.y = d3.event.y);
       }
       _onAxisDragEnd() {
+        d3.select(this).classed('dragged', false);
+        var vertical = d3.select(this).classed('vertical'), left = 0, top = 0;
+        if (vertical) {
+          left = d3.event.x;
+          if (this._width) {
+            this._position = (left > this._width / 2) ? 'right' : 'left';
+          }
+        } else {
+          top = d3.event.y;
+          if (this._height) {
+            this._position = (top > this._height / 2) ? 'bottom' : 'top';
+          }
+        }
+        d3.select(this).attr('transform', 'translate(' + left + ',' + top + ')');
+        this.dispatchEvent(new CustomEvent('iron-resize', {
+          bubbles: true,
+          composed: true,
+          node: this
+        }));
+        console.log('dragged', this, d3.event);
       }
-      _onAxisBrushStart() {
-      }
-      _onAxisBrushMove() {
-      }
-      _onAxisBrushEnd() {
+      _onAxisBrushEnd(key) {
+        var s = d3.event.selection;
+        console.log('brushend', s);
+        if (s) {
+          if (s[0] === s[1]) {
+            var expanded = this._axis[key].classed('expanded');
+            var brushed = this._axis[key].node()._isBrushed;
+            if (!expanded) {
+              this._axis[key].classed('expanded', true)
+            } else if (brushed) {
+              this._axis[key].node()._isBrushed = false;
+              this._getDomain(key).then( (d) => {
+                this.set('domain.' + d.key, d.domain);
+                this._axisBrush[key].call(this._axisBrushGenerator[key].move, null);
+              })
+              return;
+            }
+          } else {
+            this._axis[key].node()._isBrushed = true;
+            s = s.map(this.scale[key].invert, this.scale[key]).sort((a, b) => { return a > b});
+            console.log(s);
+            this.set('domain.' + key, s);
+          }
+          this._axisBrush[key].call(this._axisBrushGenerator[key].move, null);
+          return;
+        }
+        this.redraw();
+        // this.scale[key].domain(s);
+        // if (this.hasArea) {
+        //   this._area.attr('d', this._generators.area);
+        // }
+        // if (this.hasLine) {
+        //   this._line.attr('d', this._generators.line);
+        // }
+        // this._axis[key].call(this.scale[key]);
       }
 
-      _getFormatFunction(key) {
-
-      }
-
-      _formatTime() {
-
-      }
-
-      _formatNumber() {
-
-      }
-
-      _setDateNumberFormat() {
-        var dateLocale = this.localize('date'),
-          numberLocale = this.localize('number');
-        if (dateLocale) d3.timeFormatDefaultLocale(dateLocale);
-        if (numberLocale) d3.formatDefaultLocale(numberLocale);
-        if (dateLocale || numberLocale) this._updateAxis();
+      _axisColorChanged(color) {
+        if (this.axisX) this.axisX.style('color', color);
+        if (this.axisY) this.axisY.style('color', color);
       }
 
       static get _VALID_AXIS_POSITIONS() {

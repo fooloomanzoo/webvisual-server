@@ -32,6 +32,7 @@ export {
 
 export {
   formatDefaultLocale,
+  formatLocale,
   format
 } from "d3-format";
 

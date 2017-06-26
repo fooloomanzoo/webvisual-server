@@ -8,7 +8,7 @@
      * @mixinClass
      * @polymer
      */
-    return class extends superClass {
+    return class extends WebvisualMixins.LocalizeMixin(superClass) {
 
       constructor() {
         super();
@@ -17,136 +17,220 @@
       static get properties() {
         return {
           /**
-           * Object of keys that define the variables of the values
-           *
-           * 'key'-property defines the key specifier and the defined Object-value the according properties.
-           *    The properties contain:
-           *       'type': either 'numeric' or 'date'
-           *       'scale': either 'time', 'ln', 'log', 'log₂', 'log₁₀', '√', 'pow'
-           *       'coordinate': either 'x' or 'y'
+           * scaling time fo each coordinate
            */
-          keys: {
-            type: Object,
-            value: function() {
-              return {
-                x: { scale: 'time', coordinate: 'x' },
-                y: { scale: 'linear', coordinate: 'y' }
-              };
-            }
+          scalingX: {
+            type: String,
+            value: 'time'
+          },
+
+          scalingY: {
+            type: String,
+            value: 'linear'
+          },
+          /**
+
+           * scale base for each coordinate (only available for 'pow' or 'log')
+           * e.g. :  Math.E
+           */
+          scaleBaseX: {
+            type: Number
+          },
+
+          scaleBaseY: {
+            type: Number
           },
 
           /**
            * the computed objects of scale functions for each key
            */
-          scale: {
-            type: Object
+          scaleX: {
+            type: Function
+          },
+
+          scaleY: {
+            type: Function
           },
 
           /**
-           * the object of scale base for each key (only available for 'pow' or 'log')
-           * e.g. :
-           *  {
-           *    y: Math.E
-           *  }
+           * domain to scale for each coordinate
+           * e.g. : [1000000, 5000000]
            */
-          scaleBase: {
-            type: Object
+          domainX: {
+            type: Array,
+            value: function() {
+              return [ 1, 10]
+            }
+          },
+
+          domainY: {
+            type: Array,
+            value: function() {
+              return [ 1, 10]
+            }
           },
 
           /**
-           * domain to scale for each key
+           * pixel-whise range for coordinate
            * e.g. :
-           *  {
-           *    x: [1000000, 5000000],
-           *    y: [0, 10]
-           *  }
+           *  x: [0, width=500],
+           *  y: [height=300, 0]
            */
-          domain: {
-            type: Object
+          rangeX: {
+            type: Array
           },
 
+          rangeY: {
+            type: Array
+          },
+
+          formatX: {
+            type: Function
+          },
+
+          formatY: {
+            type: Function
+          },
           /**
-           * pixel-whise range for each key
-           * e.g. :
-           *  {
-           *    x: [0, width=500],
-           *    y: [height=300, 0]
-           *  }
+           * folder for date/time-format file
            */
-          range: {
-            type: Object
+          languageResourcePrefix: {
+            type: String,
+            value: '/locales/dtf/'
           }
         }
       }
 
       static get observers() {
         return [
-          '_computeScale(keys, scaleBase)',
-          '_rangeChanged(range)',
-          '_domainChanged(domain)',
+          '_rescale("scaleX", domainX, rangeX)',
+          '_rescale("scaleY", domainY, rangeY)',
+          '_setDateNumberFormat(localize)',
+          '_computeScaleFn("scaleX", scalingX, scaleBaseX)',
+          '_computeScaleFn("scaleY", scalingY, scaleBaseY)'
         ]
       }
 
-      _computeScale(keys, base = {}) {
-        if (keys === undefined) return;
-        var ret = {};
-        for (var k in keys) {
-          ret[k] = this._createScaleFn(keys[k].scale, base[k]).domain((this.domain && this.domain[k]) || [1,10]).range((this.range && this.range[k]) || [1,10]);
+
+      _rescale(key, domain, range) {
+        if (key === undefined || domain === undefined || range === undefined) return;
+        if (key === 'x') {
+          this.scaleX.domain(domain).range(range);
+        } else if (key === 'y') {
+          this.scaleY.domain(domain).range(range);
         }
-        this.set('scale', ret);
+        this[key].domain(domain).range(range);
+        this.notifyPath(key);
       }
 
-      _updateScale() {
-        for (var k in this.scale) {
-          this.scale[k].domain((this.domain && this.domain[k]) || [null,null]).range((this.range && this.range[k]) || [null,null]);
-        }
+      _computeScaleFn(key, scale, base) {
+        if (!key || scale === undefined) return;
+        var fn = (scale === 'time' ? d3.scaleTime() :
+            scale === 'ln' ? d3.scaleLog().base(Math.E) :
+            scale === 'log' ? d3.scaleLog().base(base || 1) :
+            scale === 'log₂' ? d3.scaleLog().base(2) :
+            scale === 'log₁₀' ? d3.scaleLog().base(10) :
+            scale === '√' ? d3.scalePow().exponent(0.5) :
+            scale === 'pow' ? d3.scalePow().exponent(base || 1) :
+            d3.scaleLinear());
+        this.set(key, fn)
       }
 
-      _createScaleFn(scale, base) {
-        switch (scale) {
-          case 'time':
-            return d3.scaleTime();
-            break;
-          case 'ln':
-            return d3.scaleLog().base(Math.E);
-            break;
-          case 'log':
-            return d3.scaleLog().base(base || 1);
-            break;
-          case 'log₂':
-            return d3.scaleLog().base(2);
-            break;
-          case 'log₁₀':
-            return d3.scaleLog().base(10);
-            break;
-          case '√':
-            return d3.scalePow().exponent(0.5);
-            break;
-          case 'pow':
-            return d3.scalePow().exponent(base || 1);
-            break;
-          default:
-            return d3.scaleLinear();
+      _computeFormatFn(scale, base) {
+        if (scale === 'time') {
+          return this.formatTime.bind(this);
+        } else {
+          return this.formatNumber.bind(this, scale, base);
         }
       }
 
-      _domainChanged(domain) {
-        if (this.scale === undefined) return;
+      formatTime(date) {
+        var timeformatter = this._timeformatter;
+        return (d3.timeSecond(date) < date ? timeformatter.Millisecond :
+          d3.timeMinute(date) < date ? timeformatter.Second :
+          d3.timeHour(date) < date ? timeformatter.Minute :
+          d3.timeDay(date) < date ? timeformatter.Hour :
+          d3.timeWeek(date) < date ? timeformatter.Day :
+          d3.timeMonth(date) < date ? timeformatter.Week :
+          d3.timeYear(date) < date ? timeformatter.Month :
+          timeformatter.Year)(date);
+      }
+      /**
+       * format date according to a time-range and pixel-range
+       **/
+      formatTimeRange(date, range, pixels) {
+        var timeformatter = this._timeformatter;
+        var rangeRatio = (range[1] - range[0]).valueOf() / pixels;
+        return (rangeRatio < 100 ? timeformatter.Millisecond :
+          rangeRatio < 5E2 ? timeformatter.SecondLong :
+          rangeRatio < 5E3 ? timeformatter.Second :
+          rangeRatio < 2E4 ? timeformatter.MinuteLong :
+          rangeRatio < 6E4 ? timeformatter.Minute :
+          rangeRatio < 36E5 ? timeformatter.Hour :
+          rangeRatio < 864E5 ? timeformatter.Day :
+          rangeRatio < 6048E5 ? timeformatter.Week :
+          rangeRatio < 24192E5 ? timeformatter.Month :
+          timeformatter.Year)(date);
+      }
+      /**
+       * format absolute time (like differences)
+       * e.g. 3600001 => 1h 1ms
+       **/
+      formatTimeAbsolute(date) {
+        // one year = 365.25 days = 315576E5ms (Julian Calendar)
+        var ry = date % 315576E5,
+          y = (date - ry) / 315576E5,
+          rd = ry % 864E5,
+          d = (ry - rd) / 864E5,
+          rh = rd % 36E5,
+          h = (rd - rh) / 36E5,
+          rm = rh % 6E4,
+          m = (rh - rm) / 6E4,
+          rs = rm % 1E3,
+          s = (rm - rs) / 1E3,
+          ret = '';
+        if (y)
+          ret += y + 'y ';
+        if (d)
+          ret += d + 'd ';
+        if (h)
+          ret += h + 'h ';
+        if (m)
+          ret += m + 'm ';
+        if (s)
+          ret += s + 's ';
+        if (rs)
+          ret += rs + 'ms';
+        return ret;
+      }
 
-        for (var key in domain) {
-          if (this.scale.hasOwnProperty(key)) {
-            this.scale[key].domain(domain[key]);
+      formatNumber(scale, num) {
+        // format with thousands separators
+        return d3.format(',')(num);
+      }
+
+      _setDateNumberFormat() {
+        var dateLocale = this.localize('date'),
+          numberLocale = this.localize('number'),
+          decimal = '.';
+        if (dateLocale) d3.timeFormatDefaultLocale(dateLocale);
+        if (numberLocale) {
+          d3.formatDefaultLocale(numberLocale);
+          if (numberLocale.decimal) {
+            decimal = numberLocale.decimal;
           }
         }
-      }
-
-      _rangeChanged(range) {
-        if (this.scale === undefined) return;
-
-        for (var key in range) {
-          if (this.scale.hasOwnProperty(key)) {
-            this.scale[key].range(range[key]);
-          }
+        this._timeformatter = {
+          Millisecond: d3.timeFormat(':%S' + decimal + '%L'),
+          Second: d3.timeFormat(':%M:%S'),
+          SecondLong: d3.timeFormat(':%M:%S' + decimal + '%L'),
+          Minute: d3.timeFormat('%H:%M'),
+          MinuteLong: d3.timeFormat('%H:%M:%S'),
+          Hour: d3.timeFormat('%X'),
+          Day: d3.timeFormat('%d.%m'),
+          Week: d3.timeFormat('%d.%m'),
+          Month: d3.timeFormat('%d. %b'),
+          Year: d3.timeFormat('%Y')
         }
       }
 
@@ -156,6 +240,10 @@
 
       _SCALE_USES_BASE(scale) {
         return scale === 'log' || scale === 'pow';
+      }
+
+      _IS_LOG_SCALE(scale) {
+        return ['ln', 'log', 'log₂', 'log₁₀'].indexOf(scale) > -1;
       }
     }
   }
