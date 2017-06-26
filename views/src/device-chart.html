@@ -306,11 +306,11 @@
 
     <template is="dom-if" if="[[multi]]" restamp>
       <template is="dom-repeat" items="[[items]]">
-        <device-graph item="[[item]]" interpolation="[[interpolation]]" no-link="[[noLink]]" multi-axes=[[multiAxes]] range=[[range]] no-link="[[!opened]]"></device-graph>
+        <device-graph item="[[item]]" interpolation="[[interpolation]]" language-resource="[[languageResource]]" multi-axes=[[multiAxes]] range-x=[[rangeX]] range-y=[[rangeY]] no-link="[[!opened]]"></device-graph>
       </template>
     </template>
     <template is="dom-if" if="[[!multi]]" restamp>
-      <device-graph item="[[item]]" interpolation="[[interpolation]]" no-link="[[noLink]]" multi-axes=[[multiAxes]] range=[[range]] no-link="[[!opened]]"></device-graph>
+      <device-graph item="[[item]]" interpolation="[[interpolation]]" language-resource="[[languageResource]]" multi-axes=[[multiAxes]] range-x=[[rangeX]]  range-y=[[rangeY]] no-link="[[!opened]]"></device-graph>
     </template>
   </template>
   <script>
@@ -463,8 +463,8 @@
         this._svg = d3.select(this.$.svg)
           .attr('height', null)
           .attr('width', null);
-        // this.scale.x = this._createScaleFn(this.scale.x);
-        // this.scale.y = this._createScaleFn(this.scale.y);
+        // this.scaleX = this._createScaleFn(this.scaleX);
+        // this.scaleY = this._createScaleFn(this.scaleY);
 
         this._chart = d3.select(this.$.chart);
         this._control = d3.select(this.$.control);
@@ -474,6 +474,12 @@
         this._line = d3.select(this.$.line);
         this._boundery = d3.select(this.$.boundery);
 
+        this.axisX = this._computeAxisNode(this._axisInsertionPoint, 'x', this.axisPositionX, this.multiAxes.x);
+        this.axisY = this._computeAxisNode(this._axisInsertionPoint, 'y', this.axisPositionY, this.multiAxes.x);
+        this.axisGeneratorX = this._computeAxisGenerator(this.axisPositionX, this.scaleX, this.scalingX, this.scaleBaseX);
+        this.axisGeneratorY = this._computeAxisGenerator(this.axisPositionY, this.scaleY, this.scalingY, this.scaleBaseY);
+        this.axisBrushGeneratorX = this._computeAxisBrushGenerator(this.axisPositionX);
+        this.axisBrushGeneratorY = this._computeAxisBrushGenerator(this.axisPositionY);
         // Test
         // this._axis
         //   .append('svg:g')
@@ -531,7 +537,7 @@
         //         g = this._graphs[mounts[i]]
         //         if (g.values && g.values.length) {
         //           var d = g._closestPoint(m);
-        //           var currentMin2 = Math.pow(m[0] - g.scale.x(d.x), 2) + Math.pow(m[1] - g.scale.y(d.y), 2); // in px²
+        //           var currentMin2 = Math.pow(m[0] - g.scaleX(d.x), 2) + Math.pow(m[1] - g.scaleY(d.y), 2); // in px²
         //           if (closestDistance === undefined || currentMin2 < closestDistance) {
         //             closestDistance = currentMin2;
         //             closestPoint = d;
@@ -597,13 +603,11 @@
         }
         this._activeSizeJob = requestAnimationFrame(() => {
           this._sizeLayout();
-        });
-
+        }, 0);
       }
 
       _sizeLayout() {
         if (!(this.opened && this._isAttached)) return;
-        console.log('_sizeLayout');
         var bRect = this.$.svg.getBoundingClientRect();
 
         if (this._activeSizeJob) {
@@ -617,6 +621,7 @@
           return;
         }
 
+        console.log('_sizeLayout');
         var top = 0,
           right = 0,
           bottom = 0,
@@ -629,7 +634,7 @@
         var q = [];
 
         function incremPosition(size) {
-          var pos = this._position;
+          var pos = this._pos;
           if (pos === 'left') {
             this._left = left;
             this._right = 0;
@@ -658,36 +663,36 @@
         }
 
         function finalizePosition(width, height) {
-          var pos = this._position;
+          var pos = this._pos;
           this._left += this._right;
           this._top += this._bottom;
+          this._bottom = 0; this._right = 0;
           if (pos === 'right') {
             this._left += width;
           } else if (pos === 'bottom') {
             this._top += height;
           }
-          this._bottom = this._right = 0;
           return true;
         }
 
         this._graphs.forEach( g => {
-          if (this.multiAxes.x === true && g.axisX) {
+          // if (this.multiAxes.x === true && g.axisX) {
             var size = g.axisX.classed('expanded') ? axisSize.x : condensedSize;
-            q.push(incremPosition.call(g.axisX.node(), size));
-          }
-          if (this.multiAxes.y === true && g.axisY) {
+            q.push(incremPosition.call(g.axisX, size));
+          // }
+          // if (this.multiAxes.y === true && g.axisY) {
             var size = g.axisY.classed('expanded') ? axisSize.y : condensedSize;
-            q.push(incremPosition.call(g.axisY.node(), size));
-          }
+            q.push(incremPosition.call(g.axisY, size));
+          // }
         })
-        if (this.multiAxes.x === true && this.axisX) {
+        // if (this.multiAxes.x === true && this.axisX) {
           var size = this.axisX.classed('expanded') ? axisSize.x : condensedSize;
-          q.push(incremPosition.call(this.axisX.node(), size));
-        }
-        if (this.multiAxes.y === true && this.axisY) {
+          q.push(incremPosition.call(this.axisX, size));
+        // }
+        // if (this.multiAxes.y === true && this.axisY) {
           var size = this.axisY.classed('expanded') ? axisSize.y : condensedSize;
-          q.push(incremPosition.call(this.axisY.node(), size));
-        }
+          q.push(incremPosition.call(this.axisY, size));
+        // }
 
         // this.xTicks = Math.ceil(this._width / 75);
         // this.yTicks = Math.ceil(this._height / 50);
@@ -703,45 +708,34 @@
           var p = [];
 
           this._graphs.forEach( g => {
-            if (this.multiAxes.x === true && g.axisX) {
-              p.push(finalizePosition.call(g.axisX.node(), this._width, this._height));
-            }
-            if (this.multiAxes.y === true && g.axisY) {
-              p.push(finalizePosition.call(g.axisY.node(), this._width, this._height));
-            }
+            // if (this.multiAxes.x === true && g.axisX) {
+              p.push(finalizePosition.call(g.axisX, this._width, this._height));
+            // }
+            // if (this.multiAxes.y === true && g.axisY) {
+              p.push(finalizePosition.call(g.axisY, this._width, this._height));
+            // }
           })
-          if (this.multiAxes.x === true && this.axisX) {
-            p.push(finalizePosition.call(this.axisX.node(), this._width, this._height));
-          }
-          if (this.multiAxes.y === true && this.axisY) {
-            p.push(finalizePosition.call(this.axisY.node(), this._width, this._height));
-          }
+          // if (this.multiAxes.x === true && this.axisX) {
+            p.push(finalizePosition.call(this.axisX, this._width, this._height));
+          // }
+          // if (this.multiAxes.y === true && this.axisY) {
+            p.push(finalizePosition.call(this.axisY, this._width, this._height));
+          // }
 
           Promise.all(p).then(() => {
             top -= (this.margin.top || 0);
             right += (this.margin.right || 0);
             bottom += (this.margin.bottom || 0);
             left -= (this.margin.left || 0);
-
-            this._control.transition(100).style('transform', 'translate(-' + right + 'px,-' + bottom + 'px)');
-
-            // Limiting Projection to Margin
-            this._chart.select('clipPath#clip rect').transition(100)
-              .attr('width', this._width)
-              .attr('height', this._height);
-
-            this._chart.select('rect#plot').transition(100)
-              .attr('width', this._width)
-              .attr('height', this._height);
-
-            this._chart.transition(100).attr('transform', 'translate(' + (-left || 0) + ',' + (-top || 0) + ')');
-
-            this._focusY.attr('y1', this._height);
-
-            this._svg.selectAll('g,line,text,path,rect')
-              .classed('style-scope device-chart', true)
-
-            this.redraw(true);
+            this._chart._top = top;
+            this._chart._right = right;
+            this._chart._bottom = bottom;
+            this._chart._left = left;
+            if (!this.domainX || !this.domainY) {
+              this.redraw(true);
+            } else {
+              this.redraw();
+            }
           })
         })
 
@@ -782,7 +776,7 @@
         //     } else {
         //       g.scale[key] = this.scale[key].bind(g);
         //     }
-        //     g._updateAxisGenerator(key);
+        //     g._updateAxisBrushGenerator(key);
         //     g._updateAxisBrushGenerator(key);
         //   })
         //
@@ -792,7 +786,7 @@
         //   } else {
         //     this._axis[key].attr('hidden', null);
         //   }
-        //   this._updateAxisGenerator(key);
+        //   this._updateAxisBrushGenerator(key);
         //   this._updateAxisBrushGenerator(key);
         // }
       }
@@ -842,7 +836,7 @@
       //   g._brush[key] = g._axis[key].append('svg:g').classed('brush', true);
       //   g._axis[key].classed('vertical', vertical);
       //   g._axis[key].node()._vertical = vertical;
-      //   g._axis[key].node()._position = pos;
+      //   g._axis[key].node()._pos = pos;
       //   g._axis[key].node()._caller = g;
       //   // console.log('_addAxis', key, mount, pos)
       // }
@@ -852,7 +846,7 @@
       //   if (!g._axis[key] || g._axis[key].attr('hidden')) return;
       //   var expanded = g._axis[key].classed('expanded'),
       //     tickSize = this.tickSize,
-      //     pos = g._axis[key].node()._position;
+      //     pos = g._axis[key].node()._pos;
       //   // update axis
       //   if (pos === 'left' || pos === 'right') {
       //     this._updateScale.call(g);
@@ -953,27 +947,59 @@
       redraw(force) {
         if (!this._isAttached) return;
 
-        console.log('_redraw');
         if (force) {
           this._redomain();
           return;
         }
 
-        super.redraw();
-
+        console.log('_redraw');
         this._graphs.forEach( g => {
-          if (g && g._isAttached) {
-            if (this.multiAxes.x === true) g.redrawX();
-            if (this.multiAxes.y === true) g.redrawY();
-          }
+          g.axisGeneratorX = g._computeAxisGenerator(g.axisPositionX, g.scaleX, g.scalingX, g.scaleBaseX);
+          g.axisGeneratorY = g._computeAxisGenerator(g.axisPositionY, g.scaleY, g.scalingY, g.scaleBaseY);
+          g._updateAxisBrushGenerator.call(g.axisBrushGeneratorX, this.rangeX);
+          g._updateAxisBrushGenerator.call(g.axisBrushGeneratorY, this.rangeY);
+          g.axisX.select('.brush').call(g.axisBrushGeneratorX);
+          g.axisY.select('.brush').call(g.axisBrushGeneratorY);
+          g.axisX.call(g.axisGeneratorX.tickFormat(g.axisX.classed('expanded') ? null : ''))
+              .transition(100)
+              .attr('transform', 'translate(' + (g.axisX._left || 0) + ',' + (g.axisX._top || 0) + ')');
+          g.axisY.call(g.axisGeneratorY.tickFormat(g.axisY.classed('expanded') ? null : ''))
+              .transition(100)
+              .attr('transform', 'translate(' + (g.axisY._left || 0) + ',' + (g.axisY._top || 0) + ')');
+          g.redraw();
         })
+        this.axisGeneratorX = this._computeAxisGenerator(this.axisPositionX, this.scaleX, this.scalingX, this.scaleBaseX);
+        this.axisGeneratorY = this._computeAxisGenerator(this.axisPositionY, this.scaleY, this.scalingY, this.scaleBaseY);
+        this._updateAxisBrushGenerator.call(this.axisBrushGeneratorX, this.rangeX);
+        this._updateAxisBrushGenerator.call(this.axisBrushGeneratorY, this.rangeY);
+        this.axisX.select('.brush').call(this.axisBrushGeneratorX);
+        this.axisY.select('.brush').call(this.axisBrushGeneratorY);
+        this.axisX.call(this.axisGeneratorX.tickFormat(this.axisX.classed('expanded') ? null : ''))
+            .transition(100)
+            .attr('transform', 'translate(' + (this.axisX._left || 0) + ',' + (this.axisX._top || 0) + ')');
+        this.axisY.call(this.axisGeneratorY.tickFormat(this.axisY.classed('expanded') ? null : ''))
+            .transition(100)
+            .attr('transform', 'translate(' + (this.axisY._left || 0) + ',' + (this.axisY._top || 0) + ')');
 
-        // this._chart.transition(50).select('#xGrid').call(this._xGrid);
-        // this._chart.transition(50).select('#yGrid').call(this._yGrid);
+        this._control.transition(100).style('transform', 'translate(-' + this._chart._right + 'px,-' + this._chart._bottom + 'px)');
+
+        // Limiting Projection to Margin
+        this._chart.select('clipPath#clip rect').transition(100)
+          .attr('width', this._width)
+          .attr('height', this._height);
+
+        this._chart.select('rect#plot').transition(100)
+          .attr('width', this._width)
+          .attr('height', this._height);
+
+        this._chart.transition(100).attr('transform', 'translate(' + (-this._chart._left || 0) + ',' + (-this._chart._top || 0) + ')');
+
+        this._focusY.attr('y1', this._height);
 
         this._svg.selectAll('g,line,text,path,rect')
-          .classed('style-scope', true)
+          .classed('style-scope device-chart', true)
           .classed('device-chart', true);
+
         this._updateInfo();
       }
 
@@ -983,8 +1009,8 @@
         // if (s) {
         //   this._isBrushed = true;
         //   this._isZoomed = true;
-        //   this.scale.x.domain([s[0][0], s[1][0]].map(this.scale.x.invert, this.scale.x)).nice(this.xTicks);
-        //   this.scale.y.domain([s[1][1], s[0][1]].map(this.scale.y.invert, this.scale.y)).nice(this.yTicks);
+        //   this.scaleX.domain([s[0][0], s[1][0]].map(this.scaleX.invert, this.scaleX)).nice(this.xTicks);
+        //   this.scaleY.domain([s[1][1], s[0][1]].map(this.scaleY.invert, this.scaleY)).nice(this.yTicks);
         //   this._brush.call(this._brushMixin.move, null);
         //   return;
         // } else if (this._isBrushed === true) {
@@ -999,34 +1025,71 @@
 
       _getDomain() {
         console.log('_getDomain');
-        var p = [];
-
         return new Promise((resolve, reject) => {
-
-          for (var key in this.multiAxes) {
-            if (this.multiAxes[key] === true) {
-              this._graphs.forEach( g => {
-                if (g._isAttached && !(g._axes && g._axes[key] && g._axes[key].node()._isBrushed)) {
-                  p.push( g._getDomain(key) )
-                }
-              })
-            } else {
-              p.push(
-                this.requestRange(key)
-                      .then(res => {
-                        if (res.key === 'x') {
-                          this.set('domainX', res.domain);
-                        }
-                        else if (res.key === 'y') {
-                          this.set('domainY', res.domain);
-                        }
-                      }) )
-            }
-          }
-
+          var p = [], q = [];
+          this._graphs.forEach( g => {
+            p.push( g._getDomain('x', this.multiAxes['x']) )
+            q.push( g._getDomain('y', this.multiAxes['y']) )
+          })
           Promise.all(p)
-            .then(resolve)
-            .catch(reject);
+            .then(res => {
+              var min, max, domainX;
+              for (var i = 0; i < res.length; i++) {
+                min = (min === undefined || min > res[i].domain[0]) ? res[i].domain[0] : min;
+                max = (max === undefined || max < res[i].domain[1]) ? res[i].domain[1] : max;
+              }
+              if (min === undefined || max === undefined) {
+                resolve();
+              }
+              domainX = [min, max];
+              this.set('domainX', domainX);
+              if (this.multiAxes.x === false) {
+                this._graphs.forEach( g => {
+                  g.set('domainX', domainX);
+                })
+              }
+              Promise.all(q)
+                .then(res => {
+                  var min, max, domainY;
+                  for (var i = 0; i < res.length; i++) {
+                    min = (min === undefined || min > res[i].domain[0]) ? res[i].domain[0] : min;
+                    max = (max === undefined || max < res[i].domain[1]) ? res[i].domain[1] : max;
+                  }
+                  if (min === undefined || max === undefined) {
+                    resolve();
+                  }
+                  domainY = [min, max];
+                  this.set('domainY', domainY);
+                  if (this.multiAxes.y === false) {
+                    this._graphs.forEach( g => {
+                      g.set('domainY', domainY);
+                    })
+                  }
+                  resolve();
+                })
+                .catch(error => {
+                  reject(error);
+                })
+              })
+              .catch(error => {
+                reject(error);
+              });
+          // for (var key in this.multiAxes) {
+          //   if (this.multiAxes[key] === true) {
+          //
+          //   } else {
+          //     p.push(
+          //       this.requestRange(key)
+          //             .then(res => {
+          //               if (res.key === 'x') {
+          //                 this.set('domainX', res.domain);
+          //               }
+          //               else if (res.key === 'y') {
+          //                 this.set('domainY', res.domain);
+          //               }
+          //             }) )
+          //   }
+          // }
 
           // this.requestRange('x')
           //   .then(rangeX => {
@@ -1051,19 +1114,19 @@
           //           }
           //         }
           //
-          //         this.scale.x.domain(domainX);
+          //         this.scaleX.domain(domainX);
           //         this.set('domainX', domainX);
-          //         this.scale.y.domain(domainY).nice(this.yTicks);
+          //         this.scaleY.domain(domainY).nice(this.yTicks);
           //
           //         // if domain is on the edge of data, add a little space
-          //         domainY = this.scale.y.domain();
+          //         domainY = this.scaleY.domain();
           //         if (domainY[0] === rangeY[0]) {
           //           domainY[0] -= (rangeY[1] - rangeY[0]) / this.yTicks;
           //         }
           //         if (domainY[1] === rangeY[1]) {
           //           domainY[1] += (rangeY[1] - rangeY[0]) / this.yTicks;
           //         }
-          //         this.scale.y.domain(domainY);
+          //         this.scaleY.domain(domainY);
           //         this.set('domainY', domainY);
           //         resolve();
           //
@@ -1091,34 +1154,34 @@
             g.clearValues();
         })
       }
-
-      requestRange(key) {
-        return new Promise((resolve, reject) => {
-          var p = [];
-          this._graphs.forEach( g => {
-            if (g && g._isAttached && g.item && g.item.mount)
-              p.push(g._getDomain(key));
-          })
-          Promise.all(p)
-            .then(res => {
-              var min, max, key;
-              for (var i = 0; i < res.length; i++) {
-                min = (min === undefined || min > res[i].domain[0]) ? res[i].domain[0] : min;
-                max = (max === undefined || max < res[i].domain[1]) ? res[i].domain[1] : max;
-                key = key || res[i].key;
-              }
-              if (min === undefined || max === undefined) {
-                reject();
-              }
-              resolve({domain: [min, max], key: key});
-            })
-            .catch(err => {});
-        });
-      }
+      //
+      // requestRange(key) {
+      //   return new Promise((resolve, reject) => {
+      //     var p = [];
+      //     this._graphs.forEach( g => {
+      //       if (g && g._isAttached && g.item && g.item.mount)
+      //         p.push(g._getDomain(key));
+      //     })
+      //     Promise.all(p)
+      //       .then(res => {
+      //         var min, max, key;
+      //         for (var i = 0; i < res.length; i++) {
+      //           min = (min === undefined || min > res[i].domain[0]) ? res[i].domain[0] : min;
+      //           max = (max === undefined || max < res[i].domain[1]) ? res[i].domain[1] : max;
+      //           key = key || res[i].key;
+      //         }
+      //         if (min === undefined || max === undefined) {
+      //           reject();
+      //         }
+      //         resolve({domain: [min, max], key: key});
+      //       })
+      //       .catch(err => {});
+      //   });
+      // }
 
       _moveInfo(d) {
-        if (Number.isFinite(this.scale.y(d.y))) {
-          var x = this.timeFormatRange.call(this, d.x, this.scale.x.domain(), this._width);
+        if (Number.isFinite(this.scaleY(d.y))) {
+          var x = this.timeFormatRange.call(this, d.x, this.scaleX.domain(), this._width);
           var y = this.numberFormat.call(this, d.y);
           this._info.text(x + ' ' + y);
           var fixP = this._fixedValue;
@@ -1180,8 +1243,8 @@
       _updateInfo() {
         if (!this._focusedValue || this._info.attr('hidden') === '') return;
         var focP = this._focusedValue;
-        var x = this.scale.x(+focP.x),
-          y = this.scale.y(+focP.y);
+        var x = this.scaleX(+focP.x),
+          y = this.scaleY(+focP.y);
         if (!x || !y) {
           return;
         }
@@ -1191,8 +1254,8 @@
           case 'delta':
             var fixP = this._fixedValue;
             if (fixP && fixP.x && focP.x !== fixP.x && fixP.y && focP.y !== fixP.y) {
-              var xFix = this.scale.x(+fixP.x),
-                yFix = this.scale.y(+fixP.y);
+              var xFix = this.scaleX(+fixP.x),
+                yFix = this.scaleY(+fixP.y);
               var x1D, x2D, y1D, y2D;
               this._deltaX.attr('x1', x).attr('x2', xFix).attr('y1', yFix).attr('y2', yFix);
               this._deltaY.attr('y1', y).attr('y2', yFix);
@@ -1289,10 +1352,10 @@
       _dotClicked(d) {
         switch (this.modus) {
           case 'zoom':
-            var offsetX = (this.scale.x(this.scale.x.domain()[1]) - this.scale.x(this.scale.x.domain()[0])) / 4,
-              offsetY = (this.scale.y(this.scale.y.domain()[0]) - this.scale.y(this.scale.y.domain()[1])) / 4,
-              x = this.scale.x(+d.x),
-              y = this.scale.y(+d.y) || 0;
+            var offsetX = (this.scaleX(this.scaleX.domain()[1]) - this.scaleX(this.scaleX.domain()[0])) / 4,
+              offsetY = (this.scaleY(this.scaleY.domain()[0]) - this.scaleY(this.scaleY.domain()[1])) / 4,
+              x = this.scaleX(+d.x),
+              y = this.scaleY(+d.y) || 0;
             d3.event.selection = [
               [x - offsetX, y - offsetY],
               [x + offsetX, y + offsetY]
@@ -1310,10 +1373,10 @@
             this._fixedValue = d;
             this._deltaDot.datum(this._fixedValue)
               .attr('cx', d => {
-                return this.scale.x(d.x)
+                return this.scaleX(d.x)
               })
               .attr('cy', d => {
-                return this.scale.y(d.y)
+                return this.scaleY(d.y)
               })
               .attr('r', this._focusDot.attr('r'))
               .attr('fill', this._focusDot.attr('fill'));
@@ -1337,7 +1400,7 @@
       //
       // changeScale(newValue, oldValue) {
       //   // if (oldValue === undefined) return;
-      //   // var domainY = this.scale.y.domain();
+      //   // var domainY = this.scaleY.domain();
       //   // if (this.yScale === 'ln' || this.yScale === 'log₁₀') {
       //   //   if (domainY[0] <= 0) {
       //   //     domainY[0] = Number.EPSILON;
@@ -1347,8 +1410,8 @@
       //   //   }
       //   // }
       //   // this._debouncedHideInfo();
-      //   // this.scale.y = this._createScaleFn(this.yScale);
-      //   // this.scale.y.domain(domainY).nice(this.yTicks);
+      //   // this.scaleY = this._createScaleFn(this.yScale);
+      //   // this.scaleY.domain(domainY).nice(this.yTicks);
       //   // this.set('domainY', domainY);
       //   // this._sizeChanged();
       // }

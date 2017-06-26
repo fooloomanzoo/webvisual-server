@@ -246,7 +246,7 @@
       requestRange(key) {
         if (!(this.item && this.item.mount)) {
           return new Promise((resolve, reject) => {
-            reject();
+            resolve( [ undefined, undefined ] );
           })
         }
         var req = {
@@ -272,7 +272,7 @@
                 resolve( [ min, max ] );
               }
             }
-            reject();
+            resolve( [ undefined, undefined ] );
           });
         }
       }

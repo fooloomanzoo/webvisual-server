@@ -11,7 +11,7 @@
      * @mixinClass
      * @polymer
      */
-    return class extends WebvisualMixins.ScaleMixin(superClass) {
+    return class extends WebvisualMixins.ScaleMixin(WebvisualMixins.LocalizeMixin(superClass)) {
 
       constructor() {
         super();
@@ -29,12 +29,12 @@
            */
           axisPositionX: {
             type: String,
-            value: 'left'
+            value: 'bottom'
           },
 
           axisPositionY: {
             type: String,
-            value: 'bottom'
+            value: 'left'
           },
           /**
            * transition time in ms when changing position
@@ -83,25 +83,47 @@
            * generator functions of the axes by keys
            */
           axisGeneratorX: {
-            type: Function,
-            computed: '_computeAxisGenerator(axisPositionX, scaleX, scalingX, scaleBaseX)'
+            type: Function
           },
 
           axisGeneratorY: {
-            type: Function,
-            computed: '_computeAxisGenerator(axisPositionY, scaleY, scalingX, scaleBaseX)'
+            type: Function
           },
           /**
            * generator functions of the brushes axes by keys
            */
           axisBrushGeneratorX: {
-            type: Function,
-            computed: '_computeAxisBrushGenerator(axisPositionX)'
+            type: Function
           },
 
           axisBrushGeneratorY: {
-            type: Function,
-            computed: '_computeAxisBrushGenerator(axisPositionY)'
+            type: Function
+          },
+
+          /**
+           * folder for date/time-format file
+           */
+          languageResourcePrefix: {
+            type: String,
+            value: '/locales/dtf/'
+          },
+
+          _timeformatter: {
+            type: Object,
+            value: function() {
+              return {
+                Millisecond: d3.timeFormat(':%S.%L'),
+                Second: d3.timeFormat(':%M:%S'),
+                SecondLong: d3.timeFormat(':%M:%S.%L'),
+                Minute: d3.timeFormat('%H:%M'),
+                MinuteLong: d3.timeFormat('%H:%M:%S'),
+                Hour: d3.timeFormat('%X'),
+                Day: d3.timeFormat('%d.%m'),
+                Week: d3.timeFormat('%d.%m'),
+                Month: d3.timeFormat('%d. %b'),
+                Year: d3.timeFormat('%Y')
+              };
+            }
           }
         }
       }
@@ -112,70 +134,18 @@
 
       disconnectedCallback() {
         super.disconnectedCallback();
-        this._removeNodes();
+        this._removeAxes();
       }
 
       static get observers() {
         return [
-          '_setAxisNode("axisX", _axisInsertionPoint)',
-          '_setAxisNode("axisY", _axisInsertionPoint)',
-          // '_callAxis(axisX, axisGeneratorX)',
-          // '_callAxis(axisY, axisGeneratorY)',
-          '_rangeChanged(axisBrushGeneratorX, rangeX, axisPositionX)',
-          '_rangeChanged(axisBrushGeneratorY, rangeY, axisPositionY)',
+          '_setDateNumberFormat(localize)'
         ]
       }
 
-      _computeAxisGenerator(pos, scale, scaling, base) {
-        if (!pos || scale === undefined)  return;
-        var tickSize = this.tickSize || 6;
-        return (pos === 'left' ? d3.axisLeft(scale) :
-          (pos === 'right') ? axisGen = d3.axisRight(scale) :
-          (pos === 'top') ? axisGen = d3.axisTop(scale) :
-            d3.axisBottom(scale)).tickSize(tickSize).tickFormat(this._computeFormatFn(scaling, base));
-      }
-
-      _computeAxisBrushGenerator(pos) {
-        if (!pos)  return;
-        return (this._isVertical(pos) ? d3.brushY() : d3.brushX()).on('end', this._onAxisBrushEnd.bind(this));
-      }
-
-      _setAxisNode(key, insertionPoint) {
-        if (insertionPoint === undefined) return;
-        if (this[key] && this[key].attr) return;
-        var vertical = 'axisY' ? true : false;
-        var axis = insertionPoint.append('svg:g')
-          .classed('axis', true)
-          .classed('vertical', vertical)
-          .classed(key === 'axisY' ? 'y' : 'x', true)
-          .on('click', function() {
-            var expanded = d3.select(this).classed('expanded');
-            d3.select(this).classed('expanded', !expanded);
-          })
-          .call(d3.drag()
-            .on('start', this._onAxisDragStart)
-            .on('drag', this._onAxisDragged)
-            .on('end', this._onAxisDragEnd));
-
-        axis.append('svg:g')
-          .classed('brush', true)
-          .classed('vertical', vertical)
-          .classed(key, true);
-
-        axis.node()._genitor = this;
-        this.set(key, axis);
-      }
-
-      _callAxis(axis, axisGenerator) {
-        if (axis === undefined || axisGenerator === undefined) return;
-        axis.call(axisGenerator);
-      }
-
-      _rangeChanged(brushGenerator, range, pos) {
-        if (brushGenerator === undefined || range === undefined || pos === undefined) return;
-        var tickSize = this.tickSize || 6;
+      _updateAxisBrushGenerator(range, pos, tickSize) {
+        tickSize = tickSize || 6;
         var extent = [[0,0],range]
-
         if (pos === 'left') {
           extent[0][0] = -tickSize;
         } else if (pos === 'right') {
@@ -183,191 +153,85 @@
         } else if (pos === 'top') {
           extent[0][1] = -tickSize;
         } else if (pos === 'bottom') {
-          extent[0][1] = tickSize;
+          extent[1][1] = tickSize;
         }
-        brushGenerator.extent(extent);
+        this.extent(extent);
       }
 
-      // _addAxis(key, mount, hidden) {
-      //   if (!this._axisInsertionPoint || !this.axisPosition) return;
-      //
-      //   var keys = key ? [key] : Object.keys(this.axisPosition),
-      //     insertionPoint = this._axisInsertionPoint,
-      //     axisPosition = this.axisPosition,
-      //     mount = mount || this.mount || '',
-      //     hidden = hidden || null,
-      //     color = this.axisColor || '',
-      //     title = this.axisTitle || mount,
-      //     self = this,
-      //     key,
-      //     pos,
-      //     vertical,
-      //     axis = this._axis || {},
-      //     brush = this._axisBrush || {};
-      //
-      //   for (var i = 0; i < keys.length; i++) {
-      //     key = keys[i];
-      //     pos = axisPosition[key];
-      //     vertical = this._isVertical(pos);
-      //     if (axis[key]) {
-      //       axis[key].classed('vertical', vertical).attr('mount', mount).attr('hidden', hidden);
-      //       brush[key].classed('vertical', vertical);
-      //       axis[key].node()._vertical = vertical;
-      //       axis[key].node()._position = pos;
-      //       continue;
-      //     }
-      //     // enter axes node
-      //     axis[key] = insertionPoint.append('svg:g')
-      //       .classed('axis', true)
-      //       .classed('vertical', vertical)
-      //       .classed(key, true)
-      //       .attr('hidden', hidden)
-      //       .attr('mount', mount)
-      //       .style('color', color)
-      //       .call(d3.drag()
-      //         .on('start', this._onAxisDragStart)
-      //         .on('drag', this._onAxisDragged)
-      //         .on('end', this._onAxisDragEnd));
-      //
-      //     // add title
-      //     axis[key].append('svg:title').text(title);
-      //
-      //     // add brush node
-      //     brush[key] = axis[key]
-      //       .append('svg:g')
-      //       .classed('brush', true)
-      //       .classed('vertical', vertical)
-      //       .classed(key, true)
-      //       .attr('mount', mount);
-      //
-      //     // extra properties needed for event handler
-      //     axis[key].node()._vertical = vertical;
-      //     axis[key].node()._position = pos;
-      //     axis[key].node()._top = 0;
-      //     axis[key].node()._right = 0;
-      //     axis[key].node()._bottom= 0;
-      //     axis[key].node()._left = 0;
-      //     axis[key].node()._genitor = this;
-      //     brush[key].node()._axis = axis[key];
-      //   }
-      //   this.setProperties({
-      //     _axis: axis,
-      //     _axisBrush: brush
-      //   })
-      //   this.redraw();
-      // }
+      _computeAxisGenerator(pos, scale, scaling, base) {
+        if (!pos || scale === undefined || scaling === undefined)  return;
+        var tickSize = this.tickSize || 6;
+        return ((pos === 'left') ? d3.axisLeft(scale) :
+          (pos === 'right') ? d3.axisRight(scale) :
+          (pos === 'top') ? d3.axisTop(scale) :
+            d3.axisBottom(scale)).tickSize(tickSize).tickFormat(this._computeFormatFn(scaling, base));
+      }
+
+      _computeAxisBrushGenerator(pos) {
+        if (!pos)  return;
+        var vertical = this._isVertical(pos);
+        var gen = (vertical ? d3.brushY() : d3.brushX()).on('end', this._onAxisBrushEnd.bind(this));
+        if (vertical && this.rangeY) {
+          this._updateAxisBrushGenerator.call(gen, this.rangeY, pos, this.tickSize);
+        } else if (!vertical && this.rangeX) {
+          this._updateAxisBrushGenerator.call(gen, this.rangeX, pos, this.tickSize);
+        }
+        return gen;
+      }
+
+      _computeAxisNode(insertionPoint, key, pos, expanded, title) {
+        if (insertionPoint === undefined) return;
+        var vertical = (key === 'y') ? true : false;
+        var color = this.axisColor || '';
+        title = title || this.axisTitle || key;
+
+        var axis = insertionPoint.append('svg:g')
+          .classed('axis', true)
+          .classed('vertical', vertical)
+          .classed('expanded', expanded)
+          .classed(key, true)
+          .style('color', color);
+
+        axis.on('click', function() {
+            var expanded = d3.select(this).classed('expanded');
+            d3.select(this).classed('expanded', !expanded);
+          })
+          .call(d3.drag()
+            .on('start', this._onAxisDragStart)
+            .on('drag', this._onAxisDragged)
+            .on('end', this._onAxisDragEnd));
+        // add title
+        axis.append('svg:title').text(title);
+        axis.append('svg:g')
+          .classed('brush', true)
+          .classed('vertical', vertical)
+          .classed(key, true);
+        axis.node()._genitor = this;
+        axis._pos = pos;
+        axis._left = 0;
+        axis._right = 0;
+        axis._bottom = 0;
+        axis._top = 0;
+
+        return axis;
+      }
 
       _setAxisProperties(axis, axisGenerator, expanded) {
         axis.classed('expanded', expanded);
         axisGenerator.tickFormat(expanded ? null : '');
       }
 
-      // _updateAxisBrush() {
-      //   for (var key in this._axisBrush) {
-      //     this._updateAxisBrushGenerator(key);
-      //   }
-      // }
-      //
-      // _updateAxisGenerator(key, expanded, tickCount) {
-      //   if (!(this._axisGenerator && this._axisGenerator[key])) {
-      //     this.__createAxisGenerator(key, true);
-      //   }
-      //   if (expanded !== undefined) {
-      //     this._axisGenerator[key].tickFormat(expanded ? null : '');
-      //   }
-      //   if (tickCount !== undefined) {
-      //     this._axisGenerator[key].ticks(tickCount);
-      //   }
-      // }
-      // _updateAxisBrushGenerator(key, forcedNew) {
-      //   if (forcedNew || !(this._axisBrushGenerator && this._axisBrushGenerator[key])) {
-      //     this.__createAxisBrushGenerator(key, true);
-      //   }
-      //   if (this.range) {
-      //     var tickSize = this.tickSize || 6,
-      //     pos = this.axisPosition[key];
-      //     var height = this.range.y[0],
-      //       width = this.range.x[1];
-      //     if (pos === 'left') {
-      //       this._axisBrushGenerator[key].extent([
-      //         [-tickSize, 0], [0, height]
-      //       ]);
-      //     } else if (pos === 'right') {
-      //       this._axisBrushGenerator[key].extent([
-      //         [0, 0], [tickSize, height]
-      //       ]);
-      //     }
-      //     if (pos === 'top') {
-      //       this._axisBrushGenerator[key].extent([
-      //         [0, -tickSize], [width, 0]
-      //       ]);
-      //     } else if (pos === 'bottom') {
-      //       this._axisBrushGenerator[key].extent([
-      //         [0, 0], [width, tickSize]
-      //       ]);
-      //     }
-      //   }
-      // }
-      _rescale(key, domain, range) {
-        super._rescale(key, domain, range);
-      }
-
-      redraw() {
-        this.redrawX();
-        this.redrawY();
-        // var expanded;
-        // for (var key in this.keys) {
-        //   if (!(this.domain[key] || this.range[key])) return;
-        //   this._updateScale(key);
-        //   expanded = this._axis[key].classed('expanded');
-        //   this._updateAxisBrushGenerator(key);
-        //   this._axisBrush[key].raise().call(this._axisBrushGenerator[key]);
-        //   this._updateAxisGenerator(key, expanded);
-        //   this._axis[key].call(this._axisGenerator[key])
-        //     .transition(this.axisTransitionTime || 0)
-        //     .attr('transform', 'translate(' + (this._axis[key].node()._left || 0) + ',' + (this._axis[key].node()._top || 0) + ')');
-        // }
-      }
-      redrawX() {
-        if (!(this.scaleX && this.rangeX && this.axisGeneratorX)) return;
-
-        this.axisGeneratorX.scale(this.scaleX);
-        this._rangeChanged(this.axisBrushGeneratorX, this.rangeX, this.axisPositionX);
-        this.axisX.select('.brush').call(this.axisBrushGeneratorX);
-        this.axisX.call(this.axisGeneratorX)
-          .transition(this.axisTransitionTime || 0)
-          .attr('transform', 'translate(' + (this.axisX.node()._left || 0) + ',' + (this.axisX.node()._top || 0) + ')');
-      }
-      redrawY() {
-        if (!(this.scaleY && this.rangeY && this.axisGeneratorY)) return;
-        this.axisGeneratorX.scale(this.scaleX);
-        this._rangeChanged(this.axisBrushGeneratorY, this.rangeY, this.axisPositionY);
-        this.axisY.select('.brush').call(this.axisBrushGeneratorY);
-        this.axisY.call(this.axisGeneratorY)
-          .transition(this.axisTransitionTime || 0)
-          .attr('transform', 'translate(' + (this.axisY.node()._left || 0) + ',' + (this.axisY.node()._top || 0) + ')');
-      }
-
-      _removeNodes() {
-        if (!this._axis) return;
-        var node, key;
-        // remove axis & brush node
-        if (this.axisX) {
-          node = this.axisX.node();
+      _removeAxes() {
+        [this.axisX.node(), this.axisY.node()].forEach(function(node) {
           if (node && node.parentElement)
             node.parentElement.removeChild(node);
-          this.axisX = null;
-          this.axisGeneratorX = null;
-          this.axisBrushGeneratorX = null;
-        }
-        if (this.axisY) {
-          node = this.axisY.node();
-          if (node && node.parentElement)
-            node.parentElement.removeChild(node);
-          this.axisY = null;
-          this.axisGeneratorY = null;
-          this.axisBrushGeneratorY = null;
-        }
+        })
+        delete this.axisX;
+        delete this.axisY;
+        delete this.axisGeneratorY;
+        delete this.axisGeneratorX;
+        delete this.axisBrushGeneratorY;
+        delete this.axisBrushGeneratorX;
       }
 
       _onAxisDragStart() {
@@ -413,11 +277,11 @@
         if (s) {
           if (s[0] === s[1]) {
             var expanded = this._axis[key].classed('expanded');
-            var brushed = this._axis[key].node()._isBrushed;
+            var brushed = this._axis[key]._isBrushed;
             if (!expanded) {
               this._axis[key].classed('expanded', true)
             } else if (brushed) {
-              this._axis[key].node()._isBrushed = false;
+              this._axis[key]._isBrushed = false;
               this._getDomain(key).then( (d) => {
                 this.set('domain.' + d.key, d.domain);
                 this._axisBrush[key].call(this._axisBrushGenerator[key].move, null);
@@ -425,7 +289,7 @@
               return;
             }
           } else {
-            this._axis[key].node()._isBrushed = true;
+            this._axis[key]._isBrushed = true;
             s = s.map(this.scale[key].invert, this.scale[key]).sort((a, b) => { return a > b});
             console.log(s);
             this.set('domain.' + key, s);
@@ -434,14 +298,6 @@
           return;
         }
         this.redraw();
-        // this.scale[key].domain(s);
-        // if (this.hasArea) {
-        //   this._area.attr('d', this._generators.area);
-        // }
-        // if (this.hasLine) {
-        //   this._line.attr('d', this._generators.line);
-        // }
-        // this._axis[key].call(this.scale[key]);
       }
 
       _axisColorChanged(color) {
@@ -456,6 +312,97 @@
       _isVertical(pos) {
         return pos === 'left' || pos === 'right';
       }
+
+      _computeFormatFn(scale, base) {
+        if (scale === 'time') {
+          return this.formatTime.bind(this);
+        } else {
+          return this.formatNumber.bind(this, scale, base);
+        }
+      }
+
+      formatTime(date) {
+        var timeformatter = this._timeformatter;
+        return (d3.timeSecond(date) < date ? timeformatter.Millisecond :
+          d3.timeMinute(date) < date ? timeformatter.Second :
+          d3.timeHour(date) < date ? timeformatter.Minute :
+          d3.timeDay(date) < date ? timeformatter.Hour :
+          d3.timeWeek(date) < date ? timeformatter.Day :
+          d3.timeMonth(date) < date ? timeformatter.Week :
+          d3.timeYear(date) < date ? timeformatter.Month :
+          timeformatter.Year)(date);
+      }
+      /**
+       * format date according to a time-range and pixel-range
+       **/
+      formatTimeRange(date, range, pixels) {
+        var timeformatter = this._timeformatter;
+        var rangeRatio = (range[1] - range[0]).valueOf() / pixels;
+        return (rangeRatio < 100 ? timeformatter.Millisecond :
+          rangeRatio < 5E2 ? timeformatter.SecondLong :
+          rangeRatio < 5E3 ? timeformatter.Second :
+          rangeRatio < 2E4 ? timeformatter.MinuteLong :
+          rangeRatio < 6E4 ? timeformatter.Minute :
+          rangeRatio < 36E5 ? timeformatter.Hour :
+          rangeRatio < 864E5 ? timeformatter.Day :
+          rangeRatio < 6048E5 ? timeformatter.Week :
+          rangeRatio < 24192E5 ? timeformatter.Month :
+          timeformatter.Year)(date);
+      }
+      /**
+       * format absolute time (like differences)
+       * e.g. 3600001 => 1h 1ms
+       **/
+      formatTimeAbsolute(date) {
+        // one year = 365.25 days = 315576E5ms (Julian Calendar)
+        var ry = date % 315576E5,
+          y = (date - ry) / 315576E5,
+          rd = ry % 864E5,
+          d = (ry - rd) / 864E5,
+          rh = rd % 36E5,
+          h = (rd - rh) / 36E5,
+          rm = rh % 6E4,
+          m = (rh - rm) / 6E4,
+          rs = rm % 1E3,
+          s = (rm - rs) / 1E3,
+          ret = '';
+        if (y)
+          ret += y + 'y ';
+        if (d)
+          ret += d + 'd ';
+        if (h)
+          ret += h + 'h ';
+        if (m)
+          ret += m + 'm ';
+        if (s)
+          ret += s + 's ';
+        if (rs)
+          ret += rs + 'ms';
+        return ret;
+      }
+
+      formatNumber(scale, num) {
+        // format with thousands separators
+        return d3.format(',')(num);
+      }
+
+      _setDateNumberFormat(localize) {
+        if (localize === undefined) return;
+        var dateLocale = this.localize('date'),
+          numberLocale = this.localize('number'),
+          decimal = '.';
+        if (dateLocale) d3.timeFormatDefaultLocale(dateLocale);
+        if (numberLocale) {
+          d3.formatDefaultLocale(numberLocale);
+          if (numberLocale.decimal) {
+            decimal = numberLocale.decimal;
+          }
+          this._timeformatter.Millisecond = d3.timeFormat(':%S' + decimal + '%L');
+          this._timeformatter.SecondLong = d3.timeFormat(':%M:%S' + decimal + '%L');
+        }
+
+      }
+
     }
   }
 </script>

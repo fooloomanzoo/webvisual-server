@@ -138,7 +138,6 @@ WebvisualClient.prototype = {
   retractElement: function(node, item) {
     if (!node || !item || !item.mount)
       return;
-      console.log('retractElement', item);
     var mount = item.mount;
 
     if (!this.nodes.has(mount))

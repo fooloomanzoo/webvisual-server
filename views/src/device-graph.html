@@ -58,6 +58,15 @@
 
           multiAxes: {
             type: Object
+          },
+
+          /**
+           * folder for date/time-format file
+           */
+          languageResourcePrefix: {
+            type: String,
+            value: undefined,
+            readOnly: true
           }
         }
       }
@@ -71,26 +80,26 @@
         this._areaGenerator = d3.area()
           .defined(this._defined.bind(this))
           .x(d => {
-            return this.scale.x(d.x);
+            return this.scaleX(d.x);
           })
           .y0(d => {
             if (this.keys && this.keys.y && this._IS_LOG_SCALE(this.keys.y.scale)) {
               return this._chart._height;
             } else {
-              return this.scale.y(0)
+              return this.scaleY(0)
             }
           })
           .y1(d => {
-            return this.scale.y(d.y);
+            return this.scaleY(d.y);
           });
 
         this._lineGenerator = d3.line()
           .defined(this._defined.bind(this))
           .x(d => {
-            return this.scale.x(d.x);
+            return this.scaleX(d.x);
           })
           .y(d => {
-            return this.scale.y(d.y);
+            return this.scaleY(d.y);
           });
 
         this.bisectDate = d3.bisector((d, x) => {
@@ -148,26 +157,32 @@
         this._areaChanged(this.hasArea);
         this._lineChanged(this.hasLine);
 
+        this.axisX = this._computeAxisNode(this._axisInsertionPoint, 'x', this.axisPositionX, null, this.item.mount);
+        this.axisY = this._computeAxisNode(this._axisInsertionPoint, 'y', this.axisPositionY, null, this.item.mount);
+        this.axisGeneratorX = this._computeAxisGenerator(this.axisPositionX, this.scaleX, this.scalingX, this.scaleBaseX);
+        this.axisGeneratorY = this._computeAxisGenerator(this.axisPositionY, this.scaleY, this.scalingY, this.scaleBaseY);
+        this.axisBrushGeneratorX = this._computeAxisBrushGenerator(this.axisPositionX);
+        this.axisBrushGeneratorY = this._computeAxisBrushGenerator(this.axisPositionY);
+
         // for (var key in this._chart.multiAxes) {
         //   this.scale[key] = this._chart.multiAxes[key] ? this.scale[key] : this._chart.scale[key];
         //   this._addAxis(key, this.item.mount, !this._chart.multiAxes[key]);
         // }
 
         this._chart._addGraph(this);
-
-        this._isAttached = true;
         this._setColorProperties();
+        this._isAttached = true;
         this._chart._sizeChanged();
       }
 
       removeNodes() {
         // console.log('removeNodes', this.item.mount);
+        this._chart._removeGraph(this);
         this._isAttached = false;
         this._areaChanged();
         this._lineChanged();
         this._thresholdChanged();
-        this._removeAxis();
-        this._chart._removeGraph(this);
+        this._removeAxes();
       }
 
       _areaChanged(hasArea, type) {
@@ -276,33 +291,34 @@
           return;
         }
         var len = len || (this.viewLength > 0 ? this.viewLength : values.length);
-        if (!len) {
-          values.map(function(v) {
-            return {
-              x: +v.x,
-              y: +v.y,
-              state: +v.state
-            };
-          });
-          if (this.storeInside) {
-            this.values = this.values.concat(values);
-          }
-          this.renderInsertedValues(values);
-        } else {
-          var tmp = values.slice(values.length - len, values.length);
-          tmp.map(function(v) {
-            return {
-              x: new Date(v.x),
-              y: +v.y,
-              state: +v.state
-            };
-          });
-          if (this.storeInside) {
-            this.values = this.values.concat(tmp);
-          }
-          this.renderInsertedValues(tmp);
-          tmp.length = 0;
+        if (len) {
+          values = values.slice(values.length - len, values.length);
         }
+        values.map(function(v) {
+          return {
+            x: +v.x,
+            y: +v.y,
+            state: +v.state
+          };
+        });
+        if (this.storeInside) {
+          this.values = this.values.concat(values);
+          if (this._chart.multiAxes.x && !this.axisX._isBrushed) {
+            var min = this.min(this.values, 'x');
+            var max = this.max(this.values, 'x');
+            if (!(min === undefined && max === undefined)) {
+              this.set('domainX', [ min, max ] );
+            }
+          }
+          if (this._chart.multiAxes.y && !this.axisY._isBrushed) {
+            var min = this.min(this.values, 'y');
+            var max = this.max(values, 'y');
+            if (!(min === undefined && max === undefined)) {
+              this.set('domainY', [ min, max ] );
+            }
+          }
+        }
+        this.renderInsertedValues(values);
       }
 
       spliceValues(splices) {
@@ -330,45 +346,25 @@
           this.addNodes();
         }
         if (this._chart) {
-          if (!this._isBrushed) {
-            // console.log('is not Brushed')
-            // for (var key in this._chart.multiAxes) {
-              // if (this._chart.multiAxes[key] === true) {
-              //   this._getDomain(key).then(this.redraw.bind(this));
-              // } else {
-                this._chart.redraw();
-            //   }
-            // }
-          } else {
+          if (this._chart.multiAxes.y || this._chart.multiAxes.x) {
             this.redraw();
+            return;
+          } else {
+            if (this.axisY._isBrushed) {
+              this.axisY._isBrushed = false;
+            }
+            if (this.axisX._isBrushed) {
+              this.axisX._isBrushed = false;
+            }
           }
+          this._chart.redraw();
         }
       }
 
-      _updateScales() {
-        super._updateScales();
-        if (!this.domain && this._chart.domain) {
-          this.set('domain', this._chart.domain);
-          return;
-        }
-        for (var key in this.keys) {
-          if ((!this.domain.hasOwnProperty(key) || this._chart.multiAxes[key]) && this._chart.domain && this._chart.domain[key]) {
-            this.set('domain.' + key, this._chart.domain);
-          }
-        }
-      }
       redraw() {
-        if (!this._isAttached || !this.domain) return;
+        if (!this._isAttached || this._notDrawable) return;
 
         console.log('graph redraw', this.item.mount, this.values.length);
-        super.redraw(this);
-
-        for (var key in this.keys) {
-          if (!(this.scale.hasOwnProperty(key) && this.domain.hasOwnProperty(key) && this.range.hasOwnProperty(key))) {
-            return;
-          }
-        }
-
         var data = this.values || [];
 
         // fill area
@@ -403,7 +399,7 @@
             i_color = this.item.color || '#000';
 
           if (this.item.threshold.from !== undefined) {
-            y = ((1 - Math.ceil(this.scale.y(this.item.threshold.from) + this.lineWidth * 1.25) / this._chart._height) * 100);
+            y = ((1 - Math.ceil(this.scaleY(this.item.threshold.from) + this.lineWidth * 1.25) / this._chart._height) * 100);
             if (Number.isFinite(y)) {
               b_line.push({
                 o: y + '%',
@@ -416,7 +412,7 @@
             }
           }
           if (this.item.threshold.to !== undefined) {
-            y = ((1 - Math.floor(this.scale.y(this.item.threshold.to) - this.lineWidth * 1.25) / this._chart._height) * 100);
+            y = ((1 - Math.floor(this.scaleY(this.item.threshold.to) - this.lineWidth * 1.25) / this._chart._height) * 100);
             if (Number.isFinite(y)) {
               b_line.push({
                 o: y + '%',
@@ -456,13 +452,13 @@
         // TODO(?): update line, animated http://bl.ocks.org/benjchristensen/1148374
       }
 
-      _getDomain(key) {
+      _getDomain(key, save) {
         return new Promise((resolve, reject) => {
-          if (!this._isAttached) reject();
-          var scale = (key === 'y') ? this.scalingY : this.scalingX;
-          var vertical = (key === 'y');
+          var vertical = (key === 'y'),
+            scale = vertical ? this.scalingY : this.scalingX;
           this.requestRange(key)
             .then(range => {
+              // console.log(key, scale, range)
               var domain = range;
               if (vertical) {
                 // if min, max are equal, add a little space
@@ -471,7 +467,6 @@
                   domain[1] += 0.5;
                 }
               }
-
               // logarithmic scales need scales of same prefix
               if (this._IS_LOG_SCALE(scale)) {
                 if (domain[0] <= 0) {
@@ -481,16 +476,18 @@
                   domain[1] = Math.sign(domain[0])*Number.EPSILON;
                 }
               }
-              if (key === 'x') {
-                this.set('domainX', domain);
-              }
-              else if (key === 'y') {
-                this.set('domainY', domain);
+              if (save) {
+                if (key === 'x') {
+                  this.set('domainX', domain);
+                }
+                else if (key === 'y') {
+                  this.set('domainY', domain);
+                }
               }
               resolve({domain: domain, key: key});
             })
-            .catch(err => {
-              reject(err);
+            .catch(error => {
+              reject(error);
             });
         });
       }
@@ -513,8 +510,8 @@
       // if looking just at to path (instabil): https://bl.ocks.org/mbostock/8027637 https://pomax.github.io/bezierinfo/#projections
       _closestPoint(m) {
         // find good prediction
-        var _x = this._chart._x,
-          _y = this._chart._y,
+        var _x = this.scaleX,
+          _y = this.scaleY,
           values = this.values,
           x_0 = _x.invert(m[0]),
           precision = Math.ceil(this._chart._width / values.length),
@@ -559,8 +556,8 @@
         return values[pos];
 
         function pixdistance2(p) {
-          var dx = _fn.scale.x(new Date(p.x)) - m[0],
-            dy = _fn.scale.y(p.y) - m[1];
+          var dx = _x(new Date(p.x)) - m[0],
+            dy = _y(p.y) - m[1];
           return dx * dx + dy * dy;
         }
       }
@@ -602,8 +599,8 @@
         }
 
         best = {
-          x: this.scale.x(best.x),
-          y: this.scale.y(best.y)
+          x: this.scaleX(best.x),
+          y: this.scaleY(best.y)
         };
         best.distance = Math.sqrt(bestDistance);
         return best;
@@ -676,9 +673,6 @@
         }
         this._areaGenerator.curve(curve);
         this._lineGenerator.curve(curve);
-
-        if (this._chart)
-          this._chart.redraw();
       }
     }
     customElements.define(DeviceGraph.is, DeviceGraph);
