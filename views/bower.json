@@ -24,7 +24,8 @@
     "paper-behaviors": "polymerelements/paper-behaviors",
     "paper-dialog-behavior": "polymerelements/paper-dialog-behavior",
     "datetime-picker": "fooloomanzoo/datetime-picker",
-    "fetch": "*"
+    "fetch": "*",
+    "es6-promise": "^4.0.5"
   },
   "devDependencies": {
     "web-component-tester": "^6.0.0-prerelease.6"

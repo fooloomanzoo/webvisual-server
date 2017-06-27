@@ -17,7 +17,7 @@
     "test": "node debug.js redis",
     "stop": "taskkill /IM node.exe /F",
     "postinstall": "cd views && bower install && npm run build",
-    "build": "cd views && cpx build/compiled/images/**/* tmp/images/ -v && cpx build/compiled/data/**/* tmp/data/ -v && rollup -c && uglifyjs scripts/d3.bundle.js -c -m -o scripts/d3.bundle.js && polymer build && cpx tmp/**/* build/compiled/ -v && del-cli -f tmp/"
+    "build": "cd views && rollup -c && uglifyjs scripts/d3.bundle.js -c -m -o scripts/d3.bundle.js && polymer build"
   },
   "dependencies": {
     "activedirectory": "^0.7.1",
@@ -35,6 +35,7 @@
     "del-cli": "^1.0.0",
     "express": "*",
     "express-session": "*",
+    "express-useragent": "^1.0.7",
     "merge-options": "*",
     "merge-stream": "*",
     "mkdirp": "*",
@@ -46,7 +47,7 @@
     "redis": "*",
     "rollup": "*",
     "rollup-plugin-node-resolve": "*",
-    "serve-static": "*",
+    "serve-static": "github:fooloomanzoo/serve-static",
     "socket.io": "^1.7.4",
     "spdy": "*",
     "underscore": "*",

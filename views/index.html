@@ -7,14 +7,14 @@
 
   <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
   <script>
-    // Load Promise Polyfill
-    if (!window.Promise) {
-      var scr = document.createElement('script');
-      scr.async = true;
-      scr.src = '/polyfills/promise.js';
-      document.head.appendChild(scr);
-    }
-  </script>
+   // Load Promise Polyfill
+   if (!(window.Promise && window.Promise.all)) {
+     var scr = document.createElement('script');
+     scr.async = true;
+     scr.src = '/bower_components/es6-promise/es6-promise.auto.min.js';
+     document.head.appendChild(scr);
+   }
+ </script>
   <script async src="/polyfills/polyfills.js" type="text/javascript"></script>
   <script type="text/javascript" src="/scripts/client.js"></script>
   <link rel="import" href="/src/webvisual-app.html" async>

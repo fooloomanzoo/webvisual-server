@@ -14,30 +14,45 @@
     "polyfills/**/*",
     "fonts/**/*",
     "icons/**/*",
-    "data/**/*",
-    "locales/**/*",
-    "images/**/*"
+    "locales/**/*"
   ],
   "extraDependencies": [
     "bower_components/webcomponentsjs/*",
+    "bower_components/es6-promise/*",
     "manifest.json",
     "app.yaml"
   ],
-  "builds": [ {
-    "name": "compiled",
-    "bundle": true,
-    "js": {
-      "minify": true,
-      "compile": true
+  "builds": [
+    {
+      "name": "bundled",
+      "bundle": true,
+      "js": {
+        "minify": true
+      },
+      "css": {
+        "minify": true
+      },
+      "html": {
+        "minify": true
+      },
+      "addServiceWorker": true
     },
-    "css": {
-      "minify": true
-    },
-    "html": {
-      "minify": true
-    },
-    "addServiceWorker": true
-  } ],
+    {
+      "name": "compiled",
+      "bundle": true,
+      "js": {
+        "minify": true,
+        "compile": true
+      },
+      "css": {
+        "minify": true
+      },
+      "html": {
+        "minify": true
+      },
+      "addServiceWorker": true
+    }
+  ],
   "lint": {
     "rules": [ "polymer-2-hybrid" ]
   }

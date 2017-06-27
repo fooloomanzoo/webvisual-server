@@ -1,4 +1,7 @@
 'use strict';
+if (!self.Promise) {
+  importScripts('/bower_components/es6-promise/es6-promise.auto.min.js');
+}
 
 (function() {
   function toArray(arr) {

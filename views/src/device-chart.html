@@ -27,9 +27,9 @@
       :host([fullscreen]) {
         color: var(--fullscreen-color, white);
         background-color: var(--fullscreen-background-color);
-        min-height: 100%;
-        min-width: 100%;
-        padding: 0 !important;
+        min-height: 100vh;
+        min-width: 100vw;
+        padding: 1.25em !important;
         margin: 0 !important;
         --control-bottom: 8px;
         --control-right: 16px;
@@ -46,10 +46,6 @@
         height: 100%;
         border-radius: inherit;
         isolation: isolate;
-      }
-      :host([fullscreen]) > #svgContainer {
-        position: fixed;
-        padding: 1em 1em 3em 1em !important;
       }
       #svg {
         position: absolute;
@@ -95,6 +91,7 @@
       .axis {
         cursor: -webkit-grab;
         cursor: grab;
+        pointer-events: all;
         font-family: inherit !important;
       }
       .axis.dragged {
@@ -270,39 +267,39 @@
           <text id="infoDeltaY" class="delta info" x="0" y="0" filter="url(#solid)" hidden></text>
         </g>
       </svg>
+      <section id="control">
+        <iron-collapse id="controlcontent" opened="[[showControl]]">
+          <div class="selectbox">
+            <select value="{{interpolation::change}}">
+              <option value="Lineare Verbindung">Lineare Verbindung</option>
+              <option value="Basis Spline">Basis Spline</option>
+              <option value="Kubischer Spline">Kubischer Spline</option>
+              <option value="Cardinaler Spline">Cardinaler Spline</option>
+              <option value="Catmull-Rom-Spline">Catmull-Rom-Spline</option>
+              <option value="Stufe (mitte)">Stufe (mitte)</option>
+              <option value="Stufe (davor)">Stufe (davor)</option>
+              <option value="Stufe (danach)">Stufe (danach)</option>
+            </select>
+          </div>
+          <div class="selectbox">
+            <select value="{{yScale::change}}">
+              <option value="linear">linear</option>
+              <option value="√">√</option>
+              <option value="ln">ln</option>
+              <option value="log₁₀">log₁₀</option>
+            </select>
+          </div>
+          <div class="selectbox">
+            <select value="{{modus::change}}">
+              <option value="zoom">zoom</option>
+              <option value="delta">delta</option>
+            </select>
+          </div>
+        </iron-collapse>
+        <icon-button title="settings" icon="tune" checked="{{showControl}}"></icon-button>
+        <icon-button icon="[[fullscreenIcon]]" on-tap="toggleFullscreen"></icon-button>
+      </section>
   	</div>
-    <section id="control">
-      <iron-collapse id="controlcontent" opened="[[showControl]]">
-        <div class="selectbox">
-          <select value="{{interpolation::change}}">
-            <option value="Lineare Verbindung">Lineare Verbindung</option>
-            <option value="Basis Spline">Basis Spline</option>
-            <option value="Kubischer Spline">Kubischer Spline</option>
-            <option value="Cardinaler Spline">Cardinaler Spline</option>
-            <option value="Catmull-Rom-Spline">Catmull-Rom-Spline</option>
-            <option value="Stufe (mitte)">Stufe (mitte)</option>
-            <option value="Stufe (davor)">Stufe (davor)</option>
-            <option value="Stufe (danach)">Stufe (danach)</option>
-          </select>
-        </div>
-        <div class="selectbox">
-          <select value="{{yScale::change}}">
-            <option value="linear">linear</option>
-            <option value="√">√</option>
-            <option value="ln">ln</option>
-            <option value="log₁₀">log₁₀</option>
-          </select>
-        </div>
-        <div class="selectbox">
-          <select value="{{modus::change}}">
-            <option value="zoom">zoom</option>
-            <option value="delta">delta</option>
-          </select>
-        </div>
-      </iron-collapse>
-      <icon-button title="settings" icon="tune" checked="{{showControl}}"></icon-button>
-      <icon-button icon="[[fullscreenIcon]]" on-tap="toggleFullscreen"></icon-button>
-    </section>
 
     <template is="dom-if" if="[[multi]]" restamp>
       <template is="dom-repeat" items="[[items]]">
@@ -448,7 +445,7 @@
           composed: true,
           node: this
         }));
-        this._sizeChanged();
+        this.sizeChanged();
       }
 
       connectedCallback() {
@@ -575,7 +572,7 @@
 
         this._modusChanged(this.modus);
         this._multiAxesChanged(this.multiAxes);
-        this._sizeChanged();
+        this.sizeChanged();
       }
 
       reset() {
@@ -585,18 +582,18 @@
         this.set('exceeding', []);
       }
 
-      _sizeChanged() {
+      sizeChanged() {
         // only resize if initialized
         if (!(this.opened && this._isAttached)) return;
         if (this._activeSizeJob) {
           cancelAnimationFrame(this._activeSizeJob);
         }
         this._activeSizeJob = requestAnimationFrame(() => {
-          this._sizeLayout();
+          this.sizeLayout();
         }, 0);
       }
 
-      _sizeLayout() {
+      sizeLayout() {
         if (!(this.opened && this._isAttached)) return;
         var bRect = this.$.svg.getBoundingClientRect();
 
@@ -606,12 +603,12 @@
 
         if (bRect.height === 0 || bRect.width === 0) {
           requestAnimationFrame(() => {
-            this._sizeChanged();
+            this.sizeChanged();
           });
           return;
         }
 
-        console.log('_sizeLayout');
+        console.log('sizeLayout');
         var top = 0,
           right = 0,
           bottom = 0,
@@ -764,6 +761,9 @@
       _redomain() {
         if (!this._isAttached) return;
 
+        if (this._activeRedrawJob) {
+          clearTimeout(this._activeRedrawJob);
+        }
         Promise.resolve(this._getDomain.call(this))
           .then(this.redraw.bind(this, false))
           .catch(err => {
@@ -780,62 +780,68 @@
           this._redomain();
           return;
         }
-        console.log('_redraw');
-        this._graphs.forEach( g => {
-          if (g._isAttached) {
-            if (g.axisX && !g.axisX.attr('hidden')) {
-              // g.axisGeneratorX = g._computeAxisGenerator(g.axisPositionX, g.scaleX, g.scalingX, g.scaleBaseX);
-              g._updateAxisBrushGenerator.call(g.axisBrushGeneratorX, this.rangeX, g.axisPositionX);
-              g.axisX.select('.brush').raise().call(g.axisBrushGeneratorX);
-              g.axisX.transition(100).attr('transform', 'translate(' + (g.axisX._left || 0) + ',' + (g.axisX._top || 0) + ')');
+        // async redrawing
+        if (this._activeRedrawJob) {
+          clearTimeout(this._activeRedrawJob);
+        }
+        this._activeRedrawJob = setTimeout(() => {
+          console.log('_redraw');
+          this._graphs.forEach( g => {
+            if (g._isAttached) {
+              if (g.axisX && !g.axisX.attr('hidden')) {
+                // g.axisGeneratorX = g._computeAxisGenerator(g.axisPositionX, g.scaleX, g.scalingX, g.scaleBaseX);
+                g._updateAxisBrushGenerator.call(g.axisBrushGeneratorX, this.rangeX, g.axisPositionX);
+                g.axisX.select('.brush').raise().call(g.axisBrushGeneratorX);
+                g.axisX.transition(100).attr('transform', 'translate(' + (g.axisX._left || 0) + ',' + (g.axisX._top || 0) + ')');
+              }
+              if (g.axisY && !g.axisY.attr('hidden')) {
+                // g.axisGeneratorY = g._computeAxisGenerator(g.axisPositionY, g.scaleY, g.scalingY, g.scaleBaseY);
+                g._updateAxisBrushGenerator.call(g.axisBrushGeneratorY, this.rangeY, g.axisPositionY);
+                g.axisY.select('.brush').raise().call(g.axisBrushGeneratorY);
+                g.axisY.transition(100).attr('transform', 'translate(' + (g.axisY._left || 0) + ',' + (g.axisY._top || 0) + ')');
+              }
+              g.redraw();
             }
-            if (g.axisY && !g.axisY.attr('hidden')) {
-              // g.axisGeneratorY = g._computeAxisGenerator(g.axisPositionY, g.scaleY, g.scalingY, g.scaleBaseY);
-              g._updateAxisBrushGenerator.call(g.axisBrushGeneratorY, this.rangeY, g.axisPositionY);
-              g.axisY.select('.brush').raise().call(g.axisBrushGeneratorY);
-              g.axisY.transition(100).attr('transform', 'translate(' + (g.axisY._left || 0) + ',' + (g.axisY._top || 0) + ')');
-            }
-            g.redraw();
+          })
+
+          if (this.axisX && !this.axisX.attr('hidden')) {
+            // this.axisGeneratorX = this._computeAxisGenerator(this.axisPositionX, this.scaleX, this.scalingX, this.scaleBaseX);
+            this._updateAxisBrushGenerator.call(this.axisBrushGeneratorX, this.rangeX, this.axisPositionX);
+            this.axisX.select('.brush').raise().call(this.axisBrushGeneratorX);
+            this.axisX.call(this.axisGeneratorX.tickSize(this.tickSize).tickFormat(this.axisX.classed('expanded') ? null : ''))
+                .transition(100)
+                .attr('transform', 'translate(' + (this.axisX._left || 0) + ',' + (this.axisX._top || 0) + ')');
           }
-        })
+          if (this.axisY && !this.axisY.attr('hidden')) {
+            // this.axisGeneratorY = this._computeAxisGenerator(this.axisPositionY, this.scaleY, this.scalingY, this.scaleBaseY);
+            this._updateAxisBrushGenerator.call(this.axisBrushGeneratorY, this.rangeY, this.axisPositionY);
+            this.axisY.select('.brush').raise().call(this.axisBrushGeneratorY);
+            this.axisY.call(this.axisGeneratorY.tickSize(this.tickSize).tickFormat(this.axisY.classed('expanded') ? null : ''))
+                .transition(100)
+                .attr('transform', 'translate(' + (this.axisY._left || 0) + ',' + (this.axisY._top || 0) + ')');
+          }
 
-        if (this.axisX && !this.axisX.attr('hidden')) {
-          // this.axisGeneratorX = this._computeAxisGenerator(this.axisPositionX, this.scaleX, this.scalingX, this.scaleBaseX);
-          this._updateAxisBrushGenerator.call(this.axisBrushGeneratorX, this.rangeX, this.axisPositionX);
-          this.axisX.select('.brush').raise().call(this.axisBrushGeneratorX);
-          this.axisX.call(this.axisGeneratorX.tickSize(this.tickSize).tickFormat(this.axisX.classed('expanded') ? null : ''))
-              .transition(100)
-              .attr('transform', 'translate(' + (this.axisX._left || 0) + ',' + (this.axisX._top || 0) + ')');
-        }
-        if (this.axisY && !this.axisY.attr('hidden')) {
-          // this.axisGeneratorY = this._computeAxisGenerator(this.axisPositionY, this.scaleY, this.scalingY, this.scaleBaseY);
-          this._updateAxisBrushGenerator.call(this.axisBrushGeneratorY, this.rangeY, this.axisPositionY);
-          this.axisY.select('.brush').raise().call(this.axisBrushGeneratorY);
-          this.axisY.call(this.axisGeneratorY.tickSize(this.tickSize).tickFormat(this.axisY.classed('expanded') ? null : ''))
-              .transition(100)
-              .attr('transform', 'translate(' + (this.axisY._left || 0) + ',' + (this.axisY._top || 0) + ')');
-        }
+          this._control.transition(100).style('transform', 'translate(-' + this._chart._right + 'px,-' + this._chart._bottom + 'px)');
 
-        this._control.transition(100).style('transform', 'translate(-' + this._chart._right + 'px,-' + this._chart._bottom + 'px)');
+          // Limiting Projection to Margin
+          this._chart.select('clipPath#clip rect').transition(100)
+            .attr('width', this._width)
+            .attr('height', this._height);
 
-        // Limiting Projection to Margin
-        this._chart.select('clipPath#clip rect').transition(100)
-          .attr('width', this._width)
-          .attr('height', this._height);
+          this._chart.select('rect#plot').transition(100)
+            .attr('width', this._width)
+            .attr('height', this._height);
 
-        this._chart.select('rect#plot').transition(100)
-          .attr('width', this._width)
-          .attr('height', this._height);
+          this._chart.transition(100).attr('transform', 'translate(' + (-this._chart._left || 0) + ',' + (-this._chart._top || 0) + ')');
 
-        this._chart.transition(100).attr('transform', 'translate(' + (-this._chart._left || 0) + ',' + (-this._chart._top || 0) + ')');
+          this._focusY.attr('y1', this._height);
 
-        this._focusY.attr('y1', this._height);
+          this._svg.selectAll('g,line,text,path,rect')
+            .classed('style-scope device-chart', true)
+            .classed('device-chart', true);
 
-        this._svg.selectAll('g,line,text,path,rect')
-          .classed('style-scope device-chart', true)
-          .classed('device-chart', true);
-
-        this._updateInfo();
+          this._updateInfo();
+        }, 0);
       }
 
       brushed() {
@@ -1248,7 +1254,7 @@
       //   // this.scaleY = this._createScaleFn(this.yScale);
       //   // this.scaleY.domain(domainY).nice(this.yTicks);
       //   // this.set('domainY', domainY);
-      //   // this._sizeChanged();
+      //   // this.sizeChanged();
       // }
 
       _resetZoom(e) {

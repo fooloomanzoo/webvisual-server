@@ -192,7 +192,7 @@
         this._chart._addGraph(this);
         this._setColorProperties();
         this._isAttached = true;
-        this._chart._sizeChanged();
+        this._chart.sizeChanged();
       }
 
       removeNodes() {
@@ -212,7 +212,7 @@
         this._lineChanged();
         this._thresholdChanged();
         this._chart._removeGraph(this);
-        this._chart._sizeChanged();
+        this._chart.sizeChanged();
       }
 
       _areaChanged(hasArea, type) {
@@ -376,24 +376,36 @@
           this.addNodes();
         }
         if (this._chart) {
-          if (this._chart.multiAxes.y || this._chart.multiAxes.x) {
-            this.redraw();
-            return;
-          } else {
-            if (this.axisY._isBrushed) {
-              this.axisY._isBrushed = false;
-            }
-            if (this.axisX._isBrushed) {
-              this.axisX._isBrushed = false;
-            }
+          var mayorRedraw;
+          if (this._chart.domainX && this._chart.domainX.some(e => { return e === undefined || e === null; })) {
+            this._chart.set('domainX', this.domainX );
+            mayorRedraw = true;
           }
-          this._chart.redraw();
+          if (this._chart.domainY && this._chart.domainY.some(e => { return e === undefined || e === null; })) {
+            this._chart.set('domainY', this.domainY );
+            mayorRedraw = true;
+          }
+          if (!this._chart.multiAxes.y && !this._chart.multiAxes.x)  {
+            this.axisY._isBrushed = false;
+            this.axisX._isBrushed = false;
+            mayorRedraw = true;
+          }
+          this.redraw(mayorRedraw);
         }
       }
 
-      redraw() {
-        if (!this._isAttached || this._notDrawable) return;
+      sizeChanged() {
+        if (!this._isAttached) return;
+        this._chart.sizeChanged();
+      }
 
+      redraw(force) {
+        if (!this._isAttached) return;
+
+        if (force) {
+          this._chart.redraw(true);
+          return;
+        }
         console.log('graph redraw', this.item.mount, this.values.length);
         this.axisX.call(this.axisGeneratorX.ticks(this._chart.ticksX).tickSize(this.tickSize).tickFormat(this.axisX.classed('expanded') ? null : ''));
         this.axisY.call(this.axisGeneratorY.ticks(this._chart.ticksY).tickSize(this.tickSize).tickFormat(this.axisY.classed('expanded') ? null : ''));

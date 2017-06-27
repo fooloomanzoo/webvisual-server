@@ -111,7 +111,7 @@
            */
           languageResourcePrefix: {
             type: String,
-            value: '/locales/dtf/'
+            value: '/locales/format/'
           },
 
           _timeformatter: {
@@ -188,6 +188,7 @@
         axis.on('click', function() {
             var expanded = d3.select(this).classed('expanded');
             d3.select(this).classed('expanded', !expanded);
+            this._genitor.sizeChanged();
           })
           .call(d3.drag()
             .on('start', this._onAxisDragStart)
@@ -198,6 +199,7 @@
         axis.append('svg:g')
           .classed('brush', true)
         axis.node()._genitor = this;
+        axis.node()._axis = axis;
         axis._left = 0;
         axis._right = 0;
         axis._bottom = 0;
@@ -232,14 +234,17 @@
 
       _onAxisDragStart() {
         d3.select(this).raise().classed('dragged', true);
+        this._left = d3.event.x;
+        this._top = d3.event.y;
         console.log('dragged', d3.event, this._left, this._top);
       }
       _onAxisDragged() {
         var vertical = d3.select(this).classed('vertical'), left = 0, top = 0;
+        console.log(d3.event)
         if (vertical) {
-          left = d3.event.x;
+          left = (this._axis._left || 0) + d3.event.x - this._left;
         } else {
-          top = d3.event.y;
+          top = (this._axis._top || 0) + d3.event.y - this._top;
         }
         d3.select(this).attr('transform', 'translate(' + left + ',' + top + ')');
 
@@ -315,6 +320,11 @@
         } else {
           return this.formatNumber.bind(this, scale, base);
         }
+      }
+
+      sizeChanged() {
+      }
+      redraw() {
       }
 
       formatTime(date) {

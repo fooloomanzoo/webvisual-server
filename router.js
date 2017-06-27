@@ -1,13 +1,11 @@
 const dir = {
-  dist: '/views/build/compiled',
-  data: '/views/build/compiled/data',
-  img: '/views/build/compiled/images',
-};
-
-const devDir = {
-  dist: '/views',
+  dist: {
+    production: '/views/build',
+    development: '/views/'
+  },
   data: '/views/data',
-  img: '/views/images',
+  image: '/views/images',
+  locale: '/views/locales'
 };
 
 const requiredStaticSettings = [
@@ -31,7 +29,9 @@ const EventEmitter = require('events').EventEmitter
     , compression = require('compression')
     , session = require('express-session')
     , serveStatic = require('serve-static')
-    , multer = require('multer')({ dest: 'uploads/' })
+    , useragent = require('express-useragent')
+      // multi-form requests (login)
+    , multer = require('multer')({ dest: 'uploads/', limits: {fileSize: 0}, fileFilter: (req, file, cb) => { cb(null, false) } })
 
     // Session Store
     , RedisStore = require('connect-redis')(session)
@@ -41,9 +41,7 @@ const EventEmitter = require('events').EventEmitter
 
 function resolvePath() {
   let p = process.cwd();
-  for (var i = 0; i < arguments.length; i++) {
-    p = path.join(p, arguments[i]);
-  }
+  p = path.join(p, ...arguments);
   mkdirp(path.dirname(p), (err) => {
       if (err) console.error(err)
   });
@@ -55,21 +53,8 @@ class Router extends EventEmitter {
   constructor(app, mode) {
     super();
 
-    switch (mode) {
-      case 'develop':
-      case 'development':
-        this.dir = devDir;
-        break;
-      default:
-        this.dir = dir;
-    }
-
-    this.mode = mode;
-
-    this.staticMiddleware = serveStatic( resolvePath( this.dir.dist ) );
-    this.staticDataMiddleware = serveStatic( resolvePath( this.dir.data ), { index: false });
-    this.staticImageMiddleware = serveStatic( resolvePath( this.dir.img ), { index: false });
-
+    this.dir = dir;
+    this.mode = (mode in this.dir.dist) ? mode : 'production';
     this.app = app;
 
     this.passport = require('passport');
@@ -82,6 +67,8 @@ class Router extends EventEmitter {
     // http://mono.software/2014/08/25/Sharing-sessions-between-SocketIO-and-Express-using-Redis/
     // http://stackoverflow.com/questions/25532692/how-to-share-sessions-with-socket-io-1-x-and-express-4-x
 
+    // user-agent
+    this.app.use(useragent.express());
     // Parser
     this.app.use(bodyParser.urlencoded({ extended: true }));
     this.app.use(bodyParser.json());
@@ -185,9 +172,8 @@ class Router extends EventEmitter {
     });
 
     switch (this.mode) {
-      case 'develop':
       case 'development':
-        let srcpath = resolvePath( this.dir.dist );
+        let srcpath = resolvePath( this.dir.dist.development );
         this.watcher = chokidar.watch( srcpath, {
           ignored: /(^|[\/\\])\../,
           persistent: true
@@ -236,18 +222,19 @@ class Router extends EventEmitter {
 
     // Secured Data
     this.app.use('/data', this.settings.server.auth.required ? ensureLoggedIn.isRequired : ensureLoggedIn.notRequired );
-    this.app.use('/data', this.staticDataMiddleware );
+    this.app.use('/data', serveStatic( resolvePath( this.dir.data ), { index: false }) );
 
     this.app.use('/images', this.settings.server.auth.required ? ensureLoggedIn.isRequired : ensureLoggedIn.notRequired );
-    this.app.use('/images', this.staticImageMiddleware );
+    this.app.use('/images', serveStatic( resolvePath( this.dir.image ), { index: false }) );
 
-    // Public Data
-    this.app.use(this.staticMiddleware);
+
+    // App
+    this.app.use(serveStatic( resolvePath( this.dir.dist[this.mode]), {index: ['index.html'], prefix: (this.mode === 'development' ? '' : rootByUserAgent)} ));
 
     // Fallback (for in-app-page-routing neccessary)
     this.app.get('*', (req, res) => {
       res.location(req.originalUrl);
-      res.sendFile( resolvePath( this.dir.dist, 'index.html') );
+      res.sendFile( resolvePath( this.dir.dist[this.mode], (this.mode === 'development' ? '' : rootByUserAgent(req)), 'index.html') );
     });
   }
 
@@ -323,7 +310,7 @@ class Router extends EventEmitter {
         // copy svgContent in staticContentFolder
         if (opt[system].svgSource && opt[system].svgSource.paths &&  Object.keys(opt[system].svgSource.paths).length) {
 
-          let svgDest = resolvePath(this.dir.img, facility, system);
+          let svgDest = resolvePath(this.dir.image, facility, system);
 
           mkdirp(svgDest, (err) => {
             if (err) console.error(`SVG-File Destination folder failed to create \n ${err}`);
@@ -413,6 +400,25 @@ function minify() {
     progressive: true,
     interlaced: true
   });
+}
+
+function rootByUserAgent(req) {
+  let ua = req.useragent,
+    browser = ua.browser;
+    versionSplit = (ua.version || '').split('.');
+    [majorVersion, minorVersion] = versionSplit.map((v) => v ? parseInt(v, 10) : -1),
+    supportsES2015 = (browser === 'Chrome' && majorVersion >= 49) ||
+      (browser === 'Chromium' && majorVersion >= 49) ||
+      (browser === 'Opera' && majorVersion >= 36) ||
+      (browser === 'Vivaldi' && majorVersion >= 1) ||
+      (browser === 'Safari' && majorVersion >= 10) ||
+      (browser === 'Edge' && (majorVersion > 15 || (majorVersion === 15 && minorVersion >= 15063))) ||
+      (browser === 'Firefox' && majorVersion >= 51);
+  // console.log(browser, versionSplit, majorVersion, minorVersion, supportsES2015)
+  if (supportsES2015) {
+    return '/bundled';
+  }
+  return '/compiled'
 }
 
 module.exports = Router;
