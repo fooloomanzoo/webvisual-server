@@ -64,7 +64,7 @@
         stroke-width: 0.1;
         stroke-opacity: 0.2;
         font-size: 1em;
-        letter-spacing: normal !important;
+        letter-spacing: -0.0125em;
         font-family: inherit !important;
         -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
       }
@@ -433,8 +433,6 @@
         this._deltaDot = {};
         this._focusedValue = null;
         this._fixedValue = null;
-        // this._xAxisFn = {};
-        // this._yAxisFn = {};
         this._isAttached = false;
         this._isZoomed = false;
         this._graphs = new Set();
@@ -463,8 +461,6 @@
         this._svg = d3.select(this.$.svg)
           .attr('height', null)
           .attr('width', null);
-        // this.scaleX = this._createScaleFn(this.scaleX);
-        // this.scaleY = this._createScaleFn(this.scaleY);
 
         this._chart = d3.select(this.$.chart);
         this._control = d3.select(this.$.control);
@@ -474,23 +470,17 @@
         this._line = d3.select(this.$.line);
         this._boundery = d3.select(this.$.boundery);
 
-        this.axisX = this._computeAxisNode(this._axisInsertionPoint, 'x', this.axisPositionX, this.multiAxes.x);
-        this.axisY = this._computeAxisNode(this._axisInsertionPoint, 'y', this.axisPositionY, this.multiAxes.x);
+        this.axisX = this._computeAxisNode(this._axisInsertionPoint)
+                           .attr('hidden', (this.multiAxes && this.multiAxes.x) ? true: null)
+                           .classed('expanded', true)
+                           .classed('x', true);
+        this.axisY = this._computeAxisNode(this._axisInsertionPoint)
+                           .attr('hidden', (this.multiAxes && this.multiAxes.y) ? true: null)
+                           .classed('expanded', true)
+                           .classed('vertical', true)
+                           .classed('y', true);
         this.axisGeneratorX = this._computeAxisGenerator(this.axisPositionX, this.scaleX, this.scalingX, this.scaleBaseX);
         this.axisGeneratorY = this._computeAxisGenerator(this.axisPositionY, this.scaleY, this.scalingY, this.scaleBaseY);
-        this.axisBrushGeneratorX = this._computeAxisBrushGenerator(this.axisPositionX);
-        this.axisBrushGeneratorY = this._computeAxisBrushGenerator(this.axisPositionY);
-        // Test
-        // this._axis
-        //   .append('svg:g')
-        //   .classed('x axis', true);
-        // this._axis
-        //   .append('svg:g')
-        //   .classed('y axis', true);
-        // this._axis
-        //   .append('svg:g')
-        //   .classed('y axis', true);
-        //
 
         this._info = d3.select(this.$.info);
         this._focus = d3.select(this.$.focus);
@@ -633,8 +623,7 @@
 
         var q = [];
 
-        function incremPosition(size) {
-          var pos = this._pos;
+        function incremPosition(pos, size) {
           if (pos === 'left') {
             this._left = left;
             this._right = 0;
@@ -662,8 +651,7 @@
           return true;
         }
 
-        function finalizePosition(width, height) {
-          var pos = this._pos;
+        function finalizePosition(pos, width, height) {
           this._left += this._right;
           this._top += this._bottom;
           this._bottom = 0; this._right = 0;
@@ -676,51 +664,54 @@
         }
 
         this._graphs.forEach( g => {
-          // if (this.multiAxes.x === true && g.axisX) {
-            var size = g.axisX.classed('expanded') ? axisSize.x : condensedSize;
-            q.push(incremPosition.call(g.axisX, size));
-          // }
-          // if (this.multiAxes.y === true && g.axisY) {
-            var size = g.axisY.classed('expanded') ? axisSize.y : condensedSize;
-            q.push(incremPosition.call(g.axisY, size));
-          // }
+          if (g._isAttached) {
+            if (g.axisX && !g.axisX.attr('hidden')) {
+              var size = g.axisX.classed('expanded') ? axisSize.x : condensedSize;
+              q.push(incremPosition.call(g.axisX, g.axisPositionX, size));
+            }
+            if (g.axisY && !g.axisY.attr('hidden')) {
+              var size = g.axisY.classed('expanded') ? axisSize.y : condensedSize;
+              q.push(incremPosition.call(g.axisY, g.axisPositionY, size));
+            }
+          }
         })
-        // if (this.multiAxes.x === true && this.axisX) {
+        if (this.axisX && !this.axisX.attr('hidden')) {
           var size = this.axisX.classed('expanded') ? axisSize.x : condensedSize;
-          q.push(incremPosition.call(this.axisX, size));
-        // }
-        // if (this.multiAxes.y === true && this.axisY) {
+          q.push(incremPosition.call(this.axisX, this.axisPositionX, size));
+        }
+        if (this.axisY && !this.axisY.attr('hidden')) {
           var size = this.axisY.classed('expanded') ? axisSize.y : condensedSize;
-          q.push(incremPosition.call(this.axisY, size));
-        // }
-
-        // this.xTicks = Math.ceil(this._width / 75);
-        // this.yTicks = Math.ceil(this._height / 50);
+          q.push(incremPosition.call(this.axisY, this.axisPositionX, size));
+        }
 
         Promise.all(q).then(() => {
           var bRect = this.$.svg.getBoundingClientRect();
-          this._width = bRect.width - Math.abs(left || 0) - Math.abs(right || 0) - (this.margin.left || 0) - (this.margin.right || 0);
-          this._height = bRect.height - Math.abs(bottom || 0) - Math.abs(top || 0) - (this.margin.bottom || 0) - (this.margin.top || 0);
+          this._width = Math.abs(bRect.width - Math.abs(left || 0) - Math.abs(right || 0) - (this.margin.left || 0) - (this.margin.right || 0));
+          this._height = Math.abs(bRect.height - Math.abs(bottom || 0) - Math.abs(top || 0) - (this.margin.bottom || 0) - (this.margin.top || 0));
 
           this.set('rangeX', [0, this._width]);
           this.set('rangeY', [this._height,0]);
+          this.ticksX = Math.ceil(this._width / 75);
+          this.ticksY = Math.ceil(this._height / 50);
 
           var p = [];
 
           this._graphs.forEach( g => {
-            // if (this.multiAxes.x === true && g.axisX) {
-              p.push(finalizePosition.call(g.axisX, this._width, this._height));
-            // }
-            // if (this.multiAxes.y === true && g.axisY) {
-              p.push(finalizePosition.call(g.axisY, this._width, this._height));
-            // }
+            if (g._isAttached) {
+              if (g.axisX && !g.axisX.attr('hidden')) {
+                p.push(finalizePosition.call(g.axisX, g.axisPositionX, this._width, this._height));
+              }
+              if (g.axisY && !g.axisY.attr('hidden')) {
+                p.push(finalizePosition.call(g.axisY, g.axisPositionY, this._width, this._height));
+              }
+            }
           })
-          // if (this.multiAxes.x === true && this.axisX) {
-            p.push(finalizePosition.call(this.axisX, this._width, this._height));
-          // }
-          // if (this.multiAxes.y === true && this.axisY) {
-            p.push(finalizePosition.call(this.axisY, this._width, this._height));
-          // }
+          if (this.axisX && !this.axisX.attr('hidden')) {
+            p.push(finalizePosition.call(this.axisX, this.axisPositionX, this._width, this._height));
+          }
+          if (this.axisY && !this.axisY.attr('hidden')) {
+            p.push(finalizePosition.call(this.axisY, this.axisPositionY, this._width, this._height));
+          }
 
           Promise.all(p).then(() => {
             top -= (this.margin.top || 0);
@@ -731,199 +722,37 @@
             this._chart._right = right;
             this._chart._bottom = bottom;
             this._chart._left = left;
-            if (!this.domainX || !this.domainY) {
+            if (!this.domainX || !this.domainY || this.domainX.some(e => { return e === undefined || e === null; }) || this.domainY.some(e => { return e === undefined || e === null; })) {
               this.redraw(true);
             } else {
               this.redraw();
             }
           })
         })
-
-        // this._xGrid = this._createAxisFn(this._x, 'bottom', this.xScale, this.xTicks*this.gridMult)
-        //   .tickSize(-this._height)
-        //   .tickFormat('');
-        // this._yGrid = this._createAxisFn(this._y, 'left', this.yScale, this.xTicks*this.gridMult)
-        //   .tickSize(-this._width)
-        //   .tickFormat('');
-
-        // this._chart.select('#xGrid')
-        //   .attr('transform', 'translate(0,' + this._height + ')')
-        //   .call(this._xGrid);
-        // this._chart.select('#yGrid')
-        //   .call(this._yGrid)
-        //   .attr('transform', 'translate(0,' + 0 + ')');;
-
-        // if (this._isBrushed !== true || this._isZoomed !== true) {
-        //   this._brushMixin.extent([
-        //     [0, 0],
-        //     [this._width, this._height]
-        //   ])
-        //   this._brush.call(this._brushMixin);
-        // }
       }
 
       _multiAxesChanged(multiAxes) {
-        // if (!this._isAttached) return;
-        // console.log('_multiAxesChanged', multiAxes);
-        // this._addAxis();
-        // for (var key in multiAxes) {
-        //   this._graphs.forEach( g => {
-        //     g._addAxis(key, g.item.mount, !multiAxes[key]);
-        //     if (multiAxes[key] === true) {
-        //       console.log('forced scale', key);
-        //       g._createScale(key);
-        //       Promise.resolve(g._getDomain(key));
-        //     } else {
-        //       g.scale[key] = this.scale[key].bind(g);
-        //     }
-        //     g._updateAxisBrushGenerator(key);
-        //     g._updateAxisBrushGenerator(key);
-        //   })
-        //
-        //   if (multiAxes[key] === true) {
-        //     // hide main axis
-        //     this._axis[key].attr('hidden', true);
-        //   } else {
-        //     this._axis[key].attr('hidden', null);
-        //   }
-        //   this._updateAxisBrushGenerator(key);
-        //   this._updateAxisBrushGenerator(key);
-        // }
+        if (!this._isAttached) return;
+        var hidden;
+        this._graphs.forEach( g => {
+          if (g._isAttached) {
+            hidden = (this.multiAxes.x && g.axisX) ? null : true;
+            g.axisX.attr('hidden', hidden);
+            if (hidden) {
+              g.set('domainX', this.scaleX.domain());
+            }
+            hidden = (this.multiAxes.y && g.axisY) ? null : true;
+            g.axisY.attr('hidden', hidden);
+            if (hidden) {
+              g.set('domainY', this.scaleY.domain());
+            }
+          }
+        })
+        hidden = (this.multiAxes.x && this.axisX) ? true : null;
+        this.axisX.attr('hidden', hidden);
+        hidden = (this.multiAxes.y && this.axisY) ? true : null;
+        this.axisY.attr('hidden', hidden);
       }
-
-      // _addAxis(g, key, mount, expanded) {
-      //   if (g._axis[key]) return;
-      //   this._nodes.axes[key] = this._nodes.axes[key] || d3.select(this.$.axis).append('svg:g').classed(key, true);
-      //   var self = this, vertical = false, pos = g.axisPosition[key];
-      //   // enter axes node
-      //   g._axis[key] = this._nodes.axes[key]
-      //     .append('svg:g')
-      //     .classed('axis', true)
-      //     .classed(key, true)
-      //     .classed('expanded', expanded)
-      //     .attr('mount', mount)
-      //     .on('click', function() {
-      //       var a = d3.select(this),
-      //         exp = a.classed('expanded');
-      //       a.classed('expanded', !exp);
-      //       this._expanded = exp;
-      //       self._sizeChanged();
-      //     })
-      //     .call(d3.drag()
-      //       .on("start", this._axisDragStarted)
-      //       .on("drag", this._axisDragged)
-      //       .on("end", this._axisDragEnded));
-      //
-      //   // add title
-      //   g._axis[key].append('svg:title').text(mount);
-      //   // set scale
-      //   // this.scale[key] = this._createScaleFn(this.scale[key]).domain(this.domain[key]);
-      //   g._axisGenerator[key] = this._createAxisFn(this.scale[key], pos, this.keys[key].scale);
-      //   switch (pos) {
-      //     case 'left':
-      //     case 'right':
-      //       this.scale[key].range([this._height, 0]);
-      //       g._brushGenerator[key] = d3.brushY();
-      //       vertical = true;
-      //       break;
-      //     case 'bottom':
-      //     case 'top':
-      //       this.scale[key].range([0, this._width]);
-      //       g._brushGenerator[key] = d3.brushX();
-      //       break;
-      //   }
-      //   // enter brush node
-      //   g._brush[key] = g._axis[key].append('svg:g').classed('brush', true);
-      //   g._axis[key].classed('vertical', vertical);
-      //   g._axis[key].node()._vertical = vertical;
-      //   g._axis[key].node()._pos = pos;
-      //   g._axis[key].node()._caller = g;
-      //   // console.log('_addAxis', key, mount, pos)
-      // }
-
-      // _updateAxis(g, key) {
-      //   g = g || this;
-      //   if (!g._axis[key] || g._axis[key].attr('hidden')) return;
-      //   var expanded = g._axis[key].classed('expanded'),
-      //     tickSize = this.tickSize,
-      //     pos = g._axis[key].node()._pos;
-      //   // update axis
-      //   if (pos === 'left' || pos === 'right') {
-      //     this._updateScale.call(g);
-      //     if (pos === 'left') {
-      //       g._brushGenerator[key].extent([
-      //         [-tickSize, 0], [0, this._height]
-      //       ]);
-      //     } else if (pos === 'right') {
-      //       g._brushGenerator[key].extent([
-      //         [0, 0], [tickSize, this._height]
-      //       ]);
-      //     }
-      //   } else if (pos === 'bottom' || pos === 'top') {
-      //     this._updateScale.call(g);
-      //     if (pos === 'top') {
-      //       g._brushGenerator[key].extent([
-      //         [0, -tickSize], [this._width, 0]
-      //       ]);
-      //     } else if (pos === 'bottom') {
-      //       g._brushGenerator[key].extent([
-      //         [0, 0], [this._width, tickSize]
-      //       ]);
-      //     }
-      //   }
-      //   g._axisGenerator[key] = this._createAxisFn(g.scale[key], pos, g.keys[key].scale).tickFormat(expanded ? null : '').tickSize(tickSize);
-      //   g._brush[key].raise().call(g._brushGenerator[key]);
-      //   g._axis[key].call(g._axisGenerator[key]).transition(100)
-      //     .attr('transform', 'translate(' + (g._axis[key].node()._left || 0) + ',' + (g._axis[key].node()._top || 0) + ')');
-      //   g._axis[key].node()._width = this._width;
-      //   g._axis[key].node()._height = this._height;
-      // }
-      //
-      // _removeAxis(g, key) {
-      //   g = g || this;
-      //   if (!g._axis[key]) return;
-      //   // console.log('_removeAxis', key)
-      //   var node;
-      //   g._brushGenerator[key] = null;
-      //   g._axisGenerator[key] = null;
-      //   g.scale[key] = this.scale[key];
-      //   // remove axis & brush node
-      //   if (g._brush[key]) {
-      //     node = g._brush[key].node();
-      //     if (node && node.parentElement)
-      //       node.parentElement.removeChild(node);
-      //   }
-      //   if (g._axis[key]) {
-      //     node = g._axis[key].node();
-      //     if (node && node.parentElement)
-      //       node.parentElement.removeChild(node);
-      //   }
-      //   g._axis[key] = null;
-      //   g._brush[key] = null;
-      // }
-
-      // _callAxes() {
-      //   if (!this._isAttached) return;
-      //   console.log('_callAxes');
-      //   this._graphs.forEach( g => {
-      //     g._updateAxis();
-      //     g._updateAxisBrush();
-      //   })
-      //   this._updateAxis();
-      //   this._updateAxisBrush();
-      // }
-      //
-      // _updateScales() {
-      //   super._updateScales();
-      //   this._graphs.forEach( g => {
-      //     for (var key in this.multiAxes) {
-      //       console.log(this.domain[key], key);
-      //       if (!this.multiAxes[key] && this.domain && this.domain[key]) {
-      //         g.set('domain.'+key, this.domain[key]);
-      //       }
-      //     }
-      //   })
-      // }
 
       _addGraph(g) {
         this._graphs.add(g);
@@ -951,35 +780,41 @@
           this._redomain();
           return;
         }
-
         console.log('_redraw');
         this._graphs.forEach( g => {
-          g.axisGeneratorX = g._computeAxisGenerator(g.axisPositionX, g.scaleX, g.scalingX, g.scaleBaseX);
-          g.axisGeneratorY = g._computeAxisGenerator(g.axisPositionY, g.scaleY, g.scalingY, g.scaleBaseY);
-          g._updateAxisBrushGenerator.call(g.axisBrushGeneratorX, this.rangeX);
-          g._updateAxisBrushGenerator.call(g.axisBrushGeneratorY, this.rangeY);
-          g.axisX.select('.brush').call(g.axisBrushGeneratorX);
-          g.axisY.select('.brush').call(g.axisBrushGeneratorY);
-          g.axisX.call(g.axisGeneratorX.tickFormat(g.axisX.classed('expanded') ? null : ''))
-              .transition(100)
-              .attr('transform', 'translate(' + (g.axisX._left || 0) + ',' + (g.axisX._top || 0) + ')');
-          g.axisY.call(g.axisGeneratorY.tickFormat(g.axisY.classed('expanded') ? null : ''))
-              .transition(100)
-              .attr('transform', 'translate(' + (g.axisY._left || 0) + ',' + (g.axisY._top || 0) + ')');
-          g.redraw();
+          if (g._isAttached) {
+            if (g.axisX && !g.axisX.attr('hidden')) {
+              // g.axisGeneratorX = g._computeAxisGenerator(g.axisPositionX, g.scaleX, g.scalingX, g.scaleBaseX);
+              g._updateAxisBrushGenerator.call(g.axisBrushGeneratorX, this.rangeX, g.axisPositionX);
+              g.axisX.select('.brush').raise().call(g.axisBrushGeneratorX);
+              g.axisX.transition(100).attr('transform', 'translate(' + (g.axisX._left || 0) + ',' + (g.axisX._top || 0) + ')');
+            }
+            if (g.axisY && !g.axisY.attr('hidden')) {
+              // g.axisGeneratorY = g._computeAxisGenerator(g.axisPositionY, g.scaleY, g.scalingY, g.scaleBaseY);
+              g._updateAxisBrushGenerator.call(g.axisBrushGeneratorY, this.rangeY, g.axisPositionY);
+              g.axisY.select('.brush').raise().call(g.axisBrushGeneratorY);
+              g.axisY.transition(100).attr('transform', 'translate(' + (g.axisY._left || 0) + ',' + (g.axisY._top || 0) + ')');
+            }
+            g.redraw();
+          }
         })
-        this.axisGeneratorX = this._computeAxisGenerator(this.axisPositionX, this.scaleX, this.scalingX, this.scaleBaseX);
-        this.axisGeneratorY = this._computeAxisGenerator(this.axisPositionY, this.scaleY, this.scalingY, this.scaleBaseY);
-        this._updateAxisBrushGenerator.call(this.axisBrushGeneratorX, this.rangeX);
-        this._updateAxisBrushGenerator.call(this.axisBrushGeneratorY, this.rangeY);
-        this.axisX.select('.brush').call(this.axisBrushGeneratorX);
-        this.axisY.select('.brush').call(this.axisBrushGeneratorY);
-        this.axisX.call(this.axisGeneratorX.tickFormat(this.axisX.classed('expanded') ? null : ''))
-            .transition(100)
-            .attr('transform', 'translate(' + (this.axisX._left || 0) + ',' + (this.axisX._top || 0) + ')');
-        this.axisY.call(this.axisGeneratorY.tickFormat(this.axisY.classed('expanded') ? null : ''))
-            .transition(100)
-            .attr('transform', 'translate(' + (this.axisY._left || 0) + ',' + (this.axisY._top || 0) + ')');
+
+        if (this.axisX && !this.axisX.attr('hidden')) {
+          // this.axisGeneratorX = this._computeAxisGenerator(this.axisPositionX, this.scaleX, this.scalingX, this.scaleBaseX);
+          this._updateAxisBrushGenerator.call(this.axisBrushGeneratorX, this.rangeX, this.axisPositionX);
+          this.axisX.select('.brush').raise().call(this.axisBrushGeneratorX);
+          this.axisX.call(this.axisGeneratorX.tickSize(this.tickSize).tickFormat(this.axisX.classed('expanded') ? null : ''))
+              .transition(100)
+              .attr('transform', 'translate(' + (this.axisX._left || 0) + ',' + (this.axisX._top || 0) + ')');
+        }
+        if (this.axisY && !this.axisY.attr('hidden')) {
+          // this.axisGeneratorY = this._computeAxisGenerator(this.axisPositionY, this.scaleY, this.scalingY, this.scaleBaseY);
+          this._updateAxisBrushGenerator.call(this.axisBrushGeneratorY, this.rangeY, this.axisPositionY);
+          this.axisY.select('.brush').raise().call(this.axisBrushGeneratorY);
+          this.axisY.call(this.axisGeneratorY.tickSize(this.tickSize).tickFormat(this.axisY.classed('expanded') ? null : ''))
+              .transition(100)
+              .attr('transform', 'translate(' + (this.axisY._left || 0) + ',' + (this.axisY._top || 0) + ')');
+        }
 
         this._control.transition(100).style('transform', 'translate(-' + this._chart._right + 'px,-' + this._chart._bottom + 'px)');
 
@@ -1280,9 +1115,9 @@
         }
 
         // this._xAxisFn.tickValues([this._focusedValue.x]);
-        // this._xAxisFn.tickFormat(null);
+        // this._xAxisFn.tickSize(this.tickSize).tickFormat(null);
         // this._yAxisFn.tickValues([this._focusedValue.y]);
-        // this._yAxisFn.tickFormat(null);
+        // this._yAxisFn.tickSize(this.tickSize).tickFormat(null);
         // this._axis.select('.x.axis').call(this._xAxisFn);
         // this._axis.select('.y.axis').call(this._yAxisFn);
         this._svg.selectAll('g,line,text,path,rect')

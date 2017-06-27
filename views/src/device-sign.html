@@ -115,7 +115,8 @@
         height: 1.25em;
         width: 1.25em;
         fill: #fff;
-        opacity: 0.75;
+        opacity: 0.9;
+        mix-blend-mode: hard-light;
         will-change: transform, opacity;
         transform-origin: center;
         transition: transform 300ms cubic-bezier(0.3, 0, 0.1, 1), opacity 300ms cubic-bezier(0.3, 0, 0.1, 1);
@@ -130,11 +131,12 @@
         outline: none;
         pointer-events: none;
         position: absolute;
-        opacity: 0.5;
+        opacity: 0.6;
         right: 0;
         bottom: 0;
         height: 1.25em;
         width: 1.25em;
+        mix-blend-mode: exclusion;
       }
       [hidden] {
         pointer-events: none;

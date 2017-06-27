@@ -134,6 +134,7 @@
       }
 
       disconnectedCallback() {
+        this._isAttached = false;
         super.disconnectedCallback();
         this.removeNodes();
       }
@@ -154,15 +155,34 @@
         this._chart = containerRoot;
         this._axisInsertionPoint = containerRoot._axisInsertionPoint;
 
+        if (!this._chart.multiAxes.x) {
+          this.set('domainX', this._chart.domainX);
+        }
+        if (!this._chart.multiAxes.y) {
+          this.set('domainY', this._chart.domainY);
+        }
+        this.set('rangeX', this._chart.rangeX)
+        this.set('rangeY', this._chart.rangeY)
+
         this._areaChanged(this.hasArea);
         this._lineChanged(this.hasLine);
 
-        this.axisX = this._computeAxisNode(this._axisInsertionPoint, 'x', this.axisPositionX, null, this.item.mount);
-        this.axisY = this._computeAxisNode(this._axisInsertionPoint, 'y', this.axisPositionY, null, this.item.mount);
+        if (!this.axisX ) {
+          this.axisX = this._computeAxisNode(this._axisInsertionPoint, this.item.mount)
+                             .attr('hidden', (this._chart.multiAxes.x) ? null : true)
+                             .classed('mount', this.item.mount)
+                             .classed('x', true)
+        }
+        if (!this.axisY ) {
+          this.axisY = this._computeAxisNode(this._axisInsertionPoint, this.item.mount)
+                             .attr('hidden', (this._chart.multiAxes.y) ? null : true)
+                             .classed('vertical', true)
+                             .classed('y', true)
+        }
         this.axisGeneratorX = this._computeAxisGenerator(this.axisPositionX, this.scaleX, this.scalingX, this.scaleBaseX);
         this.axisGeneratorY = this._computeAxisGenerator(this.axisPositionY, this.scaleY, this.scalingY, this.scaleBaseY);
-        this.axisBrushGeneratorX = this._computeAxisBrushGenerator(this.axisPositionX);
-        this.axisBrushGeneratorY = this._computeAxisBrushGenerator(this.axisPositionY);
+        // this.axisBrushGeneratorX = this._computeAxisBrushGenerator(this.axisPositionX);
+        // this.axisBrushGeneratorY = this._computeAxisBrushGenerator(this.axisPositionY);
 
         // for (var key in this._chart.multiAxes) {
         //   this.scale[key] = this._chart.multiAxes[key] ? this.scale[key] : this._chart.scale[key];
@@ -177,12 +197,22 @@
 
       removeNodes() {
         // console.log('removeNodes', this.item.mount);
-        this._chart._removeGraph(this);
-        this._isAttached = false;
+        var node;
+        if (this.axisX) {
+          node = this.axisX.node();
+          if (node && node.parentElement)
+            node.parentElement.removeChild(node);
+        }
+        if (this.axisY) {
+          node = this.axisY.node();
+          if (node && node.parentElement)
+            node.parentElement.removeChild(node);
+        }
         this._areaChanged();
         this._lineChanged();
         this._thresholdChanged();
-        this._removeAxes();
+        this._chart._removeGraph(this);
+        this._chart._sizeChanged();
       }
 
       _areaChanged(hasArea, type) {
@@ -303,14 +333,14 @@
         });
         if (this.storeInside) {
           this.values = this.values.concat(values);
-          if (this._chart.multiAxes.x && !this.axisX._isBrushed) {
+          if (!this._isAttached || (this._chart.multiAxes.x && !this.axisX._isBrushed)) {
             var min = this.min(this.values, 'x');
             var max = this.max(this.values, 'x');
             if (!(min === undefined && max === undefined)) {
               this.set('domainX', [ min, max ] );
             }
           }
-          if (this._chart.multiAxes.y && !this.axisY._isBrushed) {
+          if (!this._isAttached || (this._chart.multiAxes.y && !this.axisY._isBrushed)) {
             var min = this.min(this.values, 'y');
             var max = this.max(values, 'y');
             if (!(min === undefined && max === undefined)) {
@@ -365,6 +395,9 @@
         if (!this._isAttached || this._notDrawable) return;
 
         console.log('graph redraw', this.item.mount, this.values.length);
+        this.axisX.call(this.axisGeneratorX.ticks(this._chart.ticksX).tickSize(this.tickSize).tickFormat(this.axisX.classed('expanded') ? null : ''));
+        this.axisY.call(this.axisGeneratorY.ticks(this._chart.ticksY).tickSize(this.tickSize).tickFormat(this.axisY.classed('expanded') ? null : ''));
+
         var data = this.values || [];
 
         // fill area

@@ -93,11 +93,17 @@
            * generator functions of the brushes axes by keys
            */
           axisBrushGeneratorX: {
-            type: Function
+            type: Function,
+            value: function() {
+              return d3.brushX().on('end', this._onAxisBrushEnd.bind(this));
+            }
           },
 
           axisBrushGeneratorY: {
-            type: Function
+            type: Function,
+            value: function() {
+              return d3.brushY().on('end', this._onAxisBrushEnd.bind(this));
+            }
           },
 
           /**
@@ -128,15 +134,6 @@
         }
       }
 
-      connectedCallback() {
-        super.connectedCallback();
-      }
-
-      disconnectedCallback() {
-        super.disconnectedCallback();
-        this._removeAxes();
-      }
-
       static get observers() {
         return [
           '_setDateNumberFormat(localize)'
@@ -144,8 +141,8 @@
       }
 
       _updateAxisBrushGenerator(range, pos, tickSize) {
-        tickSize = tickSize || 6;
-        var extent = [[0,0],range]
+        tickSize = tickSize || 8;
+        var extent = [[0,0],[range[1],range[0]]]
         if (pos === 'left') {
           extent[0][0] = -tickSize;
         } else if (pos === 'right') {
@@ -166,30 +163,26 @@
           (pos === 'top') ? d3.axisTop(scale) :
             d3.axisBottom(scale)).tickSize(tickSize).tickFormat(this._computeFormatFn(scaling, base));
       }
+      //
+      // _computeAxisBrushGenerator(pos) {
+      //   if (!pos)  return;
+      //   var vertical = this._isVertical(pos);
+      //   var gen = (vertical ? d3.brushY() : );
+      //   if (vertical && this.rangeY) {
+      //     this._updateAxisBrushGenerator.call(gen, this.rangeY, pos, this.tickSize);
+      //   } else if (!vertical && this.rangeX) {
+      //     this._updateAxisBrushGenerator.call(gen, this.rangeX, pos, this.tickSize);
+      //   }
+      //   return gen;
+      // }
 
-      _computeAxisBrushGenerator(pos) {
-        if (!pos)  return;
-        var vertical = this._isVertical(pos);
-        var gen = (vertical ? d3.brushY() : d3.brushX()).on('end', this._onAxisBrushEnd.bind(this));
-        if (vertical && this.rangeY) {
-          this._updateAxisBrushGenerator.call(gen, this.rangeY, pos, this.tickSize);
-        } else if (!vertical && this.rangeX) {
-          this._updateAxisBrushGenerator.call(gen, this.rangeX, pos, this.tickSize);
-        }
-        return gen;
-      }
-
-      _computeAxisNode(insertionPoint, key, pos, expanded, title) {
+      _computeAxisNode(insertionPoint, title) {
         if (insertionPoint === undefined) return;
-        var vertical = (key === 'y') ? true : false;
         var color = this.axisColor || '';
-        title = title || this.axisTitle || key;
+        title = title || this.axisTitle || '';
 
         var axis = insertionPoint.append('svg:g')
           .classed('axis', true)
-          .classed('vertical', vertical)
-          .classed('expanded', expanded)
-          .classed(key, true)
           .style('color', color);
 
         axis.on('click', function() {
@@ -204,10 +197,7 @@
         axis.append('svg:title').text(title);
         axis.append('svg:g')
           .classed('brush', true)
-          .classed('vertical', vertical)
-          .classed(key, true);
         axis.node()._genitor = this;
-        axis._pos = pos;
         axis._left = 0;
         axis._right = 0;
         axis._bottom = 0;
@@ -222,12 +212,18 @@
       }
 
       _removeAxes() {
-        [this.axisX.node(), this.axisY.node()].forEach(function(node) {
+        if (this.axisX && this.axisX.node) {
+          var node = this.axisX.node();
           if (node && node.parentElement)
             node.parentElement.removeChild(node);
-        })
-        delete this.axisX;
-        delete this.axisY;
+          this.axisX = null;
+        }
+        if (this.axisY && this.axisY.node) {
+          var node = this.axisY.node();
+          if (node && node.parentElement)
+            node.parentElement.removeChild(node);
+          this.axisY = null;
+        }
         delete this.axisGeneratorY;
         delete this.axisGeneratorX;
         delete this.axisBrushGeneratorY;
