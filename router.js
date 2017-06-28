@@ -20,6 +20,7 @@ const EventEmitter = require('events').EventEmitter,
   fs = require('fs'),
   path = require('path'),
   mkdirp = require('mkdirp'),
+  jsonfile = require('jsonfile'),
   // Routing
   xFrameOptions = require('x-frame-options'),
   cookieSession = require('cookie-session'),
@@ -243,13 +244,29 @@ class Router extends EventEmitter {
     this.settings.userConfigFiles = userConfigFiles
 
     // init facilities.json
-    resolvePath(this.dir.data);
-    fs.writeFileSync(path.resolve(this.dir.data, 'facilities.json'), JSON.stringify([]))
+    mkdirp(this.dir.data, err => {
+      if (err) {
+        console.error(`Failed to create ${this.dir.data}\n ${err}`)
+        return
+      }
+      jsonfile.writeFile(path.resolve(this.dir.data, 'facilities.json'), [], err => {
+        if (err) {
+          console.error(`Failed to create facilities.json\n ${err}`)
+          return
+        }
+      })
+    })
   }
 
   setConfiguration(opt, facility) {
     this.configuration[facility] = opt
-    this.createStaticContent()
+    mkdirp(this.dir.data, err => {
+      if (err) {
+        console.error(`Failed to create ${this.dir.data}\n ${err}`)
+        return
+      }
+      this.createStaticContent()
+    })
   }
 
   createStaticContent() {
@@ -353,14 +370,13 @@ class Router extends EventEmitter {
       }
     }
 
-    // create required main overview
-    mkdirp(this.dir.data, err => {
-      if (err) console.error(`Failed to create ${this.dir.data}\n ${err}`)
-      return
+    // create folder structure
+    jsonfile.writeFile(path.resolve(this.dir.data, 'facilities.json'), facilities, err => {
+      if (err) {
+        console.error(`Failed to write facilities.json\n ${err}`)
+        return
+      }
     })
-    dest = resolvePath(this.dir.data, 'facilities.json')
-
-    fs.writeFileSync(dest, JSON.stringify(facilities))
   }
 }
 
