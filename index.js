@@ -4,6 +4,7 @@
 const express = require('express')
     , fs = require('fs')
     , path = require('path')
+    , jsonfile = require('jsonfile')
 
     // Process Controller
     , Controller = require('./lib/controller')
@@ -17,12 +18,13 @@ const express = require('express')
     , spdy = require('spdy')
     , app = express();
 
+const PATH_DEFAULT = path.resolve(__dirname, 'defaults/config.json')
+console.log(PATH_DEFAULT)
+
 let server
   , config
   , activeErrorRestartJob
-
-// Defaults
-const defaults = require(path.resolve(__dirname, 'defaults/config.json'))
+  , defaults
 
 class WebvisualServer extends Controller {
 
@@ -233,11 +235,21 @@ class WebvisualServer extends Controller {
   }
 }
 
-if (process.env['WEBVISUALSERVER']) {
-  config = JSON.parse(process.env['WEBVISUALSERVER'])
-}
-else {
-  config = JSON.parse(JSON.stringify(defaults))
-}
 
-server = new WebvisualServer(config)
+// Defaults
+jsonfile.readFile(PATH_DEFAULT, function(err, obj) {
+  if (err) {
+    console.log(err)
+  } else {
+    defaults = obj
+    
+    if (process.env['WEBVISUALSERVER']) {
+      config = JSON.parse(process.env['WEBVISUALSERVER'])
+    }
+    else {
+      config = JSON.parse(JSON.stringify(obj))
+    }
+
+    server = new WebvisualServer(config)
+  }
+})

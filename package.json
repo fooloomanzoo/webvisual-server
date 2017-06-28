@@ -34,6 +34,7 @@
     "express": "*",
     "express-session": "*",
     "express-useragent": "*",
+    "jsonfile": "^3.0.0",
     "merge-defaults": "^0.2.1",
     "merge-options": "*",
     "merge-stream": "*",
