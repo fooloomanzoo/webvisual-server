@@ -22,7 +22,6 @@ const PATH_DEFAULT = path.resolve(__dirname, 'defaults/config.json')
 console.log(PATH_DEFAULT)
 
 let server
-  , config
   , activeErrorRestartJob
   , defaults
 
@@ -30,7 +29,8 @@ class WebvisualServer extends Controller {
 
   constructor(config) {
     super(config, 'WebvisualServer')
-
+    
+    process.send('ready');
     this.mode = process.argv[2] || config.mode
 
     if (this.mode) {
@@ -104,29 +104,31 @@ class WebvisualServer extends Controller {
                sslSettings.requestCert = true
                sslSettings.agent = false
 
-               fs.stat(ca, function(err, stats) {
-                 if (!err) {
-                   try {
-                     // Read files for the certification path
-                     var cert_chain = []
-                     fs.readdirSync(ca).forEach( (filename) => {
-                       cert_chain.push( fs.readFileSync( path.resolve(ca, filename), 'utf-8') )
-                     })
-                     sslSettings.ca = cert_chain
-                   } catch (err) {
+               if (ca) {
+                 fs.stat(ca, function(err, stats) {
+                   if (!err) {
+                     try {
+                       // Read files for the certification path
+                       var cert_chain = []
+                       fs.readdirSync(ca).forEach( (filename) => {
+                         cert_chain.push( fs.readFileSync( path.resolve(ca, filename), 'utf-8') )
+                       })
+                       sslSettings.ca = cert_chain
+                     } catch (err) {
+                       process.send( {
+                         warn: err.stackTrace,
+                         info: `Cannot open ${ca} to read Certification chain\n${err}`
+                       } )
+                     }
+                   } else {
                      process.send( {
-                       error: err,
+                       warn: err.stackTrace,
                        info: `Cannot open ${ca} to read Certification chain\n${err}`
                      } )
+                     sslSettings.ca = null
                    }
-                 } else {
-                   process.send( {
-                     error: err,
-                     info: `Cannot open ${ca} to read Certification chain\n${err}`
-                   } )
-                   sslSettings.ca = null
-                 }
-               })
+                 })
+               }
                resolve(sslSettings)
              })
              .catch( (err) => {
@@ -196,6 +198,8 @@ class WebvisualServer extends Controller {
         .catch( (err) => {
           process.send( { error: `in Server Configuration \n ${err}` } )
         })
+    } else {
+      this.toggle(config)
     }
   }
 
@@ -225,15 +229,14 @@ class WebvisualServer extends Controller {
       } catch (e) {
         process.send( { error: `Error in closing Server\n ${e}` } )
       }
-    } else {
-      // process.send( {error: 'No activeErrorRestartJob'})
-      if (this.isRunning)
-        this.disconnect()
-      else
-        this.connect()
     }
+    if (this.isRunning)
+      this.disconnect()
+    else
+      this.connect()
   }
 }
+
 
 
 // Defaults
@@ -242,20 +245,10 @@ jsonfile.readFile(PATH_DEFAULT, function(err, obj) {
     console.log(err)
   } else {
     defaults = obj
-    if (process.env['WEBVISUALSERVER']) {
-      jsonfile.readFile(process.env['WEBVISUALSERVER'], function(err, obj) {
-        if (err) {
-          console.log(err)
-        } else {
-          config = JSON.parse(JSON.stringify(objs))
-          server = new WebvisualServer(config)
-        }
-      })
-    }
-    else {
+    var config
+    if (!process.send) {
       config = JSON.parse(JSON.stringify(defaults))
-      server = new WebvisualServer(config)
     }
-
+    server = new WebvisualServer(config)
   }
 })
