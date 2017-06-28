@@ -244,7 +244,7 @@ class Router extends EventEmitter {
 
     // init facilities.json
     resolvePath(this.dir.data);
-    // fs.writeFileSync(path.resolve(this.dir.data, 'facilities.json'), JSON.stringify([]))
+    fs.writeFileSync(path.resolve(this.dir.data, 'facilities.json'), JSON.stringify([]))
   }
 
   setConfiguration(opt, facility) {
@@ -253,114 +253,114 @@ class Router extends EventEmitter {
   }
 
   createStaticContent() {
-    // let facilities = [],
-    //   tmp, pth, dest, svgDest
-    //
-    // // write json
-    // for (let facility in this.configuration) {
-    //
-    //   let opt = this.configuration[facility]
-    //   tmp = []
-    //
-    //   for (let ke in opt) {
-    //     if (ke === '_name' || ke === '_title')
-    //       continue
-    //
-    //     let system = ke
-    //
-    //     tmp.push({
-    //       name: opt[system]._name,
-    //       title: opt[system]._title,
-    //       view: opt[system]._view,
-    //       items: opt[system].items,
-    //     })
-    //
-    //     let comb = facility + '+' + system
-    //     dest = resolvePath(this.dir.data)
-    //
-    //     // create required static settings
-    //     for (let key in opt[system]) {
-    //       if (requiredStaticSettings.indexOf(key) === -1)
-    //         continue
-    //       pth = path.resolve(dest, comb + '+' + key + '.json')
-    //       fs.writeFile(pth, JSON.stringify(opt[system][key] || {}), err => {
-    //         if (err)
-    //           this.emit('error', `Writing Files for static content configuration data (${this.dir.data}) failed\n ${err}`)
-    //       })
-    //     }
-    //
-    //     // copy svgContent in staticContentFolder
-    //     if (opt[system].svgSource && opt[system].svgSource.paths && Object.keys(opt[system].svgSource.paths).length) {
-    //
-    //       let svgDest = resolvePath(this.dir.image, facility, system)
-    //
-    //       mkdirp(svgDest, err => {
-    //         if (err) console.error(`SVG-File Destination folder failed to create \n ${err}`)
-    //
-    //         let origin = ''
-    //         dest = svgDest
-    //
-    //         // image origin folder
-    //         if (opt[system].svgSource.origin) {
-    //           origin = path.resolve(opt[system].svgSource.origin)
-    //         }
-    //         if (!origin || !fs.existsSync(origin)) {
-    //           origin = resolvePath('examples', 'svg')
-    //         }
-    //
-    //         // Optimize SVGs
-    //         function copy(opath, dpath) {
-    //           return new Promise((resolve, reject) => {
-    //             fs.readFile(opath, 'utf8', (err, data) => {
-    //               if (err) reject(err)
-    //               resolve(data)
-    //             })
-    //           }).then(data => {
-    //             fs.writeFile(dpath, data, 'utf8', err => {
-    //               if (err) {
-    //                 console.error(`Transfer SVG-File failed \n from ${opath} \n ${err}`)
-    //                 return
-    //               }
-    //               console.log(`Transfer SVG-File successful \n from ${opath} \n to ${dpath}`)
-    //             })
-    //           }).catch(err => {
-    //             console.error(`Transfer SVG-File failed \n from ${opath} \n ${err}`)
-    //           })
-    //         }
-    //
-    //         var promises = []
-    //
-    //         for (var p in opt[system].svgSource.paths) {
-    //           let opath = path.resolve(origin, p)
-    //           let dpath = path.resolve(dest, p)
-    //           promises.push(copy(opath, dpath))
-    //         }
-    //         Promise.all(promises)
-    //           .then(() => {})
-    //           .catch(err => {
-    //             console.error(`Transfer SVG-Files failed \n ${err}`)
-    //           })
-    //       })
-    //     }
-    //   }
-    //
-    //   if (tmp && tmp.length > 0) {
-    //     facilities.push({
-    //       name: this.configuration[facility]._name,
-    //       title: this.configuration[facility]._title,
-    //       systems: tmp
-    //     })
-    //   }
-    // }
-    //
-    // // create required main overview
-    // mkdirp(this.dir.data, err => {
-    //   if (err) console.error(`Failed to create ${this.dir.data}\n ${err}`)
-    //   return
-    // })
-    // dest = resolvePath(this.dir.data, 'facilities.json')
-    //
-    // fs.writeFileSync(dest, JSON.stringify(facilities))
+    let facilities = [],
+      tmp, pth, dest, svgDest
+
+    // write json
+    for (let facility in this.configuration) {
+
+      let opt = this.configuration[facility]
+      tmp = []
+
+      for (let ke in opt) {
+        if (ke === '_name' || ke === '_title')
+          continue
+
+        let system = ke
+
+        tmp.push({
+          name: opt[system]._name,
+          title: opt[system]._title,
+          view: opt[system]._view,
+          items: opt[system].items,
+        })
+
+        let comb = facility + '+' + system
+        dest = resolvePath(this.dir.data)
+
+        // create required static settings
+        for (let key in opt[system]) {
+          if (requiredStaticSettings.indexOf(key) === -1)
+            continue
+          pth = path.resolve(dest, comb + '+' + key + '.json')
+          fs.writeFile(pth, JSON.stringify(opt[system][key] || {}), err => {
+            if (err)
+              this.emit('error', `Writing Files for static content configuration data (${this.dir.data}) failed\n ${err}`)
+          })
+        }
+
+        // copy svgContent in staticContentFolder
+        if (opt[system].svgSource && opt[system].svgSource.paths && Object.keys(opt[system].svgSource.paths).length) {
+
+          let svgDest = resolvePath(this.dir.image, facility, system)
+
+          mkdirp(svgDest, err => {
+            if (err) console.error(`SVG-File Destination folder failed to create \n ${err}`)
+
+            let origin = ''
+            dest = svgDest
+
+            // image origin folder
+            if (opt[system].svgSource.origin) {
+              origin = path.resolve(opt[system].svgSource.origin)
+            }
+            if (!origin || !fs.existsSync(origin)) {
+              origin = resolvePath('examples', 'svg')
+            }
+
+            // Optimize SVGs
+            function copy(opath, dpath) {
+              return new Promise((resolve, reject) => {
+                fs.readFile(opath, 'utf8', (err, data) => {
+                  if (err) reject(err)
+                  resolve(data)
+                })
+              }).then(data => {
+                fs.writeFile(dpath, data, 'utf8', err => {
+                  if (err) {
+                    console.error(`Transfer SVG-File failed \n from ${opath} \n ${err}`)
+                    return
+                  }
+                  console.log(`Transfer SVG-File successful \n from ${opath} \n to ${dpath}`)
+                })
+              }).catch(err => {
+                console.error(`Transfer SVG-File failed \n from ${opath} \n ${err}`)
+              })
+            }
+
+            var promises = []
+
+            for (var p in opt[system].svgSource.paths) {
+              let opath = path.resolve(origin, p)
+              let dpath = path.resolve(dest, p)
+              promises.push(copy(opath, dpath))
+            }
+            Promise.all(promises)
+              .then(() => {})
+              .catch(err => {
+                console.error(`Transfer SVG-Files failed \n ${err}`)
+              })
+          })
+        }
+      }
+
+      if (tmp && tmp.length > 0) {
+        facilities.push({
+          name: this.configuration[facility]._name,
+          title: this.configuration[facility]._title,
+          systems: tmp
+        })
+      }
+    }
+
+    // create required main overview
+    mkdirp(this.dir.data, err => {
+      if (err) console.error(`Failed to create ${this.dir.data}\n ${err}`)
+      return
+    })
+    dest = resolvePath(this.dir.data, 'facilities.json')
+
+    fs.writeFileSync(dest, JSON.stringify(facilities))
   }
 }
 
