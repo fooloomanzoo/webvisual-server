@@ -20,6 +20,10 @@
 					border-left: none;
 				}
 			}
+      .caption {
+        --caption-background: transparent;
+        --caption-color: currentColor;
+      }
       #tables {
         position: relative;
         box-sizing: border-box;
@@ -27,7 +31,8 @@
       }
       .tab {
         font-size: 0.75em;
-        padding: 0.5em;
+        height: auto;
+        box-sizing: border-box;
         border-radius: 0;
         white-space: nowrap;
       }
@@ -39,12 +44,14 @@
 
     <tabs-container id="select" selected="{{currentTable}}" fallback-selection="0">
       <template is="dom-repeat" items="[[items]]">
-        <tab-element class="tab" title$="[[item.id]]">[[item.id]]</tab-element>
+        <tab-element class="tab" title$="[[item.mount]]">
+          <device-caption class="caption" keys="[[item.keys]]"></device-caption>
+        </tab-element>
       </template>
     </tabs-container>
     <iron-pages id="tables" selected="[[currentTable]]">
       <template is="dom-repeat" items="[[items]]">
-        <device-table title$="[[item.id]]" item="[[item]]" full-date></device-table>
+        <device-table title$="[[item.mount]]" item="[[item]]" no-link="[[!opened]]"></device-table>
       </template>
     </iron-pages>
 
@@ -58,11 +65,14 @@
 
       static get properties() {
         return {
+
+          opened: {
+            type: Boolean,
+            notify: true
+          },
+
           items: {
             type: Array,
-            value: function() {
-              return [];
-            },
             notify: true
           },
 
@@ -86,6 +96,10 @@
         } else {
           this.$.select.classList.remove('hidden');
         }
+      }
+
+      reset() {
+        this.set('items', []);
       }
     }
     customElements.define(DeviceTableGroup.is, DeviceTableGroup);

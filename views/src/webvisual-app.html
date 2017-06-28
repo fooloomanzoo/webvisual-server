@@ -1,9 +1,7 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
-<link rel="import" href="../bower_components/polymer/lib/elements/dom-if.html">
-<link rel="import" href="../bower_components/polymer/lib/elements/dom-repeat.html">
 
-<link rel="import" href="behaviors/localize-behavior.html">
-<link rel="import" href="behaviors/fetch-behavior.html">
+<link rel="import" href="mixins/localize-mixin.html">
+<link rel="import" href="mixins/fetch-mixin.html">
 
 <link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
 <link rel="import" href="../bower_components/iron-a11y-keys-behavior/iron-a11y-keys-behavior.html">
@@ -206,9 +204,7 @@
     <!-- login dialog-->
     <dialog-login id="loginDialog"
       icon="{{loginIcon}}"
-      logged-in="{{loggedIn}}"
-      language="[[language]]"
-      language-resources="[[languageResources]]">
+      logged-in="{{loggedIn}}">
     </dialog-login>
 
     <!-- Data -->
@@ -236,7 +232,7 @@
 
           <logo-element id="logo" href="/home" title$="[[localize('home', 'name')]]"></logo-element>
 
-          <iron-collapse opened="[[showTabs]]" hidden$="[[!wideLayout]]" horizontal style="align-self: flex-end;">
+          <iron-collapse opened$="[[showTabs]]" hidden$="[[!wideLayout]]" horizontal style="align-self: flex-end;">
             <div class="tab-drawer top">
 
               <div class="selectbox toolbar grouping top" title="[[groupedKey]]" hidden$="[[hideGroupSelect]]">
@@ -285,7 +281,7 @@
       <!-- Pages-->
       <iron-pages id="pages" role="main" selected="{{page}}" attr-for-selected="name" selected-attribute="visible" fallback-selection="home">
         <!-- home view for selecting the facility -->
-        <page-home name="home" dark$="[[dark]]" plain$="[[plain]]" class="fullbleed" facilities="[[facilities]]" logged-in="[[loggedIn]]" language="[[language]]" language-resources="[[languageResources]]">
+        <page-home name="home" dark$="[[dark]]" plain$="[[plain]]" class="fullbleed" facilities="[[facilities]]" logged-in="[[loggedIn]]" on-login-request="_openLoginDialog">
           <slot></slot>
         </page-home>
         <!-- list view of items in a facility -->
@@ -295,7 +291,7 @@
         <page-groups name="groups" dark$="[[dark]]" plain$="[[plain]]" room="[[queryParams.room]]" logged-in="[[loggedIn]]" elements="[[elements]]" grouped-key="{{groupedKey}}" grouping-keys="{{groupingKeys}}">
         </page-groups>
         <!-- detail view of one item -->
-        <page-detail id="detailpage" name="detail" dark$="[[dark]]" plain$="[[plain]]" class="fullbleed" room="[[queryParams.room]]" query="{{queryParams.mounts}}" logged-in="[[loggedIn]]" elements="[[elements]]" show-toggle-icon="{{detailHasDrawer}}">
+        <page-detail id="detailpage" name="detail" dark$="[[dark]]" plain$="[[plain]]" class="fullbleed" room="[[queryParams.room]]" query="{{queryParams.ids}}" logged-in="[[loggedIn]]" elements="[[elements]]" show-toggle-icon="{{detailHasDrawer}}">
         </page-detail>
       </iron-pages>
     </app-header-layout>
@@ -429,7 +425,7 @@
   </template>
 
   <script>
-    class WebvisualApp extends WebvisualBehaviors.LocalizeBehavior(Polymer.mixinBehaviors(
+    class WebvisualApp extends WebvisualMixins.LocalizeMixin(Polymer.mixinBehaviors(
       [ Polymer.IronA11yKeysBehavior,
         Polymer.IronResizableBehavior ], Polymer.Element)) {
 
@@ -476,16 +472,9 @@
             notify: true
           },
 
-          language: {
+          languageResourcePrefix: {
             type: String,
-            notify: true,
-            value: window.navigator.language,
-            observer: '_checkLanguage'
-          },
-
-          languageResourcePath: {
-            type: String,
-            value: '/locales.json'
+            value: '/locales/ui/'
           },
 
           dark: {
@@ -536,7 +525,6 @@
 
           showTabs: {
             type: Boolean,
-            value: false,
             observer: '_debouncedHideTabs'
           },
 
@@ -627,8 +615,8 @@
       connectedCallback() {
         super.connectedCallback();
         Polymer.RenderStatus.afterNextRender(this, function() {
-          window.addEventListener('online', this._notifyNetworkStatus);
-          window.addEventListener('offline', this._notifyNetworkStatus);
+          window.addEventListener('online', this._notifyNetworkStatus.bind(this));
+          window.addEventListener('offline', this._notifyNetworkStatus.bind(this));
         });
         this.removeAttribute('unresolved');
       }
@@ -762,8 +750,8 @@
       _ensureLazyLoaded() {
         // load lazy resources after render and set 'loadComplete' when done.
         if (!this.loadComplete) {
-          Polymer.RenderStatus.afterNextRender(this, function() {
-            this.importHref(this.resolveUrl('lazy-resources.html'), function() {
+          Polymer.RenderStatus.afterNextRender(this,() => {
+            this.importHref(this.resolveUrl('lazy-resources.html'),() => {
               // Register service worker if supported.
               if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('/service-worker.js');
@@ -810,7 +798,7 @@
       }
 
       _openLoginDialog() {
-        this.$.loginDialog.opened = true;
+        this.$.loginDialog.open();
       }
 
       // detail-requests
@@ -821,8 +809,6 @@
             Polymer.dom(this.root).appendChild(this._detailRequestDialog);
           }
           this._detailRequestDialog.set('item', detail.item);
-          this._detailRequestDialog.set('language', this.language);
-          this._detailRequestDialog.set('languageResources', this.languageResources);
           this._detailRequestDialog.opened = true;
         });
       }

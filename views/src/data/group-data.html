@@ -1,10 +1,10 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
-<link rel="import" href="../behaviors/fetch-behavior.html" />
+<link rel="import" href="../mixins/fetch-mixin.html" />
 
 <dom-module id="group-data">
 
   <script>
-    class GroupData extends WebvisualBehaviors.FetchBehavior(Polymer.Element) {
+    class GroupData extends WebvisualMixins.FetchMixin(Polymer.Element) {
 
       static get is() {
         return 'group-data'
@@ -73,16 +73,12 @@
           });
         if (names.length === 2) {
           this.roomUri = names[0] + '+' + names[1];
-          // this.debounce('group-data', () => {
-          this._fetch(this.roomUri + '+groups.json', 'GET', 'include', 'json', 'groups')
-            .catch(function(statusCode, statusText) {
-              console.log(statusCode, statusText);
+          Promise.all([
+            this._fetch(this.roomUri + '+groups.json', 'GET', 'include', 'json', 'groups'),
+            this._fetch(this.roomUri + '+groupingKeys.json', 'GET', 'include', 'json', 'groupingKeys')])
+            .catch(err => {
+              console.log(err);
             });
-          this._fetch(this.roomUri + '+groupingKeys.json', 'GET', 'include', 'json', 'groupingKeys')
-            .catch(function(statusCode, statusText) {
-              console.log(statusCode, statusText);
-            });
-          // }.bind(this), 200);
         } else {
           this.dispatchEvent(new CustomEvent('data-error', {
             bubbles: true,
@@ -113,8 +109,8 @@
             this.set('groupedKey', groupedKey);
           } else if (this.roomUri) {
             this._fetch(this.roomUri + '+preferedGroupingKey.json', 'GET', 'include', 'json', 'groupedKey', true)
-              .catch((statusCode, statusText) => {
-                console.log(statusCode, statusText);
+              .catch(err => {
+                console.log(err);
               });
           }
         }, 0);

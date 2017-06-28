@@ -32,6 +32,7 @@ export {
 
 export {
   formatDefaultLocale,
+  formatLocale,
   format
 } from "d3-format";
 
@@ -46,7 +47,6 @@ export {
   scaleLinear,
   scaleLog,
   scalePow,
-  scaleSqrt,
   scaleTime,
 } from "d3-scale";
 

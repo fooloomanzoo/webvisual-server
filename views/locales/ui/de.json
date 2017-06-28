@@ -1,0 +1,51 @@
+{
+  "login": {
+    "name": "Login",
+    "title": "Bitte melden Sie sich an",
+    "username": "Benutzername",
+    "password": "Kennwort",
+    "invalid-username": "ungültiger Benutzername",
+    "invalid-password": "ungültiges Kennwort",
+    "logout": "Abmelden",
+    "confirm": "Bestätigen",
+    "reset": "Zurücksetzen"
+  },
+  "home": {
+    "name": "Auswahl",
+    "title": "Auswahl der Messanlage"
+  },
+  "groups": {
+    "name": "Gruppen"
+  },
+  "list": {
+    "name": "Liste"
+  },
+  "detail": {
+    "name": "Details",
+    "query": "Abfrage"
+  },
+  "settings": "Einstellungen",
+  "view": "Ansicht",
+  "layout": "Darstellung",
+  "language": "Anzeigesprache",
+  "groupedKey": "Gruppierung",
+  "dark": {
+    "true": "dunkles Farbschema",
+    "false": "helles Farbschema"
+  },
+  "plain": {
+    "true": "ebene Darstellung",
+    "false": "Fensterdarstellung"
+  },
+  "notification": {
+    "offline": {
+      "true": "Sie sind offline",
+      "false": "Sie sind online"
+    },
+    "loggedIn":  {
+      "true": "Sie sind angemeldet",
+      "false": "Sie sind nicht angemeldet"
+    },
+    "loaded": "geladen"
+  }
+}

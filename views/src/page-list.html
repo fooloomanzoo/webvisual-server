@@ -49,9 +49,10 @@
       <ul class="grid">
         <template is="dom-repeat" items="[[_getListItems(items)]]">
           <li>
-            <a href$="/detail?room=[[room]]&mounts=[[item.mount]]">
+            <a href$="/detail?room=[[room]]&ids=[[item.id]]">
               <device-sign
                 item="[[item]]"
+                no-link="[[!visible]]"
                 show-date></device-sign>
               <device-caption
                 keys="[[item.keys]]"></device-caption>

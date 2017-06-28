@@ -1,0 +1,149 @@
+<link rel="import" href="fetch-mixin.html">
+<script>
+  window.WebvisualMixins = window.WebvisualMixins || {};
+
+  WebvisualMixins.LocalizeMixin = function(superClass) {
+    /**
+     *  Mixin that adds localization to page
+     *  modification of PolymerElements/app-localize-mixin for simplification reasons
+     *
+     * @mixinClass
+     * @polymer
+     */
+    return class extends WebvisualMixins.FetchMixin(superClass) {
+
+      constructor() {
+        super();
+      }
+
+      static get properties() {
+        return {
+
+          useWindowLanguage: {
+            type: Boolean,
+            value: true,
+            observer: '_windowLanguageListener'
+          },
+
+          language: {
+            type: String,
+            notify: true
+          },
+
+          fallbackLanguage: {
+            type: String,
+            value: 'en'
+          },
+
+          /**
+           * For example, a valid dictionary would be:
+           * this.languageResource = {
+           *  'en': { 'greeting': 'Hello!' }, 'fr' : { 'greeting': 'Bonjour!' }
+           * }
+           */
+
+          languageResource: {
+            type: Object,
+            notify: true
+          },
+
+          languageResourcePrefix: {
+            type: String
+          },
+
+          /**
+           * Translates a string to the current 'language'. Any parameters to the
+           * string should be passed in order, as follows:
+           * 'localize(stringKey, param1Name, param1Value, param2Name, param2Value)'
+           */
+          localize: {
+            type: Function,
+            computed: '__computeLocalize(languageResource)'
+          }
+        }
+      }
+
+      static get observers() {
+        return [
+          '_loadLanguageResources(languageResourcePrefix, language)'
+        ]
+      }
+
+      _loadLanguageResources(languageResourcePrefix, language, attempts) {
+        if (languageResourcePrefix === undefined || !language || this._recentLanguage === language) return;
+        language = language.toLowerCase();
+
+        this._fetch(languageResourcePrefix + language + '.json', 'GET', 'include', 'json', 'languageResource', true, true)
+          .then(() => {
+            this._recentLanguage = language;
+            this.dispatchEvent(new CustomEvent('languagechange', {
+              bubbles: true,
+              composed: true,
+              detail: language,
+              node: this
+            }));
+          })
+          .catch(err => {
+            attempts = attempts || 0;
+            if (language.split('-').length > 1) {
+              this._loadLanguageResources(languageResourcePrefix, language.split('-')[0], ++attempts);
+            } else if (attempts === undefined || attempts < 3){
+              this._loadLanguageResources(languageResourcePrefix, this.fallbackLanguage, ++attempts);
+            } else {
+              console.log(languageResourcePrefix, language, err);
+            }
+          });
+      }
+
+      /**
+       * Returns a computed 'localize' method, based on the current 'language'.
+       */
+      __computeLocalize(languageResource) {
+        return function() {
+          if (!arguments[0])
+            return '';
+
+          if (!languageResource) {
+            return arguments[0];
+          }
+
+          var translatedValue = languageResource[arguments[0]];
+
+          for (var i = 1; i < arguments.length; i++) {
+            if (!translatedValue)
+              break;
+            translatedValue = translatedValue[arguments[i]];
+          }
+
+          // if not present in resources, then return the (requested) key
+          if (!translatedValue) {
+            translatedValue = arguments[0];
+          }
+          return translatedValue;
+        };
+      }
+
+      _windowLanguageListener(useWindowLanguage) {
+        if (useWindowLanguage === true) {
+          this.set('language', window.navigator.language);
+          window.addEventListener('languagechange', this._setLanguage.bind(this));
+        } else {
+          window.removeEventListener('languagechange', this._setLanguage.bind(this));
+        }
+      }
+
+      _setLanguage(e) {
+        if (e === undefined) return;
+        var type = Object.prototype.toString.call(e);
+        if (type === '[object CustomEvent]') {
+          if (e.detail) {
+            e = e.detail;
+          }
+        }
+        e = e || window.navigator.language;
+        this.set('language', e);
+      }
+
+    }
+  }
+</script>

@@ -1,11 +1,11 @@
 <script src="../../bower_components/fetch/fetch.js"></script>
 
 <script>
-  window.WebvisualBehaviors = window.WebvisualBehaviors || {};
+  window.WebvisualMixins = window.WebvisualMixins || {};
 
-  WebvisualBehaviors.FetchBehavior = function(superClass) {
+  WebvisualMixins.FetchMixin = function(superClass) {
     /**
-     * Behavior that fetches data from server and saves them optionally
+     * Mixin that fetches data from server and saves them optionally
      *
      * @mixinClass
      * @polymer
@@ -34,6 +34,8 @@
       }
 
       _fetch(uri, method, cred, type, property, saveInLocalStorage, noEqualityCheck, body) {
+        if (!uri) return Promis.resolve();
+
         var url = this.urlPrefix + uri;
         var saveInLocalStorage = saveInLocalStorage || this.saveInLocalStorage;
         var noEqualityCheck = noEqualityCheck || this.noEqualityCheck;
@@ -52,6 +54,9 @@
               } else {
                 return res.text();
               }
+            } else if (res = localStorage.getItem(url)) {
+              console.warn(url, res);
+              return res;
             } else {
               return Promise.reject(res);
             }
@@ -63,8 +68,11 @@
                 this.set(property, data);
               }
             }
-            if (saveInLocalStorage && property && data) {
-              localStorage.setItem(property, data);
+            if (saveInLocalStorage && url && data) {
+              if (type === 'json') {
+                data = JSON.stringify(data);
+              }
+              localStorage.setItem(url, data);
             }
             if (type === 'xml' && data) {
               return new window.DOMParser().parseFromString(data, "text/xml")
@@ -72,12 +80,16 @@
             return Promise.resolve(data);
           })
           .catch( res => {
-            if (saveInLocalStorage && property) {
-              var items = localStorage.getItem(property);
-              if (items)
-                this.set(request, items);
+            if (saveInLocalStorage && property && url) {
+              var data = localStorage.getItem(url);
+              if (data) {
+                if (type === 'json') {
+                  data = JSON.parse(data);
+                }
+                this.set(property, data);
+              }
             }
-            return Promise.reject(res.status, res.statusText);
+            return Promise.reject(res);
           })
       }
 

@@ -2,7 +2,7 @@
 Modification from Polymer Shop Demo App
 -->
 
-<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../../bower_components/iron-selector/iron-multi-selectable.html">
 
 <link rel="import" href="tabs-overlay.html">
@@ -84,9 +84,7 @@ Modification from Polymer Shop Demo App
       }}
 
       static get observers() { return [
-        '_onSelectedItemChanged(selectedItem)',
-        '_onSelectedItemsChanged(selectedItems)',
-        '_onSelectedValuesChanged(selectedValues, selected)'
+        '_onSelectedItemChanged(selectedItem)'
       ]}
 
       connectedCallback() {
@@ -99,20 +97,15 @@ Modification from Polymer Shop Demo App
         this.$.container.addEventListener('wheel', e => this._onWheel(e), {passive: true});
       }
 
-      _onSelectedItemChanged(selectedItem, old) {
+      _onSelectedItemChanged(selectedItem) {
         // console.log('selectedItem', selectedItem);
-        if (selectedItem === undefined) return;
+        if (!selectedItem) return;
         if (!this.multi) {
           this.$.overlay.target = selectedItem;
         }
-      }
-
-      _onSelectedItemsChanged(selectedItems) {
-          // console.log('selectedItems', selectedItems);
-      }
-
-      _onSelectedValuesChanged(selectedValues, selected) {
-          // console.log('selectedValues', selectedValues, selected);
+        requestAnimationFrame(() => {
+          this.$.container.scrollTop = selectedItem.offsetTop - this.$.container.offsetTop - this.$.container.clientHeight / 2 + selectedItem.clientHeight / 2;
+        })
       }
 
       _onWheel(e) {
@@ -154,6 +147,12 @@ Modification from Polymer Shop Demo App
           scrollChange = (detail && -detail.ddx) || 0;
           this.$.container.scrollLeft += scrollChange;
         }
+      }
+
+      reset() {
+        this.set('selectedItem', null);
+        this.set('selectedItems', []);
+        this.set('selectedValues', []);
       }
     }
 

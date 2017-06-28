@@ -1,7 +1,7 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
-<link rel="import" href="behaviors/device-behavior.html"/>
-<link rel="import" href="behaviors/color-behavior.html"/>
-<link rel="import" href="behaviors/checked-and-select-behavior.html"/>
+<link rel="import" href="mixins/device-mixin.html"/>
+<link rel="import" href="mixins/color-mixin.html"/>
+<link rel="import" href="mixins/checked-and-select-mixin.html"/>
 
 <dom-module id="device-sign">
   <template strip-whitespace>
@@ -115,7 +115,8 @@
         height: 1.25em;
         width: 1.25em;
         fill: #fff;
-        opacity: 0.75;
+        opacity: 0.9;
+        mix-blend-mode: hard-light;
         will-change: transform, opacity;
         transform-origin: center;
         transition: transform 300ms cubic-bezier(0.3, 0, 0.1, 1), opacity 300ms cubic-bezier(0.3, 0, 0.1, 1);
@@ -130,11 +131,12 @@
         outline: none;
         pointer-events: none;
         position: absolute;
-        opacity: 0.5;
+        opacity: 0.6;
         right: 0;
         bottom: 0;
         height: 1.25em;
         width: 1.25em;
+        mix-blend-mode: exclusion;
       }
       [hidden] {
         pointer-events: none;
@@ -175,7 +177,7 @@
   </template>
 
   <script>
-  class DeviceSign extends WebvisualBehaviors.CheckedAndSelectBehavior(WebvisualBehaviors.ColorBehavior(WebvisualBehaviors.DeviceBehavior(Polymer.Element))) {
+  class DeviceSign extends WebvisualMixins.CheckedAndSelectMixin(WebvisualMixins.ColorMixin(WebvisualMixins.DeviceMixin(Polymer.Element))) {
 
     static get is() {
       return 'device-sign';

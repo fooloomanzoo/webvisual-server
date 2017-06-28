@@ -1,5 +1,5 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
-<link rel="import" href="behaviors/container-behavior.html">
+<link rel="import" href="mixins/container-mixin.html">
 
 <dom-module id='group-card'>
   <template strip-whitespace>
@@ -155,7 +155,7 @@
 
     <section id="header">
       <section id="headerContent">
-        <iron-pages id="addons" selected="[[view]]" selectable=".view"  selected-attribute="opened">
+        <iron-pages id="addons" selected="[[view]]" selectable=".view" selected-attribute="opened">
           <template is="dom-if" if="[[svgSrcPath]]">
             <device-svg class="view"
               url-prefix="[[svgUrlPrefix]]"
@@ -181,9 +181,13 @@
 
         <section id="control">
           <iron-selector selected="{{view}}" selectable=".button">
-            <icon-button title="map" icon="map" class="button" hidden$="[[!svgSrcPath]]"></icon-button>
-            <icon-button title="chart" icon="show-chart" class="button" hidden$="[[!_shouldRenderExtensions]]"></icon-button>
-            <icon-button title="table" icon="list" class="button" hidden$="[[!_shouldRenderExtensions]]"></icon-button>
+            <template is="dom-if" if="[[svgSrcPath]]">
+              <icon-button title="map" icon="map" class="button" hidden$="[[!svgSrcPath]]"></icon-button>
+            </template>
+            <template is="dom-if" if="[[_shouldRenderExtensions]]">
+              <icon-button title="chart" icon="show-chart" class="button" hidden$="[[!_shouldRenderExtensions]]"></icon-button>
+              <icon-button title="table" icon="list" class="button" hidden$="[[!_shouldRenderExtensions]]"></icon-button>
+            </template>
           </iron-selector>
         </section>
       </section>
@@ -191,7 +195,7 @@
   </template>
 
   <script>
-    class GroupCard extends WebvisualBehaviors.ContainerBehavior(Polymer.Element) {
+    class GroupCard extends WebvisualMixins.ContainerMixin(Polymer.Element) {
 
       static get is() {
         return 'group-card';
@@ -344,7 +348,9 @@
       }
 
       _viewChanged() {
+        console.log('viewChanged')
         if (this.opened && this.$.addons.selectedItem && this.$.addons.selectedItem.notifyResize) {
+          console.log('in', this.$.addons.selectedItem)
           this.$.addons.selectedItem.notifyResize();
         }
       }

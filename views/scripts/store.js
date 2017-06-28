@@ -1,9 +1,8 @@
 importScripts('/scripts/cache.js');
 importScripts('/scripts/database.js');
-if (!self.Promise) {
-  importScripts('/polyfills/promise.js');
+if (!(self.Promise && self.Promise.all)) {
+  importScripts('/bower_components/es6-promise/es6-promise.auto.min.js');
 }
-
 
 (function() {
 

@@ -96,6 +96,7 @@
                     <device-sign
                       item="[[_getItem(id, elements)]]"
                       show-date
+                      no-link="[[!visible]]"
                       selectable></device-sign>
                     <device-caption
                       vertical
@@ -193,9 +194,9 @@
 
       _groupedKeyChanged(groupedKey, old) {
         if (old !== undefined) {
-          var sel = Polymer.dom(this.root).querySelectorAll('[element]');
+          var sel = Polymer.dom(this.root).querySelectorAll('[is-device]');
           sel.forEach(function(el) {
-            el.resetState();
+            el.reset();
           });
 
           var cards = Polymer.dom(this.root).querySelectorAll('group-card');

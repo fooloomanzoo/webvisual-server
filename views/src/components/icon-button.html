@@ -17,7 +17,6 @@
         justify-content: center;
         outline: none;
         -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-        -webkit-tap-highlight-color: transparent;
         -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
         cursor: pointer;
         line-height: 0;
@@ -107,7 +106,7 @@
         super.connectedCallback();
         Polymer.Gestures.addListener(this, 'tap', e => this._changeChecked(e));
       }
-      
+
       disconnectedCallback() {
         super.disconnectedCallback();
         Polymer.Gestures.removeListener(this, 'tap', e => this._changeChecked(e));

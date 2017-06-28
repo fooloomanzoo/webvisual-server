@@ -1,6 +1,6 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html" />
-<link rel="import" href="behaviors/fullscreen-behavior.html" />
-<link rel="import" href="behaviors/fetch-behavior.html" />
+<link rel="import" href="mixins/fullscreen-mixin.html" />
+<link rel="import" href="mixins/fetch-mixin.html" />
 
 <!--
 'device-svg' provides rendering a svg in a container.
@@ -52,6 +52,10 @@
     :host([fullscreen]) {
       color: var(--fullscreen-color, currentColor);
       background-color: var(--fullscreen-background-color);
+      min-height: 100vh;
+      min-width: 100vw;
+      padding: 0 !important;
+      margin: 0 !important;
       --control-bottom: 8px;
       --control-right: 16px;
       --control-button-distance: 8px;
@@ -166,7 +170,7 @@
 </template>
 
   <script>
-    class DeviceSVG extends WebvisualBehaviors.FetchBehavior(WebvisualBehaviors.FullscreenBehavior(Polymer.Element)) {
+    class DeviceSVG extends WebvisualMixins.FetchMixin(WebvisualMixins.FullscreenMixin(Polymer.Element)) {
 
       static get is() {
         return 'device-svg';
@@ -351,16 +355,14 @@
       }
 
       _srcChanged(src) {
-        if (src && this._recentSrc !== src) {
+        if ((src && this._recentSrc !== src)
+          //  || (this._svg && this._svg.empty())
+        ) {
           this._recentSrc = src;
-          this._svg = d3.select(this.$.svgContainer).select('svg#main');
-          if (this._svg && !this._svg.empty()) {
-            this.$.svgContainer.removeChild(this._svg.node());
-          }
 
           this._fetch(src, 'GET', 'include', 'xml').then(this._registerXML.bind(this))
-            .catch(function(statusCode, statusText) {
-              console.log(statusCode, statusText);
+            .catch(err => {
+              console.log(src, err);
             });
         }
       }
@@ -371,6 +373,10 @@
         // import svg to document
         var svgNode = document.importNode(xml.documentElement.cloneNode(true), true);
 
+        this._svg = d3.select(this.$.svgContainer).select('#main');
+        if (this._svg && !this._svg.empty()) {
+          this.$.svgContainer.removeChild(this._svg.node());
+        }
         // append imported svg to this element
         this.$.svgContainer.insertBefore(svgNode, this.$.svgContainer.firstChild);
         this._svg = d3.select(svgNode).attr('id', 'main')
@@ -408,9 +414,7 @@
         // register zoom function
         this._d3Zoom = d3.zoom()
           .scaleExtent([this.minZoom, this.maxZoom])
-          .on('zoom', this._zoom.bind(this), {
-            passive: true
-          });
+          .on('zoom', this._zoom.bind(this));
         // set style for resizing
         this._svg.attr('preserveAspectRatio', 'xMinYMin meet')
           .attr('height', null)
@@ -453,6 +457,13 @@
         }
       }
 
+      reset() {
+        this.opened = false;
+        this.set('item', {});
+        this.set('items', []);
+        this.set('exceeding', []);
+      }
+
       _initialChanged(initial) {
         if (!this.src || !initial) return;
         this._resetZoom();
@@ -470,16 +481,11 @@
               .attr('title', key)
               .on('click',
                 function() {
-                  d3.event.stopPropagation();
+                  // d3.event.stopPropagation();
                   self._zoomToElement(this);
-                  var clicked = this.classList.contains('clicked');
                   self._mainG.selectAll('.clicked')
                     .classed('clicked', false);
-                  if (!clicked) {
-                    this.classList.add('clicked');
-                  }
-                }, {
-                  passive: true
+                  d3.select(this).classed('clicked', true);
                 });
           }
           if (this.selectableItems.minZoom !== undefined) {
@@ -506,14 +512,10 @@
         // calc centered zoom coordinates
         var transform = this._calcCenterZoom(elem);
         var t = d3.zoomIdentity.translate(transform.x, transform.y).scale(transform.k);
-
-        // call transition to new translate and scale
-        this._mainG.transition()
-          .duration(300)
-          .attr('transform', t);
-
         // save last transition
         this._svg.node().__zoom = t;
+        this._mainG.transition(300)
+          .attr('transform', t);
       }
 
       _selectSelected() {
@@ -584,7 +586,7 @@
         if (sel === '' ||
           (elems = this._mainG.selectAll(sel)).classed(selectedClass, true).empty()) {
           if (this.opened) {
-            this.resetZoom();
+            this._resetZoom();
           }
           return;
         }
@@ -684,7 +686,8 @@
         }
         requestAnimationFrame( () => {
           if (!(this.opened && this._mainG && this._mainG.node && this.src)) return;
-
+          // reset clicked status
+          this._mainG.selectAll('.clicked').classed('clicked', false);
           // zoom to selectedItems
           if (!this.initiallyZoomToAll) {
             if (this.item && Object.keys(this.item).length || (this.items && this.items.length)) {

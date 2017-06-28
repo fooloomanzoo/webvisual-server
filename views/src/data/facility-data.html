@@ -1,9 +1,9 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
-<link rel="import" href="../behaviors/fetch-behavior.html">
+<link rel="import" href="../mixins/fetch-mixin.html">
 
 <dom-module id="facility-data">
   <script>
-    class FacilityData extends WebvisualBehaviors.FetchBehavior(Polymer.Element) {
+    class FacilityData extends WebvisualMixins.FetchMixin(Polymer.Element) {
 
       static get is() {
         return 'facility-data'
@@ -76,12 +76,10 @@
 
       _computeFacilityList(loggedIn, offline) {
         if (loggedIn || offline) {
-          // this.debounce('fetch-facility', function() {
           this._fetch('facilities.json', 'GET', 'include', 'json', 'facilities')
-            .catch(function(statusCode, statusText) {
-              console.log(statusCode, statusText);
+            .catch(err => {
+              console.log(err);
             });
-          // }, 15);
         }
       }
 
@@ -110,7 +108,6 @@
               }
             })
             .catch(e => {
-              console.log('empty-facility');
               this.dispatchEvent(new CustomEvent('empty-configuration', {
                 bubbles: true,
                 composed: true
@@ -128,7 +125,6 @@
               }
             })
             .catch(e => {
-              console.log('empty-system');
               this.dispatchEvent(new CustomEvent('empty-configuration', {
                 bubbles: true,
                 composed: true

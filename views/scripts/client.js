@@ -138,14 +138,12 @@ WebvisualClient.prototype = {
   retractElement: function(node, item) {
     if (!node || !item || !item.mount)
       return;
-
-    var mount = item.mount; // item(.mount) is used, because properties might be already deleted from node
-
-    node._initialized = false;
+    var mount = item.mount;
 
     if (!this.nodes.has(mount))
       return;
 
+    // remove node/element from update list
     this.nodes.get(mount)
       .delete(node);
   },

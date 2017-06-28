@@ -1,9 +1,9 @@
 <script>
-  window.WebvisualBehaviors = window.WebvisualBehaviors || {};
+  window.WebvisualMixins = window.WebvisualMixins || {};
 
-  WebvisualBehaviors.ColorBehavior = function(superClass) {
+  WebvisualMixins.ColorMixin = function(superClass) {
     /**
-     * Behavior that sets a custum Element-Color
+     * Mixin that sets a custum Element-Color
      *
      * @mixinClass
      * @polymer
@@ -13,7 +13,6 @@
       constructor() {
         super();
         this._createPropertyObserver('item.color', 'setColor', true);
-        this._createPropertyObserver('color', 'setColor', true);
       }
 
       setColor(color) {
@@ -36,7 +35,7 @@
       }
 
       resetColor() {
-        this.setColor(this.color || (this.item && this.item.color) || '');
+        this.setColor((this.item && this.item.color) || this.color || '');
       }
 
       getComputedStyleValue(property) {

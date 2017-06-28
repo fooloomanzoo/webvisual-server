@@ -7,18 +7,11 @@ module.exports = {
   },
   staticFileGlobs: [
     '/bower_components/webcomponentsjs/webcomponents-loader.js',
-    '/index.html',
-    '/locales.json',
-    '/manifest.json',
-    '/app.yaml',
-    '/scripts/*',
-    '/polyfills/*',
-    '/data/**/*',
-    '/images/**/*'
+    '/index.html'
   ],
   verbose: true,
   navigateFallback: '/index.html',
-  navigateFallbackWhitelist: [/^(?!.*\.html$|\/data\/$|\/auth\/).*/],
+  navigateFallbackWhitelist: [/^(?!.*\.html$|\/data\/$|\/images\/$|\/auth\/).*/],
   runtimeCaching: [
     {
       urlPattern: /\/bower_components\/webcomponentsjs\/.*.js/,
@@ -33,26 +26,15 @@ module.exports = {
     handler: 'cacheFirst',
     options: {
       cache: {
-        maxEntries: 100,
         name: 'image-cache'
       }
     }
   }, {
-    urlPattern: /\/icons\/.*/,
+    urlPattern: /\/data\/.*/,
     handler: 'cacheFirst',
     options: {
       cache: {
-        maxEntries: 100,
-        name: 'icon-cache'
-      }
-    }
-  }, {
-    urlPattern: /\/fonts\/.*/,
-    handler: 'cacheFirst',
-    options: {
-      cache: {
-        maxEntries: 2,
-        name: 'font-cache'
+        name: 'data-cache'
       }
     }
   }, {

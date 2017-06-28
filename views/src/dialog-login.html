@@ -1,7 +1,6 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
 
-<link rel="import" href="behaviors/localize-behavior.html">
-<link rel="import" href="behaviors/fetch-behavior.html">
+<link rel="import" href="mixins/localize-mixin.html">
 
 <link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
 <link rel="import" href="../bower_components/iron-icon/iron-icon.html">
@@ -70,7 +69,7 @@
       }
     </style>
 
-    <dialog-element id="dialog" opened="{{opened}}">
+    <dialog-element id="dialog">
       <template is="dom-if" if="[[!loggedIn]]">
         <div dialog-title id="loginInfo">
           <div>{{localize('login', 'name')}}</div>
@@ -111,7 +110,7 @@
         </form>
       </template>
 
-  <template is="dom-if" if="[[loggedIn]]">
+      <template is="dom-if" if="[[loggedIn]]">
         <div dialog-title>
           <div>{{localize('notification', 'loggedIn', loggedIn)}}</div>
         </div>
@@ -130,12 +129,12 @@
           </div>
         </div>
       </template>
-  </dialog-element>
+    </dialog-element>
 
   </template>
 
   <script>
-    class DialogLogin extends WebvisualBehaviors.LocalizeBehavior(WebvisualBehaviors.FetchBehavior(Polymer.Element)) {
+    class DialogLogin extends WebvisualMixins.LocalizeMixin(Polymer.Element) {
 
       static get is() {
         return 'dialog-login'
@@ -145,7 +144,9 @@
         return {
           opened: {
             type: Boolean,
-            notify: true
+            reflectToAttribute: true,
+            notify: true,
+            observer: '_openedChanged'
           },
 
           userProfile: {
@@ -166,6 +167,11 @@
           signOutUrl: {
             type: String,
             value: '/logout'
+          },
+
+          languageResourcePrefix: {
+            type: String,
+            value: '/locales/ui/'
           }
         }
       }
@@ -173,8 +179,9 @@
       connectedCallback() {
         super.connectedCallback();
         this.autoSignIn(false);
-        Polymer.RenderStatus.afterNextRender(this, function() {
-          window.addEventListener('online', this.autoSignIn);
+        requestAnimationFrame(() => {
+          window.addEventListener('online', this.autoSignIn.bind(this));
+          this.$.dialog.center();
         });
       }
 
@@ -219,7 +226,7 @@
             if (!profile) {
               this.loggedIn = false;
               if (!this.offline) {
-                this.opened = true;
+                this.open();
               }
               this.dispatchEvent(new CustomEvent('announce', {
                 detail: this.localize ? this.localize('notification', 'loggedIn', false) : 'You are not signed in',
@@ -236,7 +243,7 @@
           }, () => {
             this.loggedIn = false;
             if (!this.offline) {
-              this.opened = true;
+              this.open();
             }
             // When rejected, authentication was performed but failed.
             this.dispatchEvent(new CustomEvent('announce', {
@@ -254,7 +261,7 @@
               composed: true
             }));
             if (!this.offline) {
-              this.opened = true;
+              this.open();
             }
           });
       }
@@ -298,7 +305,7 @@
                 composed: true
               }));
               if (!this.offline) {
-                this.opened = true;
+                this.open();
               }
             });
         } else {
@@ -318,7 +325,7 @@
                 composed: true
               }));
               if (!this.offline) {
-                this.opened = true;
+                this.open();
               }
             });
         }
@@ -355,7 +362,7 @@
             this.loggedIn = false;
             this.userProfile = null;
             if (!this.offline) {
-              this.opened = true;
+              this.open();
             }
           })
           .catch(this.notSignedIn.bind(this));
@@ -378,13 +385,13 @@
         }
       }
 
-      notSignedIn(statusCode, statusText) {
+      notSignedIn(err) {
         var status = '';
         this.loggedIn = false;
-        if (statusCode) {
-          if (statusCode >= 400 && statusCode < 500) {
+        if (err && err.statusCode) {
+          if (err.statusCode >= 400 && err.statusCode < 500) {
             status = 'Login with Server failed';
-          } else if (statusCode >= 500 && statusCode < 600) {
+          } else if (err.statusCode >= 500 && err.statusCode < 600) {
             status = 'Server-Error occured';
           } else {
             status = 'Unknown Error occured';
@@ -398,7 +405,7 @@
         this.$$('#username').value = '';
         this.$$('#password').value = '';
         if (!this.offline) {
-          this.opened = true;
+          this.open();
         }
       }
 
@@ -412,6 +419,23 @@
         return this._fetch(url, 'POST', 'include', 'json', null, null, false, signinForm)
           .then(this.signedIn.bind(this))
           .catch(this.notSignedIn.bind(this));
+      }
+
+      _openedChanged(opened) {
+        if (opened === true) {
+          this.open();
+        } else {
+          this.close();
+        }
+      }
+
+      open() {
+        this.$.dialog.open();
+        this.opened = true;
+      }
+      close() {
+        this.$.dialog.close();
+        this.opened = false;
       }
     }
     customElements.define(DialogLogin.is, DialogLogin);
