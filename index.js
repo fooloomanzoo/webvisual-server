@@ -29,13 +29,11 @@ class WebvisualServer extends Controller {
 
   constructor(config) {
     super(config, 'WebvisualServer')
-    
-    process.send('ready');
-    this.mode = process.argv[2] || config.mode
 
-    if (this.mode) {
-      process.send( { log: `started in ${this.mode} mode`} )
-    }
+    process.send('ready');
+    this.mode = process.argv[2] || (config && config.mode) || 'production'
+
+    process.send( { log: `started in ${this.mode} mode`} )
 
     if (this.config) {
       this.connect(this.config)
