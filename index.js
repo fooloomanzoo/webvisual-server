@@ -242,14 +242,20 @@ jsonfile.readFile(PATH_DEFAULT, function(err, obj) {
     console.log(err)
   } else {
     defaults = obj
-    
     if (process.env['WEBVISUALSERVER']) {
-      config = JSON.parse(process.env['WEBVISUALSERVER'])
+      jsonfile.readFile(process.env['WEBVISUALSERVER'], function(err, obj) {
+        if (err) {
+          console.log(err)
+        } else {
+          config = JSON.parse(JSON.stringify(objs))
+          server = new WebvisualServer(config)
+        }
+      })
     }
     else {
-      config = JSON.parse(JSON.stringify(obj))
+      config = JSON.parse(JSON.stringify(defaults))
+      server = new WebvisualServer(config)
     }
 
-    server = new WebvisualServer(config)
   }
 })
