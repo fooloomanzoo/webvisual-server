@@ -11,7 +11,7 @@
      * @mixinClass
      * @polymer
      */
-    return class extends WebvisualMixins.ScaleMixin(WebvisualMixins.LocalizeMixin(superClass)) {
+    return class extends WebvisualMixins.ScaleMixin(superClass) {
 
       constructor() {
         super();
@@ -106,38 +106,53 @@
             }
           },
 
-          /**
-           * folder for date/time-format file
-           */
-          languageResourcePrefix: {
-            type: String,
-            value: '/locales/format/'
+          timeFormat: {
+            type: Function,
+            value: function() {
+              return d3.timeFormat
+            }
           },
 
-          _timeformatter: {
-            type: Object,
+          numberFormat: {
+            type: Function,
             value: function() {
-              return {
-                Millisecond: d3.timeFormat(':%S.%L'),
-                Second: d3.timeFormat(':%M:%S'),
-                SecondLong: d3.timeFormat(':%M:%S.%L'),
-                Minute: d3.timeFormat('%H:%M'),
-                MinuteLong: d3.timeFormat('%H:%M:%S'),
-                Hour: d3.timeFormat('%X'),
-                Day: d3.timeFormat('%d.%m'),
-                Week: d3.timeFormat('%d.%m'),
-                Month: d3.timeFormat('%d. %b'),
-                Year: d3.timeFormat('%Y')
-              };
+              return d3.format
             }
+          },
+
+          localeNumber: {
+            type: Object
+          },
+
+          localeDate: {
+            type: Object
           }
+
         }
       }
 
+
       static get observers() {
         return [
-          '_setDateNumberFormat(localize)'
+          '_setDateNumberFormat(localeNumber, localeDate)'
         ]
+      }
+
+      _updateAxisFormat(numberFormat, timeFormat) {
+        if (this.axisGeneratorX) {
+          this.axisGeneratorX = this._computeAxisGenerator(this.axisPositionX, this.scaleX, this.scalingX, this.scaleBaseX);
+          if (this.axisX) {
+            this.axisX.call(this.axisGeneratorX.tickSize(this.tickSize).tickFormat(this.axisX.classed('expanded') ? null : ''));
+            console.log('recall because of format')
+          }
+        }
+        if (this.axisGeneratorY) {
+          this.axisGeneratorY = this._computeAxisGenerator(this.axisPositionY, this.scaleY, this.scalingY, this.scaleBaseY);
+          if (this.axisY) {
+            this.axisY.call(this.axisGeneratorY.tickSize(this.tickSize).tickFormat(this.axisY.classed('expanded') ? null : ''));
+            console.log('recall because of format')
+          }
+        }
       }
 
       _updateAxisBrushGenerator(range, pos, tickSize) {
@@ -328,32 +343,30 @@
       }
 
       formatTime(date) {
-        var timeformatter = this._timeformatter;
-        return (d3.timeSecond(date) < date ? timeformatter.Millisecond :
-          d3.timeMinute(date) < date ? timeformatter.Second :
-          d3.timeHour(date) < date ? timeformatter.Minute :
-          d3.timeDay(date) < date ? timeformatter.Hour :
-          d3.timeWeek(date) < date ? timeformatter.Day :
-          d3.timeMonth(date) < date ? timeformatter.Week :
-          d3.timeYear(date) < date ? timeformatter.Month :
-          timeformatter.Year)(date);
+        return (d3.timeSecond(date) < date ? this.timeFormat(':%S.%L') :
+          d3.timeMinute(date) < date ? this.timeFormat(':%M:%S') :
+          d3.timeHour(date) < date ? this.timeFormat('%H:%M') :
+          d3.timeDay(date) < date ? this.timeFormat('%X') :
+          d3.timeWeek(date) < date ? this.timeFormat('%d.%m') :
+          d3.timeMonth(date) < date ? this.timeFormat('%d.%m') :
+          d3.timeYear(date) < date ? this.timeFormat('%d. %b') :
+          this.timeFormat('%Y'))(date);
       }
       /**
        * format date according to a time-range and pixel-range
        **/
       formatTimeRange(date, range, pixels) {
-        var timeformatter = this._timeformatter;
         var rangeRatio = (range[1] - range[0]).valueOf() / pixels;
-        return (rangeRatio < 100 ? timeformatter.Millisecond :
-          rangeRatio < 5E2 ? timeformatter.SecondLong :
-          rangeRatio < 5E3 ? timeformatter.Second :
-          rangeRatio < 2E4 ? timeformatter.MinuteLong :
-          rangeRatio < 6E4 ? timeformatter.Minute :
-          rangeRatio < 36E5 ? timeformatter.Hour :
-          rangeRatio < 864E5 ? timeformatter.Day :
-          rangeRatio < 6048E5 ? timeformatter.Week :
-          rangeRatio < 24192E5 ? timeformatter.Month :
-          timeformatter.Year)(date);
+        return (rangeRatio < 100 ? this.timeFormat(':%S.%L') :
+          rangeRatio < 5E2 ? this.timeFormat(':%M:%S.%L') :
+          rangeRatio < 5E3 ? this.timeFormat(':%M:%S') :
+          rangeRatio < 2E4 ? this.timeFormat('%H:%M:%S') :
+          rangeRatio < 6E4 ? this.timeFormat('%H:%M') :
+          rangeRatio < 36E5 ? this.timeFormat('%X') :
+          rangeRatio < 864E5 ? this.timeFormat('%d.%m') :
+          rangeRatio < 6048E5 ? this.timeFormat('%d.%m') :
+          rangeRatio < 24192E5 ? this.timeFormat('%d. %b') :
+          this.timeFormat('%Y'))(date);
       }
       /**
        * format absolute time (like differences)
@@ -389,24 +402,37 @@
 
       formatNumber(scale, num) {
         // format with thousands separators
-        return d3.format(',')(num);
+        return this.numberFormat(',')(num);
       }
 
-      _setDateNumberFormat(localize) {
-        if (localize === undefined) return;
-        var dateLocale = this.localize('date'),
-          numberLocale = this.localize('number'),
-          decimal = '.';
-        if (dateLocale) d3.timeFormatDefaultLocale(dateLocale);
-        if (numberLocale) {
-          d3.formatDefaultLocale(numberLocale);
-          if (numberLocale.decimal) {
-            decimal = numberLocale.decimal;
-          }
-          this._timeformatter.Millisecond = d3.timeFormat(':%S' + decimal + '%L');
-          this._timeformatter.SecondLong = d3.timeFormat(':%M:%S' + decimal + '%L');
+      _setDateNumberFormat(localeNumber, localeDate) {
+        if (localeDate === undefined || localeNumber === undefined) return;
+
+        if (localeDate) {
+          this.localeDate = localeDate;
+          d3.timeFormatDefaultLocale(localeDate);
+          this.timeFormat = d3.timeFormatLocale(localeDate).format;
+        }
+        if (localeNumber) {
+          this.localeNumber = localeNumber;
+          d3.formatDefaultLocale(localeNumber);
+          this.numberFormat = d3.formatLocale(localeNumber).format;
         }
 
+        if (this.axisGeneratorX) {
+          this.axisGeneratorX = this._computeAxisGenerator(this.axisPositionX, this.scaleX, this.scalingX, this.scaleBaseX);
+          if (this.axisX) {
+            this.axisX.call(this.axisGeneratorX.tickSize(this.tickSize).tickFormat(this.axisX.classed('expanded') ? null : ''));
+            // console.log('recall because of format')
+          }
+        }
+        if (this.axisGeneratorY) {
+          this.axisGeneratorY = this._computeAxisGenerator(this.axisPositionY, this.scaleY, this.scalingY, this.scaleBaseY);
+          if (this.axisY) {
+            this.axisY.call(this.axisGeneratorY.tickSize(this.tickSize).tickFormat(this.axisY.classed('expanded') ? null : ''));
+            // console.log('recall because of format')
+          }
+        }
       }
 
     }

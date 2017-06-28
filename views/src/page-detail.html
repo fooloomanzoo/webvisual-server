@@ -131,8 +131,9 @@
         <device-svg id="svg"
           opened$="[[visible]]"
           url-prefix="/images"
-          src="/[[room]]/[[item.svg.path]]"
+          src="[[_svgSrcPath]]"
           selectable-items="[[_getSvgSelectable(item.svg.path, svgData.paths)]]"
+          item="[[item]]"
           items="[[items]]"
           multi
           exceeding="[[exceeding]]"></device-svg>
@@ -152,15 +153,15 @@
             </device-checkbox>
           </template>
         </tabs-container>
-        <device-table-group id="table" items="[[items]]" hidden$="[[nothingSelected]]"></device-table-group>
+        <device-table-group id="table" items="[[items]]" selected-mount="[[item.mount]]" hidden$="[[nothingSelected]]"></device-table-group>
       </drawer-element>
 
     </div>
   </template>
 
   <script>
-    class PageDetail extends WebvisualMixins.ContainerMixin(Polymer.mixinBehaviors(
-      [Polymer.IronResizableBehavior], Polymer.Element)) {
+    class PageDetail extends Polymer.mixinBehaviors(
+      [Polymer.IronResizableBehavior], WebvisualMixins.ContainerMixin(Polymer.Element)) {
 
       static get is() {
         return 'page-detail';
@@ -217,7 +218,12 @@
 
           _withSvg: {
             type: Boolean,
-            computed: '_hasSvg(item, svgData.paths)'
+            computed: '_hasSvg(_svgSrcPath, visible)'
+          },
+
+          _svgSrcPath: {
+            type: Boolean,
+            computed: '_computeSvgSrcPat(room, item, svgData.paths)'
           },
 
           selectNotify: {
@@ -288,15 +294,38 @@
         if (query !== this.query) {
           this.set('query', query);
         }
+        var len = this.items.length, pos = this.indexOf(this.items, this.item);
+        this.items = this.items.filter(item => {
+          return ids.indexOf(item.id) !== -1
+        })
+        if (len !== this.items.length) {
+          setTimeout(() => {
+            var index = this.indexOf(this.items, this.item)
+            if (this.items.length === 0 || index === -1) {
+              this.set('item', null);
+            } else if (pos !== index) {
+              this.set('item', this.items[index]);
+            }
+            this.notifyPath('items');
+          }, 0)
+        }
       }
 
-      _hasSvg(item, svgPaths) {
+      _hasSvg(path, visible) {
         // notify the chart to resize
-        var _withSvg = Boolean(item && item.svg && item.svg.path && svgPaths && svgPaths[item.svg.path])
-        if (this.isAttached === true && _withSvg !== this._withSvg) {
+        var _withSvg = Boolean(path && visible);
+        if (_withSvg !== this._withSvg) {
           this._debounceResize();
         }
         return _withSvg;
+      }
+
+      _computeSvgSrcPat(room, item, svgPaths) {
+        var path = '';
+        if (room && item && item.svg && item.svg.path && svgPaths && svgPaths[item.svg.path])
+          path = '/' + room + '/' + item.svg.path;
+        console.log(path)
+        return path;
       }
 
       _getSvgSelectable(src, svgPaths) {
@@ -354,6 +383,7 @@
           })
           this.clearExceedings();
           this.clearItems();
+          this.room = '';
         }
       }
     }

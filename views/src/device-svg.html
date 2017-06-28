@@ -380,9 +380,11 @@
         // append imported svg to this element
         this.$.svgContainer.insertBefore(svgNode, this.$.svgContainer.firstChild);
         this._svg = d3.select(svgNode).attr('id', 'main')
+          .attr('preserveAspectRatio', 'xMinYMin meet')
+          .attr('height', null)
+          .attr('width', null)
           .classed('style-scope', true)
           .classed('device-svg', true);
-        this._initZoom();
 
         // All nodes needs to be grouped in one main group for zooming
         this._mainG = this._svg.select('g')
@@ -399,6 +401,7 @@
           this._ratio = this._height / this._width;
         }
 
+        this._initZoom();
         this._initialize();
       }
 
@@ -416,10 +419,7 @@
           .scaleExtent([this.minZoom, this.maxZoom])
           .on('zoom', this._zoom.bind(this));
         // set style for resizing
-        this._svg.attr('preserveAspectRatio', 'xMinYMin meet')
-          .attr('height', null)
-          .attr('width', null)
-          .call(this._d3Zoom);
+        this._svg.call(this._d3Zoom);
       }
 
       _selectedItemsChanged() {

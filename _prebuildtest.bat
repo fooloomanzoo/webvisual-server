@@ -1,7 +1,7 @@
 @echo off
 
 echo Starting Webvisual-Server ...
-node index.js development
+npm run prebuildtest
 
 pause
 goto:eof

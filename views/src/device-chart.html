@@ -303,16 +303,16 @@
 
     <template is="dom-if" if="[[multi]]" restamp>
       <template is="dom-repeat" items="[[items]]">
-        <device-graph item="[[item]]" interpolation="[[interpolation]]" language-resource="[[languageResource]]" multi-axes=[[multiAxes]] range-x=[[rangeX]] range-y=[[rangeY]] no-link="[[!opened]]"></device-graph>
+        <device-graph item="[[item]]" interpolation="[[interpolation]]" locale-date="[[localeDate]]" locale-number=[[localeNumber]] range-x=[[rangeX]] range-y=[[rangeY]] no-link="[[!opened]]"></device-graph>
       </template>
     </template>
     <template is="dom-if" if="[[!multi]]" restamp>
-      <device-graph item="[[item]]" interpolation="[[interpolation]]" language-resource="[[languageResource]]" multi-axes=[[multiAxes]] range-x=[[rangeX]]  range-y=[[rangeY]] no-link="[[!opened]]"></device-graph>
+      <device-graph item="[[item]]" interpolation="[[interpolation]]" locale-date="[[localeDate]]" locale-number=[[localeNumber]] range-x=[[rangeX]]  range-y=[[rangeY]] no-link="[[!opened]]"></device-graph>
     </template>
   </template>
   <script>
     class DeviceChart extends Polymer.mixinBehaviors(
-      [Polymer.IronResizableBehavior], WebvisualMixins.AxesMixin(WebvisualMixins.FullscreenMixin(Polymer.Element))) {
+      [Polymer.IronResizableBehavior], WebvisualMixins.AxesMixin(WebvisualMixins.FullscreenMixin(WebvisualMixins.LocalizeMixin(Polymer.Element)))) {
 
       static get is() {
         return 'device-chart';
@@ -404,6 +404,14 @@
             type: String,
             value: 'delta',
             observer: '_modusChanged'
+          },
+
+          /**
+           * folder for date/time-format file
+           */
+          languageResourcePrefix: {
+            type: String,
+            value: '/locales/format/'
           }
         }
       }
@@ -437,6 +445,17 @@
 
       get _self() {
         return this;
+      }
+
+      static get observers() {
+        return [
+          "_localizeChanged(localize)"
+        ]
+      }
+
+      _localizeChanged(localize) {
+        this.set('localeDate', localize('date'));
+        this.set('localeNumber', localize('number'));
       }
 
       _fireResize() {
@@ -756,6 +775,10 @@
       }
       _removeGraph(g) {
         this._graphs.delete(g);
+        if (this._graphs.size === 0) {
+          this.set('domainX', [null,null])
+          this.set('domainY', [null,null])
+        }
       }
 
       _redomain() {

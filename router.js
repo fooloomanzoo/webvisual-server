@@ -1,20 +1,3 @@
-const dir = {
-  dist: {
-    production: __dirname + '/views/build',
-    development: __dirname + '/views/'
-  },
-  data: __dirname + '/views/data',
-  image: __dirname + '/views/images',
-  locale: __dirname + '/views/locales'
-}
-
-const requiredStaticSettings = [
-  'groups',
-  'groupingKeys',
-  'preferedGroupingKey',
-  'svgSource'
-]
-
 const EventEmitter = require('events').EventEmitter,
   express = require('express'),
   fs = require('fs'),
@@ -44,6 +27,23 @@ const EventEmitter = require('events').EventEmitter,
   RedisStore = require('connect-redis')(session),
   // Development (Reload on change)
   chokidar = require('chokidar');
+
+  const dir = {
+    dist: {
+      production: path.join(__dirname, 'views/build'),
+      development: path.join(__dirname, 'views')
+    },
+    data: path.join(__dirname, 'views/data'),
+    image: path.join(__dirname, 'views/images'),
+    locale: path.join(__dirname, 'views/locales')
+  }
+
+  const requiredStaticSettings = [
+    'groups',
+    'groupingKeys',
+    'preferedGroupingKey',
+    'svgSource'
+  ]
 
 function resolvePath() {
   let p = path.resolve(...arguments)
@@ -217,18 +217,19 @@ class Router extends EventEmitter {
 
     // Secured Data
     this.app.use('/data', this.settings.server.auth.required ? ensureLoggedIn.isRequired : ensureLoggedIn.notRequired)
-    this.app.use('/data', serveStatic(resolvePath(this.dir.data), {
-      index: false
+    this.app.use('/data', serveStatic(this.dir.data, {
+      index: false,
+      fallthrough: false
     }))
 
     this.app.use('/images', this.settings.server.auth.required ? ensureLoggedIn.isRequired : ensureLoggedIn.notRequired)
-    this.app.use('/images', serveStatic(resolvePath(this.dir.image), {
-      index: false
+    this.app.use('/images', serveStatic(this.dir.image, {
+      index: false,
+      fallthrough: false
     }))
 
-
     // App
-    this.app.use(serveStatic(resolvePath(this.dir.dist[this.mode]), {
+    this.app.use(serveStatic(this.dir.dist[this.mode], {
       index: ['index.html'],
       prefix: (this.mode === 'development' ? '' : rootByUserAgent)
     }))
@@ -236,7 +237,7 @@ class Router extends EventEmitter {
     // Fallback (for in-app-page-routing neccessary)
     this.app.get('*', (req, res) => {
       res.location(req.originalUrl)
-      res.sendFile(resolvePath(this.dir.dist[this.mode], (this.mode === 'development' ? '' : rootByUserAgent(req)), 'index.html'))
+      res.sendFile(path.join(this.dir.dist[this.mode], (this.mode === 'development' ? '' : rootByUserAgent(req)), 'index.html'))
     })
   }
 
@@ -404,16 +405,16 @@ function minify() {
 
 function rootByUserAgent(req) {
   let ua = req.useragent,
-    browser = ua.browser
-  versionSplit = (ua.version || '').split('.')[majorVersion, minorVersion] = versionSplit.map(v => v ? parseInt(v, 10) : -1),
+    browser = ua.browser,
+    versionSplit = (ua.version || '').split('.'),
+    [majorVersion, minorVersion] = versionSplit.map(v => { return v ? parseInt(v, 10) : -1}),
     supportsES2015 = (browser === 'Chrome' && majorVersion >= 49) ||
     (browser === 'Chromium' && majorVersion >= 49) ||
     (browser === 'Opera' && majorVersion >= 36) ||
     (browser === 'Vivaldi' && majorVersion >= 1) ||
     (browser === 'Safari' && majorVersion >= 10) ||
     (browser === 'Edge' && (majorVersion > 15 || (majorVersion === 15 && minorVersion >= 15063))) ||
-    (browser === 'Firefox' && majorVersion >= 51)
-  // console.log(browser, versionSplit, majorVersion, minorVersion, supportsES2015)
+    (browser === 'Firefox' && majorVersion >= 51);
   if (supportsES2015) {
     return '/bundled'
   }

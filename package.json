@@ -17,6 +17,7 @@
     "test": "node debug.js redis",
     "stop": "taskkill /IM node.exe /F",
     "postinstall": "cd views && bower install && npm run build",
+    "prebuildtest": "node index.js development",
     "build": "cd views && rollup -c && uglifyjs scripts/d3.bundle.js -c -m -o scripts/d3.bundle.js && polymer build"
   },
   "dependencies": {

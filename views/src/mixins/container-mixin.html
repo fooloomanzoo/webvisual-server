@@ -82,6 +82,11 @@
             notify: true
           },
 
+          // selectedItemIndex: {
+          //   type: Number,
+          //   notify: true
+          // },
+
           exceeding: {
             type: Array,
             value: function() {
@@ -138,6 +143,7 @@
         this.set('item', item); // store nevertheless the multi option the last selected Element
         if (this.multi === true) {
           if (this.indexOf(this.items, item) === -1) {
+            // this.set('selectedItemIndex', this.items.length);
             this.push('items', item);
           }
         }
@@ -153,7 +159,16 @@
           if (pos !== -1) {
             this.splice('items', pos, 1);
           }
-          this.set('item', (this.items.length !== 0) ? this.items[0] : null);
+          if (this.items.length === 0) {
+            this.set('item', null);
+            // this.set('selectedItemIndex', -1);
+          } else if (this.indexOf(this.items, this.item) === -1) {
+            this.set('item', this.items[0]);
+          }
+
+          // else if ((pos = this.indexOf(this.items, this.item)) !== this.selectedItemIndex) {
+          //   this.set('selectedItemIndex', pos > -1 ? pos : 0);
+          // }
         } else {
           this.set('item', null);
         }
@@ -175,6 +190,13 @@
         this.opened = this.forceOpened ||
           Boolean(this.opened && this.openOnExceed && (this.exceeding && this.exceeding.length));
       }
+
+      // _selectedItemIndexChanged(index) {
+      //   if (this.item && index >= 0 && index < this.item.length && this.indexOf(this.items, this.item) !== index) {
+      //     this.set('item', this.items[index]);
+      //     console.warn(index);
+      //   }
+      // }
 
       _setExceeding(e) {
         if (e && e.detail && e.detail.item) {

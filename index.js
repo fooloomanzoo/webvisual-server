@@ -19,11 +19,12 @@ const express = require('express')
     , app = express();
 
 const PATH_DEFAULT = path.resolve(__dirname, 'defaults/config.json')
-console.log(PATH_DEFAULT)
 
 let server
   , activeErrorRestartJob
   , defaults
+  , mode = process.argv[2] || 'production'
+
 
 class WebvisualServer extends Controller {
 
@@ -31,9 +32,9 @@ class WebvisualServer extends Controller {
     super(config, 'WebvisualServer')
 
     process.send('ready');
-    this.mode = process.argv[2] || (config && config.mode) || 'production'
+    this.mode = (config && config.mode) || mode
 
-    process.send( { log: `started in ${this.mode} mode`} )
+    process.send( { log: `started in ${this.mode} mode ${process.argv}`} )
 
     if (this.config) {
       this.connect(this.config)
