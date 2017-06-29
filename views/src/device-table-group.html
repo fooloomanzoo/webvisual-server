@@ -42,7 +42,7 @@
 
     </style>
 
-    <tabs-container id="tabs" reverse selected="{{selectedMount}}" attr-for-selected="title">
+    <tabs-container id="tabs" selected="{{selectedMount}}" attr-for-selected="title">
       <template is="dom-repeat" items="[[items]]">
         <tab-element class="tab" title$="[[item.mount]]">
           <device-caption class="caption" keys="[[item.keys]]"></device-caption>
@@ -96,7 +96,6 @@
           this.$.tabs.classList.remove('hidden');
         }
       }
-
 
       reset() {
         this.set('items', []);

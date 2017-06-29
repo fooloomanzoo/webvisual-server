@@ -288,15 +288,14 @@
         this._starttop = 0;
       }
       _onAxisBrushEnd(key) {
-        var
-          vertical = (key === 'y'),
+        if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
+        var vertical = (key === 'y'),
           s = d3.event.selection,
           scale = vertical ? this.scaleY : this.scaleX,
           axis = vertical ? this.axisY : this.axisX,
           brush = axis.select('.brush'),
           generator = vertical ? this.axisBrushGeneratorY : this.axisBrushGeneratorX,
           brushed = axis._isBrushed;
-        console.log('brushend', s);
         if (s) {
           if (s[0] === s[1]) {
             axis._isBrushed = false;

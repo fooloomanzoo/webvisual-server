@@ -67,10 +67,6 @@
       text.info {
         fill: var(--primary-text-color);
       }
-      /*g#brush .selection {
-        stroke: currentColor;
-        stroke-opacity: 0.7;
-      }*/
       rect#plot {
         fill: var(--chart-plot-background-color, #fff);
         stroke: currentColor;
@@ -168,6 +164,12 @@
         stroke-dasharray: 2;
         mix-blend-mode: darken;
       }
+      .zoom {
+        cursor: move;
+        fill: none;
+        stroke: none;
+        pointer-events: all;
+      }
       .dot {
         fill-opacity: 0.9;
         cursor: pointer;
@@ -249,8 +251,8 @@
             <g id="area"></g>
             <g id="line"></g>
             <g id="boundery"></g>
-            <g id="brush"></g>
           </g>
+          <g id="zoom"  clip-path="url(#clip)"></g>
           <g id="delta" hidden>
             <line id="deltaX" class="line x" marker-start="url(#arrowToLeft)" marker-end="url(#arrowToRight)"></line>
             <line id="deltaY" class="line y" marker-start="url(#arrowToLeft)" marker-end="url(#arrowToRight)"></line>
@@ -420,26 +422,6 @@
         super();
         this._width = 0;
         this._height = 0;
-        this._yGrid = {};
-        this._brush = {};
-        this._chart = {};
-        this._control = {};
-        this._svg = {};
-        this._info = {};
-        this._focus = {};
-        this._focusX = {};
-        this._focusY = {};
-        this._focusDot = {};
-        this._infoDeltaX = {};
-        this._infoDeltaY = {};
-        this._delta = {};
-        this._deltaX = {};
-        this._deltaY = {};
-        this._deltaDot = {};
-        this._focusedValue = null;
-        this._fixedValue = null;
-        this._isAttached = false;
-        this._isZoomed = false;
         this._graphs = new Set();
       }
 
@@ -523,6 +505,14 @@
         this._deltaY = d3.select(this.$.deltaY);
         this._deltaDot = d3.select(this.$.deltaDot);
 
+        this._zoomBehavior = d3.zoom()
+              .scaleExtent([0.9, 1.1])
+              .on("zoom", this._onZoomed.bind(this));
+
+        this._zoom = d3.select(this.$.zoom)
+                      .append('svg:rect')
+                      .classed('zoom', true)
+                      .call(this._zoomBehavior);
         // this._brushMixin = d3.brush()
         //   // .on('end', this.brushed.bind(this._self()));
         //   .on('end', this.brushed.bind(this));
@@ -711,6 +701,11 @@
           this.ticksX = Math.ceil(this._width / 75);
           this.ticksY = Math.ceil(this._height / 50);
 
+          this._zoomBehavior
+                .translateExtent([[0, 0], [this._width, this._height]])
+                .extent([[0, 0], [this._width, this._height]]);
+
+          this._zoom.attr('height', this._height).attr('width', this._width);
           var p = [];
 
           this._graphs.forEach( g => {
@@ -739,6 +734,7 @@
             this._chart._right = right;
             this._chart._bottom = bottom;
             this._chart._left = left;
+
             if (!this.domainX || !this.domainY || this.domainX.some(e => { return e === undefined || e === null; }) || this.domainY.some(e => { return e === undefined || e === null; })) {
               this.redraw(true);
             } else {
@@ -1161,6 +1157,18 @@
         })
       }
 
+      _onZoomed() {
+        if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") return; // ignore zoom-by-brush
+        var t = d3.event.transform;
+        console.log(t);
+        if (!this.multiAxesX) {
+          this.set('domainX', t.rescaleX(this.scaleX).domain().sort((a, b) => { return a > b}));
+        }
+        if (!this.multiAxesY) {
+          this.set('domainY', t.rescaleY(this.scaleY).domain().sort((a, b) => { return a > b}));
+        }
+        this.redraw();
+      }
       //
       // changeScale(newValue, oldValue) {
       //   // if (oldValue === undefined) return;
