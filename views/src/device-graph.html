@@ -25,7 +25,7 @@
 
           hasArea: {
             type: Boolean,
-            value: false
+            value: true
           },
 
           interpolation: {
@@ -168,13 +168,13 @@
         this._lineChanged(this.hasLine);
 
         if (!this.axisX ) {
-          this.axisX = this._computeAxisNode(this._axisInsertionPoint, this.item.mount)
+          this.axisX = this._computeAxisNode(this._axisInsertionPoint, this.axisOrientY, this.item.mount)
                              .attr('hidden', (this._chart.multiAxesX) ? null : true)
                              .classed('mount', this.item.mount)
                              .classed('x', true)
         }
         if (!this.axisY ) {
-          this.axisY = this._computeAxisNode(this._axisInsertionPoint, this.item.mount)
+          this.axisY = this._computeAxisNode(this._axisInsertionPoint, this.axisOrientY, this.item.mount)
                              .attr('hidden', (this._chart.multiAxesY) ? null : true)
                              .classed('vertical', true)
                              .classed('y', true)
@@ -225,7 +225,7 @@
         } else {
           if (!(this._area && this._area.node)) { // add fill area
             this._area = this._chart._area.append('svg:path');
-            this._area.append('svg:title').text(this.item.mount);
+            this._area.append('svg:title').text(this.item.mount).on('mouseover', this._onAxisMouseover.bind(this))
           }
           // update fill area node properties
           this._area
@@ -252,7 +252,7 @@
         } else {
           if (!(this._line && this._line.node)) { // add line node
             this._line = this._chart._line.append('svg:path');
-            this._line.append('svg:title').text(this.item.mount);
+            this._line.append('svg:title').text(this.item.mount).on('mouseover', this._onAxisMouseover.bind(this))
           }
           // update line node properties
           this._line
@@ -260,7 +260,6 @@
             .attr('class', 'line')
             .attr('fill', 'none')
             .attr('stroke-width', this.lineWidth)
-            // .datum([])
             .attr('d', this._lineGenerator([]));
 
         }
@@ -315,6 +314,7 @@
         if (values === undefined) {
           return;
         }
+        console.log(this.domainX)
         var len = len || (this.viewLength > 0 ? this.viewLength : values.length);
         if (len) {
           values = values.slice(values.length - len, values.length);
@@ -380,7 +380,7 @@
             this._chart.set('domainY', this.domainY );
             redomain_and_draw = true;
           }
-          if (!(this._chart.multiAxesY && this._chart.multiAxesX))  {
+          if (!(this._chart.multiAxesY && this._chart.multiAxesX) && !this._chart._isZoomed)  {
             redomain_and_draw = true;
           }
           this.redraw(redomain_and_draw, values);
@@ -394,22 +394,25 @@
 
       redraw(force, values) {
         if (!this._isAttached) return;
+        console.log(this.domainX)
 
         if (force) {
           this._chart.redraw(true);
           return;
         }
         // console.log('graph redraw', this.item.mount, this.values.length);
-        this.axisX.call(this.axisGeneratorX.ticks(this._chart.ticksX).tickSize(this.tickSize).tickFormat(this.axisX.classed('expanded') ? this._computeFormatFn(this.scalingX, this.scaleBaseX) : ''));
-        this.axisY.call(this.axisGeneratorY.ticks(this._chart.ticksY).tickSize(this.tickSize).tickFormat(this.axisY.classed('expanded') ? this._computeFormatFn(this.scalingY, this.scaleBaseY) : ''));
+        if (!this.axisX.attr('hidden')) {
+          this.axisX.transition(100).call(this.axisGeneratorX.ticks(this._chart.ticksX).tickSize(this.tickSize).tickFormat(this.axisX.classed('expanded') ? this._computeFormatFn(this.scalingX, this.scaleBaseX) : ''));
+        }
 
-        var data = values || this.values || [];
+        if (!this.axisY.attr('hidden')) {
+            this.axisY.transition(100).call(this.axisGeneratorY.ticks(this._chart.ticksY).tickSize(this.tickSize).tickFormat(this.axisY.classed('expanded') ? this._computeFormatFn(this.scalingY, this.scaleBaseY) : ''));
+        }
+
+        var data = this.values || [];
 
         // fill area
         if (this.hasArea) {
-          if (!(this._area && this._area.node)) {
-            this._areaChanged(true);
-          }
           this._area
             // .datum(data)
             .attr('d', this._areaGenerator(data));
@@ -417,11 +420,14 @@
 
         // line
         if (this.hasLine) {
-          if (!(this._line && this._line.node)) {
-            this._lineChanged(true);
-          }
           this._line
-            // .datum(data)
+            // .transition()
+            // .duration(2000)
+            // .attrTween('d', function (data) {
+            //   var previous = d3.select(this).attr('d');
+            //   var current = linegenerator(data);
+            //   return d3.interpolatePath(previous, current);
+            // });
             .attr('d', this._lineGenerator(data));
         }
 
@@ -513,9 +519,6 @@
                     this.set('domainX', domain);
                   }
                   else if (key === 'y') {
-                    this.scaleY.domain(domain);
-                    // add a little extra space to it (6px)
-                    domain = [this.scaleY.invert(this.scaleY(domain[0]) + 6), this.scaleY.invert(-6)];
                     this.set('domainY', domain);
                   }
                 }
@@ -709,6 +712,20 @@
         }
         this._areaGenerator.curve(curve);
         this._lineGenerator.curve(curve);
+      }
+      _onAxisClicked(axis) {
+        var expanded = axis.classed('expanded');
+        axis.classed('expanded', !expanded);
+        this.sizeChanged();
+      }
+      _onAxisMouseover(axis, orient) {
+        super._onAxisMouseover(axis, orient);
+        if (this._area) {
+          this._area.raise();
+        }
+        if (this._line) {
+          this._line.raise();
+        }
       }
     }
     customElements.define(DeviceGraph.is, DeviceGraph);

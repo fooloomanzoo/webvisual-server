@@ -30,6 +30,7 @@
     "cookie-parser": "*",
     "cookie-session": "*",
     "d3": "*",
+    "d3-interpolate-path": "^1.1.1",
     "dateformat": "*",
     "deep-diff": "*",
     "express": "*",

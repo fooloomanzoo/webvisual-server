@@ -59,10 +59,25 @@
           /**
            * tick size in pixel
            */
-          tickSize: {
-            type: Number,
-            value: 8
-          },
+           tickSize: {
+             type: Number,
+             value: 8
+           },
+
+           axisMargin: {
+             type: Number,
+             value: 6
+           },
+
+           axisSizeX: {
+             type: Number,
+             value: 20
+           },
+
+           axisSizeY: {
+             type: Number,
+             value: 54
+           },
 
           /**
            * insertion point of the axes
@@ -174,20 +189,19 @@
       //   return gen;
       // }
 
-      _computeAxisNode(insertionPoint, title) {
+      _computeAxisNode(insertionPoint, orient, title) {
         if (insertionPoint === undefined) return;
         var color = this.axisColor || '';
         title = title || this.axisTitle || '';
 
         var axis = insertionPoint.append('svg:g')
           .classed('axis', true)
+          .attr('orient', orient)
           .style('color', color);
 
-        axis.on('click', function() {
-            var expanded = d3.select(this).classed('expanded');
-            d3.select(this).classed('expanded', !expanded);
-            this._genitor.sizeChanged();
-          })
+        axis.on('mouseover', this._onAxisMouseover.bind(this))
+            .on('mouseleave', this._onAxisMouseleave.bind(this))
+            .on('click', this._onAxisClicked.bind(this, axis))
           .call(d3.drag()
             .on('start', this._onAxisDragStart)
             .on('drag', this._onAxisDragged)
@@ -229,7 +243,17 @@
         delete this.axisBrushGeneratorY;
         delete this.axisBrushGeneratorX;
       }
+      _onAxisClicked() {
+      }
+      _onAxisMouseover() {
+        this.axisX.select('.brush').raise();
+        this.axisY.select('.brush').raise();
+        this.axisX.raise();
+        this.axisY.raise();
+      }
+      _onAxisMouseleave(axis, orient) {
 
+      }
       _onAxisDragStart() {
         d3.select(this).raise().classed('dragged', true);
         this._startleft = d3.event.x;
@@ -288,7 +312,7 @@
         this._starttop = 0;
       }
       _onAxisBrushEnd(key) {
-        if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
+        // if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
         var vertical = (key === 'y'),
           s = d3.event.selection,
           scale = vertical ? this.scaleY : this.scaleX,
@@ -303,11 +327,9 @@
           }
           axis._isBrushed = true;
           s = s.map(scale.invert, scale).sort((a, b) => { return a > b});
-          console.log(s, this);
           this.set(vertical ? 'domainY' : 'domainX', s);
           brush.call(generator.move, null);
           this.redraw()
-
         }
         // this.sizeChanged();
       }

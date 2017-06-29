@@ -110,21 +110,6 @@
       .axis.dragged path {
         fill-opacity: 0.2;
       }
-      .axis:not(.vertical) .tick > text {
-        alignment-baseline: after-edge;
-      }
-      .axis:not(.vertical) .tick:first-of-type:not(:only-of-type) > text {
-        text-anchor: start;
-      }
-      .axis:not(.vertical) .tick:nth-last-of-type(2):not(:only-of-type) > text {
-        text-anchor: end;
-      }
-      .axis.vertical[position="left"]:not(.dragged) .tick > text {
-        text-anchor: end;
-      }
-      .axis.vertical[position="right"]:not(.dragged) .tick > text {
-        text-anchor: start;
-      }
       .brush .selection {
         fill: currentColor;
         fill-opacity: 0.5;
@@ -139,13 +124,19 @@
       }
       #graphs .area {
         fill-opacity: 0.3;
-        mix-blend-mode: overlay;
+        transition: fill-opacity 200ms linear;
         @apply --chart-area;
+      }
+      #graphs .area:last-of-type {
+        fill-opacity: 0.4;
       }
       #graphs .line {
         cursor: pointer;
         stroke-opacity: 0.9;
         @apply --chart-line;
+      }
+      #graphs .line:last-of-type {
+        stroke-opacity: 1;
       }
       .focus,
       .delta {
@@ -165,7 +156,7 @@
         mix-blend-mode: darken;
       }
       .zoom {
-        cursor: move;
+        cursor: default;
         fill: none;
         stroke: none;
         pointer-events: all;
@@ -354,26 +345,6 @@
             value: true
           },
 
-          tickSize: {
-            type: Number,
-            value: 8
-          },
-
-          axisMargin: {
-            type: Number,
-            value: 6
-          },
-
-          axisSizeX: {
-            type: Number,
-            value: 20
-          },
-
-          axisSizeY: {
-            type: Number,
-            value: 54
-          },
-
           interpolation: {
             type: String,
             value: 'Lineare Verbindung',
@@ -468,12 +439,12 @@
         this._line = d3.select(this.$.line);
         this._boundery = d3.select(this.$.boundery);
 
-        this.axisX = this._computeAxisNode(this._axisInsertionPoint)
-                           .attr('hidden', (this.multiAxes && this.multiAxesX) ? true: null)
+        this.axisX = this._computeAxisNode(this._axisInsertionPoint, this.axisOrientX)
+                           .attr('hidden', (this.multiAxesX) ? true: null)
                            .classed('expanded', true)
                            .classed('x', true);
-        this.axisY = this._computeAxisNode(this._axisInsertionPoint)
-                           .attr('hidden', (this.multiAxes && this.multiAxesY) ? true: null)
+        this.axisY = this._computeAxisNode(this._axisInsertionPoint, this.axisOrientY)
+                           .attr('hidden', (this.multiAxesY) ? true: null)
                            .classed('expanded', true)
                            .classed('vertical', true)
                            .classed('y', true);
@@ -506,7 +477,7 @@
         this._deltaDot = d3.select(this.$.deltaDot);
 
         this._zoomBehavior = d3.zoom()
-              .scaleExtent([0.9, 1.1])
+              .scaleExtent([1, Infinity])
               .on("zoom", this._onZoomed.bind(this));
 
         this._zoom = d3.select(this.$.zoom)
@@ -580,7 +551,7 @@
         this._isAttached = true;
 
         this._modusChanged(this.modus);
-        this._multiAxesChanged(this.multiAxes);
+        this._multiAxesChanged(this.multiAxesX, this.multiAxesY);
         this.sizeChanged();
       }
 
@@ -617,11 +588,11 @@
           return;
         }
 
-        // console.log('sizeLayout');
-        var top = 0,
-          right = 0,
-          bottom = 0,
-          left = 0,
+        console.log('sizeLayout');
+        var top = -2,
+          right = 1,
+          bottom = 1,
+          left = -2,
           axisSizeX = this.axisSizeX,
           axisSizeY = this.axisSizeY,
           tickSize = this.tickSize,
@@ -672,21 +643,21 @@
 
         this._graphs.forEach( g => {
           if (g._isAttached) {
-            if (g.axisX && !g.axisX.attr('hidden')) {
+            if (!g.axisX.attr('hidden')) {
               var size = g.axisX.classed('expanded') ? axisSizeX : condensedSize;
               q.push(incremPosition.call(g.axisX, g.axisOrientX, size));
             }
-            if (g.axisY && !g.axisY.attr('hidden')) {
+            if (!g.axisY.attr('hidden')) {
               var size = g.axisY.classed('expanded') ? axisSizeY : condensedSize;
               q.push(incremPosition.call(g.axisY, g.axisOrientY, size));
             }
           }
         })
-        if (this.axisX && !this.axisX.attr('hidden')) {
+        if (!this.axisX.attr('hidden')) {
           var size = this.axisX.classed('expanded') ? axisSizeX : condensedSize;
           q.push(incremPosition.call(this.axisX, this.axisOrientX, size));
         }
-        if (this.axisY && !this.axisY.attr('hidden')) {
+        if (!this.axisY.attr('hidden')) {
           var size = this.axisY.classed('expanded') ? axisSizeY : condensedSize;
           q.push(incremPosition.call(this.axisY, this.axisOrientX, size));
         }
@@ -701,27 +672,26 @@
           this.ticksX = Math.ceil(this._width / 75);
           this.ticksY = Math.ceil(this._height / 50);
 
-          this._zoomBehavior
-                .translateExtent([[0, 0], [this._width, this._height]])
-                .extent([[0, 0], [this._width, this._height]]);
-
           this._zoom.attr('height', this._height).attr('width', this._width);
+          this._zoomBehavior.extent([[0, 0], [this._width, this._height]]);
+          this._zoom.call(this._zoomBehavior.transform, d3.zoomIdentity);
+
           var p = [];
 
           this._graphs.forEach( g => {
             if (g._isAttached) {
-              if (g.axisX && !g.axisX.attr('hidden')) {
+              if (!g.axisX.attr('hidden')) {
                 p.push(finalizePosition.call(g.axisX, g.axisOrientX, this._width, this._height));
               }
-              if (g.axisY && !g.axisY.attr('hidden')) {
+              if (!g.axisY.attr('hidden')) {
                 p.push(finalizePosition.call(g.axisY, g.axisOrientY, this._width, this._height));
               }
             }
           })
-          if (this.axisX && !this.axisX.attr('hidden')) {
+          if (!this.axisX.attr('hidden')) {
             p.push(finalizePosition.call(this.axisX, this.axisOrientX, this._width, this._height));
           }
-          if (this.axisY && !this.axisY.attr('hidden')) {
+          if (!this.axisY.attr('hidden')) {
             p.push(finalizePosition.call(this.axisY, this.axisOrientY, this._width, this._height));
           }
 
@@ -744,27 +714,56 @@
         })
       }
 
-      _multiAxesChanged(multiAxes) {
+      _domainXChanged(domainX) {
+        if (domainX === undefined || this.scaleX === undefined || domainX.some(e => { return e === undefined || e === null; })) return;
+        console.log('domainchanged')
+        this.scaleX.domain(domainX);
+        if (!this.multiAxesX) {
+          var te = this._zoomBehavior.translateExtent();
+          this._zoomBehavior.translateExtent([[this.scaleX(this.domainX[0]), te[0][1]], [this.scaleX(this.domainX[1]), te[1][1]]]);
+        }
+      }
+
+      _domainYChanged(domainY) {
+        if (domainY === undefined || this.scaleY === undefined || domainY.some(e => { return e === undefined || e === null; })) return;
+        this.scaleY.domain(domainY).nice();
+        if (!this.multiAxesY) {
+          var te = this._zoomBehavior.translateExtent();
+          this._zoomBehavior.translateExtent([[te[0][0], this.scaleY(this.domainY[0])], [te[1][0], this.scaleY(this.domainY[1])]]);
+        }
+      }
+
+      _multiAxesChanged(multiAxesX, multiAxesY) {
         if (!this._isAttached) return;
         var hidden;
         this._graphs.forEach( g => {
           if (g._isAttached) {
-            hidden = (this.multiAxesX && g.axisX) ? null : true;
+            hidden = (multiAxesX && g.axisX) ? null : true;
             g.axisX.attr('hidden', hidden);
             if (hidden) {
               g.set('domainX', this.domainX);
             }
-            hidden = (this.multiAxesY && g.axisY) ? null : true;
+            hidden = (multiAxesY && g.axisY) ? null : true;
             g.axisY.attr('hidden', hidden);
             if (hidden) {
               g.set('domainY', this.domainY);
             }
           }
         })
-        hidden = (this.multiAxesX && this.axisX) ? true : null;
+        hidden = (multiAxesX && this.axisX) ? true : null;
         this.axisX.attr('hidden', hidden);
-        hidden = (this.multiAxesY && this.axisY) ? true : null;
+        hidden = (multiAxesY && this.axisY) ? true : null;
         this.axisY.attr('hidden', hidden);
+
+        if (!multiAxesX && this.scaleX && this.domainX) {
+          var te = this._zoomBehavior.translateExtent();
+          this._zoomBehavior.translateExtent([[this.scaleX(this.domainX[0]), te[0][1]], [this.scaleX(this.domainX[1]), te[1][1]]]);
+        }
+
+        if (!multiAxesY && this.scaleY && this.domainY) {
+          var te = this._zoomBehavior.translateExtent();
+          this._zoomBehavior.translateExtent([[te[0][0], this.scaleY(this.domainY[0])], [te[1][0], this.scaleY(this.domainY[1])]]);
+        }
       }
 
       _addGraph(g) {
@@ -783,6 +782,7 @@
         if (this._activeRedrawJob) {
           clearTimeout(this._activeRedrawJob);
         }
+        console.log('_redomain')
         Promise.resolve(this._getDomain.call(this))
           .then(this.redraw.bind(this, false))
           .catch(err => {
@@ -796,30 +796,29 @@
         if (!this._isAttached) return;
 
         if (force) {
+          console.log('force')
           this._redomain();
           return;
         }
+        console.log('chart redraw')
         // async redrawing
         if (this._activeRedrawJob) {
           clearTimeout(this._activeRedrawJob);
         }
         this._activeRedrawJob = setTimeout(() => {
-          // console.log('_redraw');
           this._graphs.forEach( g => {
             if (g._isAttached) {
               if (!g.axisX.attr('hidden')) {
-                // g.axisGeneratorX = g._computeAxisGenerator(g.axisOrientX, g.scaleX, g.scalingX, g.scaleBaseX);
                 g._updateAxisBrushGenerator.call(g.axisBrushGeneratorX, this.rangeX, g.axisOrientX);
                 g.axisX.select('.brush').raise().call(g.axisBrushGeneratorX);
-                g.axisX.transition(100).attr('transform', 'translate(' + (g.axisX._left || 0) + ',' + (g.axisX._top || 0) + ')');
+                g.axisX.attr('transform', 'translate(' + (g.axisX._left || 0) + ',' + (g.axisX._top || 0) + ')');
               } else {
                 g.set('domainX', this.domainX);
               }
-              if (g.axisY && !g.axisY.attr('hidden')) {
-                // g.axisGeneratorY = g._computeAxisGenerator(g.axisOrientY, g.scaleY, g.scalingY, g.scaleBaseY);
+              if (!g.axisY.attr('hidden')) {
                 g._updateAxisBrushGenerator.call(g.axisBrushGeneratorY, this.rangeY, g.axisOrientY);
                 g.axisY.select('.brush').raise().call(g.axisBrushGeneratorY);
-                g.axisY.transition(100).attr('transform', 'translate(' + (g.axisY._left || 0) + ',' + (g.axisY._top || 0) + ')');
+                g.axisY.attr('transform', 'translate(' + (g.axisY._left || 0) + ',' + (g.axisY._top || 0) + ')');
               } else {
                 g.set('domainY', this.domainY);
               }
@@ -827,19 +826,19 @@
             }
           })
 
-          if (this.axisX && !this.axisX.attr('hidden')) {
-            // this.axisGeneratorX = this._computeAxisGenerator(this.axisOrientX, this.scaleX, this.scalingX, this.scaleBaseX);
+          if (!this.axisX.attr('hidden')) {
+
             this._updateAxisBrushGenerator.call(this.axisBrushGeneratorX, this.rangeX, this.axisOrientX);
             this.axisX.select('.brush').raise().call(this.axisBrushGeneratorX);
-            this.axisX.call(this.axisGeneratorX.tickSize(this.tickSize).tickFormat(this.axisX.classed('expanded') ? this._computeFormatFn(this.scalingX, this.scaleBaseX) : ''))
+            this.axisX.transition(100).call(this.axisGeneratorX.tickSize(this.tickSize).tickFormat(this.axisX.classed('expanded') ? this._computeFormatFn(this.scalingX, this.scaleBaseX) : ''))
                 .transition(100)
                 .attr('transform', 'translate(' + (this.axisX._left || 0) + ',' + (this.axisX._top || 0) + ')');
           }
-          if (this.axisY && !this.axisY.attr('hidden')) {
+          if (!this.axisY.attr('hidden')) {
             // this.axisGeneratorY = this._computeAxisGenerator(this.axisOrientY, this.scaleY, this.scalingY, this.scaleBaseY);
             this._updateAxisBrushGenerator.call(this.axisBrushGeneratorY, this.rangeY, this.axisOrientY);
             this.axisY.select('.brush').raise().call(this.axisBrushGeneratorY);
-            this.axisY.call(this.axisGeneratorY.tickSize(this.tickSize).tickFormat(this.axisY.classed('expanded') ? this._computeFormatFn(this.scalingY, this.scaleBaseY) : ''))
+            this.axisY.transition(100).call(this.axisGeneratorY.tickSize(this.tickSize).tickFormat(this.axisY.classed('expanded') ? this._computeFormatFn(this.scalingY, this.scaleBaseY) : ''))
                 .transition(100)
                 .attr('transform', 'translate(' + (this.axisY._left || 0) + ',' + (this.axisY._top || 0) + ')');
           }
@@ -868,7 +867,7 @@
       }
 
       _getDomain() {
-        // console.log('_getDomain');
+        console.log('_getDomain');
         return new Promise((resolve, reject) => {
           var p = [], q = [];
           this._graphs.forEach( g => {
@@ -1156,18 +1155,68 @@
             g.set('interpolation', interpolation);
         })
       }
-
+      _onAxisBrushEnd(key) {
+        if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
+        var s = d3.event.selection;
+        if (!s) {
+          return;
+        }
+        // super._onAxisBrushEnd(key);
+        if (!this.multiAxesX) {
+          var domain = s.map(this.scaleX.invert, this.scaleX).sort((a, b) => { return a > b});
+          this._graphs.forEach(g => {
+            g.scaleX.domain(domain);
+            g.axisGeneratorX.scale(g.scaleX);
+            g.redraw();
+          })
+          this.axisX._isBrushed = true;
+          this.axisX.call(this.axisGeneratorX.scale().domain(domain));
+          this.axisX.select(".brush").call(this.axisBrushGeneratorX.move, null);
+        }
+        if (!this.multiAxesY) {
+          var domain = s.map(this.scaleY.invert, this.scaleY).sort((a, b) => { return a > b});
+          this._graphs.forEach(g => {
+            g.scaleY.domain(domain);
+            g.axisGeneratorY.scale(g.scaleY);
+            g.redraw();
+          })
+          this.axisY._isBrushed = true;
+          this.axisY.call(this.axisGeneratorY.scale().domain(domain));
+          this.axisY.select(".brush").call(this.axisBrushGeneratorY.move, null);
+        }
+        this._zoom.call(this._zoomBehavior.transform, d3.zoomIdentity
+          .scale(this._width / (s[1] - s[0]))
+          .translate(-s[0], 0));
+        // this.redraw();
+      }
       _onZoomed() {
         if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") return; // ignore zoom-by-brush
         var t = d3.event.transform;
-        console.log(t);
+
         if (!this.multiAxesX) {
-          this.set('domainX', t.rescaleX(this.scaleX).domain().sort((a, b) => { return a > b}));
+          var x = d3.event.transform.rescaleX(this.scaleX);
+          this._graphs.forEach(g => {
+            g.scaleX.domain(x.domain());
+            g.axisGeneratorX.scale(g.scaleX);
+            console.log(g.scaleX.domain(), g.scaleY.domain())
+            g.redraw();
+          })
+          this.axisX.call(this.axisGeneratorX.scale(x));
+          this._isZoomed = !(t.k === 1 && t.x === 0 && t.y === 0);
+          console.log('zoomed x', this._isZoomed)
         }
         if (!this.multiAxesY) {
-          this.set('domainY', t.rescaleY(this.scaleY).domain().sort((a, b) => { return a > b}));
+          var y = d3.event.transform.rescaleY(this.scaleY);
+          this._graphs.forEach(g => {
+            g.scaleY.domain(y.domain());
+            g.axisGeneratorY.scale(g.scaleY);
+            g.redraw();
+          })
+          this.axisY.call(this.axisGeneratorY.scale(y));
+          this._isZoomed = !(t.k === 1 && t.x === 0 && t.y === 0);
+          console.log('zoomed', this._isZoomed)
         }
-        this.redraw();
+        // this.redraw();
       }
       //
       // changeScale(newValue, oldValue) {
@@ -1197,6 +1246,13 @@
         this._isZoomed = false;
         this._fixedValue = null;
         this._focusedValue = null;
+        this.axisX._isBrushed = false;
+        this.axisY._isBrushed = false;
+        this._zoom.call(this._zoomBehavior.transform, d3.zoomIdentity.scale(1));
+        this._graphs.forEach(g => {
+          g.axisX._isBrushed = false;
+          g.axisY._isBrushed = false;
+        })
         this._hideInfo();
         this._redomain();
       }

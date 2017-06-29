@@ -9,9 +9,9 @@ low = -22
 high = 22
 prec = 1
 rowlenght = 25
-initialLineLength = 1000
+initialLineLength = 10
 valueseperator = ';'
-interval = 1
+interval = 10
 
 
 def createRow(d, i, shouldprint):
