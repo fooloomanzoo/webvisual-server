@@ -77,12 +77,14 @@ class Router extends EventEmitter {
     this.cookieParser = require('cookie-parser')(this.sessionSecret)
     this.app.use(this.cookieParser)
 
+    // session-cookie-db
     this.sessionStore = new RedisStore({
       host: 'localhost',
       port: 6379,
       db: 1
     })
 
+    // session cookie with saving in redis db
     this.sessionMiddleWare = session({
       store: this.sessionStore,
       key: 'connect.sid',
@@ -166,6 +168,7 @@ class Router extends EventEmitter {
       })
     })
 
+    // watch for changes, if in development mode, for auto-reloading
     switch (this.mode) {
       case 'development':
         let srcpath = resolvePath(this.dir.dist.development)
@@ -176,7 +179,7 @@ class Router extends EventEmitter {
         // Add event listeners.
         this.watcher
           .on('change', path => {
-            this.emit('log', `${this.mode}: "${path}" changed`)
+            this.emit('log', `${this.mode}: "${path}" changed. Clients reload...`)
             if (this.reloadJob) {
               clearTimeout(this.reloadJob)
               this.reloadJob = null
@@ -228,16 +231,26 @@ class Router extends EventEmitter {
       fallthrough: false
     }))
 
-    // App
-    this.app.use(serveStatic(this.dir.dist[this.mode], {
-      index: ['index.html'],
-      prefix: (this.mode === 'development' ? '' : rootByUserAgent)
-    }))
+    // Delivering App (versions defined by polymer build)
+    // not in development mode (build version) and supporting es6 (bundled version)
+    this.app.use(
+      conditional(this.mode !== 'development',
+        conditional(useragent_supports_es6,
+          serveStatic( path.join(this.dir.dist[this.mode], '/bundled'), { index: ['index.html'] })
+      )))
+    // not in development mode (build version) and not supporting es6 (compiled version)
+    this.app.use(
+      conditional(this.mode !== 'development',
+        conditional(useragent_supports_es6,
+          serveStatic( path.join(this.dir.dist[this.mode], '/compiled')), true
+      )))
+    // in development mode (unbuild, uncompiled version)
+    this.app.use(serveStatic(this.dir.dist.development))
 
     // Fallback (for in-app-page-routing neccessary)
     this.app.get('*', (req, res) => {
       res.location(req.originalUrl)
-      res.sendFile(path.join(this.dir.dist[this.mode], (this.mode === 'development' ? '' : rootByUserAgent(req)), 'index.html'))
+      res.sendFile(path.join(this.dir.dist[this.mode], (this.mode === 'development' ? '' : (useragent_supports_es6(req) ? '/bundled' : '/compiled')), 'index.html'))
     })
   }
 
@@ -403,22 +416,44 @@ function minify() {
   })
 }
 
-function rootByUserAgent(req) {
+function conditional(condition, middleware, negate) {
+  if (negate === true) {
+    if (typeof condition === 'function') {
+      return function(req, res, next) {
+        if (!condition(req)) return middleware(req, res, next)
+          next()
+      }
+    }
+    return function(req, res, next) {
+      if (!condition) return middleware(req, res, next)
+        next()
+    }
+  }
+  if (typeof condition === 'function') {
+    return function(req, res, next) {
+      if (condition(req)) return middleware(req, res, next)
+        next()
+    }
+  }
+  return function(req, res, next) {
+    if (condition) return middleware(req, res, next)
+      next()
+  }
+}
+
+function useragent_supports_es6(req) {
   let ua = req.useragent,
     browser = ua.browser,
     versionSplit = (ua.version || '').split('.'),
-    [majorVersion, minorVersion] = versionSplit.map(v => { return v ? parseInt(v, 10) : -1}),
-    supportsES2015 = (browser === 'Chrome' && majorVersion >= 49) ||
+    [majorVersion, minorVersion] = versionSplit.map(v => { return v ? parseInt(v, 10) : -1});
+  console.log(browser, versionSplit);
+  return (browser === 'Chrome' && majorVersion >= 49) ||
     (browser === 'Chromium' && majorVersion >= 49) ||
     (browser === 'Opera' && majorVersion >= 36) ||
     (browser === 'Vivaldi' && majorVersion >= 1) ||
     (browser === 'Safari' && majorVersion >= 10) ||
     (browser === 'Edge' && (majorVersion > 15 || (majorVersion === 15 && minorVersion >= 15063))) ||
     (browser === 'Firefox' && majorVersion >= 51);
-  if (supportsES2015) {
-    return '/bundled'
-  }
-  return '/compiled'
 }
 
 module.exports = Router

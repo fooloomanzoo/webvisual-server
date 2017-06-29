@@ -48,7 +48,7 @@
     "redis": "*",
     "rollup": "*",
     "rollup-plugin-node-resolve": "*",
-    "serve-static": "github:fooloomanzoo/serve-static",
+    "serve-static": "serve-static",
     "socket.io": "^1.7.4",
     "spdy": "*",
     "underscore": "*",

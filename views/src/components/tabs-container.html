@@ -44,9 +44,15 @@ Modification from Polymer Shop Demo App
       :host([vertical]) {
         @apply --layout-center-center;
       }
+      :host([reverse]) #container {
+        flex-direction: row-reverse;
+      }
       :host([vertical]) #container {
         flex-direction: column;
         width: 100%;
+      }
+      :host([reverse][vertical]) #container {
+        flex-direction: column-reverse;
       }
       :host([vertical]) ::slotted(*) {
         width: 100%;
@@ -104,7 +110,11 @@ Modification from Polymer Shop Demo App
           this.$.overlay.target = selectedItem;
         }
         requestAnimationFrame(() => {
-          this.$.container.scrollTop = selectedItem.offsetTop - this.$.container.offsetTop - this.$.container.clientHeight / 2 + selectedItem.clientHeight / 2;
+          if (this.vertical) {
+            this.$.container.scrollTop = selectedItem.offsetTop - this.$.container.offsetTop - this.$.container.clientHeight / 2 + selectedItem.clientHeight / 2;
+          } else {
+            this.$.container.scrollLeft = selectedItem.offsetLeft - this.$.container.offsetLeft - this.$.container.clientWidth / 2 + selectedItem.clientWidth / 2;
+          }
         })
       }
 

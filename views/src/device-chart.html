@@ -342,14 +342,14 @@
             value: 2
           },
 
-          multiAxes: {
-            type: Object,
-            value: function() {
-              return {
-                x: false,
-                y: true
-              };
-            }
+          multiAxesX: {
+            type: Boolean,
+            value: false
+          },
+
+          multiAxesY: {
+            type: Boolean,
+            value: true
           },
 
           tickSize: {
@@ -362,14 +362,14 @@
             value: 6
           },
 
-          axisSize: {
-            type: Object,
-            value: function() {
-              return {
-                x: 20,
-                y: 54
-              };
-            }
+          axisSizeX: {
+            type: Number,
+            value: 20
+          },
+
+          axisSizeY: {
+            type: Number,
+            value: 54
           },
 
           interpolation: {
@@ -473,7 +473,7 @@
       }
 
       _buildLayout() {
-        console.log('_buildLayout');
+        // console.log('_buildLayout');
         this._svg = d3.select(this.$.svg)
           .attr('height', null)
           .attr('width', null);
@@ -487,16 +487,16 @@
         this._boundery = d3.select(this.$.boundery);
 
         this.axisX = this._computeAxisNode(this._axisInsertionPoint)
-                           .attr('hidden', (this.multiAxes && this.multiAxes.x) ? true: null)
+                           .attr('hidden', (this.multiAxes && this.multiAxesX) ? true: null)
                            .classed('expanded', true)
                            .classed('x', true);
         this.axisY = this._computeAxisNode(this._axisInsertionPoint)
-                           .attr('hidden', (this.multiAxes && this.multiAxes.y) ? true: null)
+                           .attr('hidden', (this.multiAxes && this.multiAxesY) ? true: null)
                            .classed('expanded', true)
                            .classed('vertical', true)
                            .classed('y', true);
-        this.axisGeneratorX = this._computeAxisGenerator(this.axisPositionX, this.scaleX, this.scalingX, this.scaleBaseX);
-        this.axisGeneratorY = this._computeAxisGenerator(this.axisPositionY, this.scaleY, this.scalingY, this.scaleBaseY);
+        this.axisGeneratorX = this._computeAxisGenerator(this.axisOrientX, this.scaleX, this.scalingX, this.scaleBaseX);
+        this.axisGeneratorY = this._computeAxisGenerator(this.axisOrientY, this.scaleY, this.scalingY, this.scaleBaseY);
 
         this._info = d3.select(this.$.info);
         this._focus = d3.select(this.$.focus);
@@ -565,8 +565,8 @@
         //         }
         //         this._focusedValue = closestPoint;
         //         this._focusedValue.g = closestGraph;
-        //         this._focusedValue._y_axis = this.multiAxes.y ? (closestGraph._y_left + closestGraph._y_right) : 0;
-        //         this._focusedValue._x_axis = this.multiAxes.x ? (closestGraph._x_bottom + closestGraph._x_top) : this._height;
+        //         this._focusedValue._y_axis = this.multiAxesY ? (closestGraph._y_left + closestGraph._y_right) : 0;
+        //         this._focusedValue._x_axis = this.multiAxesX ? (closestGraph._x_bottom + closestGraph._x_top) : this._height;
         //         this._focusDot.datum(closestPoint)
         //           .attr('fill', fill)
         //           .attr('r', closestGraph.dotRadius);
@@ -627,12 +627,13 @@
           return;
         }
 
-        console.log('sizeLayout');
+        // console.log('sizeLayout');
         var top = 0,
           right = 0,
           bottom = 0,
           left = 0,
-          axisSize = this.axisSize,
+          axisSizeX = this.axisSizeX,
+          axisSizeY = this.axisSizeY,
           tickSize = this.tickSize,
           axisMargin = this.axisMargin,
           condensedSize = tickSize + axisMargin;
@@ -682,22 +683,22 @@
         this._graphs.forEach( g => {
           if (g._isAttached) {
             if (g.axisX && !g.axisX.attr('hidden')) {
-              var size = g.axisX.classed('expanded') ? axisSize.x : condensedSize;
-              q.push(incremPosition.call(g.axisX, g.axisPositionX, size));
+              var size = g.axisX.classed('expanded') ? axisSizeX : condensedSize;
+              q.push(incremPosition.call(g.axisX, g.axisOrientX, size));
             }
             if (g.axisY && !g.axisY.attr('hidden')) {
-              var size = g.axisY.classed('expanded') ? axisSize.y : condensedSize;
-              q.push(incremPosition.call(g.axisY, g.axisPositionY, size));
+              var size = g.axisY.classed('expanded') ? axisSizeY : condensedSize;
+              q.push(incremPosition.call(g.axisY, g.axisOrientY, size));
             }
           }
         })
         if (this.axisX && !this.axisX.attr('hidden')) {
-          var size = this.axisX.classed('expanded') ? axisSize.x : condensedSize;
-          q.push(incremPosition.call(this.axisX, this.axisPositionX, size));
+          var size = this.axisX.classed('expanded') ? axisSizeX : condensedSize;
+          q.push(incremPosition.call(this.axisX, this.axisOrientX, size));
         }
         if (this.axisY && !this.axisY.attr('hidden')) {
-          var size = this.axisY.classed('expanded') ? axisSize.y : condensedSize;
-          q.push(incremPosition.call(this.axisY, this.axisPositionX, size));
+          var size = this.axisY.classed('expanded') ? axisSizeY : condensedSize;
+          q.push(incremPosition.call(this.axisY, this.axisOrientX, size));
         }
 
         Promise.all(q).then(() => {
@@ -715,18 +716,18 @@
           this._graphs.forEach( g => {
             if (g._isAttached) {
               if (g.axisX && !g.axisX.attr('hidden')) {
-                p.push(finalizePosition.call(g.axisX, g.axisPositionX, this._width, this._height));
+                p.push(finalizePosition.call(g.axisX, g.axisOrientX, this._width, this._height));
               }
               if (g.axisY && !g.axisY.attr('hidden')) {
-                p.push(finalizePosition.call(g.axisY, g.axisPositionY, this._width, this._height));
+                p.push(finalizePosition.call(g.axisY, g.axisOrientY, this._width, this._height));
               }
             }
           })
           if (this.axisX && !this.axisX.attr('hidden')) {
-            p.push(finalizePosition.call(this.axisX, this.axisPositionX, this._width, this._height));
+            p.push(finalizePosition.call(this.axisX, this.axisOrientX, this._width, this._height));
           }
           if (this.axisY && !this.axisY.attr('hidden')) {
-            p.push(finalizePosition.call(this.axisY, this.axisPositionY, this._width, this._height));
+            p.push(finalizePosition.call(this.axisY, this.axisOrientY, this._width, this._height));
           }
 
           Promise.all(p).then(() => {
@@ -752,21 +753,21 @@
         var hidden;
         this._graphs.forEach( g => {
           if (g._isAttached) {
-            hidden = (this.multiAxes.x && g.axisX) ? null : true;
+            hidden = (this.multiAxesX && g.axisX) ? null : true;
             g.axisX.attr('hidden', hidden);
             if (hidden) {
-              g.set('domainX', this.scaleX.domain());
+              g.set('domainX', this.domainX);
             }
-            hidden = (this.multiAxes.y && g.axisY) ? null : true;
+            hidden = (this.multiAxesY && g.axisY) ? null : true;
             g.axisY.attr('hidden', hidden);
             if (hidden) {
-              g.set('domainY', this.scaleY.domain());
+              g.set('domainY', this.domainY);
             }
           }
         })
-        hidden = (this.multiAxes.x && this.axisX) ? true : null;
+        hidden = (this.multiAxesX && this.axisX) ? true : null;
         this.axisX.attr('hidden', hidden);
-        hidden = (this.multiAxes.y && this.axisY) ? true : null;
+        hidden = (this.multiAxesY && this.axisY) ? true : null;
         this.axisY.attr('hidden', hidden);
       }
 
@@ -781,9 +782,8 @@
         }
       }
 
-      _redomain() {
+      _redomain(keys) {
         if (!this._isAttached) return;
-
         if (this._activeRedrawJob) {
           clearTimeout(this._activeRedrawJob);
         }
@@ -808,38 +808,42 @@
           clearTimeout(this._activeRedrawJob);
         }
         this._activeRedrawJob = setTimeout(() => {
-          console.log('_redraw');
+          // console.log('_redraw');
           this._graphs.forEach( g => {
             if (g._isAttached) {
-              if (g.axisX && !g.axisX.attr('hidden')) {
-                // g.axisGeneratorX = g._computeAxisGenerator(g.axisPositionX, g.scaleX, g.scalingX, g.scaleBaseX);
-                g._updateAxisBrushGenerator.call(g.axisBrushGeneratorX, this.rangeX, g.axisPositionX);
+              if (!g.axisX.attr('hidden')) {
+                // g.axisGeneratorX = g._computeAxisGenerator(g.axisOrientX, g.scaleX, g.scalingX, g.scaleBaseX);
+                g._updateAxisBrushGenerator.call(g.axisBrushGeneratorX, this.rangeX, g.axisOrientX);
                 g.axisX.select('.brush').raise().call(g.axisBrushGeneratorX);
                 g.axisX.transition(100).attr('transform', 'translate(' + (g.axisX._left || 0) + ',' + (g.axisX._top || 0) + ')');
+              } else {
+                g.set('domainX', this.domainX);
               }
               if (g.axisY && !g.axisY.attr('hidden')) {
-                // g.axisGeneratorY = g._computeAxisGenerator(g.axisPositionY, g.scaleY, g.scalingY, g.scaleBaseY);
-                g._updateAxisBrushGenerator.call(g.axisBrushGeneratorY, this.rangeY, g.axisPositionY);
+                // g.axisGeneratorY = g._computeAxisGenerator(g.axisOrientY, g.scaleY, g.scalingY, g.scaleBaseY);
+                g._updateAxisBrushGenerator.call(g.axisBrushGeneratorY, this.rangeY, g.axisOrientY);
                 g.axisY.select('.brush').raise().call(g.axisBrushGeneratorY);
                 g.axisY.transition(100).attr('transform', 'translate(' + (g.axisY._left || 0) + ',' + (g.axisY._top || 0) + ')');
+              } else {
+                g.set('domainY', this.domainY);
               }
               g.redraw();
             }
           })
 
           if (this.axisX && !this.axisX.attr('hidden')) {
-            // this.axisGeneratorX = this._computeAxisGenerator(this.axisPositionX, this.scaleX, this.scalingX, this.scaleBaseX);
-            this._updateAxisBrushGenerator.call(this.axisBrushGeneratorX, this.rangeX, this.axisPositionX);
+            // this.axisGeneratorX = this._computeAxisGenerator(this.axisOrientX, this.scaleX, this.scalingX, this.scaleBaseX);
+            this._updateAxisBrushGenerator.call(this.axisBrushGeneratorX, this.rangeX, this.axisOrientX);
             this.axisX.select('.brush').raise().call(this.axisBrushGeneratorX);
-            this.axisX.call(this.axisGeneratorX.tickSize(this.tickSize).tickFormat(this.axisX.classed('expanded') ? null : ''))
+            this.axisX.call(this.axisGeneratorX.tickSize(this.tickSize).tickFormat(this.axisX.classed('expanded') ? this._computeFormatFn(this.scalingX, this.scaleBaseX) : ''))
                 .transition(100)
                 .attr('transform', 'translate(' + (this.axisX._left || 0) + ',' + (this.axisX._top || 0) + ')');
           }
           if (this.axisY && !this.axisY.attr('hidden')) {
-            // this.axisGeneratorY = this._computeAxisGenerator(this.axisPositionY, this.scaleY, this.scalingY, this.scaleBaseY);
-            this._updateAxisBrushGenerator.call(this.axisBrushGeneratorY, this.rangeY, this.axisPositionY);
+            // this.axisGeneratorY = this._computeAxisGenerator(this.axisOrientY, this.scaleY, this.scalingY, this.scaleBaseY);
+            this._updateAxisBrushGenerator.call(this.axisBrushGeneratorY, this.rangeY, this.axisOrientY);
             this.axisY.select('.brush').raise().call(this.axisBrushGeneratorY);
-            this.axisY.call(this.axisGeneratorY.tickSize(this.tickSize).tickFormat(this.axisY.classed('expanded') ? null : ''))
+            this.axisY.call(this.axisGeneratorY.tickSize(this.tickSize).tickFormat(this.axisY.classed('expanded') ? this._computeFormatFn(this.scalingY, this.scaleBaseY) : ''))
                 .transition(100)
                 .attr('transform', 'translate(' + (this.axisY._left || 0) + ',' + (this.axisY._top || 0) + ')');
           }
@@ -867,37 +871,17 @@
         }, 0);
       }
 
-      brushed() {
-        // var s = d3.event.selection;
-        // this._debouncedHideInfo();
-        // if (s) {
-        //   this._isBrushed = true;
-        //   this._isZoomed = true;
-        //   this.scaleX.domain([s[0][0], s[1][0]].map(this.scaleX.invert, this.scaleX)).nice(this.xTicks);
-        //   this.scaleY.domain([s[1][1], s[0][1]].map(this.scaleY.invert, this.scaleY)).nice(this.yTicks);
-        //   this._brush.call(this._brushMixin.move, null);
-        //   return;
-        // } else if (this._isBrushed === true) {
-        //   this._isBrushed = false;
-        // } else {
-        //   this._isZoomed = false;
-        //   this._redomain();
-        //   return;
-        // }
-        // this.redraw();
-      }
-
       _getDomain() {
-        console.log('_getDomain');
+        // console.log('_getDomain');
         return new Promise((resolve, reject) => {
           var p = [], q = [];
           this._graphs.forEach( g => {
-            p.push( g._getDomain('x', this.multiAxes['x']) )
-            q.push( g._getDomain('y', this.multiAxes['y']) )
+            p.push( g._getDomain('x', this.multiAxesX) )
+            q.push( g._getDomain('y', this.multiAxesX) )
           })
           Promise.all(p)
             .then(res => {
-              var min, max, domainX;
+              var min, max, domain;
               for (var i = 0; i < res.length; i++) {
                 min = (min === undefined || min > res[i].domain[0]) ? res[i].domain[0] : min;
                 max = (max === undefined || max < res[i].domain[1]) ? res[i].domain[1] : max;
@@ -905,16 +889,19 @@
               if (min === undefined || max === undefined) {
                 resolve();
               }
-              domainX = [min, max];
-              this.set('domainX', domainX);
-              if (this.multiAxes.x === false) {
+              domain = [min, max];
+              this.set('domainX', domain);
+              this.scaleX.domain(domain);
+              if (this.multiAxesX === false) {
                 this._graphs.forEach( g => {
-                  g.set('domainX', domainX);
+                  g.axisX._isBrushed = false;
+                  g.set('domainX', domain);
+                  g.scaleX.domain(domain);
                 })
               }
               Promise.all(q)
                 .then(res => {
-                  var min, max, domainY;
+                  var min, max, domain;
                   for (var i = 0; i < res.length; i++) {
                     min = (min === undefined || min > res[i].domain[0]) ? res[i].domain[0] : min;
                     max = (max === undefined || max < res[i].domain[1]) ? res[i].domain[1] : max;
@@ -922,11 +909,12 @@
                   if (min === undefined || max === undefined) {
                     resolve();
                   }
-                  domainY = [min, max];
-                  this.set('domainY', domainY);
-                  if (this.multiAxes.y === false) {
+                  domain = [min, max];
+                  this.set('domainY', domain);
+                  if (this.multiAxesY === false) {
                     this._graphs.forEach( g => {
-                      g.set('domainY', domainY);
+                      g.axisY._isBrushed = false;
+                      g.set('domainY', domain);
                     })
                   }
                   resolve();
@@ -938,70 +926,6 @@
               .catch(error => {
                 reject(error);
               });
-          // for (var key in this.multiAxes) {
-          //   if (this.multiAxes[key] === true) {
-          //
-          //   } else {
-          //     p.push(
-          //       this.requestRange(key)
-          //             .then(res => {
-          //               if (res.key === 'x') {
-          //                 this.set('domainX', res.domain);
-          //               }
-          //               else if (res.key === 'y') {
-          //                 this.set('domainY', res.domain);
-          //               }
-          //             }) )
-          //   }
-          // }
-
-          // this.requestRange('x')
-          //   .then(rangeX => {
-          //     var domainX = rangeX;
-          //     this.requestRange('y')
-          //       .then(rangeY => {
-          //
-          //         var domainY = rangeY;
-          //
-          //         // if min, max are equal, add a little space
-          //         if (domainY[0] !== undefined && domainY[1] !== undefined && domainY[0] === domainY[1]) {
-          //           domainY[0] -= 0.5;
-          //           domainY[1] += 0.5;
-          //         }
-          //
-          //         if (this.yScale === 'ln' || this.yScale === 'log₁₀') {
-          //           if (domainY[0] <= 0) {
-          //             domainY[0] = Number.EPSILON;
-          //           }
-          //           if (domainY[1] <= 0) {
-          //             domainY[1] = Number.EPSILON;
-          //           }
-          //         }
-          //
-          //         this.scaleX.domain(domainX);
-          //         this.set('domainX', domainX);
-          //         this.scaleY.domain(domainY).nice(this.yTicks);
-          //
-          //         // if domain is on the edge of data, add a little space
-          //         domainY = this.scaleY.domain();
-          //         if (domainY[0] === rangeY[0]) {
-          //           domainY[0] -= (rangeY[1] - rangeY[0]) / this.yTicks;
-          //         }
-          //         if (domainY[1] === rangeY[1]) {
-          //           domainY[1] += (rangeY[1] - rangeY[0]) / this.yTicks;
-          //         }
-          //         this.scaleY.domain(domainY);
-          //         this.set('domainY', domainY);
-          //         resolve();
-          //
-          //       })
-          //       .catch(err => {
-          //         reject(err);
-          //       });
-          //   })
-          //   .catch(err => {
-          //     reject(err);
-          //   });
         });
       }
 
@@ -1018,30 +942,6 @@
             g.clearValues();
         })
       }
-      //
-      // requestRange(key) {
-      //   return new Promise((resolve, reject) => {
-      //     var p = [];
-      //     this._graphs.forEach( g => {
-      //       if (g && g._isAttached && g.item && g.item.mount)
-      //         p.push(g._getDomain(key));
-      //     })
-      //     Promise.all(p)
-      //       .then(res => {
-      //         var min, max, key;
-      //         for (var i = 0; i < res.length; i++) {
-      //           min = (min === undefined || min > res[i].domain[0]) ? res[i].domain[0] : min;
-      //           max = (max === undefined || max < res[i].domain[1]) ? res[i].domain[1] : max;
-      //           key = key || res[i].key;
-      //         }
-      //         if (min === undefined || max === undefined) {
-      //           reject();
-      //         }
-      //         resolve({domain: [min, max], key: key});
-      //       })
-      //       .catch(err => {});
-      //   });
-      // }
 
       _moveInfo(d) {
         if (Number.isFinite(this.scaleY(d.y))) {

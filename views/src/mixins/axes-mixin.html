@@ -27,12 +27,12 @@
            *    y: 'top'
            *  }
            */
-          axisPositionX: {
+          axisOrientX: {
             type: String,
             value: 'bottom'
           },
 
-          axisPositionY: {
+          axisOrientY: {
             type: String,
             value: 'left'
           },
@@ -95,14 +95,14 @@
           axisBrushGeneratorX: {
             type: Function,
             value: function() {
-              return d3.brushX().on('end', this._onAxisBrushEnd.bind(this));
+              return d3.brushX().on('end', this._onAxisBrushEnd.bind(this, 'x'));
             }
           },
 
           axisBrushGeneratorY: {
             type: Function,
             value: function() {
-              return d3.brushY().on('end', this._onAxisBrushEnd.bind(this));
+              return d3.brushY().on('end', this._onAxisBrushEnd.bind(this, 'y'));
             }
           },
 
@@ -138,23 +138,6 @@
         ]
       }
 
-      _updateAxisFormat(numberFormat, timeFormat) {
-        if (this.axisGeneratorX) {
-          this.axisGeneratorX = this._computeAxisGenerator(this.axisPositionX, this.scaleX, this.scalingX, this.scaleBaseX);
-          if (this.axisX) {
-            this.axisX.call(this.axisGeneratorX.tickSize(this.tickSize).tickFormat(this.axisX.classed('expanded') ? null : ''));
-            console.log('recall because of format')
-          }
-        }
-        if (this.axisGeneratorY) {
-          this.axisGeneratorY = this._computeAxisGenerator(this.axisPositionY, this.scaleY, this.scalingY, this.scaleBaseY);
-          if (this.axisY) {
-            this.axisY.call(this.axisGeneratorY.tickSize(this.tickSize).tickFormat(this.axisY.classed('expanded') ? null : ''));
-            console.log('recall because of format')
-          }
-        }
-      }
-
       _updateAxisBrushGenerator(range, pos, tickSize) {
         tickSize = tickSize || 8;
         var extent = [[0,0],[range[1],range[0]]]
@@ -171,7 +154,7 @@
       }
 
       _computeAxisGenerator(pos, scale, scaling, base) {
-        if (!pos || scale === undefined || scaling === undefined)  return;
+        if (!pos || scale === undefined || scaling === undefined) return;
         var tickSize = this.tickSize || 6;
         return ((pos === 'left') ? d3.axisLeft(scale) :
           (pos === 'right') ? d3.axisRight(scale) :
@@ -249,71 +232,85 @@
 
       _onAxisDragStart() {
         d3.select(this).raise().classed('dragged', true);
-        this._left = d3.event.x;
-        this._top = d3.event.y;
-        console.log('dragged', d3.event, this._left, this._top);
+        this._startleft = d3.event.x;
+        this._starttop = d3.event.y;
       }
       _onAxisDragged() {
         var vertical = d3.select(this).classed('vertical'), left = 0, top = 0;
-        console.log(d3.event)
         if (vertical) {
-          left = (this._axis._left || 0) + d3.event.x - this._left;
+          left = (this._axis._left || 0) + d3.event.x - this._startleft;
         } else {
-          top = (this._axis._top || 0) + d3.event.y - this._top;
+          top = (this._axis._top || 0) + d3.event.y - this._starttop;
         }
         d3.select(this).attr('transform', 'translate(' + left + ',' + top + ')');
-
-        // d3.select(this).attr('cx', d.x = d3.event.x).attr('cy', d.y = d3.event.y);
       }
       _onAxisDragEnd() {
         d3.select(this).classed('dragged', false);
-        var vertical = d3.select(this).classed('vertical'), left = 0, top = 0;
+        var vertical = d3.select(this).classed('vertical'), left = 0, top = 0, pos, g = this._genitor;
         if (vertical) {
-          left = d3.event.x;
-          if (this._width) {
-            this._position = (left > this._width / 2) ? 'right' : 'left';
+          left = (this._axis._left || 0) + d3.event.x - this._startleft;
+          pos = (left > g.rangeX[1] / 2) ? 'right' : 'left';
+          if (pos !== g.axisOrientY) {
+            g.axisGeneratorY = g._computeAxisGenerator(g.axisOrientY = pos, g.scaleY, g.scalingY, g.scaleBaseY).ticks(g.ticksY).tickSize(g.tickSize).tickFormat(g.axisY.classed('expanded') ? g._computeFormatFn(g.scalingY, g.scaleBaseY) : '');
+            var node = g.axisY.node();
+            if (node && node.parentElement)
+              node.parentElement.removeChild(node);
+            g.axisY = g._computeAxisNode(g._axisInsertionPoint, g.item && g.item.mount)
+                         .classed('vertical', true)
+                         .classed('expanded', true)
+                         .classed('y', true)
+                         .call(g.axisGeneratorY);
+            g.sizeChanged();
+            return;
           }
+          left = this._axis._left;
         } else {
-          top = d3.event.y;
-          if (this._height) {
-            this._position = (top > this._height / 2) ? 'bottom' : 'top';
+          top = (this._axis._top || 0) + d3.event.y - this._starttop;
+          pos = (top > g.rangeY[0] / 2) ? 'bottom' : 'top';
+          if (pos !== g.axisOrientX) {
+            setTimeout(() => {
+              g.axisGeneratorX = g._computeAxisGenerator((g.axisOrientX = pos), g.scaleX, g.scalingX, g.scaleBaseX).tickFormat(g.axisX.classed('expanded') ? g._computeFormatFn(g.scalingX, g.scaleBaseX) : '');
+              var node = g.axisX.node();
+              if (node && node.parentElement)
+                node.parentElement.removeChild(node);
+              g.axisX = g._computeAxisNode(g._axisInsertionPoint, g.item && g.item.mount)
+                           .classed('expanded', true)
+                           .classed('x', true)
+                           .call(g.axisGeneratorX);
+              g.sizeChanged();
+            },0);
+            return;
           }
+          top = this._axis._top;
         }
         d3.select(this).attr('transform', 'translate(' + left + ',' + top + ')');
-        this.dispatchEvent(new CustomEvent('iron-resize', {
-          bubbles: true,
-          composed: true,
-          node: this
-        }));
-        console.log('dragged', this, d3.event);
+        this._startleft = 0;
+        this._starttop = 0;
       }
       _onAxisBrushEnd(key) {
-        var s = d3.event.selection;
+        var
+          vertical = (key === 'y'),
+          s = d3.event.selection,
+          scale = vertical ? this.scaleY : this.scaleX,
+          axis = vertical ? this.axisY : this.axisX,
+          brush = axis.select('.brush'),
+          generator = vertical ? this.axisBrushGeneratorY : this.axisBrushGeneratorX,
+          brushed = axis._isBrushed;
         console.log('brushend', s);
         if (s) {
           if (s[0] === s[1]) {
-            var expanded = this._axis[key].classed('expanded');
-            var brushed = this._axis[key]._isBrushed;
-            if (!expanded) {
-              this._axis[key].classed('expanded', true)
-            } else if (brushed) {
-              this._axis[key]._isBrushed = false;
-              this._getDomain(key).then( (d) => {
-                this.set('domain.' + d.key, d.domain);
-                this._axisBrush[key].call(this._axisBrushGenerator[key].move, null);
-              })
-              return;
-            }
-          } else {
-            this._axis[key]._isBrushed = true;
-            s = s.map(this.scale[key].invert, this.scale[key]).sort((a, b) => { return a > b});
-            console.log(s);
-            this.set('domain.' + key, s);
+            axis._isBrushed = false;
+            s = (vertical ? this.rangeY : this.rangeX);
           }
-          this._axisBrush[key].call(this._axisBrushGenerator[key].move, null);
-          return;
+          axis._isBrushed = true;
+          s = s.map(scale.invert, scale).sort((a, b) => { return a > b});
+          console.log(s, this);
+          this.set(vertical ? 'domainY' : 'domainX', s);
+          brush.call(generator.move, null);
+          this.redraw()
+
         }
-        this.redraw();
+        // this.sizeChanged();
       }
 
       _axisColorChanged(color) {
@@ -343,13 +340,13 @@
       }
 
       formatTime(date) {
-        return (d3.timeSecond(date) < date ? this.timeFormat(':%S.%L') :
-          d3.timeMinute(date) < date ? this.timeFormat(':%M:%S') :
+        return (d3.timeSecond(date) < date ? this.timeFormat('.%L') :
+          d3.timeMinute(date) < date ? this.timeFormat(':%S') :
           d3.timeHour(date) < date ? this.timeFormat('%H:%M') :
           d3.timeDay(date) < date ? this.timeFormat('%X') :
-          d3.timeWeek(date) < date ? this.timeFormat('%d.%m') :
-          d3.timeMonth(date) < date ? this.timeFormat('%d.%m') :
-          d3.timeYear(date) < date ? this.timeFormat('%d. %b') :
+          d3.timeMonth(date) < date ?
+          (d3.timeWeek(date) < date ? this.timeFormat('%e %m') : this.timeFormat('%d %m')) :
+          d3.timeYear(date) < date ? this.timeFormat('%d %b') :
           this.timeFormat('%Y'))(date);
       }
       /**
@@ -400,9 +397,9 @@
         return ret;
       }
 
-      formatNumber(scale, num) {
+      formatNumber(scale, base, num) {
         // format with thousands separators
-        return this.numberFormat(',')(num);
+        return this.numberFormat('n')(num);
       }
 
       _setDateNumberFormat(localeNumber, localeDate) {
@@ -420,16 +417,16 @@
         }
 
         if (this.axisGeneratorX) {
-          this.axisGeneratorX = this._computeAxisGenerator(this.axisPositionX, this.scaleX, this.scalingX, this.scaleBaseX);
+          this.axisGeneratorX = this._computeAxisGenerator(this.axisOrientX, this.scaleX, this.scalingX, this.scaleBaseX);
           if (this.axisX) {
-            this.axisX.call(this.axisGeneratorX.tickSize(this.tickSize).tickFormat(this.axisX.classed('expanded') ? null : ''));
+            this.axisX.call(this.axisGeneratorX.tickSize(this.tickSize).tickFormat(this.axisX.classed('expanded') ? this._computeFormatFn(this.scalingX, this.scaleBaseX) : ''));
             // console.log('recall because of format')
           }
         }
         if (this.axisGeneratorY) {
-          this.axisGeneratorY = this._computeAxisGenerator(this.axisPositionY, this.scaleY, this.scalingY, this.scaleBaseY);
+          this.axisGeneratorY = this._computeAxisGenerator(this.axisOrientY, this.scaleY, this.scalingY, this.scaleBaseY);
           if (this.axisY) {
-            this.axisY.call(this.axisGeneratorY.tickSize(this.tickSize).tickFormat(this.axisY.classed('expanded') ? null : ''));
+            this.axisY.call(this.axisGeneratorY.tickSize(this.tickSize).tickFormat(this.axisY.classed('expanded') ? this._computeFormatFn(this.scalingY, this.scaleBaseY) : ''));
             // console.log('recall because of format')
           }
         }

@@ -155,10 +155,10 @@
         this._chart = containerRoot;
         this._axisInsertionPoint = containerRoot._axisInsertionPoint;
 
-        if (!this._chart.multiAxes.x) {
+        if (!this._chart.multiAxesX) {
           this.set('domainX', this._chart.domainX);
         }
-        if (!this._chart.multiAxes.y) {
+        if (!this._chart.multiAxesY) {
           this.set('domainY', this._chart.domainY);
         }
         this.set('rangeX', this._chart.rangeX)
@@ -169,25 +169,20 @@
 
         if (!this.axisX ) {
           this.axisX = this._computeAxisNode(this._axisInsertionPoint, this.item.mount)
-                             .attr('hidden', (this._chart.multiAxes.x) ? null : true)
+                             .attr('hidden', (this._chart.multiAxesX) ? null : true)
                              .classed('mount', this.item.mount)
                              .classed('x', true)
         }
         if (!this.axisY ) {
           this.axisY = this._computeAxisNode(this._axisInsertionPoint, this.item.mount)
-                             .attr('hidden', (this._chart.multiAxes.y) ? null : true)
+                             .attr('hidden', (this._chart.multiAxesY) ? null : true)
                              .classed('vertical', true)
                              .classed('y', true)
         }
-        this.axisGeneratorX = this._computeAxisGenerator(this.axisPositionX, this.scaleX, this.scalingX, this.scaleBaseX);
-        this.axisGeneratorY = this._computeAxisGenerator(this.axisPositionY, this.scaleY, this.scalingY, this.scaleBaseY);
-        // this.axisBrushGeneratorX = this._computeAxisBrushGenerator(this.axisPositionX);
-        // this.axisBrushGeneratorY = this._computeAxisBrushGenerator(this.axisPositionY);
-
-        // for (var key in this._chart.multiAxes) {
-        //   this.scale[key] = this._chart.multiAxes[key] ? this.scale[key] : this._chart.scale[key];
-        //   this._addAxis(key, this.item.mount, !this._chart.multiAxes[key]);
-        // }
+        this.axisGeneratorX = this._computeAxisGenerator(this.axisOrientX, this.scaleX, this.scalingX, this.scaleBaseX);
+        this.axisGeneratorY = this._computeAxisGenerator(this.axisOrientY, this.scaleY, this.scalingY, this.scaleBaseY);
+        // this.axisBrushGeneratorX = this._computeAxisBrushGenerator(this.axisOrientX);
+        // this.axisBrushGeneratorY = this._computeAxisBrushGenerator(this.axisOrientY);
 
         this._chart._addGraph(this);
         this._setColorProperties();
@@ -237,8 +232,8 @@
             .attr('mount', this.item.mount)
             .attr('class', 'area')
             .attr('stroke-width', 0)
-            .datum([])
-            .attr('d', this._areaGenerator);
+            // .datum([])
+            .attr('d', this._areaGenerator([]));
         }
       }
 
@@ -265,8 +260,8 @@
             .attr('class', 'line')
             .attr('fill', 'none')
             .attr('stroke-width', this.lineWidth)
-            .datum([])
-            .attr('d', this._lineGenerator);
+            // .datum([])
+            .attr('d', this._lineGenerator([]));
 
         }
       }
@@ -333,16 +328,16 @@
         });
         if (this.storeInside) {
           this.values = this.values.concat(values);
-          if (!this._isAttached || (this._chart.multiAxes.x && !this.axisX._isBrushed)) {
+          if (this.axisX && !this.axisX._isBrushed) {
             var min = this.min(this.values, 'x');
             var max = this.max(this.values, 'x');
             if (!(min === undefined && max === undefined)) {
               this.set('domainX', [ min, max ] );
             }
           }
-          if (!this._isAttached || (this._chart.multiAxes.y && !this.axisY._isBrushed)) {
+          if (this.axisY && !this.axisY._isBrushed) {
             var min = this.min(this.values, 'y');
-            var max = this.max(values, 'y');
+            var max = this.max(this.values, 'y');
             if (!(min === undefined && max === undefined)) {
               this.set('domainY', [ min, max ] );
             }
@@ -376,21 +371,19 @@
           this.addNodes();
         }
         if (this._chart) {
-          var mayorRedraw;
+          var redomain_and_draw;
           if (this._chart.domainX && this._chart.domainX.some(e => { return e === undefined || e === null; })) {
             this._chart.set('domainX', this.domainX );
-            mayorRedraw = true;
+            redomain_and_draw = true;
           }
           if (this._chart.domainY && this._chart.domainY.some(e => { return e === undefined || e === null; })) {
             this._chart.set('domainY', this.domainY );
-            mayorRedraw = true;
+            redomain_and_draw = true;
           }
-          if (!this._chart.multiAxes.y && !this._chart.multiAxes.x)  {
-            this.axisY._isBrushed = false;
-            this.axisX._isBrushed = false;
-            mayorRedraw = true;
+          if (!(this._chart.multiAxesY && this._chart.multiAxesX))  {
+            redomain_and_draw = true;
           }
-          this.redraw(mayorRedraw);
+          this.redraw(redomain_and_draw, values);
         }
       }
 
@@ -399,18 +392,18 @@
         this._chart.sizeChanged();
       }
 
-      redraw(force) {
+      redraw(force, values) {
         if (!this._isAttached) return;
 
         if (force) {
           this._chart.redraw(true);
           return;
         }
-        console.log('graph redraw', this.item.mount, this.values.length);
-        this.axisX.call(this.axisGeneratorX.ticks(this._chart.ticksX).tickSize(this.tickSize).tickFormat(this.axisX.classed('expanded') ? null : ''));
-        this.axisY.call(this.axisGeneratorY.ticks(this._chart.ticksY).tickSize(this.tickSize).tickFormat(this.axisY.classed('expanded') ? null : ''));
+        // console.log('graph redraw', this.item.mount, this.values.length);
+        this.axisX.call(this.axisGeneratorX.ticks(this._chart.ticksX).tickSize(this.tickSize).tickFormat(this.axisX.classed('expanded') ? this._computeFormatFn(this.scalingX, this.scaleBaseX) : ''));
+        this.axisY.call(this.axisGeneratorY.ticks(this._chart.ticksY).tickSize(this.tickSize).tickFormat(this.axisY.classed('expanded') ? this._computeFormatFn(this.scalingY, this.scaleBaseY) : ''));
 
-        var data = this.values || [];
+        var data = values || this.values || [];
 
         // fill area
         if (this.hasArea) {
@@ -418,8 +411,8 @@
             this._areaChanged(true);
           }
           this._area
-            .datum(data)
-            .attr('d', this._areaGenerator);
+            // .datum(data)
+            .attr('d', this._areaGenerator(data));
         }
 
         // line
@@ -428,8 +421,8 @@
             this._lineChanged(true);
           }
           this._line
-            .datum(data)
-            .attr('d', this._lineGenerator);
+            // .datum(data)
+            .attr('d', this._lineGenerator(data));
         }
 
         // threshold gradients
@@ -502,31 +495,29 @@
           var vertical = (key === 'y'),
             scale = vertical ? this.scalingY : this.scalingX;
           this.requestRange(key)
-            .then(range => {
-              // console.log(key, scale, range)
-              var domain = range;
-              if (vertical) {
-                // if min, max are equal, add a little space
-                if (domain[0] !== undefined && domain[1] !== undefined && domain[0] === domain[1]) {
-                  domain[0] -= 0.5;
-                  domain[1] += 0.5;
+            .then(domain => {
+              if (domain[0] !== undefined && domain[1] !== undefined) {
+                // logarithmic scales need scales of same prefix
+                var is_log = this._IS_LOG_SCALE(scale);
+                if (is_log) {
+                  var sign = (domain[0]*domain[1] > 0);
+                  if (sign && domain[0] <= 0) {
+                    domain[0] = Math.sign(domain[1])*Number.EPSILON;
+                  }
+                  if (sign && domain[1] <= 0) {
+                    domain[1] = Math.sign(domain[0])*Number.EPSILON;
+                  }
                 }
-              }
-              // logarithmic scales need scales of same prefix
-              if (this._IS_LOG_SCALE(scale)) {
-                if (domain[0] <= 0) {
-                  domain[0] = Math.sign(domain[1])*Number.EPSILON;
-                }
-                if (domain[1] <= 0) {
-                  domain[1] = Math.sign(domain[0])*Number.EPSILON;
-                }
-              }
-              if (save) {
-                if (key === 'x') {
-                  this.set('domainX', domain);
-                }
-                else if (key === 'y') {
-                  this.set('domainY', domain);
+                if (save) {
+                  if (key === 'x') {
+                    this.set('domainX', domain);
+                  }
+                  else if (key === 'y') {
+                    this.scaleY.domain(domain);
+                    // add a little extra space to it (6px)
+                    domain = [this.scaleY.invert(this.scaleY(domain[0]) + 6), this.scaleY.invert(-6)];
+                    this.set('domainY', domain);
+                  }
                 }
               }
               resolve({domain: domain, key: key});
