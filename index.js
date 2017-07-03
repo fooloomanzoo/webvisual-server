@@ -25,6 +25,20 @@ let server
   , defaults
   , mode = process.argv[2] || 'production'
 
+// Defaults
+jsonfile.readFile(PATH_DEFAULT, function(err, obj) {
+  if (err) {
+    console.log(err)
+  } else {
+    defaults = obj
+    var config
+    if (!process.send) {
+      config = JSON.parse(JSON.stringify(defaults))
+    }
+    server = new WebvisualServer(config)
+  }
+})
+
 
 class WebvisualServer extends Controller {
 
@@ -32,18 +46,31 @@ class WebvisualServer extends Controller {
     super(config, 'WebvisualServer')
 
     process.send('ready');
+    console.log(defaults, config, this.config)
     this.mode = (config && config.mode) || mode
 
     process.send( { log: `started in ${this.mode} mode ${process.argv}`} )
 
-    if (this.config) {
-      this.connect(this.config)
+    if (config) {
+      this.connect(config)
     }
   }
 
   setConfig(config) {
+    console.log(config)
     this.config = config = config || this.config
     return new Promise((resolve, reject) => {
+      if (!defaults) {
+        console.error('Could not load defaults')
+        reject()
+      }
+      console.log(defaults)
+      if (!config) {
+        console.error('No settings are given')
+        reject()
+      }
+      console.log(config)
+
       if (this.isRunning)
         this.disconnect()
 
@@ -235,19 +262,3 @@ class WebvisualServer extends Controller {
       this.connect()
   }
 }
-
-
-
-// Defaults
-jsonfile.readFile(PATH_DEFAULT, function(err, obj) {
-  if (err) {
-    console.log(err)
-  } else {
-    defaults = obj
-    var config
-    if (!process.send) {
-      config = JSON.parse(JSON.stringify(defaults))
-    }
-    server = new WebvisualServer(config)
-  }
-})
