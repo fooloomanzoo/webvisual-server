@@ -43,6 +43,7 @@
     "passport-local": "*",
     "passport-socketio-redis": "*",
     "redis": "*",
+    "serve-static": "*",
     "socket.io": "^1.7.4",
     "spdy": "*",
     "x-frame-options": "*"
