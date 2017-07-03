@@ -33,7 +33,7 @@
     "express": "*",
     "express-session": "*",
     "express-useragent": "*",
-    "jsonfile": "^3.0.0",
+    "jsonfile": "*",
     "merge-defaults": "^0.2.1",
     "merge-options": "*",
     "merge-stream": "*",
@@ -43,7 +43,6 @@
     "passport-local": "*",
     "passport-socketio-redis": "*",
     "redis": "*",
-    "serve-static": "serve-static",
     "socket.io": "^1.7.4",
     "spdy": "*",
     "x-frame-options": "*"
