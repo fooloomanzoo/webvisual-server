@@ -268,6 +268,8 @@ class Router extends EventEmitter {
       res.location(req.originalUrl)
       res.sendFile(path.join(this.dir.dist[this.mode], (this.mode === 'development' ? '' : (useragent_supports_es6(req) ? '/bundled' : '/compiled')), 'index.html'))
     })
+
+    this.emit('ready');
   }
 
   setUserConfig(userConfigFiles) {

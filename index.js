@@ -46,7 +46,6 @@ class WebvisualServer extends Controller {
     super(config, 'WebvisualServer')
 
     process.send('ready');
-    console.log(defaults, config, this.config)
     this.mode = (config && config.mode) || mode
 
     process.send( { log: `started in ${this.mode} mode ${process.argv}`} )
@@ -57,7 +56,6 @@ class WebvisualServer extends Controller {
   }
 
   setConfig(config) {
-    console.log(config)
     this.config = config = config || this.config
     return new Promise((resolve, reject) => {
       if (!defaults) {
@@ -174,7 +172,7 @@ class WebvisualServer extends Controller {
       process.send( { info: 'WEBVISUAL SERVER is starting' } )
       this.setConfig(config)
         .then((sslSettings) => {
-          return new new Promise( (resolve, reject) => {
+          return new Promise( (resolve, reject) => {
             if (this.http2Server)
               this.http2Server.close()
             this.http2Server = spdy.createServer(sslSettings, app)
@@ -204,28 +202,27 @@ class WebvisualServer extends Controller {
             this.dataHandler.on('event', (msg) => { process.send( { event: msg } ) })
             this.dataHandler.on('log', (msg) => { process.send( { log: msg } ) })
 
-            this.configFilesHandler = new ConfigFileProcessor()
-            this.configFilesHandler.on('change', (config, facility) => {
-              this.dataHandler.setConfiguration(config, facility)
-              this.router.setConfiguration(config, facility) // load Settings to Routen them to requests
-            })
-            this.configFilesHandler.watch(this.config.userConfigFiles, this.config.database)
-
             this.router.on('ready', () => {
               this.dataHandler.setServer(this.router.io)
+              this.configFilesHandler = new ConfigFileProcessor()
+              this.configFilesHandler.on('change', (config, facility) => {
+                this.dataHandler.setConfiguration(config, facility)
+                this.router.setConfiguration(config, facility) // load Settings to Routen them to requests
+                this.router.createStaticContent()
+              })
+              this.configFilesHandler.watch(this.config.userConfigFiles, this.config.database)
               resolve()
             })
             this.router.setSettings(config, this.http2Server)
           });
         })
         .then( () => {
-          this.router.createStaticContent()
           this.http2Server.listen(this.config.server.port || process.env.port || 443)
           this.isRunning = true
           process.send( { event: 'server-start' } )
         })
         .catch( (err) => {
-          process.send( { error: `in Server Configuration \n ${err}` } )
+          process.send( { error: `in Server Configuration \n ${err.stack}` } )
         })
     } else {
       this.toggle(config)
