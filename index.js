@@ -208,7 +208,6 @@ class WebvisualServer extends Controller {
               this.configFilesHandler.on('change', (config, facility) => {
                 this.dataHandler.setConfiguration(config, facility)
                 this.router.setConfiguration(config, facility) // load Settings to Routen them to requests
-                this.router.createStaticContent()
               })
               this.configFilesHandler.watch(this.config.userConfigFiles, this.config.database)
               resolve()
