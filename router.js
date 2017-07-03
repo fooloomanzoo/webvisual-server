@@ -35,7 +35,9 @@ const EventEmitter = require('events').EventEmitter,
     },
     data: path.join(__dirname, 'views/data'),
     image: path.join(__dirname, 'views/images'),
-    locale: path.join(__dirname, 'views/locales')
+    locale: path.join(__dirname, 'views/locales'),
+    icons: path.join(__dirname, 'views/icons'),
+    fonts: path.join(__dirname, 'views/fonts')
   }
 
   const requiredStaticSettings = [
@@ -119,7 +121,7 @@ class Router extends EventEmitter {
 
   setSettings(options, server) {
     if (options === undefined)
-      this.emit('error', 'Empty Configuration passed to Router')
+      console.error('Empty Configuration passed to Router')
     for (let key in options) {
       if (key == 'server' && server)
         this.setServer(options.server, server)
@@ -179,7 +181,7 @@ class Router extends EventEmitter {
         // Add event listeners.
         this.watcher
           .on('change', path => {
-            this.emit('log', `${this.mode}: "${path}" changed. Clients reload...`)
+            console.log(`${this.mode}: "${path}" changed. Clients reload...`)
             if (this.reloadJob) {
               clearTimeout(this.reloadJob)
               this.reloadJob = null
@@ -189,7 +191,7 @@ class Router extends EventEmitter {
             }, 1500)
           })
 
-        this.emit('info', `Watch for changes in ${srcpath}. Clients reload on change.`)
+        console.info(`Watch for changes in ${srcpath}. Clients reload on change.`)
         break
     }
 
@@ -217,6 +219,20 @@ class Router extends EventEmitter {
       req.session.destroy()
       res.sendStatus(200)
     })
+
+    // Secured Data
+    this.app.use('/locale', serveStatic(this.dir.locale, {
+      index: false,
+      fallthrough: false
+    }))
+    this.app.use('/fonts', serveStatic(this.dir.fonts, {
+      index: false,
+      fallthrough: false
+    }))
+    this.app.use('/icons', serveStatic(this.dir.icons, {
+      index: false,
+      fallthrough: false
+    }))
 
     // Secured Data
     this.app.use('/data', this.settings.server.auth.required ? ensureLoggedIn.isRequired : ensureLoggedIn.notRequired)
@@ -316,7 +332,7 @@ class Router extends EventEmitter {
           pth = path.resolve(dest, comb + '+' + key + '.json')
           fs.writeFile(pth, JSON.stringify(opt[system][key] || {}), err => {
             if (err)
-              this.emit('error', `Writing Files for static content configuration data (${this.dir.data}) failed\n ${err}`)
+              console.error(`Writing Files for static content configuration data (${this.dir.data}) failed\n ${err}`)
           })
         }
 
@@ -446,7 +462,6 @@ function useragent_supports_es6(req) {
     browser = ua.browser,
     versionSplit = (ua.version || '').split('.'),
     [majorVersion, minorVersion] = versionSplit.map(v => { return v ? parseInt(v, 10) : -1});
-  console.log(browser, versionSplit);
   return (browser === 'Chrome' && majorVersion >= 49) ||
     (browser === 'Chromium' && majorVersion >= 49) ||
     (browser === 'Opera' && majorVersion >= 36) ||

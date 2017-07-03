@@ -81,7 +81,3 @@ export {
   selectorAll,
   touch
 } from "d3-selection";
-
-export {
-  interpolatePath
-} from "d3-interpolate-path";

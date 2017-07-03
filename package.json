@@ -16,9 +16,8 @@
     "start": "node index.js",
     "test": "node debug.js redis",
     "stop": "taskkill /IM node.exe /F",
-    "postinstall": "cd views && bower install && npm run build",
     "prebuildtest": "node index.js development",
-    "build": "cd views && rollup -c && uglifyjs scripts/d3.bundle.js -c -m -o scripts/d3.bundle.js && polymer build"
+    "build": "cd views && bower install && rollup -c && uglifyjs scripts/d3.bundle.js -c -m -o scripts/d3.bundle.js && polymer build"
   },
   "dependencies": {
     "activedirectory": "^0.7.1",
@@ -29,8 +28,6 @@
     "connect-redis": "*",
     "cookie-parser": "*",
     "cookie-session": "*",
-    "d3": "*",
-    "d3-interpolate-path": "^1.1.1",
     "dateformat": "*",
     "deep-diff": "*",
     "express": "*",
@@ -45,15 +42,18 @@
     "passport": "*",
     "passport-local": "*",
     "passport-socketio-redis": "*",
-    "polymer-cli": "*",
     "redis": "*",
-    "rollup": "*",
-    "rollup-plugin-node-resolve": "*",
     "serve-static": "serve-static",
     "socket.io": "^1.7.4",
     "spdy": "*",
-    "underscore": "*",
     "x-frame-options": "*"
+  },
+  "devDependencies": {
+    "d3": "*",
+    "polymer-cli": "*",
+    "rollup": "*",
+    "rollup-plugin-node-resolve": "*",
+    "uglifyjs": "*"
   },
   "engines": {
     "node": ">= 7.0",

@@ -1,23 +1,31 @@
 {
   "entrypoint": "index.html",
-  "shell": "src/webvisual-app.html",
+  "shell": "src\\webvisual-app.html",
   "fragments": [
-    "src/page-home.html",
-    "src/page-list.html",
-    "src/page-groups.html",
-    "src/page-detail.html",
-    "src/lazy-resources.html"
+    "src\\page-home.html",
+    "src\\page-list.html",
+    "src\\page-groups.html",
+    "src\\page-detail.html",
+    "src\\lazy-resources.html"
   ],
   "sources": [
-    "src/**/*",
-    "scripts/**/*",
-    "polyfills/**/*"
+    "src\\**\\*",
+    "scripts\\**\\*",
+    "polyfills\\**\\*",
+    "index.html",
+    "src\\webvisual-app.html",
+    "src\\page-home.html",
+    "src\\page-list.html",
+    "src\\page-groups.html",
+    "src\\page-detail.html",
+    "src\\lazy-resources.html"
   ],
   "extraDependencies": [
-    "bower_components/webcomponentsjs/*",
-    "bower_components/es6-promise/*",
+    "bower_components\\webcomponentsjs\\*",
+    "bower_components\\es6-promise\\*",
     "manifest.json",
-    "app.yaml"
+    "app.yaml",
+    "bower_components\\webcomponentsjs\\*.js"
   ],
   "builds": [
     {
@@ -51,6 +59,8 @@
     }
   ],
   "lint": {
-    "rules": [ "polymer-2-hybrid" ]
+    "rules": [
+      "polymer-2-hybrid"
+    ]
   }
 }

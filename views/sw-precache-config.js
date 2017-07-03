@@ -7,7 +7,10 @@ module.exports = {
   },
   staticFileGlobs: [
     '/bower_components/webcomponentsjs/webcomponents-loader.js',
-    '/index.html'
+    '/index.html',
+    '/icons/**/*',
+    '/fonts/**/*',
+    '/locales/**/*'
   ],
   verbose: true,
   navigateFallback: '/index.html',
