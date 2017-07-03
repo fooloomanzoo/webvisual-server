@@ -172,47 +172,87 @@ class WebvisualServer extends Controller {
       process.send( { info: 'WEBVISUAL SERVER is starting' } )
       this.setConfig(config)
         .then((sslSettings) => {
-          return new Promise( (resolve, reject) => {
-            if (this.http2Server)
+          console.log(this.config.userConfigFiles)
+          if (this.http2Server)
+            this.http2Server.close()
+          this.http2Server = spdy.createServer(sslSettings, app)
+          this.http2Server.on('error', (err) => {
+            if (err.code === 'EADDRINUSE') {
+              process.send( { error: `HTTP2 Server \n Port ${this.config.server.port} in use. Please check if node.exe is not already running on this port.` } )
               this.http2Server.close()
-            this.http2Server = spdy.createServer(sslSettings, app)
-            this.http2Server.on('error', (err) => {
-                if (err.code === 'EADDRINUSE') {
-                  process.send( { error: `HTTP2 Server \n Port ${this.config.server.port} in use. Please check if node.exe is not already running on this port.` } )
-                  this.http2Server.close()
-                } else if (err.code === 'EACCES') {
-                  process.send( { error: `HTTP2 Server \n Network not accessable. Port ${this.config.server.port} might be in use by another application. Try to switch the port or quit the application, which is using this port` } )
-                } else {
-                  process.send( { error: err } )
-                }
-              })
-              .once('listening', () => {
-                process.send( { log: `HTTP2 Server is listening on port ${this.config.server.port}` } )
-              })
+            } else if (err.code === 'EACCES') {
+              process.send( { error: `HTTP2 Server \n Network not accessable. Port ${this.config.server.port} might be in use by another application. Try to switch the port or quit the application, which is using this port` } )
+            } else {
+              process.send( { error: err } )
+            }
+          })
+          .once('listening', () => {
+            process.send( { log: `HTTP2 Server is listening on port ${this.config.server.port}` } )
 
-            this.router = new Router(app, this.mode)
-            this.router.on('error', (err) => { process.send( { error: err } ) })
-            this.router.on('info', (msg) => { process.send( { info: msg } ) })
-            this.router.on('event', (msg) => { process.send( { event: msg } ) })
-            this.router.on('log', (msg) => { process.send( { log: msg } ) })
+          this.router = new Router(app, this.mode)
+          this.router.on('error', (err) => { process.send( { error: err } ) })
+          this.router.on('info', (msg) => { process.send( { info: msg } ) })
+          this.router.on('event', (msg) => { process.send( { event: msg } ) })
+          this.router.on('log', (msg) => { process.send( { log: msg } ) })
+          this.router.setSettings(config, this.http2Server)
 
-            this.dataHandler = new DataModule()
-            this.dataHandler.on('error', (err) => { process.send( { error: err } ) })
-            this.dataHandler.on('info', (msg) => { process.send( { info: msg } ) })
-            this.dataHandler.on('event', (msg) => { process.send( { event: msg } ) })
-            this.dataHandler.on('log', (msg) => { process.send( { log: msg } ) })
+          this.dataHandler = new DataModule()
+          this.dataHandler.on('error', (err) => { process.send( { error: err } ) })
+          this.dataHandler.on('info', (msg) => { process.send( { info: msg } ) })
+          this.dataHandler.on('event', (msg) => { process.send( { event: msg } ) })
+          this.dataHandler.on('log', (msg) => { process.send( { log: msg } ) })
 
-            this.router.on('ready', () => {
-              this.dataHandler.setServer(this.router.io)
-              this.configFilesHandler = new ConfigFileProcessor()
-              this.configFilesHandler.on('change', (config, facility) => {
-                this.dataHandler.setConfiguration(config, facility)
-                this.router.setConfiguration(config, facility) // load Settings to Routen them to requests
-              })
-              this.configFilesHandler.watch(this.config.userConfigFiles, this.config.database)
-              resolve()
-            })
-            this.router.setSettings(config, this.http2Server)
+          this.configFilesHandler = new ConfigFileProcessor()
+          this.configFilesHandler.on('change', (config, facility) => {
+            this.dataHandler.setConfiguration(config, facility)
+            this.router.setConfiguration(config, facility)
+          })
+          this.configFilesHandler.watch(this.config.userConfigFiles, this.config.database)
+
+          this.dataHandler.setServer(this.router.io)
+          // return new Promise( (resolve, reject) => {
+          //   if (this.http2Server)
+          //     this.http2Server.close()
+          //   this.http2Server = spdy.createServer(sslSettings, app)
+          //   this.http2Server.on('error', (err) => {
+          //       if (err.code === 'EADDRINUSE') {
+          //         process.send( { error: `HTTP2 Server \n Port ${this.config.server.port} in use. Please check if node.exe is not already running on this port.` } )
+          //         this.http2Server.close()
+          //       } else if (err.code === 'EACCES') {
+          //         process.send( { error: `HTTP2 Server \n Network not accessable. Port ${this.config.server.port} might be in use by another application. Try to switch the port or quit the application, which is using this port` } )
+          //       } else {
+          //         process.send( { error: err } )
+          //       }
+          //     })
+          //     .once('listening', () => {
+          //       process.send( { log: `HTTP2 Server is listening on port ${this.config.server.port}` } )
+          //     })
+          //
+          //   this.router = new Router(app, this.mode)
+          //   this.router.on('error', (err) => { process.send( { error: err } ) })
+          //   this.router.on('info', (msg) => { process.send( { info: msg } ) })
+          //   this.router.on('event', (msg) => { process.send( { event: msg } ) })
+          //   this.router.on('log', (msg) => { process.send( { log: msg } ) })
+          //
+          //   this.dataHandler = new DataModule()
+          //   this.dataHandler.on('error', (err) => { process.send( { error: err } ) })
+          //   this.dataHandler.on('info', (msg) => { process.send( { info: msg } ) })
+          //   this.dataHandler.on('event', (msg) => { process.send( { event: msg } ) })
+          //   this.dataHandler.on('log', (msg) => { process.send( { log: msg } ) })
+          //
+          //   this.router.on('ready', () => {
+          //     this.dataHandler.setServer(this.router.io)
+          //     resolve()
+          //   })
+          //
+          //   this.configFilesHandler = new ConfigFileProcessor()
+          //   this.configFilesHandler.on('change', (conf, facility) => {
+          //     this.dataHandler.setConfiguration(conf, facility)
+          //     this.router.setConfiguration(conf, facility)
+          //   })
+          //   this.configFilesHandler.watch(this.config.userConfigFiles, this.config.database)
+          //
+          //   this.router.setSettings(config, this.http2Server)
           });
         })
         .then( () => {
@@ -229,6 +269,10 @@ class WebvisualServer extends Controller {
   }
 
   disconnect() {
+    if (activeErrorRestartJob) {
+      clearTimeout( activeErrorRestartJob )
+      activeErrorRestartJob = null
+    }
     if (this.http2Server)
       this.http2Server.close()
     this.configFilesHandler.unwatch()
@@ -241,7 +285,7 @@ class WebvisualServer extends Controller {
     if (this.isRunning)
       this.disconnect()
     setTimeout(() => {
-      this.connect()
+      this.connect(config)
     }, 2500)
   }
 
@@ -258,6 +302,6 @@ class WebvisualServer extends Controller {
     if (this.isRunning)
       this.disconnect()
     else
-      this.connect()
+      this.connect(config)
   }
 }
