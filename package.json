@@ -1,6 +1,6 @@
 {
   "name": "webvisual-server",
-  "version": "0.8.0",
+  "version": "0.8.2",
   "description": "server for visualization of data changes",
   "private": "true",
   "homepage": "https://github.com/fooloomanzoo/webvisual",
