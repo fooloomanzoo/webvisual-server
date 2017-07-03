@@ -254,9 +254,11 @@
         if (vertical && this.axisY._isBrushed) {
           this.axisY.select(".brush").call(this.axisBrushGeneratorY.move, null);
           this.axisY._isBrushed = false;
+          this.redraw();
         } else if (!vertical && this.axisX._isBrushed) {
           this.axisX.select(".brush").call(this.axisBrushGeneratorX.move, null);
           this.axisX._isBrushed = false;
+          this.redraw();
         }
       }
       _onAxisMouseover() {

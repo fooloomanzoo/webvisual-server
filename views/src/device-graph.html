@@ -730,9 +730,11 @@
           if (vertical && this.axisY._isBrushed) {
             Promise.resolve(this._getDomain('y', true));
             this.axisY._isBrushed = false;
+            this.redraw();
           } else if (!vertical && this.axisX._isBrushed) {
             Promise.resolve(this._getDomain('x', true));
             this.axisX._isBrushed = false;
+            this.redraw();
           }
         }
       }
