@@ -95,6 +95,9 @@
         } else {
           this.$.tabs.classList.remove('hidden');
         }
+        if (length === 1) {
+          this.set('selectedItemMount', this.items[0].mount)
+        }
       }
 
       reset() {

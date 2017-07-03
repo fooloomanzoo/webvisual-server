@@ -11,7 +11,7 @@ prec = 1
 rowlenght = 25
 initialLineLength = 10
 valueseperator = ';'
-interval = 10
+interval = 4
 
 
 def createRow(d, i, shouldprint):

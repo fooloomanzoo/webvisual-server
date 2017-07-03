@@ -117,18 +117,14 @@
         stroke-width: 0;
       }
       .axis.vertical .brush .overlay {
-        cursor: ns-resize;
+        cursor: default;
       }
       .axis:not(.vertical) .brush .overlay {
-        cursor: ew-resize;
+        cursor: default;
       }
       #graphs .area {
-        fill-opacity: 0.3;
-        transition: fill-opacity 200ms linear;
+        fill-opacity: 0.2;
         @apply --chart-area;
-      }
-      #graphs .area:last-of-type {
-        fill-opacity: 0.4;
       }
       #graphs .line {
         cursor: pointer;
@@ -173,6 +169,9 @@
       }
       .selectbox {
         padding: 0;
+      }
+      .info {
+        font-size: 12px;
       }
       #control {
         position: absolute;
@@ -275,10 +274,11 @@
             </select>
           </div>
           <div class="selectbox">
-            <select value="{{yScale::change}}">
+            <select value="{{scalingY::change}}">
               <option value="linear">linear</option>
               <option value="√">√</option>
               <option value="ln">ln</option>
+              <option value="log₂">log₂</option>
               <option value="log₁₀">log₁₀</option>
             </select>
           </div>
@@ -296,11 +296,11 @@
 
     <template is="dom-if" if="[[multi]]" restamp>
       <template is="dom-repeat" items="[[items]]">
-        <device-graph item="[[item]]" interpolation="[[interpolation]]" locale-date="[[localeDate]]" locale-number=[[localeNumber]] range-x=[[rangeX]] range-y=[[rangeY]] no-link="[[!opened]]"></device-graph>
+        <device-graph item="[[item]]" interpolation="[[interpolation]]" locale-date="[[localeDate]]" locale-number=[[localeNumber]] range-x=[[rangeX]] range-y=[[rangeY]] no-link="[[!opened]]" scaling-y="[[scalingY]]"></device-graph>
       </template>
     </template>
     <template is="dom-if" if="[[!multi]]" restamp>
-      <device-graph item="[[item]]" interpolation="[[interpolation]]" locale-date="[[localeDate]]" locale-number=[[localeNumber]] range-x=[[rangeX]]  range-y=[[rangeY]] no-link="[[!opened]]"></device-graph>
+      <device-graph item="[[item]]" interpolation="[[interpolation]]" locale-date="[[localeDate]]" locale-number=[[localeNumber]] range-x=[[rangeX]]  range-y=[[rangeY]] no-link="[[!opened]]" scaling-y="[[scalingY]]"></device-graph>
     </template>
   </template>
   <script>
@@ -484,65 +484,60 @@
                       .append('svg:rect')
                       .classed('zoom', true)
                       .call(this._zoomBehavior);
-        // this._brushMixin = d3.brush()
-        //   // .on('end', this.brushed.bind(this._self()));
-        //   .on('end', this.brushed.bind(this));
-        // this._brush = d3.select(this.$.brush);
-        // this._brush
-        //   .on('mouseenter touchstart', this._showInfo.bind(this), {
-        //     passive: true
-        //   })
-        //   .on('mouseleave touchend', this._debouncedHideInfo.bind(this), {
-        //     passive: true
-        //   })
-        //   .on('mousemove', () => {
-        //     var m = d3.mouse(this._chart.node());
-        //     requestAnimationFrame( () => {
-        //       var closestGraph, closestPoint, closestDistance;
-        //       var mounts = Object.keys(this._graphs), g;
-        //       for (var i = 0; mounts && i < mounts.length; i++) {
-        //         g = this._graphs[mounts[i]]
-        //         if (g.values && g.values.length) {
-        //           var d = g._closestPoint(m);
-        //           var currentMin2 = Math.pow(m[0] - g.scaleX(d.x), 2) + Math.pow(m[1] - g.scaleY(d.y), 2); // in px²
-        //           if (closestDistance === undefined || currentMin2 < closestDistance) {
-        //             closestDistance = currentMin2;
-        //             closestPoint = d;
-        //             closestGraph = g;
-        //           }
-        //         }
-        //       }
-        //       if (closestPoint) {
-        //         var fill = closestGraph.getComputedStyleValue('--device-color') || '#000';
-        //         if (closestGraph.item.threshold) {
-        //           switch (closestPoint.state) {
-        //             case 1:
-        //               fill = closestGraph.getComputedStyleValue('--device-state-exceeds-color') || '#F20C0C';
-        //               break;
-        //             case -1:
-        //               fill = closestGraph.getComputedStyleValue('--device-state-deceeds-color') || '#F20C0C';
-        //               break;
-        //           }
-        //         }
-        //         this._focusedValue = closestPoint;
-        //         this._focusedValue.g = closestGraph;
-        //         this._focusedValue._y_axis = this.multiAxesY ? (closestGraph._y_left + closestGraph._y_right) : 0;
-        //         this._focusedValue._x_axis = this.multiAxesX ? (closestGraph._x_bottom + closestGraph._x_top) : this._height;
-        //         this._focusDot.datum(closestPoint)
-        //           .attr('fill', fill)
-        //           .attr('r', closestGraph.dotRadius);
-        //         this._showInfo();
-        //         this._moveInfo(closestPoint);
-        //       } else {
-        //         this._debouncedHideInfo();
-        //       }
-        //     });
-        //   }, {
-        //     passive: true
-        //   })
-        //   .on('touchmove', this._resetZoom.bind(this), {
-        //     passive: true
-        //   });
+
+        this._zoom
+          .on('mouseenter touchstart', this._showInfo.bind(this), {
+            passive: true
+          })
+          .on('mouseleave touchend', this._debouncedHideInfo.bind(this), {
+            passive: true
+          })
+          .on('mousemove', () => {
+            var m = d3.mouse(this._chart.node());
+            requestAnimationFrame( () => {
+              var closestGraph, closestPoint, closestDistance;
+              this._graphs.forEach(g => {
+                if (g.values && g.values.length) {
+                  var d = g._closestPoint(m);
+                  var currentMin2 = Math.pow(m[0] - g.scaleX(d.x), 2) + Math.pow(m[1] - g.scaleY(d.y), 2); // in px²
+                  if (closestDistance === undefined || currentMin2 < closestDistance) {
+                    closestDistance = currentMin2;
+                    closestPoint = d;
+                    closestGraph = g;
+                  }
+                }
+              });
+              if (closestPoint) {
+                var fill = closestGraph.getComputedStyleValue('--device-color') || '#000';
+                if (closestGraph.item.threshold) {
+                  switch (closestPoint.state) {
+                    case 1:
+                      fill = closestGraph.getComputedStyleValue('--device-state-exceeds-color') || '#F20C0C';
+                      break;
+                    case -1:
+                      fill = closestGraph.getComputedStyleValue('--device-state-deceeds-color') || '#F20C0C';
+                      break;
+                  }
+                }
+                this._focusedValue = closestPoint;
+                this._focusedValue.g = closestGraph;
+                this._focusedValue._left = this.multiAxesY ? closestGraph.axisY._left : this.axisY._left;
+                this._focusedValue._top = this.multiAxesX ? closestGraph.axisX._top : this.axisX._top;
+                this._focusDot.datum(closestPoint)
+                  .attr('fill', fill)
+                  .attr('r', closestGraph.dotRadius);
+                this._showInfo();
+                this._moveInfo(closestPoint);
+              } else {
+                this._debouncedHideInfo();
+              }
+            });
+          }, {
+            passive: true
+          })
+          .on('touchmove', this._resetZoom.bind(this), {
+            passive: true
+          });
 
         this._svg.selectAll('g,line,text,path,rect')
           .classed('style-scope', true)
@@ -588,7 +583,7 @@
           return;
         }
 
-        console.log('sizeLayout');
+        // console.log('sizeLayout');
         var top = -2,
           right = 1,
           bottom = 1,
@@ -705,6 +700,54 @@
             this._chart._bottom = bottom;
             this._chart._left = left;
 
+            this._control.transition(100).style('transform', 'translate(-' + this._chart._right + 'px,-' + this._chart._bottom + 'px)');
+
+            // Limiting Projection to Margin
+            this._chart.select('clipPath#clip rect').transition(100)
+              .attr('width', this._width)
+              .attr('height', this._height);
+
+            this._chart.select('rect#plot').transition(100)
+              .attr('width', this._width)
+              .attr('height', this._height);
+
+            this._chart.transition(100).attr('transform', 'translate(' + (-this._chart._left || 0) + ',' + (-this._chart._top || 0) + ')');
+            this._focusY.attr('y1', this._height);
+
+            this._graphs.forEach( g => {
+              if (g._isAttached) {
+                if (!g.axisX.attr('hidden')) {
+                  g.axisGeneratorX = g._computeAxisGenerator(g.axisOrientX, g.scaleX, g.scalingX, g.scaleBaseX).tickSize(g.tickSize).tickFormat(g.axisX.classed('expanded') ? g._computeFormatFn(g.scalingX, g.scaleBaseX) : '');
+                  g._updateAxisBrushGenerator.call(g.axisBrushGeneratorX, this.rangeX, g.axisOrientX);
+                  g.axisX.select('.brush').raise().call(g.axisBrushGeneratorX);
+                  g.axisX.attr('transform', 'translate(' + (g.axisX._left || 0) + ',' + (g.axisX._top || 0) + ')');
+                }
+                if (!g.axisY.attr('hidden')) {
+                  g.axisGeneratorY = g._computeAxisGenerator(g.axisOrientY, g.scaleY, g.scalingY, g.scaleBaseY).tickSize(g.tickSize).tickFormat(g.axisY.classed('expanded') ? g._computeFormatFn(g.scalingY, g.scaleBaseY) : '');
+                  g._updateAxisBrushGenerator.call(g.axisBrushGeneratorY, this.rangeY, g.axisOrientY);
+                  g.axisY.select('.brush').raise().call(g.axisBrushGeneratorY);
+                  g.axisY.attr('transform', 'translate(' + (g.axisY._left || 0) + ',' + (g.axisY._top || 0) + ')');
+                }
+              }
+            })
+
+            if (!this.axisX.attr('hidden')) {
+              this.axisGeneratorX = this._computeAxisGenerator(this.axisOrientX, this.scaleX, this.scalingX, this.scaleBaseX).tickSize(this.tickSize).tickFormat(this.axisX.classed('expanded') ? this._computeFormatFn(this.scalingX, this.scaleBaseX) : '');
+              this._updateAxisBrushGenerator.call(this.axisBrushGeneratorX, this.rangeX, this.axisOrientX);
+              this.axisX.select('.brush').raise().call(this.axisBrushGeneratorX);
+              this.axisX.attr('transform', 'translate(' + (this.axisX._left || 0) + ',' + (this.axisX._top || 0) + ')');
+            }
+            if (!this.axisY.attr('hidden')) {
+              this.axisGeneratorY = this._computeAxisGenerator(this.axisOrientY, this.scaleY, this.scalingY, this.scaleBaseY).tickSize(this.tickSize).tickFormat(this.axisY.classed('expanded') ? this._computeFormatFn(this.scalingY, this.scaleBaseY) : '');
+              this._updateAxisBrushGenerator.call(this.axisBrushGeneratorY, this.rangeY, this.axisOrientY);
+              this.axisY.select('.brush').raise().call(this.axisBrushGeneratorY);
+              this.axisY.attr('transform', 'translate(' + (this.axisY._left || 0) + ',' + (this.axisY._top || 0) + ')');
+            }
+
+            this._svg.selectAll('g,line,text,path,rect')
+              .classed('style-scope device-chart', true)
+              .classed('device-chart', true);
+
             if (!this.domainX || !this.domainY || this.domainX.some(e => { return e === undefined || e === null; }) || this.domainY.some(e => { return e === undefined || e === null; })) {
               this.redraw(true);
             } else {
@@ -714,9 +757,70 @@
         })
       }
 
+      _redomain(keys) {
+        if (!this._isAttached) return;
+        if (this._activeRedrawJob) {
+          clearTimeout(this._activeRedrawJob);
+        }
+        // console.log('_redomain')
+        Promise.resolve(this._getDomain.call(this))
+          .then(this.redraw.bind(this, false))
+          .catch(err => {
+            if (err) {
+              console.warn(err);
+            }
+          });
+      }
+
+      redraw(force) {
+        if (!this._isAttached) return;
+
+        if (force) {
+          // console.log('force')
+          this._redomain();
+          return;
+        }
+        // console.log('chart redraw')
+        // async redrawing
+        if (this._activeRedrawJob) {
+          clearTimeout(this._activeRedrawJob);
+        }
+        this._activeRedrawJob = setTimeout(() => {
+
+          if (!this.axisX.attr('hidden')) {
+            this.axisX.transition(100).attr('transform', 'translate(' + (this.axisX._left || 0) + ',' + (this.axisX._top || 0) + ')').call(this.axisGeneratorX);
+          }
+          if (!this.axisY.attr('hidden')) {
+            this.axisY.transition(100).attr('transform', 'translate(' + (this.axisY._left || 0) + ',' + (this.axisY._top || 0) + ')').call(this.axisGeneratorY);
+          }
+
+          this._graphs.forEach( g => {
+            if (g._isAttached) {
+              if (!g.axisX.attr('hidden')) {
+                g.axisX.transition(100).attr('transform', 'translate(' + (g.axisX._left || 0) + ',' + (g.axisX._top || 0) + ')').call(g.axisGeneratorX);
+              } else {
+                g.set('domainX', this.domainX);
+              }
+              if (!g.axisY.attr('hidden')) {
+                g.axisY.transition(100).attr('transform', 'translate(' + (g.axisY._left || 0) + ',' + (g.axisY._top || 0) + ')').call(g.axisGeneratorY);
+              } else {
+                g.set('domainY', this.domainY);
+              }
+              g.redraw();
+            }
+          })
+
+          this._svg.selectAll('g,line,text,path,rect')
+            .classed('style-scope device-chart', true)
+            .classed('device-chart', true);
+
+          this._updateInfo();
+        }, 0);
+      }
+
       _domainXChanged(domainX) {
         if (domainX === undefined || this.scaleX === undefined || domainX.some(e => { return e === undefined || e === null; })) return;
-        console.log('domainchanged')
+        // console.log('domainchanged')
         this.scaleX.domain(domainX);
         if (!this.multiAxesX) {
           var te = this._zoomBehavior.translateExtent();
@@ -768,6 +872,8 @@
 
       _addGraph(g) {
         this._graphs.add(g);
+        this.sizeChanged();
+        g = null;
       }
       _removeGraph(g) {
         this._graphs.delete(g);
@@ -775,99 +881,12 @@
           this.set('domainX', [null,null])
           this.set('domainY', [null,null])
         }
-      }
-
-      _redomain(keys) {
-        if (!this._isAttached) return;
-        if (this._activeRedrawJob) {
-          clearTimeout(this._activeRedrawJob);
-        }
-        console.log('_redomain')
-        Promise.resolve(this._getDomain.call(this))
-          .then(this.redraw.bind(this, false))
-          .catch(err => {
-            if (err) {
-              console.warn(err);
-            }
-          });
-      }
-
-      redraw(force) {
-        if (!this._isAttached) return;
-
-        if (force) {
-          console.log('force')
-          this._redomain();
-          return;
-        }
-        console.log('chart redraw')
-        // async redrawing
-        if (this._activeRedrawJob) {
-          clearTimeout(this._activeRedrawJob);
-        }
-        this._activeRedrawJob = setTimeout(() => {
-          this._graphs.forEach( g => {
-            if (g._isAttached) {
-              if (!g.axisX.attr('hidden')) {
-                g._updateAxisBrushGenerator.call(g.axisBrushGeneratorX, this.rangeX, g.axisOrientX);
-                g.axisX.select('.brush').raise().call(g.axisBrushGeneratorX);
-                g.axisX.attr('transform', 'translate(' + (g.axisX._left || 0) + ',' + (g.axisX._top || 0) + ')');
-              } else {
-                g.set('domainX', this.domainX);
-              }
-              if (!g.axisY.attr('hidden')) {
-                g._updateAxisBrushGenerator.call(g.axisBrushGeneratorY, this.rangeY, g.axisOrientY);
-                g.axisY.select('.brush').raise().call(g.axisBrushGeneratorY);
-                g.axisY.attr('transform', 'translate(' + (g.axisY._left || 0) + ',' + (g.axisY._top || 0) + ')');
-              } else {
-                g.set('domainY', this.domainY);
-              }
-              g.redraw();
-            }
-          })
-
-          if (!this.axisX.attr('hidden')) {
-
-            this._updateAxisBrushGenerator.call(this.axisBrushGeneratorX, this.rangeX, this.axisOrientX);
-            this.axisX.select('.brush').raise().call(this.axisBrushGeneratorX);
-            this.axisX.transition(100).call(this.axisGeneratorX.tickSize(this.tickSize).tickFormat(this.axisX.classed('expanded') ? this._computeFormatFn(this.scalingX, this.scaleBaseX) : ''))
-                .transition(100)
-                .attr('transform', 'translate(' + (this.axisX._left || 0) + ',' + (this.axisX._top || 0) + ')');
-          }
-          if (!this.axisY.attr('hidden')) {
-            // this.axisGeneratorY = this._computeAxisGenerator(this.axisOrientY, this.scaleY, this.scalingY, this.scaleBaseY);
-            this._updateAxisBrushGenerator.call(this.axisBrushGeneratorY, this.rangeY, this.axisOrientY);
-            this.axisY.select('.brush').raise().call(this.axisBrushGeneratorY);
-            this.axisY.transition(100).call(this.axisGeneratorY.tickSize(this.tickSize).tickFormat(this.axisY.classed('expanded') ? this._computeFormatFn(this.scalingY, this.scaleBaseY) : ''))
-                .transition(100)
-                .attr('transform', 'translate(' + (this.axisY._left || 0) + ',' + (this.axisY._top || 0) + ')');
-          }
-
-          this._control.transition(100).style('transform', 'translate(-' + this._chart._right + 'px,-' + this._chart._bottom + 'px)');
-
-          // Limiting Projection to Margin
-          this._chart.select('clipPath#clip rect').transition(100)
-            .attr('width', this._width)
-            .attr('height', this._height);
-
-          this._chart.select('rect#plot').transition(100)
-            .attr('width', this._width)
-            .attr('height', this._height);
-
-          this._chart.transition(100).attr('transform', 'translate(' + (-this._chart._left || 0) + ',' + (-this._chart._top || 0) + ')');
-
-          this._focusY.attr('y1', this._height);
-
-          this._svg.selectAll('g,line,text,path,rect')
-            .classed('style-scope device-chart', true)
-            .classed('device-chart', true);
-
-          this._updateInfo();
-        }, 0);
+        g = null;
+        this.sizeChanged();
       }
 
       _getDomain() {
-        console.log('_getDomain');
+        // console.log('_getDomain');
         return new Promise((resolve, reject) => {
           var p = [], q = [];
           this._graphs.forEach( g => {
@@ -940,7 +959,7 @@
 
       _moveInfo(d) {
         if (Number.isFinite(this.scaleY(d.y))) {
-          var x = this.timeFormatRange.call(this, d.x, this.scaleX.domain(), this._width);
+          var x = this.formatTimeRange.call(this, d.x, this.scaleX.domain(), this._width);
           var y = this.numberFormat.call(this, d.y);
           this._info.text(x + ' ' + y);
           var fixP = this._fixedValue;
@@ -1033,8 +1052,8 @@
             }
           case 'integral':
           default: // always performed
-            this._focusX.attr('x1', focP._y_axis).attr('x2', x).attr('y2', y).attr('y1', y);
-            this._focusY.attr('y1', focP._x_axis).attr('y2', y).attr('x2', x).attr('x1', x);
+            this._focusX.attr('x1', focP._left).attr('x2', x).attr('y2', y).attr('y1', y);
+            this._focusY.attr('y1', focP._top).attr('y2', y).attr('x2', x).attr('x1', x);
             this._focusDot.attr('cy', y).attr('cx', x);
         }
 
@@ -1161,7 +1180,6 @@
         if (!s) {
           return;
         }
-        // super._onAxisBrushEnd(key);
         if (!this.multiAxesX) {
           var domain = s.map(this.scaleX.invert, this.scaleX).sort((a, b) => { return a > b});
           this._graphs.forEach(g => {
@@ -1187,7 +1205,6 @@
         this._zoom.call(this._zoomBehavior.transform, d3.zoomIdentity
           .scale(this._width / (s[1] - s[0]))
           .translate(-s[0], 0));
-        // this.redraw();
       }
       _onZoomed() {
         if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") return; // ignore zoom-by-brush
@@ -1196,14 +1213,13 @@
         if (!this.multiAxesX) {
           var x = d3.event.transform.rescaleX(this.scaleX);
           this._graphs.forEach(g => {
-            g.scaleX.domain(x.domain());
+            g.set('domainX', x.domain())
             g.axisGeneratorX.scale(g.scaleX);
-            console.log(g.scaleX.domain(), g.scaleY.domain())
+            g.scaleX.domain(x.domain());
             g.redraw();
           })
           this.axisX.call(this.axisGeneratorX.scale(x));
           this._isZoomed = !(t.k === 1 && t.x === 0 && t.y === 0);
-          console.log('zoomed x', this._isZoomed)
         }
         if (!this.multiAxesY) {
           var y = d3.event.transform.rescaleY(this.scaleY);
@@ -1214,30 +1230,18 @@
           })
           this.axisY.call(this.axisGeneratorY.scale(y));
           this._isZoomed = !(t.k === 1 && t.x === 0 && t.y === 0);
-          console.log('zoomed', this._isZoomed)
         }
-        // this.redraw();
       }
-      //
-      // changeScale(newValue, oldValue) {
-      //   // if (oldValue === undefined) return;
-      //   // var domainY = this.scaleY.domain();
-      //   // if (this.yScale === 'ln' || this.yScale === 'log₁₀') {
-      //   //   if (domainY[0] <= 0) {
-      //   //     domainY[0] = Number.EPSILON;
-      //   //   }
-      //   //   if (domainY[1] <= 0) {
-      //   //     domainY[1] = Number.EPSILON;
-      //   //   }
-      //   // }
-      //   // this._debouncedHideInfo();
-      //   // this.scaleY = this._createScaleFn(this.yScale);
-      //   // this.scaleY.domain(domainY).nice(this.yTicks);
-      //   // this.set('domainY', domainY);
-      //   // this.sizeChanged();
-      // }
 
+      _onAxisContextMenu(orient) {
+        if (this._isZoomed) {
+          this._resetZoom();
+        } else {
+          super._onAxisContextMenu(orient);
+        }
+      }
       _resetZoom(e) {
+        // console.log('resetzoom')
         if (d3.event)
           d3.event.preventDefault();
         else if (e && e.preventDefault) {

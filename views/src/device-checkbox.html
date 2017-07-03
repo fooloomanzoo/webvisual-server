@@ -35,10 +35,10 @@
         @apply --checkbox-checked-background;
       }
       :host(:not([checked])) {
-        color: var(--checkbox-unchecked-color);
+        color: var(--checkbox-unchecked-color, var(--device-color));
       }
       :host([checked]) {
-        color: var(--checkbox-checked-color);
+        color: var(--checkbox-checked-color, var(--device-color));
       }
       :host(:focus)::before {
         outline: 1px solid var(--bright-primary-color);
@@ -99,20 +99,19 @@
       #box {
         background-color: var(--device-color);
       }
-      :host([state="0"]) #box {
-        background-color: var(--device-state-inrange-color, var(--device-color));
-      }
-      :host([checked][state="1"]) #box {
+      :host([checked][state="1"]) #box,
+      :host([checked][state="1"]) #arrow {
         border-color: var(--device-state-exceeds-color);
       }
-      :host([checked][state="-1"]) #box {
+      :host([checked][state="-1"]) #box,
+      :host([checked][state="-1"]) #arrow {
         border-color: var(--device-state-deceeds-color);
       }
       :host(:not([checked])[state="1"]) #box {
-        background-color: var(--device-state-exceeds-color);
+        border-color: var(--device-state-exceeds-color);
       }
       :host(:not([checked])[state="-1"]) #box {
-        background-color: var(--device-state-deceeds-color);
+        border-color: var(--device-state-deceeds-color);
       }
       #ripple {
         color: var(--device-color);
@@ -178,7 +177,7 @@
   </template>
 
   <script>
-    class DeviceCheckbox extends WebvisualMixins.CheckedAndSelectMixin(WebvisualMixins.ColorMixin(WebvisualMixins.DeviceMixin(Polymer.Element))) {
+    class DeviceCheckbox extends WebvisualMixins.ColorMixin(WebvisualMixins.CheckedAndSelectMixin(WebvisualMixins.DeviceMixin(Polymer.Element))) {
 
       static get is() {
         return 'device-checkbox';

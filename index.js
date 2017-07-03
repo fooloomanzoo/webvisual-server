@@ -172,7 +172,6 @@ class WebvisualServer extends Controller {
       process.send( { info: 'WEBVISUAL SERVER is starting' } )
       this.setConfig(config)
         .then((sslSettings) => {
-          console.log(this.config.userConfigFiles)
           if (this.http2Server)
             this.http2Server.close()
           this.http2Server = spdy.createServer(sslSettings, app)

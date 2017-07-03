@@ -201,6 +201,7 @@
 
         axis.on('mouseover', this._onAxisMouseover.bind(this))
             .on('mouseleave', this._onAxisMouseleave.bind(this))
+            .on('contextmenu', this._onAxisContextMenu.bind(this, orient))
             .on('click', this._onAxisClicked.bind(this, axis))
           .call(d3.drag()
             .on('start', this._onAxisDragStart)
@@ -243,7 +244,20 @@
         delete this.axisBrushGeneratorY;
         delete this.axisBrushGeneratorX;
       }
-      _onAxisClicked() {
+      _onAxisClicked(axis) {
+        var expanded = axis.classed('expanded');
+        axis.classed('expanded', !expanded);
+        this.sizeChanged();
+      }
+      _onAxisContextMenu(orient) {
+        var vertical = (orient === 'left' || orient === 'right');
+        if (vertical && this.axisY._isBrushed) {
+          this.axisY.select(".brush").call(this.axisBrushGeneratorY.move, null);
+          this.axisY._isBrushed = false;
+        } else if (!vertical && this.axisX._isBrushed) {
+          this.axisX.select(".brush").call(this.axisBrushGeneratorX.move, null);
+          this.axisX._isBrushed = false;
+        }
       }
       _onAxisMouseover() {
         this.axisX.select('.brush').raise();

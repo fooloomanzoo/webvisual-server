@@ -10,32 +10,27 @@
      */
     return class extends superClass {
 
-      constructor() {
-        super();
-        this._createPropertyObserver('item.color', 'setColor', true);
+      static get observers() {
+        return [
+          'setColor(item.color)'
+        ]
       }
 
       setColor(color) {
         // random color if color is not set
-        if (color !== undefined) {
-          this.updateStyles({
-            '--device-color': color || null
-          });
+        if (color) {
+          this.updateStyles({ '--device-color': color || null });
           if (!this.item.isIndicatorLamp) {
-            this.updateStyles({
-              '--device-state-inrange-color': color || null
-            });
+            this.updateStyles({ '--device-state-inrange-color': color || null });
           } else {
-            this.updateStyles({
-              '--device-state-inrange-color': null
-            });
+            this.updateStyles({ '--device-state-inrange-color': null });
           }
         }
         this.updateStyles();
       }
 
       resetColor() {
-        this.setColor((this.item && this.item.color) || this.color || '');
+        this.setColor((this.item && this.item.color) || '');
       }
 
       getComputedStyleValue(property) {
