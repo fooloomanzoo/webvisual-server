@@ -18,9 +18,8 @@
       "rejectUnauthorized": false
     },
     "sessionStore": {
-      "type": "database",
+      "type": "redis",
       "port": 6379,
-      "kind": "redis",
       "host": "localhost"
     }
   },
