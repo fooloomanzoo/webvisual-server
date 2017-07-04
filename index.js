@@ -169,20 +169,24 @@ class WebvisualServer extends processEmiter {
       this.setConfig(config)
         .then((sslSettings) => {
 
-          this.router = new Router(this.mode)
-          this.router.on('error', err => { process.send( { error: err.stack } ) })
-          this.router.on('info', msg => { process.send( { info: msg } ) })
-          this.router.on('event', msg => { process.send( { event: msg } ) })
-          this.router.on('log', msg => { process.send( { log: msg } ) })
-          this.router.setSettings(config, sslSettings)
-
           this.dataHandler = new DataModule()
           this.dataHandler.on('error', err => { process.send( { error: err.stack } ) })
+          this.dataHandler.on('warn', msg => { process.send( { warn: msg } ) })
           this.dataHandler.on('info', msg => { process.send( { info: msg } ) })
           this.dataHandler.on('event', msg => { process.send( { event: msg } ) })
           this.dataHandler.on('log', msg => { process.send( { log: msg } ) })
-          this.dataHandler.setServer(this.router.io)
-          
+
+          this.router = new Router(this.mode)
+          this.router.on('error', err => { process.send( { error: err.stack } ) })
+          this.router.on('warn', msg => { process.send( { warn: msg } ) })
+          this.router.on('info', msg => { process.send( { info: msg } ) })
+          this.router.on('event', msg => { process.send( { event: msg } ) })
+          this.router.on('log', msg => { process.send( { log: msg } ) })
+          this.router.on('ready', () => {
+            this.dataHandler.setServer(this.router.io)
+          })
+          this.router.setSettings(config, sslSettings)
+
           this.configFilesHandler = new ConfigFileProcessor()
           this.configFilesHandler.on('change', (config, facility) => {
             this.dataHandler.setConfiguration(config, facility)

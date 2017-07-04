@@ -348,9 +348,7 @@
       }
 
       _viewChanged() {
-        console.log('viewChanged')
         if (this.opened && this.$.addons.selectedItem && this.$.addons.selectedItem.notifyResize) {
-          console.log('in', this.$.addons.selectedItem)
           this.$.addons.selectedItem.notifyResize();
         }
       }

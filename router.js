@@ -83,34 +83,6 @@ class Router extends EventEmitter {
     }
   }
 
-  createServer(sslSettings, app) {
-    sslSettings = sslSettings || this.settings.ssl
-    app = app || this.app
-    if (!sslSettings) {
-      console.warn('There are no settings available for SSL. The HTTP-connection will be unencrypted.');
-    }
-    if (!app) {
-      console.error('The Router is not initialized. the HTTP2-Server is not going to be (re-)started.');
-      return;
-    }
-    if (this.server)
-        this.server.close()
-    this.server = spdy.createServer(sslSettings, app)
-    this.server.on('error', err => {
-      if (err.code === 'EADDRINUSE') {
-        console.error( `HTTP2 Server \n Port ${this.settings.server.port} in use. Please check if node.exe is not already running on this port.` )
-        this.server.close()
-      } else if (err.code === 'EACCES') {
-        console.error( `HTTP2 Server \n Network not accessable. Port ${this.settings.server.port} might be in use by another application. Try to switch the port or quit the application, which is using this port` )
-      } else {
-        console.error( err.stack )
-      }
-    })
-    .once('listening', () => {
-      console.info( `HTTP2 Server is listening on port ${this.settings.server.port}` )
-    });
-  }
-
   connect() {
     if (this.server)
       this.server.listen(this.settings.server.port || process.env.port || 443)
@@ -201,42 +173,9 @@ class Router extends EventEmitter {
       done(null, user)
     })
 
-    this.server =
-
     // Auth Methods
     require('./lib/auth/activedirectory.js')(this.passport, this.settings.server.auth.ldap) // register custom ldap-passport-stategy
     require('./lib/auth/dummy.js')(this.passport) // register dummy-stategy
-
-    this.io = require('socket.io')(this.server)
-    this.io.use((socket, next) => {
-      this.cookieParser(socket.handshake, {}, err => {
-        if (err) {
-          console.log('error in parsing cookie')
-          return next(err)
-        }
-        if (!socket.handshake.signedCookies) {
-          console.log('no secureCookies|signedCookies found')
-          return next(new Error('no secureCookies found'))
-        }
-        if (!err && socket.handshake.signedCookies) {
-          this.sessionStore.get(socket.handshake.signedCookies['connect.sid'], (err, session) => {
-            socket.session = session
-            if (!err && !session) {
-              err = new Error('Session not found')
-            }
-            if (err) {
-              console.log('Failed connection to socket.io:', err)
-            }
-            if (session || !this.settings.server.auth.required) {
-              // console.log('Successful connection to socket.io', session)
-              next()
-            }
-          })
-        } else {
-          next(false)
-        }
-      })
-    })
 
     // watch for changes, if in development mode, for auto-reloading
     switch (this.mode) {
@@ -337,7 +276,68 @@ class Router extends EventEmitter {
       res.sendFile(path.join(this.dir.dist[this.mode], (this.mode === 'development' ? '' : (useragent_supports_es6(req) ? '/bundled' : '/compiled')), 'index.html'))
     })
 
+    this.createServer(this.settings.ssl, this.app);
+
     this.emit('ready');
+  }
+
+  createServer(sslSettings, app) {
+    sslSettings = sslSettings || this.settings.ssl
+    app = app || this.app
+    if (!sslSettings) {
+      console.warn('There are no settings available for SSL. The HTTP-connection will be unencrypted.');
+    }
+    if (!app) {
+      console.error('The Router is not initialized. the HTTP2-Server is not going to be (re-)started.');
+      return;
+    }
+    if (this.server)
+        this.server.close()
+    this.server = spdy.createServer(sslSettings, app)
+    this.server.on('error', err => {
+      if (err.code === 'EADDRINUSE') {
+        console.error( `HTTP2 Server \n Port ${this.settings.server.port} in use. Please check if node.exe is not already running on this port.` )
+        this.server.close()
+      } else if (err.code === 'EACCES') {
+        console.error( `HTTP2 Server \n Network not accessable. Port ${this.settings.server.port} might be in use by another application. Try to switch the port or quit the application, which is using this port` )
+      } else {
+        console.error( err.stack )
+      }
+    })
+    .once('listening', () => {
+      console.info( `HTTP2 Server is listening on port ${this.settings.server.port}` )
+    });
+
+    this.io = require('socket.io')(this.server)
+    this.io.use((socket, next) => {
+      this.cookieParser(socket.handshake, {}, err => {
+        if (err) {
+          // console.log('error in parsing cookie')
+          return next(err)
+        }
+        if (!socket.handshake.signedCookies) {
+          // console.log('no secureCookies|signedCookies found')
+          return next(new Error('no secureCookies found'))
+        }
+        if (!err && socket.handshake.signedCookies) {
+          this.sessionStore.get(socket.handshake.signedCookies['connect.sid'], (err, session) => {
+            socket.session = session
+            if (!err && !session) {
+              err = new Error('Session not found')
+            }
+            if (err) {
+              console.log('Failed connection to socket.io:', err)
+            }
+            if (session || !this.settings.server.auth.required) {
+              // console.log('Successful connection to socket.io', session)
+              next()
+            }
+          })
+        } else {
+          next(false)
+        }
+      })
+    })
   }
 
   setConfigurations(configFiles) {
