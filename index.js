@@ -181,7 +181,8 @@ class WebvisualServer extends processEmiter {
           this.dataHandler.on('info', msg => { process.send( { info: msg } ) })
           this.dataHandler.on('event', msg => { process.send( { event: msg } ) })
           this.dataHandler.on('log', msg => { process.send( { log: msg } ) })
-
+          this.dataHandler.setServer(this.router.io)
+          
           this.configFilesHandler = new ConfigFileProcessor()
           this.configFilesHandler.on('change', (config, facility) => {
             this.dataHandler.setConfiguration(config, facility)
@@ -189,7 +190,6 @@ class WebvisualServer extends processEmiter {
           })
           this.configFilesHandler.watch(this.config.configFiles, this.config.database)
 
-          this.dataHandler.setServer(this.router.io)
         })
         .then( () => {
           this.router.connect()

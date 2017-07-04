@@ -75,7 +75,7 @@ class Router extends EventEmitter {
       console.error('Empty Configuration passed to Router')
     for (let key in options) {
       if (key == 'server')
-        this.setApp(options.server)
+        this.setApp(options.server, sslSettings)
       else if (key == 'configFiles')
         this.setConfigurations(options.configFiles)
       else
@@ -83,29 +83,42 @@ class Router extends EventEmitter {
     }
   }
 
-  createServer(sslSettings) {
+  createServer(sslSettings, app) {
+    sslSettings = sslSettings || this.settings.ssl
+    app = app || this.app
+    if (!sslSettings) {
+      console.warn('There are no settings available for SSL. The HTTP-connection will be unencrypted.');
+    }
+    if (!app) {
+      console.error('The Router is not initialized. the HTTP2-Server is not going to be (re-)started.');
+      return;
+    }
     if (this.server)
         this.server.close()
-    this.server = spdy.createServer(sslSettings, this.app)
+    this.server = spdy.createServer(sslSettings, app)
     this.server.on('error', err => {
       if (err.code === 'EADDRINUSE') {
-        this.emit( { error: `HTTP2 Server \n Port ${this.settings.server.port} in use. Please check if node.exe is not already running on this port.` } )
+        console.error( `HTTP2 Server \n Port ${this.settings.server.port} in use. Please check if node.exe is not already running on this port.` )
         this.server.close()
       } else if (err.code === 'EACCES') {
-        this.emit( { error: `HTTP2 Server \n Network not accessable. Port ${this.settings.server.port} might be in use by another application. Try to switch the port or quit the application, which is using this port` } )
+        console.error( `HTTP2 Server \n Network not accessable. Port ${this.settings.server.port} might be in use by another application. Try to switch the port or quit the application, which is using this port` )
       } else {
-        this.emit( { error: err.stack } )
+        console.error( err.stack )
       }
     })
     .once('listening', () => {
-      this.emit( { log: `HTTP2 Server is listening on port ${this.settings.server.port}` } )
+      console.info( `HTTP2 Server is listening on port ${this.settings.server.port}` )
     });
   }
 
   connect() {
-    if (!this.server)
-      this.createServer(this.sslSettings);
-    this.server.listen(this.settings.server.port || process.env.port || 443)
+    if (this.server)
+      this.server.listen(this.settings.server.port || process.env.port || 443)
+    else {
+      this.createServer(this.settings.ssl, this.app)
+      if (this.server)
+        this.connect()
+    }
   }
 
   disconnect() {
@@ -116,10 +129,9 @@ class Router extends EventEmitter {
   setApp(options, sslSettings) {
     this.settings.server = options
     this.settings.ssl = sslSettings
-
     this.app = express();
 
-    this.createServer(sslSettings)
+    this.createServer(this.settings.ssl, this.app)
 
     if (options.sessionStore) {
       switch (options.sessionStore.type) {
