@@ -13,6 +13,8 @@ const EventEmitter = require('events').EventEmitter,
   session = require('express-session'),
   serveStatic = require('serve-static'),
   useragent = require('express-useragent'),
+  // Server
+  spdy = require('spdy'),
   // multi-form requests (login)
   multer = require('multer')({
     dest: 'tmp/',
@@ -57,16 +59,106 @@ function resolvePath() {
 
 class Router extends EventEmitter {
 
-  constructor(app, mode) {
+  constructor(mode) {
     super()
     this.dir = dir
     this.mode = (mode in this.dir.dist) ? mode : 'production'
-    this.app = app
     this.passport = require('passport')
     this.settings = {}
     this.configuration = {}
 
-    this.sessionSecret = this.settings.sessionSecret || String(Math.random().toString(16).slice(2))
+    this.sessionSecret = String(Math.random().toString(16).slice(2))
+  }
+
+  setSettings(options, sslSettings) {
+    if (options === undefined)
+      console.error('Empty Configuration passed to Router')
+    for (let key in options) {
+      if (key == 'server')
+        this.setApp(options.server)
+      else if (key == 'configFiles')
+        this.setConfigurations(options.configFiles)
+      else
+        this.settings[key] = options[key]
+    }
+  }
+
+  createServer(sslSettings) {
+    if (this.server)
+        this.server.close()
+    this.server = spdy.createServer(sslSettings, this.app)
+    this.server.on('error', err => {
+      if (err.code === 'EADDRINUSE') {
+        this.emit( { error: `HTTP2 Server \n Port ${this.settings.server.port} in use. Please check if node.exe is not already running on this port.` } )
+        this.server.close()
+      } else if (err.code === 'EACCES') {
+        this.emit( { error: `HTTP2 Server \n Network not accessable. Port ${this.settings.server.port} might be in use by another application. Try to switch the port or quit the application, which is using this port` } )
+      } else {
+        this.emit( { error: err.stack } )
+      }
+    })
+    .once('listening', () => {
+      this.emit( { log: `HTTP2 Server is listening on port ${this.settings.server.port}` } )
+    });
+  }
+
+  connect() {
+    if (!this.server)
+      this.createServer(this.sslSettings);
+    this.server.listen(this.settings.server.port || process.env.port || 443)
+  }
+
+  disconnect() {
+    if (this.server)
+      this.server.close()
+  }
+
+  setApp(options, sslSettings) {
+    this.settings.server = options
+    this.settings.ssl = sslSettings
+
+    this.app = express();
+
+    this.createServer(sslSettings)
+
+    if (options.sessionStore) {
+      switch (options.sessionStore.type) {
+        case 'redis':
+          // session-cookie-db
+          this.sessionStore = new RedisStore({
+            host: options.sessionStore.host || 'localhost',
+            port: options.sessionStore.port || 6379,
+            db: options.sessionStore.db || 1
+          })
+          break
+        default:
+      }
+      // session cookie with saving in redis db
+      this.sessionMiddleWare = session({
+        store: this.sessionStore,
+        key: 'connect.sid',
+        secret: this.sessionSecret,
+        resave: true,
+        rolling: true,
+        saveUninitialized: false,
+        cookie: {
+          secure: true,
+          maxAge: 7 * 24 * 3600 * 1000
+        }
+      })
+    } else {
+      this.sessionMiddleWare = session({
+        key: 'connect.sid',
+        secret: this.sessionSecret,
+        resave: true,
+        rolling: true,
+        saveUninitialized: false,
+        cookie: {
+          secure: true,
+          maxAge: 7 * 24 * 3600 * 1000
+        }
+      })
+    }
 
     // user-agent
     this.app.use(useragent.express())
@@ -78,27 +170,6 @@ class Router extends EventEmitter {
 
     this.cookieParser = require('cookie-parser')(this.sessionSecret)
     this.app.use(this.cookieParser)
-
-    // session-cookie-db
-    this.sessionStore = new RedisStore({
-      host: 'localhost',
-      port: 6379,
-      db: 1
-    })
-
-    // session cookie with saving in redis db
-    this.sessionMiddleWare = session({
-      store: this.sessionStore,
-      key: 'connect.sid',
-      secret: this.sessionSecret,
-      resave: true,
-      rolling: true,
-      saveUninitialized: false,
-      cookie: {
-        secure: true,
-        maxAge: 7 * 24 * 3600 * 1000
-      }
-    })
 
     this.app.use(this.sessionMiddleWare)
 
@@ -117,48 +188,33 @@ class Router extends EventEmitter {
     this.passport.deserializeUser(function(user, done) {
       done(null, user)
     })
-  }
 
-  setSettings(options, server) {
-    if (options === undefined)
-      console.error('Empty Configuration passed to Router')
-    for (let key in options) {
-      if (key == 'server' && server)
-        this.setServer(options.server, server)
-      else if (key == 'userConfigFiles')
-        this.setUserConfig(options.userConfigFiles)
-      else
-        this.settings[key] = options[key]
-    }
-  }
-
-  setServer(opt, server) {
-    this.settings.server = opt
+    this.server =
 
     // Auth Methods
     require('./lib/auth/activedirectory.js')(this.passport, this.settings.server.auth.ldap) // register custom ldap-passport-stategy
     require('./lib/auth/dummy.js')(this.passport) // register dummy-stategy
 
-    this.io = require('socket.io')(server)
+    this.io = require('socket.io')(this.server)
     this.io.use((socket, next) => {
       this.cookieParser(socket.handshake, {}, err => {
-        // if (err) {
-        //   console.log('error in parsing cookie')
-        //   return next(err)
-        // }
-        // if (!socket.handshake.signedCookies) {
-        //   console.log('no secureCookies|signedCookies found')
-        //   return next(new Error('no secureCookies found'))
-        // }
+        if (err) {
+          console.log('error in parsing cookie')
+          return next(err)
+        }
+        if (!socket.handshake.signedCookies) {
+          console.log('no secureCookies|signedCookies found')
+          return next(new Error('no secureCookies found'))
+        }
         if (!err && socket.handshake.signedCookies) {
           this.sessionStore.get(socket.handshake.signedCookies['connect.sid'], (err, session) => {
             socket.session = session
-            // if (!err && !session) {
-            //   err = new Error('Session not found')
-            // }
-            // if (err) {
-            //   console.log('Failed connection to socket.io:', err)
-            // }
+            if (!err && !session) {
+              err = new Error('Session not found')
+            }
+            if (err) {
+              console.log('Failed connection to socket.io:', err)
+            }
             if (session || !this.settings.server.auth.required) {
               // console.log('Successful connection to socket.io', session)
               next()
@@ -272,8 +328,8 @@ class Router extends EventEmitter {
     this.emit('ready');
   }
 
-  setUserConfig(userConfigFiles) {
-    this.settings.userConfigFiles = userConfigFiles
+  setConfigurations(configFiles) {
+    this.settings.configFiles = configFiles
 
     // init facilities.json
     mkdirp(this.dir.data, err => {

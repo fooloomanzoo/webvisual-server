@@ -6,17 +6,13 @@ const express = require('express')
     , path = require('path')
     , jsonfile = require('jsonfile')
 
-    // Process Controller
-    , Controller = require('./lib/controller')
+    // processEmiter
+    , processEmiter = require('./lib/process-emiter')
 
     // Processing Modules
     , DataModule = require('./lib/data_module')
     , ConfigFileProcessor = require('./lib/config_file_processor')
-    , Router = require('./router')
-
-    // Server
-    , spdy = require('spdy')
-    , app = express();
+    , Router = require('./router');
 
 const PATH_DEFAULT = path.resolve(__dirname, 'defaults/config.json')
 
@@ -40,7 +36,7 @@ jsonfile.readFile(PATH_DEFAULT, function(err, obj) {
 })
 
 
-class WebvisualServer extends Controller {
+class WebvisualServer extends processEmiter {
 
   constructor(config) {
     super(config, 'WebvisualServer')
@@ -117,7 +113,7 @@ class WebvisualServer extends Controller {
       })
 
       Promise.resolve(p)
-             .then( (ca) => {
+             .then( ca => {
                sslSettings.key = fs.readFileSync(filepaths.key, 'utf8')
                sslSettings.cert = fs.readFileSync(filepaths.cert, 'utf8')
                sslSettings.passphrase = require(filepaths.passphrase).password
@@ -138,13 +134,13 @@ class WebvisualServer extends Controller {
                        sslSettings.ca = cert_chain
                      } catch (err) {
                        process.send( {
-                         warn: err.stackTrace,
+                         warn: err.stack,
                          info: `Cannot open ${ca} to read Certification chain\n${err}`
                        } )
                      }
                    } else {
                      process.send( {
-                       warn: err.stackTrace,
+                       warn: err.stack,
                        info: `Cannot open ${ca} to read Certification chain\n${err}`
                      } )
                      sslSettings.ca = null
@@ -153,7 +149,7 @@ class WebvisualServer extends Controller {
                }
                resolve(sslSettings)
              })
-             .catch( (err) => {
+             .catch( err => {
                process.send( {
                  error: err,
                  info: 'Encryption: using default selfsigned certificates.\nPlease ensure, that the certificate-files are valid and exist.\nIf so, restart the server, please.'
@@ -172,94 +168,35 @@ class WebvisualServer extends Controller {
       process.send( { info: 'WEBVISUAL SERVER is starting' } )
       this.setConfig(config)
         .then((sslSettings) => {
-          if (this.http2Server)
-            this.http2Server.close()
-          this.http2Server = spdy.createServer(sslSettings, app)
-          this.http2Server.on('error', (err) => {
-            if (err.code === 'EADDRINUSE') {
-              process.send( { error: `HTTP2 Server \n Port ${this.config.server.port} in use. Please check if node.exe is not already running on this port.` } )
-              this.http2Server.close()
-            } else if (err.code === 'EACCES') {
-              process.send( { error: `HTTP2 Server \n Network not accessable. Port ${this.config.server.port} might be in use by another application. Try to switch the port or quit the application, which is using this port` } )
-            } else {
-              process.send( { error: err } )
-            }
-          })
-          .once('listening', () => {
-            process.send( { log: `HTTP2 Server is listening on port ${this.config.server.port}` } )
 
-          this.router = new Router(app, this.mode)
-          this.router.on('error', (err) => { process.send( { error: err } ) })
-          this.router.on('info', (msg) => { process.send( { info: msg } ) })
-          this.router.on('event', (msg) => { process.send( { event: msg } ) })
-          this.router.on('log', (msg) => { process.send( { log: msg } ) })
-          this.router.setSettings(config, this.http2Server)
+          this.router = new Router(this.mode)
+          this.router.on('error', err => { process.send( { error: err.stack } ) })
+          this.router.on('info', msg => { process.send( { info: msg } ) })
+          this.router.on('event', msg => { process.send( { event: msg } ) })
+          this.router.on('log', msg => { process.send( { log: msg } ) })
+          this.router.setSettings(config, sslSettings)
 
           this.dataHandler = new DataModule()
-          this.dataHandler.on('error', (err) => { process.send( { error: err } ) })
-          this.dataHandler.on('info', (msg) => { process.send( { info: msg } ) })
-          this.dataHandler.on('event', (msg) => { process.send( { event: msg } ) })
-          this.dataHandler.on('log', (msg) => { process.send( { log: msg } ) })
+          this.dataHandler.on('error', err => { process.send( { error: err.stack } ) })
+          this.dataHandler.on('info', msg => { process.send( { info: msg } ) })
+          this.dataHandler.on('event', msg => { process.send( { event: msg } ) })
+          this.dataHandler.on('log', msg => { process.send( { log: msg } ) })
 
           this.configFilesHandler = new ConfigFileProcessor()
           this.configFilesHandler.on('change', (config, facility) => {
             this.dataHandler.setConfiguration(config, facility)
             this.router.setConfiguration(config, facility)
           })
-          this.configFilesHandler.watch(this.config.userConfigFiles, this.config.database)
+          this.configFilesHandler.watch(this.config.configFiles, this.config.database)
 
           this.dataHandler.setServer(this.router.io)
-          // return new Promise( (resolve, reject) => {
-          //   if (this.http2Server)
-          //     this.http2Server.close()
-          //   this.http2Server = spdy.createServer(sslSettings, app)
-          //   this.http2Server.on('error', (err) => {
-          //       if (err.code === 'EADDRINUSE') {
-          //         process.send( { error: `HTTP2 Server \n Port ${this.config.server.port} in use. Please check if node.exe is not already running on this port.` } )
-          //         this.http2Server.close()
-          //       } else if (err.code === 'EACCES') {
-          //         process.send( { error: `HTTP2 Server \n Network not accessable. Port ${this.config.server.port} might be in use by another application. Try to switch the port or quit the application, which is using this port` } )
-          //       } else {
-          //         process.send( { error: err } )
-          //       }
-          //     })
-          //     .once('listening', () => {
-          //       process.send( { log: `HTTP2 Server is listening on port ${this.config.server.port}` } )
-          //     })
-          //
-          //   this.router = new Router(app, this.mode)
-          //   this.router.on('error', (err) => { process.send( { error: err } ) })
-          //   this.router.on('info', (msg) => { process.send( { info: msg } ) })
-          //   this.router.on('event', (msg) => { process.send( { event: msg } ) })
-          //   this.router.on('log', (msg) => { process.send( { log: msg } ) })
-          //
-          //   this.dataHandler = new DataModule()
-          //   this.dataHandler.on('error', (err) => { process.send( { error: err } ) })
-          //   this.dataHandler.on('info', (msg) => { process.send( { info: msg } ) })
-          //   this.dataHandler.on('event', (msg) => { process.send( { event: msg } ) })
-          //   this.dataHandler.on('log', (msg) => { process.send( { log: msg } ) })
-          //
-          //   this.router.on('ready', () => {
-          //     this.dataHandler.setServer(this.router.io)
-          //     resolve()
-          //   })
-          //
-          //   this.configFilesHandler = new ConfigFileProcessor()
-          //   this.configFilesHandler.on('change', (conf, facility) => {
-          //     this.dataHandler.setConfiguration(conf, facility)
-          //     this.router.setConfiguration(conf, facility)
-          //   })
-          //   this.configFilesHandler.watch(this.config.userConfigFiles, this.config.database)
-          //
-          //   this.router.setSettings(config, this.http2Server)
-          });
         })
         .then( () => {
-          this.http2Server.listen(this.config.server.port || process.env.port || 443)
+          this.router.connect()
           this.isRunning = true
           process.send( { event: 'server-start' } )
         })
-        .catch( (err) => {
+        .catch( err => {
           process.send( { error: `in Server Configuration \n ${err.stack}` } )
         })
     } else {
@@ -272,8 +209,8 @@ class WebvisualServer extends Controller {
       clearTimeout( activeErrorRestartJob )
       activeErrorRestartJob = null
     }
-    if (this.http2Server)
-      this.http2Server.close()
+    if (this.router)
+      this.router.disconnect()
     this.configFilesHandler.unwatch()
     this.dataHandler.disconnect()
     this.isRunning = false
@@ -294,8 +231,8 @@ class WebvisualServer extends Controller {
       activeErrorRestartJob = null
       try {
         this.disconnect()
-      } catch (e) {
-        process.send( { error: `Error in closing Server\n ${e}` } )
+      } catch (err) {
+        process.send( { error: `Error in closing Server\n ${err}` } )
       }
     }
     if (this.isRunning)
