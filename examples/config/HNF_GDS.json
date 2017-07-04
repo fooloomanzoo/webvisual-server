@@ -62,7 +62,7 @@
             "path": ""
           },
           "isIndicatorLamp": false,
-          "color": "#808080",
+          "color": "#888888",
           "unit": "₍₂₎"
         }, {
           "id": "DI0-1",
@@ -78,7 +78,7 @@
             "selector": "path#path4514,path#path4512",
             "path": "E0_gaskabinet.svg"
           },
-          "color": "#2B55ED",
+          "color": "#53ABEB",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
@@ -98,7 +98,7 @@
             "selector": "path#path4514,path#path4512",
             "path": "E0_gaskabinet.svg"
           },
-          "color": "#2B55ED",
+          "color": "#53ABEB",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
@@ -117,7 +117,7 @@
             "selector": "path#path5110-0,path#path5112-1,path#path5114-4",
             "path": "E1_bypack.svg"
           },
-          "color": "#2B55ED",
+          "color": "#53ABEB",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
@@ -136,7 +136,7 @@
             "selector": "path#path5110-0,path#path5112-1,path#path5114-4",
             "path": "E1_bypack.svg"
           },
-          "color": "#2B55ED",
+          "color": "#53ABEB",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
@@ -155,7 +155,7 @@
             "selector": "g#H2 path",
             "path": "E2_reinraum.svg"
           },
-          "color": "#2B55ED",
+          "color": "#53ABEB",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
@@ -174,7 +174,7 @@
             "selector": "g#H2 path",
             "path": "E2_reinraum.svg"
           },
-          "color": "#2B55ED",
+          "color": "#53ABEB",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
@@ -187,7 +187,7 @@
             "system": "H₂-Gasüberwachung",
             "alarmlevel": "Störung"
           },
-          "color": "#ED652B",
+          "color": "#53ABEB",
           "svg": {
             "selector": "g#H2 path",
             "path": "E2_reinraum.svg"
@@ -204,7 +204,7 @@
             "system": "intern",
             "alarmlevel": ""
           },
-          "color": "#4E993F",
+          "color": "#888888",
           "svg": {
             "selector": "",
             "path": ""
@@ -223,7 +223,7 @@
             "selector": "",
             "path": ""
           },
-          "color": "#ED652B",
+          "color": "#888888",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
@@ -240,7 +240,7 @@
             "selector": "",
             "path": ""
           },
-          "color": "#64B837",
+          "color": "#888888",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
@@ -260,7 +260,7 @@
             "selector": "g#HBR path, g#CL2 path",
             "path": "E0_gaskabinet.svg"
           },
-          "color": "#B83B37",
+          "color": "#888888",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
@@ -280,7 +280,7 @@
             "selector": "g#NH3 path, g#SIH4 path",
             "path": "E0_gaskabinet.svg"
           },
-          "color": "#B83B37",
+          "color": "#888888",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
@@ -299,7 +299,7 @@
             "selector": "g#CL2 path,g#HBR path, g#HCL path,g#NH3 path, g#SIH4 path",
             "path": "E1_bypack.svg"
           },
-          "color": "#B83B37",
+          "color": "#888888",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
@@ -318,7 +318,7 @@
             "selector": "g#CL2 path,g#HBR path, g#HCL path,g#NH3 path, g#SIH4 path",
             "path": "E2_reinraum.svg"
           },
-          "color": "#B83B37",
+          "color": "#888888",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
@@ -337,7 +337,7 @@
             "selector": "g#HBR path",
             "path": "E2_reinraum.svg"
           },
-          "color": "#2BED6D",
+          "color": "#ED2BA5",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
@@ -354,7 +354,7 @@
             "selector": "",
             "path": ""
           },
-          "color": "#4E993F",
+          "color": "#888888",
           "isIndicatorLamp": true
         },
 
@@ -367,7 +367,7 @@
             "selector": "",
             "path": ""
           },
-          "color": "#4E993F",
+          "color": "#888888",
           "isIndicatorLamp": true
         }, {
           "id": "DI1-3",
@@ -382,7 +382,7 @@
             "selector": "g#CL2 path",
             "path": "E1_bypack.svg"
           },
-          "color": "#2BED6D",
+          "color": "#4AE885",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
@@ -402,7 +402,7 @@
             "selector": "path#path4476,path#path4478",
             "path": "E0_gaskabinet.svg"
           },
-          "color": "#2BED6D",
+          "color": "#4AE885",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
@@ -422,7 +422,7 @@
             "selector": "path#path4472,path#path4470",
             "path": "E0_gaskabinet.svg"
           },
-          "color": "#2BED6D",
+          "color": "#ED2BA5",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
@@ -439,7 +439,7 @@
             "selector": "",
             "path": ""
           },
-          "color": "#4E993F",
+          "color": "#888888",
           "isIndicatorLamp": true
         }, {
           "id": "DI5-3",
@@ -452,7 +452,7 @@
             "selector": "",
             "path": ""
           },
-          "color": "#4E993F",
+          "color": "#888888",
           "isIndicatorLamp": true
         }, {
           "id": "DI6-3",
@@ -467,6 +467,7 @@
             "selector": "g#NH3 path",
             "path": "E2_reinraum.svg"
           },
+          "color": "#E2E64D",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
@@ -485,6 +486,7 @@
             "selector": "",
             "path": "E1_bypack.svg"
           },
+          "color": "#E2E64D",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
@@ -506,6 +508,7 @@
             "selector": "path#path4508,path#path4510",
             "path": "E0_gaskabinet.svg"
           },
+          "color": "#E2E64D",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
@@ -524,6 +527,7 @@
             "selector": "g#BCL3 path",
             "path": "E2_reinraum.svg"
           },
+          "color": "#40A337",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
@@ -542,6 +546,7 @@
             "selector": "g#BCL3 path",
             "path": "E2_reinraum.svg"
           },
+          "color": "#40A337",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
@@ -560,7 +565,7 @@
             "selector": "g#HBR path",
             "path": "E1_bypack.svg"
           },
-          "color": "#2BED6D",
+          "color": "#4AE885",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
@@ -579,7 +584,7 @@
             "selector": "g#SIH4 path",
             "path": "E2_reinraum.svg"
           },
-          "color": "#DDA937",
+          "color": "#D2AA50",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
@@ -598,7 +603,7 @@
             "selector": "g#SIH4 path",
             "path": "E1_bypack.svg"
           },
-          "color": "#DDA937",
+          "color": "#D2AA50",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
@@ -618,7 +623,7 @@
             "selector": "path#path4504,path#path4506",
             "path": "E0_gaskabinet.svg"
           },
-          "color": "#DDA937",
+          "color": "#D2AA50",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
@@ -637,7 +642,7 @@
             "selector": "g#CL2 path",
             "path": "E2_reinraum.svg"
           },
-          "color": "#2BED6D",
+          "color": "#4AE885",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
@@ -658,7 +663,7 @@
             "selector": "g#CL2 path",
             "path": "E2_reinraum.svg"
           },
-          "color": "#2BED6D",
+          "color": "#4AE885",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
@@ -677,7 +682,7 @@
             "selector": "g#HBR path",
             "path": "E1_bypack.svg"
           },
-          "color": "#2BED6D",
+          "color": "#ED2BA5",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
@@ -697,7 +702,7 @@
             "selector": "path#path4474,path#path4470",
             "path": "E0_gaskabinet.svg"
           },
-          "color": "#2BED6D",
+          "color": "#ED2BA5",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
@@ -794,7 +799,7 @@
             "selector": "",
             "path": ""
           },
-          "color": "#ED652B",
+          "color": "#FFF",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
