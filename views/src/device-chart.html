@@ -141,15 +141,17 @@
       #focus > *,
       #delta > * {
         stroke: var(--focus-color, currentColor);
-        stroke-opacity: 0.5;
+        stroke-opacity: 0.6;
+        stroke-dasharray: 1;
         stroke-width: 1.5px;
       }
       marker {
         fill: var(--focus-color, currentColor);
       }
+      #delta .line,
       #focus .line {
-        stroke-dasharray: 2;
-        mix-blend-mode: darken;
+        mix-blend-mode: exclusion;
+        pointer-events: none;
       }
       .zoom {
         cursor: default;
@@ -958,17 +960,14 @@
       }
 
       _moveInfo(d) {
-        if (Number.isFinite(this.scaleY(d.y))) {
-          var x = this.formatTimeRange.call(this, d.x, this.scaleX.domain(), this._width);
-          var y = this.numberFormat.call(this, d.y);
-          this._info.text(x + ' ' + y);
+        if (Number.isFinite(d.g.scaleY(d.y))) {
+          var x = this.formatTime(+d.x);
+          this._info.text(x + ' ' + d.y);
           var fixP = this._fixedValue;
           if (fixP) {
             var diffX = Math.abs(fixP.x - d.x),
               diffY = Math.abs(fixP.y - d.y);
-            diffX = this.timeFormat.call(this, diffX);
-            diffY = this.numberFormat.call(this, diffY);
-            this._infoDeltaX.text(diffX);
+            this._infoDeltaX.text(this.formatTimeAbsolute(diffX));
             this._infoDeltaY.text(diffY);
           }
           this._updateInfo();
@@ -995,7 +994,7 @@
           clearTimeout(this._activeHideInfoJob);
         }
         this._activeHideInfoJob = setTimeout(() => {
-          // this._hideInfo();
+          this._hideInfo();
         }, 1000);
       }
 
@@ -1003,10 +1002,6 @@
         this._info.attr('hidden', '');
         this._focus.attr('hidden', '');
         this._hideDelta();
-        // this._xAxisFn = this._createAxisFn(this._x, 'bottom', this.xScale, this.xTicks);
-        // this._yAxisFn = this._createAxisFn(this._y, 'left', this.yScale, this.yTicks);
-        // this._axis.select('.x.axis').call(this._xAxisFn);
-        // this._axis.select('.y.axis').call(this._yAxisFn);
         this._svg.selectAll('g,line,text,path,rect')
           .classed('style-scope', true)
           .classed('device-chart', true);
@@ -1021,8 +1016,8 @@
       _updateInfo() {
         if (!this._focusedValue || this._info.attr('hidden') === '') return;
         var focP = this._focusedValue;
-        var x = this.scaleX(+focP.x),
-          y = this.scaleY(+focP.y);
+        var x = focP.g.scaleX(+focP.x),
+          y = focP.g.scaleY(+focP.y);
         if (!x || !y) {
           return;
         }
@@ -1032,8 +1027,8 @@
           case 'delta':
             var fixP = this._fixedValue;
             if (fixP && fixP.x && focP.x !== fixP.x && fixP.y && focP.y !== fixP.y) {
-              var xFix = this.scaleX(+fixP.x),
-                yFix = this.scaleY(+fixP.y);
+              var xFix = fixP.g.scaleX(+fixP.x),
+                yFix = fixP.g.scaleY(+fixP.y);
               var x1D, x2D, y1D, y2D;
               this._deltaX.attr('x1', x).attr('x2', xFix).attr('y1', yFix).attr('y2', yFix);
               this._deltaY.attr('y1', y).attr('y2', yFix);
@@ -1056,13 +1051,6 @@
             this._focusY.attr('y1', focP._top).attr('y2', y).attr('x2', x).attr('x1', x);
             this._focusDot.attr('cy', y).attr('cx', x);
         }
-
-        // this._xAxisFn.tickValues([this._focusedValue.x]);
-        // this._xAxisFn.tickSize(this.tickSize).tickFormat(null);
-        // this._yAxisFn.tickValues([this._focusedValue.y]);
-        // this._yAxisFn.tickSize(this.tickSize).tickFormat(null);
-        // this._axis.select('.x.axis').call(this._xAxisFn);
-        // this._axis.select('.y.axis').call(this._yAxisFn);
         this._svg.selectAll('g,line,text,path,rect')
           .classed('style-scope', true)
           .classed('device-chart', true);
@@ -1130,38 +1118,37 @@
       _dotClicked(d) {
         switch (this.modus) {
           case 'zoom':
-            var offsetX = (this.scaleX(this.scaleX.domain()[1]) - this.scaleX(this.scaleX.domain()[0])) / 4,
-              offsetY = (this.scaleY(this.scaleY.domain()[0]) - this.scaleY(this.scaleY.domain()[1])) / 4,
-              x = this.scaleX(+d.x),
-              y = this.scaleY(+d.y) || 0;
+            var offsetX = (d.g.domainX[1] - d.g.domainX[0]) / 4,
+              offsetY = (d.g.domainY[1] - d.g.domainY[0]) / 4,
+              x = d.g.scaleX(+d.x),
+              y = d.g.scaleY(+d.y) || 0;
             d3.event.selection = [
               [x - offsetX, y - offsetY],
               [x + offsetX, y + offsetY]
             ];
-            this.brushed();
             break;
           case 'delta':
             var fP = this._fixedValue;
-            if (fP && fP.x && fP.y && fP.x === d.x && fP.y === d.y) {
+            if (!(fP && fP.x && fP.y && fP.x === d.x && fP.y === d.y)) {
+              this._fixedValue = d;
+              this._deltaDot.datum(this._fixedValue)
+                .attr('cx', d => {
+                  return d.g.scaleX(d.x)
+                })
+                .attr('cy', d => {
+                  return d.g.scaleY(d.y)
+                })
+                .attr('r', this._focusDot.attr('r'))
+                .attr('fill', this._focusDot.attr('fill'));
+            } else {
               this._fixedValue = null;
               this._hideDelta();
-              this._updateInfo();
-              return;
             }
-            this._fixedValue = d;
-            this._deltaDot.datum(this._fixedValue)
-              .attr('cx', d => {
-                return this.scaleX(d.x)
-              })
-              .attr('cy', d => {
-                return this.scaleY(d.y)
-              })
-              .attr('r', this._focusDot.attr('r'))
-              .attr('fill', this._focusDot.attr('fill'));
             break;
           case 'integral':
             break;
         }
+        this._updateInfo();
       }
 
       closeMenu() {

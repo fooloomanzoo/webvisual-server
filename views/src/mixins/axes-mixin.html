@@ -142,10 +142,8 @@
           localeDate: {
             type: Object
           }
-
         }
       }
-
 
       static get observers() {
         return [
@@ -176,18 +174,6 @@
           (pos === 'top') ? d3.axisTop(scale) :
             d3.axisBottom(scale)).tickSize(tickSize).tickFormat(this._computeFormatFn(scaling, base));
       }
-      //
-      // _computeAxisBrushGenerator(pos) {
-      //   if (!pos)  return;
-      //   var vertical = this._isVertical(pos);
-      //   var gen = (vertical ? d3.brushY() : );
-      //   if (vertical && this.rangeY) {
-      //     this._updateAxisBrushGenerator.call(gen, this.rangeY, pos, this.tickSize);
-      //   } else if (!vertical && this.rangeX) {
-      //     this._updateAxisBrushGenerator.call(gen, this.rangeX, pos, this.tickSize);
-      //   }
-      //   return gen;
-      // }
 
       _computeAxisNode(insertionPoint, orient, title) {
         if (insertionPoint === undefined) return;
@@ -211,6 +197,7 @@
         axis.append('svg:title').text(title);
         axis.append('svg:g')
           .classed('brush', true)
+          .on('contextmenu', this._onAxisContextMenu.bind(this, orient))
         axis.node()._genitor = this;
         axis.node()._axis = axis;
         axis._left = 0;
@@ -347,7 +334,6 @@
           brush.call(generator.move, null);
           this.redraw()
         }
-        // this.sizeChanged();
       }
 
       _axisColorChanged(color) {
@@ -382,8 +368,8 @@
           d3.timeHour(date) < date ? this.timeFormat('%H:%M') :
           d3.timeDay(date) < date ? this.timeFormat('%X') :
           d3.timeMonth(date) < date ?
-          (d3.timeWeek(date) < date ? this.timeFormat('%e %m') : this.timeFormat('%d %m')) :
-          d3.timeYear(date) < date ? this.timeFormat('%d %b') :
+          (d3.timeWeek(date) < date ? this.timeFormat('%e.%m.') : this.timeFormat('%d. %b')) :
+          d3.timeYear(date) < date ? this.timeFormat('%d. %b') :
           this.timeFormat('%Y'))(date);
       }
       /**
@@ -436,7 +422,7 @@
 
       formatNumber(scale, base, num) {
         // format with thousands separators
-        return this.numberFormat('n')(num);
+        return this.numberFormat(',g')(num);
       }
 
       _setDateNumberFormat(localeNumber, localeDate) {

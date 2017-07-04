@@ -17,7 +17,8 @@
     "test": "node debug.js redis",
     "stop": "taskkill /IM node.exe /F",
     "prebuildtest": "node index.js development",
-    "build": "cd views && bower install && rollup -c && uglifyjs scripts/d3.bundle.js -c -m -o scripts/d3.bundle.js && polymer build"
+    "prebuild": "cd views && bower install",
+    "build": "cd views && rollup -c && uglifyjs scripts/d3.bundle.js -c -m -o scripts/d3.bundle.js && polymer build"
   },
   "dependencies": {
     "activedirectory": "^0.7.1",
@@ -49,11 +50,13 @@
     "x-frame-options": "*"
   },
   "devDependencies": {
+    "bower": "*",
     "d3": "*",
+    "path-dirname": "*",
     "polymer-cli": "*",
     "rollup": "*",
     "rollup-plugin-node-resolve": "*",
-    "uglifyjs": "*"
+    "uglify-js": "*"
   },
   "engines": {
     "node": ">= 7.0",

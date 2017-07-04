@@ -1,7 +1,7 @@
 @echo off
 
 echo NPM install. This can take a moment ...
-cmd /C "cd %~dp0/ & npm.cmd install"
+npm install
 
 pause
 goto:eof
