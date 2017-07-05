@@ -174,7 +174,7 @@ class Router extends EventEmitter {
     })
 
     // Auth Methods
-    require('./lib/auth/activedirectory.js')(this.passport, this.settings.server.auth.ldap) // register custom ldap-passport-stategy
+    require('./lib/auth/activedirectory.js')(this.passport, this.settings.server.auth.type) // register custom ldap-passport-stategy
     require('./lib/auth/dummy.js')(this.passport) // register dummy-stategy
 
     // watch for changes, if in development mode, for auto-reloading
