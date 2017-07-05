@@ -1,9 +1,6 @@
 # bower components
 views/bower_components
 
-# certs
-defaults/ssl/*
-
 # Logs
 logs
 *.log

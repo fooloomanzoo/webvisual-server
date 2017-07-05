@@ -24,7 +24,7 @@ let server
 // Defaults
 jsonfile.readFile(PATH_DEFAULT, function(err, obj) {
   if (err) {
-    console.log(err)
+    console.error('Error in Default Config', err.stack || err)
   } else {
     defaults = obj
     var config
@@ -113,7 +113,7 @@ class WebvisualServer extends processEmiter {
       })
 
       Promise.resolve(p)
-             .then( ca => {
+             .then( () => {
                sslSettings.key = fs.readFileSync(filepaths.key, 'utf8')
                sslSettings.cert = fs.readFileSync(filepaths.cert, 'utf8')
                let passphrase = fs.readFileSync(filepaths.passphrase, 'utf8')
