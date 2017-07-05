@@ -287,8 +287,8 @@ self.addEventListener('fetch', function(event) {
 
 toolbox.router.get(/\/bower_components\/webcomponentsjs\/.*.js/, toolbox.fastest, {"cache":{"name":"webcomponentsjs-polyfills-cache"}});
 toolbox.router.get(/\/images\/.*/, toolbox.cacheFirst, {"cache":{"name":"image-cache"}});
-toolbox.router.get(/\/data\/.*/, toolbox.cacheFirst, {"cache":{"name":"data-cache"}});
-toolbox.router.get(/\/socket\.io\/socket\.io\.js/, toolbox.cacheFirst, {"cache":{"maxEntries":2,"name":"socket.io"}});
+toolbox.router.get(/\/data\/.*/, toolbox.fastest, {"cache":{"name":"data-cache"}});
+toolbox.router.get(/\/socket\.io\/socket\.io\.js/, toolbox.fastest, {"cache":{"maxEntries":2,"name":"socket.io"}});
 
 
 

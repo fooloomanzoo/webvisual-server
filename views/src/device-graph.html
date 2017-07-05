@@ -508,6 +508,10 @@
           this.requestRange(key)
             .then(domain => {
               if (domain[0] !== undefined && domain[1] !== undefined) {
+                if (vertical && domain[0] === domain[1]) {
+                  domain[0] -= 0.5;
+                  domain[1] += 0.5;
+                }
                 // logarithmic scales need scales of same prefix
                 var is_log = this._IS_LOG_SCALE(scale);
                 if (is_log) {
