@@ -47,6 +47,7 @@
     "serve-static": "*",
     "socket.io": "^1.7.4",
     "spdy": "*",
+    "webvisual-schemas": "github:fooloomanzoo/webvisual-schemas",
     "x-frame-options": "*"
   },
   "devDependencies": {

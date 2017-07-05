@@ -76,8 +76,8 @@ class Router extends EventEmitter {
     for (let key in options) {
       if (key == 'server')
         this.setApp(options.server, sslSettings)
-      else if (key == 'configFiles')
-        this.setConfigurations(options.configFiles)
+      else if (key == 'configfiles')
+        this.setConfigurations(options.configfiles)
       else
         this.settings[key] = options[key]
     }
@@ -339,8 +339,8 @@ class Router extends EventEmitter {
     })
   }
 
-  setConfigurations(configFiles) {
-    this.settings.configFiles = configFiles
+  setConfigurations(configfiles) {
+    this.settings.configfiles = configfiles
 
     // init facilities.json
     mkdirp(this.dir.data, err => {

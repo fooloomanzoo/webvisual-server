@@ -200,12 +200,12 @@ class WebvisualServer extends processEmiter {
           })
           this.router.setSettings(config, sslSettings)
 
-          this.configFilesHandler = new ConfigFileProcessor()
-          this.configFilesHandler.on('change', (config, facility) => {
+          this.configfilesHandler = new ConfigFileProcessor()
+          this.configfilesHandler.on('change', (config, facility) => {
             this.dataHandler.setConfiguration(config, facility)
             this.router.setConfiguration(config, facility)
           })
-          this.configFilesHandler.watch(this.config.configFiles, this.config.database)
+          this.configfilesHandler.watch(this.config.configfiles, this.config.database)
 
         })
         .then( () => {
@@ -228,7 +228,7 @@ class WebvisualServer extends processEmiter {
     }
     if (this.router)
       this.router.disconnect()
-    this.configFilesHandler.unwatch()
+    this.configfilesHandler.unwatch()
     this.dataHandler.disconnect()
     this.isRunning = false
     process.send( { event: 'server-stop', info: 'WebvisualServer is closed' } )
