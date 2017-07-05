@@ -116,7 +116,7 @@ class WebvisualServer extends processEmiter {
              .then( () => {
                sslSettings.key = fs.readFileSync(filepaths.key, 'utf8')
                sslSettings.cert = fs.readFileSync(filepaths.cert, 'utf8')
-               let passphrase = fs.readFileSync(filepaths.passphrase, 'utf8')
+               let passphrase = JSON.parse(fs.readFileSync(filepaths.passphrase, 'utf8'))
                sslSettings.passphrase = passphrase.password || passphrase;
 
                sslSettings.rejectUnauthorized = false
@@ -146,9 +146,11 @@ class WebvisualServer extends processEmiter {
                      } )
                      sslSettings.ca = null
                    }
+                   resolve(sslSettings)
                  })
+               } else {
+                 resolve(sslSettings)
                }
-               resolve(sslSettings)
              })
              .catch( err => {
                process.send( {
