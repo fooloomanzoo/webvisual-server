@@ -116,7 +116,8 @@ class WebvisualServer extends processEmiter {
              .then( ca => {
                sslSettings.key = fs.readFileSync(filepaths.key, 'utf8')
                sslSettings.cert = fs.readFileSync(filepaths.cert, 'utf8')
-               sslSettings.passphrase = require(filepaths.passphrase).password
+               let passphrase = fs.readFileSync(filepaths.passphrase, 'utf8')
+               sslSettings.passphrase = passphrase.password || passphrase;
 
                sslSettings.rejectUnauthorized = false
                sslSettings.requestCert = true
@@ -154,9 +155,11 @@ class WebvisualServer extends processEmiter {
                  error: err,
                  info: 'Encryption: using default selfsigned certificates.\nPlease ensure, that the certificate-files are valid and exist.\nIf so, restart the server, please.'
                } )
+               let sslSettings = JSON.parse(JSON.stringify(defaults.server.ssl))
                sslSettings.key = fs.readFileSync(sslSettings.key, 'utf8')
                sslSettings.cert = fs.readFileSync(sslSettings.cert, 'utf8')
-               sslSettings.passphrase = require(sslSettings.passphrase).password
+               let passphrase = fs.readFileSync(filepaths.passphrase, 'utf8')
+               sslSettings.passphrase = passphrase.password || passphrase;
                resolve(sslSettings)
              })
     })
