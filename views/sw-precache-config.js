@@ -34,7 +34,7 @@ module.exports = {
     }
   }, {
     urlPattern: /\/data\/.*/,
-    handler: 'cacheFirst',
+    handler: 'fastest',
     options: {
       cache: {
         name: 'data-cache'
@@ -42,7 +42,7 @@ module.exports = {
     }
   }, {
     urlPattern: /\/socket\.io\/socket\.io\.js/,
-    handler: 'cacheFirst',
+    handler: 'fastest',
     options: {
       cache: {
         maxEntries: 2,

@@ -62,7 +62,7 @@
             "path": ""
           },
           "isIndicatorLamp": false,
-          "color": "#888888",
+          "color": "#B0B0B0",
           "unit": "₍₂₎"
         }, {
           "id": "DI0-1",
@@ -204,7 +204,7 @@
             "system": "intern",
             "alarmlevel": ""
           },
-          "color": "#888888",
+          "color": "#B0B0B0",
           "svg": {
             "selector": "",
             "path": ""
@@ -223,7 +223,7 @@
             "selector": "",
             "path": ""
           },
-          "color": "#888888",
+          "color": "#B0B0B0",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
@@ -240,7 +240,7 @@
             "selector": "",
             "path": ""
           },
-          "color": "#888888",
+          "color": "#B0B0B0",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
@@ -260,7 +260,7 @@
             "selector": "g#HBR path, g#CL2 path",
             "path": "E0_gaskabinet.svg"
           },
-          "color": "#888888",
+          "color": "#B0B0B0",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
@@ -280,7 +280,7 @@
             "selector": "g#NH3 path, g#SIH4 path",
             "path": "E0_gaskabinet.svg"
           },
-          "color": "#888888",
+          "color": "#B0B0B0",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
@@ -299,7 +299,7 @@
             "selector": "g#CL2 path,g#HBR path, g#HCL path,g#NH3 path, g#SIH4 path",
             "path": "E1_bypack.svg"
           },
-          "color": "#888888",
+          "color": "#B0B0B0",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
@@ -318,7 +318,7 @@
             "selector": "g#CL2 path,g#HBR path, g#HCL path,g#NH3 path, g#SIH4 path",
             "path": "E2_reinraum.svg"
           },
-          "color": "#888888",
+          "color": "#B0B0B0",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
@@ -354,7 +354,7 @@
             "selector": "",
             "path": ""
           },
-          "color": "#888888",
+          "color": "#B0B0B0",
           "isIndicatorLamp": true
         },
 
@@ -367,7 +367,7 @@
             "selector": "",
             "path": ""
           },
-          "color": "#888888",
+          "color": "#B0B0B0",
           "isIndicatorLamp": true
         }, {
           "id": "DI1-3",
@@ -439,7 +439,7 @@
             "selector": "",
             "path": ""
           },
-          "color": "#888888",
+          "color": "#B0B0B0",
           "isIndicatorLamp": true
         }, {
           "id": "DI5-3",
@@ -452,7 +452,7 @@
             "selector": "",
             "path": ""
           },
-          "color": "#888888",
+          "color": "#B0B0B0",
           "isIndicatorLamp": true
         }, {
           "id": "DI6-3",
@@ -565,7 +565,7 @@
             "selector": "g#HBR path",
             "path": "E1_bypack.svg"
           },
-          "color": "#4AE885",
+          "color": "#ED2BA5",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
@@ -722,7 +722,7 @@
             "selector": "g#O2 path",
             "path": "E2_reinraum.svg"
           },
-          "color": "#FFF",
+          "color": "#E8E8E8",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
@@ -742,7 +742,7 @@
             "selector": "g#O2 path",
             "path": "E2_reinraum.svg"
           },
-          "color": "#FFF",
+          "color": "#E8E8E8",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
@@ -762,7 +762,7 @@
             "selector": "g#O2 path",
             "path": "E2_reinraum.svg"
           },
-          "color": "#FFF",
+          "color": "#E8E8E8",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
@@ -782,7 +782,7 @@
             "selector": "g#O2 path",
             "path": "E2_reinraum.svg"
           },
-          "color": "#FFF",
+          "color": "#E8E8E8",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,
@@ -799,7 +799,7 @@
             "selector": "",
             "path": ""
           },
-          "color": "#FFF",
+          "color": "#E8E8E8",
           "isIndicatorLamp": true,
           "threshold": {
             "from": 0,

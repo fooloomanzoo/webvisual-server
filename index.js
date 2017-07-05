@@ -175,6 +175,19 @@ class WebvisualServer extends processEmiter {
           this.dataHandler.on('info', msg => { process.send( { info: msg } ) })
           this.dataHandler.on('event', msg => { process.send( { event: msg } ) })
           this.dataHandler.on('log', msg => { process.send( { log: msg } ) })
+          this.dataHandler.on('request_settings', kind => {
+            switch (kind) {
+              case 'io':
+                if (this.router && this.route.io) {
+                  this.dataHandler.setServer(this.router.io)
+                } else {
+                  console.error('Could not reset Socket Connections');
+                }
+                break
+              default:
+
+            }
+          })
 
           this.router = new Router(this.mode)
           this.router.on('error', err => { process.send( { error: err.stack } ) })

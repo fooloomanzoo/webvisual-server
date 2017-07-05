@@ -322,13 +322,12 @@ class Router extends EventEmitter {
         if (!err && socket.handshake.signedCookies) {
           this.sessionStore.get(socket.handshake.signedCookies['connect.sid'], (err, session) => {
             socket.session = session
-            if (!err && !session) {
-              err = new Error('Session not found')
-            }
+            // if (!err && !session) {
+            //   err = 'Session not found';
+            // }
             if (err) {
-              console.log('Failed connection to socket.io:', err)
-            }
-            if (session || !this.settings.server.auth.required) {
+              console.warn('Failed connection to socket.io:', err)
+            } else if (session || !this.settings.server.auth.required) {
               // console.log('Successful connection to socket.io', session)
               next()
             }
