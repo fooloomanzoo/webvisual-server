@@ -17,9 +17,7 @@
     "stop": "taskkill /IM node.exe /F",
     "prebuildtest": "node index.js development",
     "prebuild": "cd views && bower install",
-    "build": "cd views && rollup -c && uglifyjs scripts/d3.bundle.js -c -m -o scripts/d3.bundle.js && polymer build",
-    "prepublish": "_prepublish",
-    "postpublish": "_push"
+    "build": "cd views && rollup -c && uglifyjs scripts/d3.bundle.js -c -m -o scripts/d3.bundle.js && polymer build"
   },
   "dependencies": {
     "activedirectory": "^0.7.1",
