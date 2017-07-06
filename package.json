@@ -13,7 +13,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "test": "node debug.js redis",
+    "debug": "node debug.js redis",
     "stop": "taskkill /IM node.exe /F",
     "prebuildtest": "node index.js development",
     "prebuild": "cd views && bower install",
