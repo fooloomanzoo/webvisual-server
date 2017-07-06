@@ -110,9 +110,9 @@
       static get observers() {
         return [
           '_itemChanged(item)',
-          '_lineChanged(hasLine, "line")',
-          '_areaChanged(hasArea, "area")',
-          '_thresholdChanged(item.threshold, "boundery")'
+          '_lineChanged(hasLine)',
+          '_areaChanged(hasArea)',
+          '_thresholdChanged(item.threshold)'
         ]
       }
 
@@ -208,11 +208,11 @@
         this._chart._removeGraph(this);
       }
 
-      _areaChanged(hasArea, type) {
+      _areaChanged(hasArea) {
         // console.log('_areaChanged', this.item.mount, hasArea, type);
         if (!(this._chart && this._chart._area)) return;
 
-        if (hasArea === false) {
+        if (!hasArea) {
           // remove fill area
           if (this._area && this._area.node) {
             var node = this._area.node();
@@ -230,16 +230,17 @@
             .attr('mount', this.item.mount)
             .attr('class', 'area')
             .attr('stroke-width', 0)
+            .attr('fill', this.item.theshold !== undefined ? ('url(#boundery-line-' + this.item.mount + ')') : this.item.color || '#FFF')
             // .datum([])
             .attr('d', this._areaGenerator([]));
         }
       }
 
-      _lineChanged(hasLine, type) {
+      _lineChanged(hasLine) {
         // console.log('_lineChanged', this.item.mount, hasLine, type);
         if (!(this._chart && this._chart._line)) return;
 
-        if (hasLine === false) {
+        if (!hasLine) {
           // remove line
           if (this._line && this._line.node) {
             var node = this._line.node();
@@ -257,6 +258,7 @@
             .attr('mount', this.item.mount)
             .attr('class', 'line')
             .attr('fill', 'none')
+            .attr('stroke', this.item.theshold !== undefined ? ('url(#boundery-line-' + this.item.mount + ')') : this.item.color || '#000')
             .attr('stroke-width', this.lineWidth)
             .attr('d', this._lineGenerator([]));
 
@@ -276,6 +278,8 @@
             .attr('gradientUnits', 'userSpaceOnUse')
             .attr('x1', 0).attr('y1', this._chart._height)
             .attr('x2', 0).attr('y2', 0);
+          if (this._area && this._area.attr) this._area.attr('fill', 'url(#boundery-line-' + this.item.mount + ')');
+          if (this._line && this._line.attr) this._line.attr('stroke', 'url(#boundery-line-' + this.item.mount +')');
         } else {
           // remove threshold colors
           if (this.boundery && this.boundery.node) {
@@ -284,6 +288,8 @@
               node.parentElement.removeChild(node);
             this.boundery = null;
           }
+          if (this._area && this._area.attr) this._area.attr('fill', this.item.color || '#FFF');
+          if (this._line && this._line.attr) this._line.attr('stroke', this.item.mount || '#000');
         }
       }
 
@@ -291,9 +297,8 @@
         if (!this._chart) return;
         if (this.item && this.item.color) {
           this.axisColor = this.item.color;
-          var colorForGraph = this.item.theshold ? ('url(#boundery-line-' + this.item.mount + ')') : this.item.color || '#000';
-          if (this._area && this._area.attr) this._area.attr('fill', colorForGraph);
-          if (this._line && this._line.attr) this._line.attr('stroke', colorForGraph);
+          if (this._area && this._area.attr) this._area.attr('fill', this.item.theshold !== undefined ? ('url(#boundery-line-' + this.item.mount + ')') : this.item.color || '#FFF');
+          if (this._line && this._line.attr) this._line.attr('stroke', this.item.theshold !== undefined ? ('url(#boundery-line-' + this.item.mount + ')') : this.item.color || '#000');
         }
       }
 
@@ -327,7 +332,7 @@
           this.values = this.values.concat(values);
           var min = this.min(this.values, 'x');
           var max = this.max(this.values, 'x');
-          if (!(min === undefined && max === undefined)) {
+          if (min !== undefined && max !== undefined) {
             if (this.axisX && !this.axisX._isBrushed && !this._chart.axisX._isBrushed && !(this._chart._isZoomed && !this._chart.multiAxesX)) {
               this.set('domainX', [ min, max ] );
             }
@@ -342,17 +347,20 @@
           }
           min = this.min(this.values, 'y');
           max = this.max(this.values, 'y');
-          if (this.axisY && !this.axisY._isBrushed && !this._chart.axisY._isBrushed && !(this._chart._isZoomed && !this._chart.multiAxesY)) {
-
-            if (!(min === undefined && max === undefined)) {
+          if (min !== undefined && max !== undefined) {
+            if (min === max) {
+              min--;
+              max++;
+            }
+            if (this.axisY && !this.axisY._isBrushed && !this._chart.axisY._isBrushed && !(this._chart._isZoomed && !this._chart.multiAxesY)) {
               this.set('domainY', [ min, max ] );
-            }
-          } else if (!this._chart.multiAxesY) {
-            if (min < this._chart.domainY[0]) {
-              this._chart.set('domainY', [ min, this._chart.domainY[1] ] );
-            }
-            if (max > this._chart.domainY[1]) {
-              this._chart.set('domainY', [ this._chart.domainY[0], max ] );
+            } else if (!this._chart.multiAxesY) {
+              if (min < this._chart.domainY[0]) {
+                this._chart.set('domainY', [ min, this._chart.domainY[1] ] );
+              }
+              if (max > this._chart.domainY[1]) {
+                this._chart.set('domainY', [ this._chart.domainY[0], max ] );
+              }
             }
           }
         }
@@ -509,8 +517,8 @@
             .then(domain => {
               if (domain[0] !== undefined && domain[1] !== undefined) {
                 if (vertical && domain[0] === domain[1]) {
-                  domain[0] -= 0.5;
-                  domain[1] += 0.5;
+                  domain[0] --;
+                  domain[1]++;
                 }
                 // logarithmic scales need scales of same prefix
                 var is_log = this._IS_LOG_SCALE(scale);
@@ -529,6 +537,7 @@
                   }
                   else if (key === 'y') {
                     this.set('domainY', domain);
+                    console.log(domain)
                   }
                 }
               }
@@ -727,18 +736,23 @@
         super._onAxisClicked(axis);
       }
       _onAxisContextMenu(orient) {
+        super._onAxisContextMenu(orient);
         if (this._chart._isZoomed) {
           this._chart._resetZoom();
         } else {
           var vertical = (orient === 'left' || orient === 'right');
           if (vertical && this.axisY._isBrushed) {
-            Promise.resolve(this._getDomain('y', true));
-            this.axisY._isBrushed = false;
-            this.redraw();
+            Promise.resolve(this._getDomain('y', true)).then(res => {
+              console.log(res)
+              this.axisY._isBrushed = false;
+              this.redraw();
+            });
           } else if (!vertical && this.axisX._isBrushed) {
-            Promise.resolve(this._getDomain('x', true));
-            this.axisX._isBrushed = false;
-            this.redraw();
+            Promise.resolve(this._getDomain('x', true)).then(res => {
+              console.log(res)
+              this.axisX._isBrushed = false;
+              this.redraw();
+            });
           }
         }
       }

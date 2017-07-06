@@ -174,6 +174,7 @@
       }
       .info {
         font-size: 12px;
+        pointer-events: none;
       }
       #control {
         position: absolute;
@@ -238,7 +239,7 @@
           </clipPath>
           <rect id="plot" clip-path="url(#clip)"></rect>
           <!-- <g id="xGrid" class="grid" clip-path="url(#clip)"></g> -->
-          <g id="yGrid" class="grid" clip-path="url(#clip)"></g>
+          <!-- <g id="yGrid" class="grid" clip-path="url(#clip)"></g> -->
           <g id="graphs" clip-path="url(#clip)">
             <g id="area"></g>
             <g id="line"></g>
@@ -298,11 +299,11 @@
 
     <template is="dom-if" if="[[multi]]" restamp>
       <template is="dom-repeat" items="[[items]]">
-        <device-graph item="[[item]]" interpolation="[[interpolation]]" locale-date="[[localeDate]]" locale-number=[[localeNumber]] range-x=[[rangeX]] range-y=[[rangeY]] no-link="[[!opened]]" scaling-y="[[scalingY]]"></device-graph>
+        <device-graph item="[[item]]" interpolation="[[interpolation]]" locale-date="[[localeDate]]" locale-number=[[localeNumber]] range-x=[[rangeX]] range-y=[[rangeY]] no-link="[[!opened]]" scaling-y="[[scalingY]]" scaling-x="[[scalingX]]"></device-graph>
       </template>
     </template>
     <template is="dom-if" if="[[!multi]]" restamp>
-      <device-graph item="[[item]]" interpolation="[[interpolation]]" locale-date="[[localeDate]]" locale-number=[[localeNumber]] range-x=[[rangeX]]  range-y=[[rangeY]] no-link="[[!opened]]" scaling-y="[[scalingY]]"></device-graph>
+      <device-graph item="[[item]]" interpolation="[[interpolation]]" locale-date="[[localeDate]]" locale-number=[[localeNumber]] range-x=[[rangeX]] range-y=[[rangeY]] no-link="[[!opened]]" scaling-y="[[scalingY]]" scaling-x="[[scalingX]]"></device-graph>
     </template>
   </template>
   <script>
@@ -589,12 +590,7 @@
         var top = -2,
           right = 1,
           bottom = 1,
-          left = -2,
-          axisSizeX = this.axisSizeX,
-          axisSizeY = this.axisSizeY,
-          tickSize = this.tickSize,
-          axisMargin = this.axisMargin,
-          condensedSize = tickSize + axisMargin;
+          left = -2;
 
         var q = [];
 
@@ -641,21 +637,21 @@
         this._graphs.forEach( g => {
           if (g._isAttached) {
             if (!g.axisX.attr('hidden')) {
-              var size = g.axisX.classed('expanded') ? axisSizeX : condensedSize;
+              var size = g.axisX.classed('expanded') ? g.axisSizeX : g.tickSize + g.axisMargin;
               q.push(incremPosition.call(g.axisX, g.axisOrientX, size));
             }
             if (!g.axisY.attr('hidden')) {
-              var size = g.axisY.classed('expanded') ? axisSizeY : condensedSize;
+              var size = g.axisY.classed('expanded') ? g.axisSizeY : g.tickSize + g.axisMargin;
               q.push(incremPosition.call(g.axisY, g.axisOrientY, size));
             }
           }
         })
         if (!this.axisX.attr('hidden')) {
-          var size = this.axisX.classed('expanded') ? axisSizeX : condensedSize;
+          var size = this.axisX.classed('expanded') ? this.axisSizeX : this.tickSize + this.axisMargin;
           q.push(incremPosition.call(this.axisX, this.axisOrientX, size));
         }
         if (!this.axisY.attr('hidden')) {
-          var size = this.axisY.classed('expanded') ? axisSizeY : condensedSize;
+          var size = this.axisY.classed('expanded') ? this.axisSizeY : this.tickSize + this.axisMargin;
           q.push(incremPosition.call(this.axisY, this.axisOrientX, size));
         }
 
@@ -666,8 +662,6 @@
 
           this.set('rangeX', [0, this._width]);
           this.set('rangeY', [this._height,0]);
-          this.ticksX = Math.ceil(this._width / 75);
-          this.ticksY = Math.ceil(this._height / 50);
 
           this._zoom.attr('height', this._height).attr('width', this._width);
           this._zoomBehavior.extent([[0, 0], [this._width, this._height]]);
@@ -719,13 +713,13 @@
             this._graphs.forEach( g => {
               if (g._isAttached) {
                 if (!g.axisX.attr('hidden')) {
-                  g.axisGeneratorX = g._computeAxisGenerator(g.axisOrientX, g.scaleX, g.scalingX, g.scaleBaseX).tickSize(g.tickSize).tickFormat(g.axisX.classed('expanded') ? g._computeFormatFn(g.scalingX, g.scaleBaseX) : '');
+                  g.axisGeneratorX = g._computeAxisGenerator(g.axisOrientX, g.scaleX, g.scalingX, g.scaleBaseX).ticks(g.ticksX).tickSize(g.tickSize).tickFormat(g.axisX.classed('expanded') ? g._computeFormatFn(g.scalingX, g.scaleBaseX) : '');
                   g._updateAxisBrushGenerator.call(g.axisBrushGeneratorX, this.rangeX, g.axisOrientX);
                   g.axisX.select('.brush').raise().call(g.axisBrushGeneratorX);
                   g.axisX.attr('transform', 'translate(' + (g.axisX._left || 0) + ',' + (g.axisX._top || 0) + ')');
                 }
                 if (!g.axisY.attr('hidden')) {
-                  g.axisGeneratorY = g._computeAxisGenerator(g.axisOrientY, g.scaleY, g.scalingY, g.scaleBaseY).tickSize(g.tickSize).tickFormat(g.axisY.classed('expanded') ? g._computeFormatFn(g.scalingY, g.scaleBaseY) : '');
+                  g.axisGeneratorY = g._computeAxisGenerator(g.axisOrientY, g.scaleY, g.scalingY, g.scaleBaseY).ticks(g.ticksY).tickSize(g.tickSize).tickFormat(g.axisY.classed('expanded') ? g._computeFormatFn(g.scalingY, g.scaleBaseY) : '');
                   g._updateAxisBrushGenerator.call(g.axisBrushGeneratorY, this.rangeY, g.axisOrientY);
                   g.axisY.select('.brush').raise().call(g.axisBrushGeneratorY);
                   g.axisY.attr('transform', 'translate(' + (g.axisY._left || 0) + ',' + (g.axisY._top || 0) + ')');
@@ -734,13 +728,13 @@
             })
 
             if (!this.axisX.attr('hidden')) {
-              this.axisGeneratorX = this._computeAxisGenerator(this.axisOrientX, this.scaleX, this.scalingX, this.scaleBaseX).tickSize(this.tickSize).tickFormat(this.axisX.classed('expanded') ? this._computeFormatFn(this.scalingX, this.scaleBaseX) : '');
+              this.axisGeneratorX = this._computeAxisGenerator(this.axisOrientX, this.scaleX, this.scalingX, this.scaleBaseX).ticks(this.ticksX).tickSize(this.tickSize).tickFormat(this.axisX.classed('expanded') ? this._computeFormatFn(this.scalingX, this.scaleBaseX) : '');
               this._updateAxisBrushGenerator.call(this.axisBrushGeneratorX, this.rangeX, this.axisOrientX);
               this.axisX.select('.brush').raise().call(this.axisBrushGeneratorX);
               this.axisX.attr('transform', 'translate(' + (this.axisX._left || 0) + ',' + (this.axisX._top || 0) + ')');
             }
             if (!this.axisY.attr('hidden')) {
-              this.axisGeneratorY = this._computeAxisGenerator(this.axisOrientY, this.scaleY, this.scalingY, this.scaleBaseY).tickSize(this.tickSize).tickFormat(this.axisY.classed('expanded') ? this._computeFormatFn(this.scalingY, this.scaleBaseY) : '');
+              this.axisGeneratorY = this._computeAxisGenerator(this.axisOrientY, this.scaleY, this.scalingY, this.scaleBaseY).ticks(this.ticksY).tickSize(this.tickSize).tickFormat(this.axisY.classed('expanded') ? this._computeFormatFn(this.scalingY, this.scaleBaseY) : '');
               this._updateAxisBrushGenerator.call(this.axisBrushGeneratorY, this.rangeY, this.axisOrientY);
               this.axisY.select('.brush').raise().call(this.axisBrushGeneratorY);
               this.axisY.attr('transform', 'translate(' + (this.axisY._left || 0) + ',' + (this.axisY._top || 0) + ')');

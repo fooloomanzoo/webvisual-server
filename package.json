@@ -1,8 +1,7 @@
 {
   "name": "webvisual-server",
-  "version": "0.8.2",
+  "version": "0.8.4",
   "description": "server for visualization of data changes",
-  "private": "true",
   "homepage": "https://github.com/fooloomanzoo/webvisual",
   "author": "Johannes Brautzsch <hannes-b@web.de>",
   "owner": "Forschungszentrum Jülich GmbH",
@@ -18,7 +17,9 @@
     "stop": "taskkill /IM node.exe /F",
     "prebuildtest": "node index.js development",
     "prebuild": "cd views && bower install",
-    "build": "cd views && rollup -c && uglifyjs scripts/d3.bundle.js -c -m -o scripts/d3.bundle.js && polymer build"
+    "build": "cd views && rollup -c && uglifyjs scripts/d3.bundle.js -c -m -o scripts/d3.bundle.js && polymer build",
+    "prepublish": "_prepublish",
+    "postpublish": "_push"
   },
   "dependencies": {
     "activedirectory": "^0.7.1",
