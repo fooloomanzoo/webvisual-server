@@ -1,19 +1,14 @@
 module.exports = {
-  stripPrefix: '..\\public',
-  stripPrefix: '../public',
-  stripPrefixMulti: {
-    '..\\public': '',
-    '../public': ''
-  },
+  stripPrefix: '../views',
   staticFileGlobs: [
-    '/bower_components/webcomponentsjs/webcomponents-loader.js',
-    '/index.html',
-    '/icons/**/*',
-    '/fonts/**/*',
-    '/locales/**/*'
+    'bower_components/webcomponentsjs/webcomponents-loader.js',
+    'index.html',
+    'icons/**/*',
+    'fonts/**/*',
+    'locales/**/*'
   ],
   verbose: true,
-  navigateFallback: '/index.html',
+  navigateFallback: 'index.html',
   navigateFallbackWhitelist: [/^(?!.*\.html$|\/data\/$|\/images\/$|\/auth\/).*/],
   runtimeCaching: [
     {
