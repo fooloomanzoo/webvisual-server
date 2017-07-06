@@ -22,7 +22,6 @@
   "dependencies": {
     "activedirectory": "^0.7.1",
     "body-parser": "*",
-    "bower": "*",
     "chokidar": "*",
     "compression": "*",
     "connect-redis": "*",
@@ -50,10 +49,7 @@
     "x-frame-options": "*"
   },
   "devDependencies": {
-    "bower": "*",
     "d3": "*",
-    "path-dirname": "*",
-    "polymer-cli": "*",
     "rollup": "*",
     "rollup-plugin-node-resolve": "*",
     "uglify-js": "*"

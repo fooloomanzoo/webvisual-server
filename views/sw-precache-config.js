@@ -1,25 +1,14 @@
 module.exports = {
   stripPrefix: '../views',
   staticFileGlobs: [
-    'bower_components/webcomponentsjs/webcomponents-loader.js',
-    'index.html',
-    'icons/**/*',
-    'fonts/**/*',
-    'locales/**/*'
+    'bower_components/**/*',
+    'index.html'
   ],
   verbose: true,
   navigateFallback: 'index.html',
   navigateFallbackWhitelist: [/^(?!.*\.html$|\/data\/$|\/images\/$|\/auth\/).*/],
   runtimeCaching: [
-    {
-      urlPattern: /\/bower_components\/webcomponentsjs\/.*.js/,
-      handler: 'fastest',
-      options: {
-        cache: {
-          name: 'webcomponentsjs-polyfills-cache'
-        }
-      }
-    },{
+  {
     urlPattern: /\/images\/.*/,
     handler: 'cacheFirst',
     options: {
@@ -33,6 +22,38 @@ module.exports = {
     options: {
       cache: {
         name: 'data-cache'
+      }
+    }
+  }, {
+    urlPattern: /\/fonts\/.*/,
+    handler: 'cacheFirst',
+    options: {
+      cache: {
+        name: 'data-cache'
+      }
+    }
+  }, {
+    urlPattern: /\/locales\/.*/,
+    handler: 'cacheFirst',
+    options: {
+      cache: {
+        name: 'locales-cache'
+      }
+    }
+  }, {
+    urlPattern: /\/icons\/.*/,
+    handler: 'cacheFirst',
+    options: {
+      cache: {
+        name: 'icons-cache'
+      }
+    }
+  }, {
+    urlPattern: /\/scripts\/.*/,
+    handler: 'fastest',
+    options: {
+      cache: {
+        name: 'scripts-cache'
       }
     }
   }, {

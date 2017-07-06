@@ -37,7 +37,7 @@
 /* eslint-disable indent, no-unused-vars, no-multiple-empty-lines, max-nested-callbacks, space-before-function-paren, quotes, comma-spacing */
 'use strict';
 
-var precacheConfig = [["bower_components/webcomponentsjs/webcomponents-loader.js","f13bbbbf647b7922575a7894367ddaaf"],["index.html","b24bd17894128d5abed94b440db2dd20"],["src/lazy-resources.html","03f8c429f1cc9ae69c0deda2c6958bdc"],["src/page-detail.html","a7bdfc4304860beca2ce163a2da1bbdf"],["src/page-groups.html","f7ed4b321c4e3998fafd565cd02e5c64"],["src/page-home.html","68a6701e4502bfed781c2a2c5be21b78"],["src/page-list.html","3987f5485eeb667d7b25cd5d0d02d05d"],["src/webvisual-app.html","cea109feafad5db86484e76ccd4406b1"]];
+var precacheConfig = [["bower_components/es6-promise/bower.json","ac654a6eb6bec4fc78cdce0371069626"],["bower_components/es6-promise/es6-promise.auto.js","12c36594cf3cfff91fc2afce231bedc0"],["bower_components/es6-promise/es6-promise.auto.map","4ed8f0b1df64df68af592ab499b1751c"],["bower_components/es6-promise/es6-promise.auto.min.js","bdbf932423d305440f36ccf202638916"],["bower_components/es6-promise/es6-promise.auto.min.map","3fee73e3a93308000a5dab2c467230f4"],["bower_components/es6-promise/es6-promise.js","26e1287772830d262d80166f6b7e78c2"],["bower_components/es6-promise/es6-promise.map","883807d9bb3d53e1b9b4f47ad3add4a9"],["bower_components/es6-promise/es6-promise.min.js","369b88a73a051dc08061faf908287023"],["bower_components/es6-promise/es6-promise.min.map","f9e36f550b7156fbb213adf4a232d265"],["bower_components/webcomponentsjs/CONTRIBUTING.md","a2ed64f57d417796765ca62eb6541bc5"],["bower_components/webcomponentsjs/LICENSE.md","df7f9abb99c82dfefc6f600bd14341a3"],["bower_components/webcomponentsjs/README.md","577e8dd9a133e04856208f82066b31e3"],["bower_components/webcomponentsjs/banner.txt","9a90edbe82ddb1b359068858a483ff71"],["bower_components/webcomponentsjs/bower.json","ea4d30a9cef3623b8dea9993779de702"],["bower_components/webcomponentsjs/custom-elements-es5-adapter.js","e6324a1b9a6f7dbac892a472464088db"],["bower_components/webcomponentsjs/gulpfile.js","5b9593e6c3a2a87a866c1169114c745e"],["bower_components/webcomponentsjs/package.json","0ed43d00e45c31ddb85d44f096ac9fee"],["bower_components/webcomponentsjs/wct.conf.json","dcca00527b4648cf78d9bd0b2654d0b6"],["bower_components/webcomponentsjs/webcomponents-hi-ce.js","495de81020abfefd4f0e3dcff6b7fd3e"],["bower_components/webcomponentsjs/webcomponents-hi-ce.js.map","3e002d42657ea68e78c0780a3e137ad2"],["bower_components/webcomponentsjs/webcomponents-hi-sd-ce.js","68bc22bcb5543e6caabd1d66dc9e1ca9"],["bower_components/webcomponentsjs/webcomponents-hi-sd-ce.js.map","64cd973aa43a08b7847d7dcb0c524a73"],["bower_components/webcomponentsjs/webcomponents-hi.js","0ac538bae69f6beb629d2357350041e7"],["bower_components/webcomponentsjs/webcomponents-hi.js.map","b8e8f9e4e5017ba370412283c07c7403"],["bower_components/webcomponentsjs/webcomponents-lite.js","c89f66cb63a098895f4b1b42eb371673"],["bower_components/webcomponentsjs/webcomponents-lite.js.map","e2034bb3f9968929a87655be6ef0c64d"],["bower_components/webcomponentsjs/webcomponents-loader.js","f13bbbbf647b7922575a7894367ddaaf"],["bower_components/webcomponentsjs/webcomponents-sd-ce.js","c5f6fe397db634cde89f66c2f1bc2f62"],["bower_components/webcomponentsjs/webcomponents-sd-ce.js.map","b8e87353c9986becaa5ecbe83121ca28"],["index.html","b24bd17894128d5abed94b440db2dd20"],["src/lazy-resources.html","4750da28c74eb6294f4a914350d7512e"],["src/page-detail.html","a7bdfc4304860beca2ce163a2da1bbdf"],["src/page-groups.html","f7ed4b321c4e3998fafd565cd02e5c64"],["src/page-home.html","68a6701e4502bfed781c2a2c5be21b78"],["src/page-list.html","3987f5485eeb667d7b25cd5d0d02d05d"],["src/webvisual-app.html","0bde2473b3b98c22c6ef52c722833713"]];
 var cacheName = 'sw-precache-v3--' + (self.registration ? self.registration.scope : '');
 
 
@@ -229,7 +229,7 @@ self.addEventListener('fetch', function(event) {
 
     // If shouldRespond is still false, check to see if this is a navigation
     // request, and if so, whether the URL matches navigateFallbackWhitelist.
-    var navigateFallback = '/index.html';
+    var navigateFallback = 'index.html';
     if (!shouldRespond &&
         navigateFallback &&
         (event.request.mode === 'navigate') &&
@@ -285,9 +285,12 @@ self.addEventListener('fetch', function(event) {
 
 // Runtime cache configuration, using the sw-toolbox library.
 
-toolbox.router.get(/\/bower_components\/webcomponentsjs\/.*.js/, toolbox.fastest, {"cache":{"name":"webcomponentsjs-polyfills-cache"}});
 toolbox.router.get(/\/images\/.*/, toolbox.cacheFirst, {"cache":{"name":"image-cache"}});
 toolbox.router.get(/\/data\/.*/, toolbox.fastest, {"cache":{"name":"data-cache"}});
+toolbox.router.get(/\/fonts\/.*/, toolbox.cacheFirst, {"cache":{"name":"data-cache"}});
+toolbox.router.get(/\/locales\/.*/, toolbox.cacheFirst, {"cache":{"name":"locales-cache"}});
+toolbox.router.get(/\/icons\/.*/, toolbox.cacheFirst, {"cache":{"name":"icons-cache"}});
+toolbox.router.get(/\/scripts\/.*/, toolbox.fastest, {"cache":{"name":"scripts-cache"}});
 toolbox.router.get(/\/socket\.io\/socket\.io\.js/, toolbox.fastest, {"cache":{"maxEntries":2,"name":"socket.io"}});
 
 
