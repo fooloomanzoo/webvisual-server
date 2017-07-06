@@ -71,7 +71,7 @@
 
            axisSizeX: {
              type: Number,
-             value: 20
+             value: 24
            },
 
            axisSizeY: {
@@ -169,6 +169,49 @@
         }
       }
 
+      _computeAxisNode(insertionPoint, orient, title, old) {
+        if (insertionPoint === undefined) return;
+        var color = this.axisColor || '';
+        title = title || this.axisTitle || '';
+        var vertical = this._isVertical(orient);
+
+        if (old && old.node) {
+          var node = old.node();
+          if (node && node.parentElement)
+            node.parentElement.removeChild(node);
+          old = null;
+        }
+
+        var axis = insertionPoint.append('svg:g')
+          .classed('axis', true)
+          .attr('orient', orient)
+          .classed('y', vertical)
+          .classed('vertical', vertical)
+          .classed('x', !vertical)
+          .style('color', color);
+
+        axis.on('mouseover', this._onAxisMouseover.bind(this))
+            .on('mouseleave', this._onAxisMouseleave.bind(this))
+            .on('click', this._onAxisClicked.bind(this, axis))
+          .call(d3.drag()
+            .on('start', this._onAxisDragStart)
+            .on('drag', this._onAxisDragged)
+            .on('end', this._onAxisDragEnd));
+        // add title
+        axis.append('svg:title').text(title);
+        axis.append('svg:g')
+          .classed('brush', true)
+          .on('contextmenu', this._onAxisContextMenu.bind(this, orient))
+        axis.node()._genitor = this;
+        axis.node()._axis = axis;
+        axis._left = 0;
+        axis._right = 0;
+        axis._bottom = 0;
+        axis._top = 0;
+
+        return axis;
+      }
+
       _updateAxisBrushGenerator(range, pos, tickSize) {
         tickSize = tickSize || 8;
         var extent = [[0,0],[range[1],range[0]]]
@@ -193,38 +236,6 @@
             d3.axisBottom(scale)).tickSize(tickSize).tickFormat(this._computeFormatFn(scaling, base));
       }
 
-      _computeAxisNode(insertionPoint, orient, title) {
-        if (insertionPoint === undefined) return;
-        var color = this.axisColor || '';
-        title = title || this.axisTitle || '';
-
-        var axis = insertionPoint.append('svg:g')
-          .classed('axis', true)
-          .attr('orient', orient)
-          .style('color', color);
-
-        axis.on('mouseover', this._onAxisMouseover.bind(this))
-            .on('mouseleave', this._onAxisMouseleave.bind(this))
-            .on('contextmenu', this._onAxisContextMenu.bind(this, orient))
-            .on('click', this._onAxisClicked.bind(this, axis))
-          .call(d3.drag()
-            .on('start', this._onAxisDragStart)
-            .on('drag', this._onAxisDragged)
-            .on('end', this._onAxisDragEnd));
-        // add title
-        axis.append('svg:title').text(title);
-        axis.append('svg:g')
-          .classed('brush', true)
-          .on('contextmenu', this._onAxisContextMenu.bind(this, orient))
-        axis.node()._genitor = this;
-        axis.node()._axis = axis;
-        axis._left = 0;
-        axis._right = 0;
-        axis._bottom = 0;
-        axis._top = 0;
-
-        return axis;
-      }
 
       _setAxisProperties(axis, axisGenerator, expanded) {
         axis.classed('expanded', expanded);
@@ -255,16 +266,19 @@
         this.sizeChanged();
       }
       _onAxisContextMenu(orient) {
+        if (d3.event)
+          d3.event.preventDefault();
         var vertical = (orient === 'left' || orient === 'right');
-        if (vertical && this.axisY._isBrushed) {
-          this.axisY.select(".brush").call(this.axisBrushGeneratorY.move, null);
+        if (vertical) {
           this.axisY._isBrushed = false;
-          this.redraw();
-        } else if (!vertical && this.axisX._isBrushed) {
-          this.axisX.select(".brush").call(this.axisBrushGeneratorX.move, null);
+          this.scaleY.domain(this.domainY).nice();
+          this.axisY.call(this.axisGeneratorY.scale(this.scaleY));
+        } else {
           this.axisX._isBrushed = false;
-          this.redraw();
+          this.scaleX.domain(this.domainX);
+          this.axisX.call(this.axisGeneratorX.scale(this.scaleX));
         }
+        this.redraw();
       }
       _onAxisMouseover() {
         this.axisX.select('.brush').raise();
@@ -277,8 +291,14 @@
       }
       _onAxisDragStart() {
         d3.select(this).raise().classed('dragged', true);
-        this._startleft = d3.event.x;
-        this._starttop = d3.event.y;
+        var vertical = d3.select(this).classed('vertical');
+        if (vertical) {
+          this._startleft = d3.event.x;
+          this._starttop = 0;
+        } else {
+          this._startleft = 0;
+          this._starttop = d3.event.y;
+        }
       }
       _onAxisDragged() {
         var vertical = d3.select(this).classed('vertical'), left = 0, top = 0;
@@ -297,14 +317,9 @@
           pos = (left > g.rangeX[1] / 2) ? 'right' : 'left';
           if (pos !== g.axisOrientY) {
             g.axisGeneratorY = g._computeAxisGenerator(g.axisOrientY = pos, g.scaleY, g.scalingY, g.scaleBaseY).ticks(g.ticksY).tickSize(g.tickSize).tickFormat(g.axisY.classed('expanded') ? g._computeFormatFn(g.scalingY, g.scaleBaseY) : '');
-            var node = g.axisY.node();
-            if (node && node.parentElement)
-              node.parentElement.removeChild(node);
-            g.axisY = g._computeAxisNode(g._axisInsertionPoint, g.item && g.item.mount)
-                         .classed('vertical', true)
-                         .classed('expanded', true)
-                         .classed('y', true)
-                         .call(g.axisGeneratorY);
+            g.axisY = g._computeAxisNode(g._axisInsertionPoint, pos, g.item && g.item.mount, g.axisY)
+               .classed('expanded', true)
+               .call(g.axisGeneratorY);
             g.sizeChanged();
             return;
           }
@@ -313,17 +328,11 @@
           top = (this._axis._top || 0) + d3.event.y - this._starttop;
           pos = (top > g.rangeY[0] / 2) ? 'bottom' : 'top';
           if (pos !== g.axisOrientX) {
-            setTimeout(() => {
-              g.axisGeneratorX = g._computeAxisGenerator((g.axisOrientX = pos), g.scaleX, g.scalingX, g.scaleBaseX).ticks(g.ticksX).tickFormat(g.axisX.classed('expanded') ? g._computeFormatFn(g.scalingX, g.scaleBaseX) : '');
-              var node = g.axisX.node();
-              if (node && node.parentElement)
-                node.parentElement.removeChild(node);
-              g.axisX = g._computeAxisNode(g._axisInsertionPoint, g.item && g.item.mount)
-                           .classed('expanded', true)
-                           .classed('x', true)
-                           .call(g.axisGeneratorX);
-              g.sizeChanged();
-            },0);
+            g.axisGeneratorX = g._computeAxisGenerator((g.axisOrientX = pos), g.scaleX, g.scalingX, g.scaleBaseX).ticks(g.ticksX).tickFormat(g.axisX.classed('expanded') ? g._computeFormatFn(g.scalingX, g.scaleBaseX) : '');
+            g.axisX = g._computeAxisNode(g._axisInsertionPoint, pos, g.item && g.item.mount, g.axisX)
+               .classed('expanded', true)
+               .call(g.axisGeneratorX);
+            g.sizeChanged();
             return;
           }
           top = this._axis._top;
@@ -333,25 +342,26 @@
         this._starttop = 0;
       }
       _onAxisBrushEnd(key) {
-        // if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
-        var vertical = (key === 'y'),
-          s = d3.event.selection,
-          scale = vertical ? this.scaleY : this.scaleX,
-          axis = vertical ? this.axisY : this.axisX,
-          brush = axis.select('.brush'),
-          generator = vertical ? this.axisBrushGeneratorY : this.axisBrushGeneratorX,
-          brushed = axis._isBrushed;
-        if (s) {
-          if (s[0] === s[1]) {
-            axis._isBrushed = false;
-            s = (vertical ? this.rangeY : this.rangeX);
-          }
-          axis._isBrushed = true;
-          s = s.map(scale.invert, scale).sort((a, b) => { return a > b});
-          this.set(vertical ? 'domainY' : 'domainX', s);
-          brush.call(generator.move, null);
-          this.redraw()
+        if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
+        var s = d3.event.selection;
+        if (!s) {
+          return;
         }
+        var vertical = (key === 'y');
+        if (vertical) {
+          var domain = s.map(this.scaleY.invert, this.scaleY).sort((a, b) => { return a > b});
+          this.axisY._isBrushed = true;
+          this.scaleY.domain(domain).nice();
+          this.axisY.call(this.axisGeneratorY.scale(this.scaleY));
+          this.axisY.select(".brush").call(this.axisBrushGeneratorY.move, null);
+        } else {
+          var domain = s.map(this.scaleX.invert, this.scaleX).sort((a, b) => { return a > b});
+          this.axisX._isBrushed = true;
+          this.scaleX.domain(domain);
+          this.axisX.call(this.axisGeneratorX.scale(this.scaleX));
+          this.axisX.select(".brush").call(this.axisBrushGeneratorX.move, null);
+        }
+        this.redraw();
       }
 
       _axisColorChanged(color) {
@@ -363,8 +373,8 @@
         return ['top', 'right', 'bottom', 'bottom'];
       }
 
-      _isVertical(pos) {
-        return pos === 'left' || pos === 'right';
+      _isVertical(orient) {
+        return (orient === 'left' || orient === 'right');
       }
 
       _computeFormatFn(scale, base) {

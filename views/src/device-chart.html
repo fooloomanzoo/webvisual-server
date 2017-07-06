@@ -153,7 +153,7 @@
         mix-blend-mode: overlay;
         pointer-events: none;
       }
-      .zoom {
+      #zoom {
         cursor: default;
         fill: none;
         stroke: none;
@@ -185,9 +185,10 @@
       #control > *:not(:first-of-type) {
         margin-left: var(--control-button-distance, 0px);
       }
-      #control > * {
+      icon-button {
         background: rgba(255,255,255,0.0625);
       }
+      .checkbox,
       .selectbox,
       .button {
         font-size: 0.8em;
@@ -199,21 +200,23 @@
         padding: 0.3em;
       }
       #controlcontent {
-        transform: translateY(-100%);
+        color: var(--primary-text-color, #111);
         position: absolute;
         top: 0;
-        right: 0;
+        right: var(--control-right, 0px);
         display: flex;
         flex-direction: column;
-        background-color: rgba(255, 255, 255, 0.25);
+      }
+      .selectbox > select {
+        opacity: 1;
       }
       [hidden] {
         display: none !important;
       }
     </style>
 
-    <div id="svgContainer" on-contextmenu="_resetZoom">
-      <svg id="svg" version="1.1" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet">
+    <div id="svgContainer">
+      <svg id="svg" version="1.1" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" on-click="_closeControl">
         <defs>
           <marker id="arrowToLeft" markerWidth="20" markerHeight="20" refX="0" refY="0" orient="auto" markerUnits="strokeWidth" viewBox="-10 0 15 10">
             <path d="m 5.29167,-1.7197893 v 3.439581 L 0,2.6966667e-6 Z"/>
@@ -245,7 +248,7 @@
             <g id="line"></g>
             <g id="boundery"></g>
           </g>
-          <g id="zoom"  clip-path="url(#clip)"></g>
+          <rect id="zoom" x="0" y="0" on-contextmenu="_resetZoom"></rect>
           <g id="delta" hidden>
             <line id="deltaX" class="line x" marker-start="url(#arrowToLeft)" marker-end="url(#arrowToRight)"></line>
             <line id="deltaY" class="line y" marker-start="url(#arrowToLeft)" marker-end="url(#arrowToRight)"></line>
@@ -256,42 +259,49 @@
             <line id="focusY" class="line y" marker-start="url(#stub)" marker-end="url(#arrowToRight)"></line>
             <circle id="focusDot" class="dot"></circle>
           </g>
-          <g id="axis" on-tap="_resetZoom"></g>
+          <g id="axis"></g>
           <text id="info" class="focus info" x="0" y="0" filter="url(#solid)" hidden></text>
           <text id="infoDeltaX" class="delta info" x="0" y="0" filter="url(#solid)" hidden></text>
           <text id="infoDeltaY" class="delta info" x="0" y="0" filter="url(#solid)" hidden></text>
         </g>
       </svg>
+
+      <iron-collapse id="controlcontent" opened="[[showControl]]">
+        <div class="selectbox">
+          <select value="{{interpolation::change}}">
+            <option value="Lineare Verbindung">Lineare Verbindung</option>
+            <option value="Basis Spline">Basis Spline</option>
+            <option value="Kubischer Spline">Kubischer Spline</option>
+            <option value="Cardinaler Spline">Cardinaler Spline</option>
+            <option value="Catmull-Rom-Spline">Catmull-Rom-Spline</option>
+            <option value="Stufe (mitte)">Stufe (mitte)</option>
+            <option value="Stufe (davor)">Stufe (davor)</option>
+            <option value="Stufe (danach)">Stufe (danach)</option>
+          </select>
+        </div>
+        <div class="selectbox">
+          <select value="{{scalingY::change}}">
+            <option value="linear">linear</option>
+            <option value="√">√</option>
+            <option value="ln">ln</option>
+            <option value="log₂">log₂</option>
+            <option value="log₁₀">log₁₀</option>
+          </select>
+        </div>
+        <div class="selectbox">
+          <select value="{{modus::change}}">
+            <option value="zoom">zoom</option>
+            <option value="delta">delta</option>
+          </select>
+        </div>
+        <div class="checkbox">
+          <input type="checkbox" name="multiX" checked="{{multiAxesX::change}}">mehrere x-Achsen
+        </div>
+        <div class="checkbox">
+          <input type="checkbox" name="multiY" checked="{{multiAxesY::change}}">mehrere y-Achsen
+        </div>
+      </iron-collapse>
       <section id="control">
-        <iron-collapse id="controlcontent" opened="[[showControl]]">
-          <div class="selectbox">
-            <select value="{{interpolation::change}}">
-              <option value="Lineare Verbindung">Lineare Verbindung</option>
-              <option value="Basis Spline">Basis Spline</option>
-              <option value="Kubischer Spline">Kubischer Spline</option>
-              <option value="Cardinaler Spline">Cardinaler Spline</option>
-              <option value="Catmull-Rom-Spline">Catmull-Rom-Spline</option>
-              <option value="Stufe (mitte)">Stufe (mitte)</option>
-              <option value="Stufe (davor)">Stufe (davor)</option>
-              <option value="Stufe (danach)">Stufe (danach)</option>
-            </select>
-          </div>
-          <div class="selectbox">
-            <select value="{{scalingY::change}}">
-              <option value="linear">linear</option>
-              <option value="√">√</option>
-              <option value="ln">ln</option>
-              <option value="log₂">log₂</option>
-              <option value="log₁₀">log₁₀</option>
-            </select>
-          </div>
-          <div class="selectbox">
-            <select value="{{modus::change}}">
-              <option value="zoom">zoom</option>
-              <option value="delta">delta</option>
-            </select>
-          </div>
-        </iron-collapse>
         <icon-button title="settings" icon="tune" checked="{{showControl}}"></icon-button>
         <icon-button icon="[[fullscreenIcon]]" on-tap="toggleFullscreen"></icon-button>
       </section>
@@ -405,7 +415,8 @@
 
       static get observers() {
         return [
-          "_localizeChanged(localize)"
+          "_localizeChanged(localize)",
+          "_multiAxesChanged(multiAxesX, multiAxesY)",
         ]
       }
 
@@ -436,21 +447,19 @@
 
         this._chart = d3.select(this.$.chart);
         this._control = d3.select(this.$.control);
+        this._controlcontent = d3.select(this.$.controlcontent);
 
         this._axisInsertionPoint = d3.select(this.$.axis);
         this._area = d3.select(this.$.area);
         this._line = d3.select(this.$.line);
         this._boundery = d3.select(this.$.boundery);
 
-        this.axisX = this._computeAxisNode(this._axisInsertionPoint, this.axisOrientX)
+        this.axisX = this._computeAxisNode(this._axisInsertionPoint, this.axisOrientX, '', this.axisX)
                            .attr('hidden', (this.multiAxesX) ? true: null)
-                           .classed('expanded', true)
-                           .classed('x', true);
-        this.axisY = this._computeAxisNode(this._axisInsertionPoint, this.axisOrientY)
+                           .classed('expanded', true);
+        this.axisY = this._computeAxisNode(this._axisInsertionPoint, this.axisOrientY, '', this.axisY)
                            .attr('hidden', (this.multiAxesY) ? true: null)
-                           .classed('expanded', true)
-                           .classed('vertical', true)
-                           .classed('y', true);
+                           .classed('expanded', true);
         this.axisGeneratorX = this._computeAxisGenerator(this.axisOrientX, this.scaleX, this.scalingX, this.scaleBaseX);
         this.axisGeneratorY = this._computeAxisGenerator(this.axisOrientY, this.scaleY, this.scalingY, this.scaleBaseY);
 
@@ -480,12 +489,10 @@
         this._deltaDot = d3.select(this.$.deltaDot);
 
         this._zoomBehavior = d3.zoom()
-              .scaleExtent([1, Infinity])
+              .scaleExtent([0.99, Infinity])
               .on("zoom", this._onZoomed.bind(this));
 
         this._zoom = d3.select(this.$.zoom)
-                      .append('svg:rect')
-                      .classed('zoom', true)
                       .call(this._zoomBehavior);
 
         this._zoom
@@ -536,9 +543,6 @@
               }
             });
           }, {
-            passive: true
-          })
-          .on('touchmove', this._resetZoom.bind(this), {
             passive: true
           });
 
@@ -652,7 +656,7 @@
         }
         if (!this.axisY.attr('hidden')) {
           var size = this.axisY.classed('expanded') ? this.axisSizeY : this.tickSize + this.axisMargin;
-          q.push(incremPosition.call(this.axisY, this.axisOrientX, size));
+          q.push(incremPosition.call(this.axisY, this.axisOrientY, size));
         }
 
         Promise.all(q).then(() => {
@@ -664,8 +668,10 @@
           this.set('rangeY', [this._height,0]);
 
           this._zoom.attr('height', this._height).attr('width', this._width);
-          this._zoomBehavior.extent([[0, 0], [this._width, this._height]]);
-          this._zoom.call(this._zoomBehavior.transform, d3.zoomIdentity);
+          this._zoomBehavior
+            .translateExtent([[0, 0], [this._width, this._height]])
+            .extent([[0, 0], [this._width, this._height]])
+          // this._zoom.call(this._zoomBehavior.transform, d3.zoomIdentity);
 
           var p = [];
 
@@ -696,7 +702,8 @@
             this._chart._bottom = bottom;
             this._chart._left = left;
 
-            this._control.transition(100).style('transform', 'translate(-' + this._chart._right + 'px,-' + this._chart._bottom + 'px)');
+            this._control.transition(100).style('transform', 'translate(' + (-this._chart._right) + 'px,' + (-this._chart._bottom) + 'px)');
+            this._controlcontent.transition(100).style('transform', 'translate(' + (-this._chart._right) + 'px,' + (-this._chart._top) + 'px)');
 
             // Limiting Projection to Margin
             this._chart.select('clipPath#clip rect').transition(100)
@@ -713,13 +720,13 @@
             this._graphs.forEach( g => {
               if (g._isAttached) {
                 if (!g.axisX.attr('hidden')) {
-                  g.axisGeneratorX = g._computeAxisGenerator(g.axisOrientX, g.scaleX, g.scalingX, g.scaleBaseX).ticks(g.ticksX).tickSize(g.tickSize).tickFormat(g.axisX.classed('expanded') ? g._computeFormatFn(g.scalingX, g.scaleBaseX) : '');
+                  g.axisGeneratorX = g._computeAxisGenerator.call(g, g.axisOrientX, g.scaleX, g.scalingX, g.scaleBaseX).ticks(g.ticksX).tickSize(g.tickSize).tickFormat(g.axisX.classed('expanded') ? g._computeFormatFn(g.scalingX, g.scaleBaseX) : '');
                   g._updateAxisBrushGenerator.call(g.axisBrushGeneratorX, this.rangeX, g.axisOrientX);
                   g.axisX.select('.brush').raise().call(g.axisBrushGeneratorX);
                   g.axisX.attr('transform', 'translate(' + (g.axisX._left || 0) + ',' + (g.axisX._top || 0) + ')');
                 }
                 if (!g.axisY.attr('hidden')) {
-                  g.axisGeneratorY = g._computeAxisGenerator(g.axisOrientY, g.scaleY, g.scalingY, g.scaleBaseY).ticks(g.ticksY).tickSize(g.tickSize).tickFormat(g.axisY.classed('expanded') ? g._computeFormatFn(g.scalingY, g.scaleBaseY) : '');
+                  g.axisGeneratorY = g._computeAxisGenerator.call(g, g.axisOrientY, g.scaleY, g.scalingY, g.scaleBaseY).ticks(g.ticksY).tickSize(g.tickSize).tickFormat(g.axisY.classed('expanded') ? g._computeFormatFn(g.scalingY, g.scaleBaseY) : '');
                   g._updateAxisBrushGenerator.call(g.axisBrushGeneratorY, this.rangeY, g.axisOrientY);
                   g.axisY.select('.brush').raise().call(g.axisBrushGeneratorY);
                   g.axisY.attr('transform', 'translate(' + (g.axisY._left || 0) + ',' + (g.axisY._top || 0) + ')');
@@ -753,7 +760,7 @@
         })
       }
 
-      _redomain(keys) {
+      _redomain() {
         if (!this._isAttached) return;
         if (this._activeRedrawJob) {
           clearTimeout(this._activeRedrawJob);
@@ -814,62 +821,29 @@
         }, 0);
       }
 
-      _domainXChanged(domainX) {
-        if (domainX === undefined || this.scaleX === undefined || domainX.some(e => { return e === undefined || e === null; })) return;
-        // console.log('domainchanged')
-        this.scaleX.domain(domainX);
-        if (!this.multiAxesX) {
-          var te = this._zoomBehavior.translateExtent();
-          this._zoomBehavior.translateExtent([[this.scaleX(this.domainX[0]), te[0][1]], [this.scaleX(this.domainX[1]), te[1][1]]]);
-        }
-      }
-
-      _domainYChanged(domainY) {
-        if (domainY === undefined || this.scaleY === undefined || domainY.some(e => { return e === undefined || e === null; })) return;
-        this.scaleY.domain(domainY).nice();
-        if (!this.multiAxesY) {
-          var te = this._zoomBehavior.translateExtent();
-          this._zoomBehavior.translateExtent([[te[0][0], this.scaleY(this.domainY[0])], [te[1][0], this.scaleY(this.domainY[1])]]);
-        }
-      }
-
       _multiAxesChanged(multiAxesX, multiAxesY) {
         if (!this._isAttached) return;
         var hidden;
         this._graphs.forEach( g => {
           if (g._isAttached) {
-            hidden = (multiAxesX && g.axisX) ? null : true;
+            hidden = multiAxesX ? null : true;
             g.axisX.attr('hidden', hidden);
-            if (hidden) {
-              g.set('domainX', this.domainX);
-            }
-            hidden = (multiAxesY && g.axisY) ? null : true;
+            hidden = multiAxesY ? null : true;
             g.axisY.attr('hidden', hidden);
-            if (hidden) {
-              g.set('domainY', this.domainY);
-            }
           }
         })
-        hidden = (multiAxesX && this.axisX) ? true : null;
+        hidden = multiAxesX ? true : null;
         this.axisX.attr('hidden', hidden);
-        hidden = (multiAxesY && this.axisY) ? true : null;
+        hidden = multiAxesY ? true : null;
         this.axisY.attr('hidden', hidden);
 
-        if (!multiAxesX && this.scaleX && this.domainX) {
-          var te = this._zoomBehavior.translateExtent();
-          this._zoomBehavior.translateExtent([[this.scaleX(this.domainX[0]), te[0][1]], [this.scaleX(this.domainX[1]), te[1][1]]]);
-        }
-
-        if (!multiAxesY && this.scaleY && this.domainY) {
-          var te = this._zoomBehavior.translateExtent();
-          this._zoomBehavior.translateExtent([[te[0][0], this.scaleY(this.domainY[0])], [te[1][0], this.scaleY(this.domainY[1])]]);
-        }
+        this._redomain();
+        this.sizeChanged();
       }
 
       _addGraph(g) {
         this._graphs.add(g);
         this.sizeChanged();
-        g = null;
       }
       _removeGraph(g) {
         this._graphs.delete(g);
@@ -887,7 +861,7 @@
           var p = [], q = [];
           this._graphs.forEach( g => {
             p.push( g._getDomain('x', this.multiAxesX) )
-            q.push( g._getDomain('y', this.multiAxesX) )
+            q.push( g._getDomain('y', this.multiAxesY) )
           })
           Promise.all(p)
             .then(res => {
@@ -1161,73 +1135,96 @@
         if (!s) {
           return;
         }
-        if (!this.multiAxesX) {
+        if (!this.multiAxesY && !this.multiAxesX) {
+          if (key === 'x') this.axisX.select(".brush").call(this.axisBrushGeneratorX.move, null);
+          if (key === 'y') this.axisY.select(".brush").call(this.axisBrushGeneratorY.move, null);
+          return; // TODO: zoomm does not work correctly if brushing on all combined axes
+        }
+        var vertical = (key === 'y');
+        if (vertical) {
+          var domain = s.map(this.scaleY.invert, this.scaleY).sort((a, b) => { return a > b});
+          this._graphs.forEach(g => {
+            g.scaleY.domain(domain).nice();
+            g.axisGeneratorY.scale(g.scaleY);
+          })
+          this.axisY._isBrushed = true;
+          this.scaleY.domain(domain).nice();
+          this.axisY.call(this.axisGeneratorY.scale(this.scaleY));
+          this.axisY.select(".brush").call(this.axisBrushGeneratorY.move, null);
+          this._zoom.call(this._zoomBehavior.transform, d3.zoomIdentity
+            .scale(this._height / (s[1] - s[0]))
+            .translate(0, -s[0]));
+        }
+        if (!vertical) {
           var domain = s.map(this.scaleX.invert, this.scaleX).sort((a, b) => { return a > b});
           this._graphs.forEach(g => {
             g.scaleX.domain(domain);
             g.axisGeneratorX.scale(g.scaleX);
-            g.redraw();
           })
           this.axisX._isBrushed = true;
-          this.axisX.call(this.axisGeneratorX.scale().domain(domain));
+          this.scaleX.domain(domain);
+          this.axisX.call(this.axisGeneratorX.scale(this.scaleX));
           this.axisX.select(".brush").call(this.axisBrushGeneratorX.move, null);
+          this._zoom.call(this._zoomBehavior.transform, d3.zoomIdentity
+            .scale(this._width / (s[1] - s[0]))
+            .translate(-s[0], 0));
         }
-        if (!this.multiAxesY) {
-          var domain = s.map(this.scaleY.invert, this.scaleY).sort((a, b) => { return a > b});
-          this._graphs.forEach(g => {
-            g.scaleY.domain(domain);
-            g.axisGeneratorY.scale(g.scaleY);
-            g.redraw();
-          })
-          this.axisY._isBrushed = true;
-          this.axisY.call(this.axisGeneratorY.scale().domain(domain));
-          this.axisY.select(".brush").call(this.axisBrushGeneratorY.move, null);
-        }
-        this._zoom.call(this._zoomBehavior.transform, d3.zoomIdentity
-          .scale(this._width / (s[1] - s[0]))
-          .translate(-s[0], 0));
+        this._graphs.forEach(g => {
+          g.redraw();
+        })
       }
       _onZoomed() {
         if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") return; // ignore zoom-by-brush
         var t = d3.event.transform;
-
+        if (!this.domainX || !this.domainY) {
+          return;
+        }
+        var x = d3.event.transform.rescaleX(this.scaleX.domain(this.domainX));
+        var y = d3.event.transform.rescaleY(this.scaleY.domain(this.domainY).nice());
+        var domain;
         if (!this.multiAxesX) {
-          var x = d3.event.transform.rescaleX(this.scaleX);
+          domain = x.domain();
           this._graphs.forEach(g => {
-            g.set('domainX', x.domain())
+            g.scaleX.domain(domain);
             g.axisGeneratorX.scale(g.scaleX);
-            g.scaleX.domain(x.domain());
-            g.redraw();
           })
-          this.axisX.call(this.axisGeneratorX.scale(x));
-          this._isZoomed = !(t.k === 1 && t.x === 0 && t.y === 0);
+          this.scaleX.domain(domain);
+          this.axisX.call(this.axisGeneratorX.scale(this.scaleX));
         }
         if (!this.multiAxesY) {
-          var y = d3.event.transform.rescaleY(this.scaleY);
+          domain = y.domain();
           this._graphs.forEach(g => {
-            g.scaleY.domain(y.domain());
+            g.scaleY.domain(domain);
             g.axisGeneratorY.scale(g.scaleY);
-            g.redraw();
           })
+          this.scaleY.domain(domain);
           this.axisY.call(this.axisGeneratorY.scale(y));
-          this._isZoomed = !(t.k === 1 && t.x === 0 && t.y === 0);
         }
+        this._graphs.forEach(g => {
+          g.redraw();
+        })
+        this._isZoomed = !(t.k === 1 && t.x === 0 && t.y === 0);
       }
 
       _onAxisContextMenu(orient) {
+        if (d3.event)
+          d3.event.preventDefault();
         if (this._isZoomed) {
           this._resetZoom();
         } else {
           super._onAxisContextMenu(orient);
         }
       }
+      _closeControl() {
+        this.showControl = false;
+      }
       _resetZoom(e) {
-        // console.log('resetzoom')
         if (d3.event)
           d3.event.preventDefault();
         else if (e && e.preventDefault) {
           e.preventDefault();
         }
+        this.showControl = false;
         this._isZoomed = false;
         this._fixedValue = null;
         this._focusedValue = null;
@@ -1237,6 +1234,10 @@
         this._graphs.forEach(g => {
           g.axisX._isBrushed = false;
           g.axisY._isBrushed = false;
+          g.scaleX.domain(g.domainX);
+          g.scaleY.domain(g.domainY);
+          g.axisX.call(g.axisGeneratorX.scale(g.scaleX));
+          g.axisY.call(g.axisGeneratorY.scale(g.scaleY));
         })
         this._hideInfo();
         this._redomain();

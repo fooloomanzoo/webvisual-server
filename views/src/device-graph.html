@@ -56,10 +56,6 @@
             readOnly: true
           },
 
-          multiAxes: {
-            type: Object
-          },
-
           /**
            * folder for date/time-format file
            */
@@ -168,21 +164,16 @@
         this._lineChanged(this.hasLine);
 
         if (!this.axisX ) {
-          this.axisX = this._computeAxisNode(this._axisInsertionPoint, this.axisOrientY, this.item.mount)
+          this.axisX = this._computeAxisNode(this._axisInsertionPoint, this.axisOrientX, this.item.mount, this.axisX)
             .attr('hidden', (this._chart.multiAxesX) ? null : true)
-            .classed('mount', this.item.mount)
-            .classed('x', true)
         }
         if (!this.axisY ) {
-          this.axisY = this._computeAxisNode(this._axisInsertionPoint, this.axisOrientY, this.item.mount)
+          this.axisY = this._computeAxisNode(this._axisInsertionPoint, this.axisOrientY, this.item.mount, this.axisY)
             .attr('hidden', (this._chart.multiAxesY) ? null : true)
             .classed('vertical', true)
-            .classed('y', true)
         }
         this.axisGeneratorX = this._computeAxisGenerator(this.axisOrientX, this.scaleX, this.scalingX, this.scaleBaseX);
         this.axisGeneratorY = this._computeAxisGenerator(this.axisOrientY, this.scaleY, this.scalingY, this.scaleBaseY);
-        // this.axisBrushGeneratorX = this._computeAxisBrushGenerator(this.axisOrientX);
-        // this.axisBrushGeneratorY = this._computeAxisBrushGenerator(this.axisOrientY);
 
         this._setColorProperties();
         this._isAttached = true;
@@ -537,7 +528,6 @@
                   }
                   else if (key === 'y') {
                     this.set('domainY', domain);
-                    console.log(domain)
                   }
                 }
               }
@@ -734,27 +724,6 @@
       }
       _onAxisClicked(axis) {
         super._onAxisClicked(axis);
-      }
-      _onAxisContextMenu(orient) {
-        super._onAxisContextMenu(orient);
-        if (this._chart._isZoomed) {
-          this._chart._resetZoom();
-        } else {
-          var vertical = (orient === 'left' || orient === 'right');
-          if (vertical && this.axisY._isBrushed) {
-            Promise.resolve(this._getDomain('y', true)).then(res => {
-              console.log(res)
-              this.axisY._isBrushed = false;
-              this.redraw();
-            });
-          } else if (!vertical && this.axisX._isBrushed) {
-            Promise.resolve(this._getDomain('x', true)).then(res => {
-              console.log(res)
-              this.axisX._isBrushed = false;
-              this.redraw();
-            });
-          }
-        }
       }
       _onAxisMouseover(axis, orient) {
         super._onAxisMouseover(axis, orient);
