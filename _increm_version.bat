@@ -10,12 +10,14 @@ for /F "tokens=1,2,3 delims=." %%a in ("%VERSION%") do (
 
 set /A Revision=%Revision%+1
 
+echo Before Version: %VERSION%
 set VERSION=%Major%.%Minor%.%Revision%
 echo Version: %VERSION%
 
 for /f %%a in ('git log -1') do set LOG=%%a
 echo Message: %LOG%
 
+git tag -d %VERSION%
 git tag %VERSION% -m "%LOG%"
 
 pause
