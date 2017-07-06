@@ -19,8 +19,3 @@ echo Message: %LOG%
 
 git tag -d %VERSION%
 git tag %VERSION% -m "%LOG%"
-
-pause
-goto:eof
-
-:END
