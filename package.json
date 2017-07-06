@@ -1,6 +1,6 @@
 {
   "name": "webvisual-server",
-  "version": "0.8.4",
+  "version": "1.0.0",
   "description": "server for visualization of data changes",
   "homepage": "https://github.com/fooloomanzoo/webvisual",
   "author": "Johannes Brautzsch <hannes-b@web.de>",
