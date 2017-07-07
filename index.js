@@ -203,7 +203,7 @@ class WebvisualServer extends processEmiter {
           this.router.on('ready', () => {
             this.dataHandler.setServer(this.router.io)
           })
-          this.router.setSettings(config, sslSettings)
+          this.router.setSettings(config.server, config.configfiles, sslSettings)
 
           this.configfilesHandler = new ConfigFileProcessor()
           this.configfilesHandler.on('change', (config, facility) => {

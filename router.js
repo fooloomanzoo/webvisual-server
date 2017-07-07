@@ -59,17 +59,9 @@ class Router extends EventEmitter {
     this.sessionSecret = String(Math.random().toString(16).slice(2))
   }
 
-  setSettings(config, sslSettings) {
-    if (config === undefined)
-      console.error('Empty Configuration passed to Router')
-    for (let key in config) {
-      if (key == 'server')
-        this.setApp(config.server, sslSettings)
-      else if (key == 'configfiles')
-        this.setConfigurations(config.configfiles)
-      else
-        this.settings[key] = config[key]
-    }
+  setSettings(serverConfig, configfiles, sslSettings) {
+    this.setApp(serverConfig, sslSettings)
+    this.setConfigurations(config.configfiles)
   }
 
   connect() {
