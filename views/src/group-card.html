@@ -168,6 +168,7 @@
           <template is="dom-if" if="[[_shouldRenderExtensions]]">
             <device-chart class="view"
               multi
+              margin='{"left": 0, "right": 0, "top": 0, "bottom": 0}'
               items="[[items]]"></device-chart>
             <device-table-group class="view"
               items="[[items]]" selected-mount="[[item.mount]]"></device-table-group>
@@ -285,7 +286,6 @@
           this.$.control.style['will-change'] = '';
           this.$.control.style['transition'] = 'none';
           this.$.addons.style['will-change'] = '';
-          this.$.addons.style['transition'] = 'none';
           this.$.headerBackground.style['will-change'] = '';
           this.$.headerBackground.style['transition'] = 'none';
           this.$.control.classList.remove('opened');
@@ -299,25 +299,26 @@
       }
 
       _transitionStart() {
-        this.$.addons.style['display'] = '';
-        this.$.addons.style['transition'] = '';
-        this.$.addons.style['will-change'] = 'transform';
         requestAnimationFrame(() => {
-          this.$.headerBackground.style['transition'] = '';
-          this.$.headerBackground.style['will-change'] = 'padding-top';
-          if (this._state === this._STATE.OPENING) {
-            this.$.control.style['transition'] = '';
-            this.$.control.style['will-change'] = 'opacity';
-            this.$.addons.classList.add('opened');
-            this.$.header.classList.add('opened');
-            this.$.headerBackground.classList.add('opened');
-          } else if (this._state === this._STATE.CLOSING) {
-            this.$.control.style['transition'] = 'none';
-            this.$.control.style['will-change'] = '';
-            this.$.control.classList.remove('opened');
-            this.$.addons.classList.remove('opened');
-            this.$.headerBackground.classList.remove('opened');
-          }
+          this.$.addons.style['display'] = '';
+          this.$.addons.style['will-change'] = 'transform';
+          requestAnimationFrame(() => {
+            this.$.headerBackground.style['transition'] = '';
+            this.$.headerBackground.style['will-change'] = 'padding-top';
+            if (this._state === this._STATE.OPENING) {
+              this.$.control.style['transition'] = '';
+              this.$.control.style['will-change'] = 'opacity';
+              this.$.addons.classList.add('opened');
+              this.$.header.classList.add('opened');
+              this.$.headerBackground.classList.add('opened');
+            } else if (this._state === this._STATE.CLOSING) {
+              this.$.control.style['transition'] = 'none';
+              this.$.control.style['will-change'] = '';
+              this.$.control.classList.remove('opened');
+              this.$.addons.classList.remove('opened');
+              this.$.headerBackground.classList.remove('opened');
+            }
+          });
         });
       }
 
@@ -333,7 +334,6 @@
             this._viewChanged();
           }
           this.$.addons.style['will-change'] = '';
-          this.$.addons.style['transition'] = '';
           this.$.headerBackground.style['will-change'] = '';
           this._state = this._STATE.STATIC;
         });
