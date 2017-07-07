@@ -280,9 +280,12 @@ class Router extends EventEmitter {
   }
 
   setServer(sslSettings, app) {
-    sslSettings = sslSettings || this.settings.ssl
+    this.settings.ssl = sslSettings || this.settings.ssl
+    this.settings.ssl.requestCert = true;
+    this.settings.ssl.rejectUnauthorized = false;
+    
     app = app || this.app
-    if (!sslSettings) {
+    if (!this.settings.ssl) {
       console.warn('There are no settings available for SSL. The HTTP-connection will be unencrypted.');
     }
     if (!app) {
@@ -291,7 +294,7 @@ class Router extends EventEmitter {
     }
     if (this.server)
         this.server.close()
-    this.server = spdy.createServer(sslSettings, app)
+    this.server = spdy.createServer(this.settings.ssl, app)
     this.server.on('error', err => {
       if (err.code === 'EADDRINUSE') {
         console.error( `HTTP2 Server \n Port ${this.settings.server.port} in use. Please check if node.exe is not already running on this port.` )
