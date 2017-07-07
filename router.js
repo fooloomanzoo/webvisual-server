@@ -13,34 +13,15 @@ const EventEmitter = require('events').EventEmitter,
   session = require('express-session'),
   serveStatic = require('serve-static'),
   useragent = require('express-useragent'),
+  passport = require('passport'),
+  // multi-form requests (login)
+  multer = require('multer'),
   // Server
   spdy = require('spdy'),
-  // multi-form requests (login)
-  multer = require('multer')({
-    dest: 'tmp/',
-    limits: {
-      fileSize: 0
-    },
-    fileFilter: (req, file, cb) => {
-      cb(null, false)
-    }
-  }),
   // Session Store
   RedisStore = require('connect-redis')(session),
   // Development (Reload on change)
   chokidar = require('chokidar');
-
-  const dir = {
-    dist: {
-      production: path.join(__dirname, 'views/build'),
-      development: path.join(__dirname, 'views')
-    },
-    data: path.join(__dirname, 'views/data'),
-    image: path.join(__dirname, 'views/images'),
-    locale: path.join(__dirname, 'views/locales'),
-    icons: path.join(__dirname, 'views/icons'),
-    fonts: path.join(__dirname, 'views/fonts')
-  }
 
   const requiredStaticSettings = [
     'groups',
@@ -61,25 +42,33 @@ class Router extends EventEmitter {
 
   constructor(mode) {
     super()
-    this.dir = dir
-    this.mode = (mode in this.dir.dist) ? mode : 'production'
-    this.passport = require('passport')
+    this.mode = mode || 'development'
+
+    this.dirDevelopment = path.join(__dirname, 'views')
+    this.dirProduction = path.join(__dirname, 'views/build')
+    this.dir = {
+      locale: path.join(__dirname, 'views/locales'),
+      icons: path.join(__dirname, 'views/icons'),
+      fonts: path.join(__dirname, 'views/fonts')
+    }
+
+    this.passport = passport
     this.settings = {}
-    this.configuration = {}
+    this.configurations = {}
 
     this.sessionSecret = String(Math.random().toString(16).slice(2))
   }
 
-  setSettings(options, sslSettings) {
-    if (options === undefined)
+  setSettings(config, sslSettings) {
+    if (config === undefined)
       console.error('Empty Configuration passed to Router')
-    for (let key in options) {
+    for (let key in config) {
       if (key == 'server')
-        this.setApp(options.server, sslSettings)
+        this.setApp(config.server, sslSettings)
       else if (key == 'configfiles')
-        this.setConfigurations(options.configfiles)
+        this.setConfigurations(config.configfiles)
       else
-        this.settings[key] = options[key]
+        this.settings[key] = config[key]
     }
   }
 
@@ -87,7 +76,7 @@ class Router extends EventEmitter {
     if (this.server)
       this.server.listen(this.settings.server.port || process.env.port || 443)
     else {
-      this.createServer(this.settings.ssl, this.app)
+      this.setServer(this.settings.ssl, this.app)
       if (this.server)
         this.connect()
     }
@@ -101,9 +90,12 @@ class Router extends EventEmitter {
   setApp(options, sslSettings) {
     this.settings.server = options
     this.settings.ssl = sslSettings
-    this.app = express();
 
-    this.createServer(this.settings.ssl, this.app)
+    this.dirTmp = resolvePath(this.settings.server._tmpDir) || path.join(__dirname, 'views')
+    this.dirData = resolvePath(this.dirTmp, 'data')
+    this.dirImage = resolvePath(this.dirTmp, 'images')
+
+    this.app = express()
 
     if (options.sessionStore) {
       switch (options.sessionStore.type) {
@@ -152,7 +144,7 @@ class Router extends EventEmitter {
     }))
     this.app.use(bodyParser.json())
 
-    this.cookieParser = require('cookie-parser')(this.sessionSecret)
+    this.cookieParser = cookieParser(this.sessionSecret)
     this.app.use(this.cookieParser)
 
     this.app.use(this.sessionMiddleWare)
@@ -180,7 +172,7 @@ class Router extends EventEmitter {
     // watch for changes, if in development mode, for auto-reloading
     switch (this.mode) {
       case 'development':
-        let srcpath = resolvePath(this.dir.dist.development)
+        let srcpath = resolvePath(this.dirDevelopment)
         this.watcher = chokidar.watch(srcpath, {
           ignored: /(^|[\/\\])\../,
           persistent: true
@@ -203,7 +195,17 @@ class Router extends EventEmitter {
     }
 
     // Signin
-    this.app.post('/login', multer.fields([]),
+    // multi-form requests (login)
+    this.multer = multer({
+      dest: path.join(this.dirTmp, 'tmp'),
+      limits: {
+        fileSize: 0
+      },
+      fileFilter: (req, file, cb) => {
+        cb(null, false)
+      }
+    })
+    this.app.post('/login', this.multer.fields([]),
       this.settings.server.auth.required ?
       this.passport.authenticate('activedirectory-login') :
       this.passport.authenticate('dummy'),
@@ -243,13 +245,13 @@ class Router extends EventEmitter {
 
     // Secured Data
     this.app.use('/data', this.settings.server.auth.required ? ensureLoggedIn.isRequired : ensureLoggedIn.notRequired)
-    this.app.use('/data', serveStatic(this.dir.data, {
+    this.app.use('/data', serveStatic(this.dirData, {
       index: false,
       fallthrough: false
     }))
 
     this.app.use('/images', this.settings.server.auth.required ? ensureLoggedIn.isRequired : ensureLoggedIn.notRequired)
-    this.app.use('/images', serveStatic(this.dir.image, {
+    this.app.use('/images', serveStatic(this.dirImage, {
       index: false,
       fallthrough: false
     }))
@@ -259,29 +261,33 @@ class Router extends EventEmitter {
     this.app.use(
       conditional(this.mode !== 'development',
         conditional(useragent_supports_es6,
-          serveStatic( path.join(this.dir.dist[this.mode], '/bundled'), { index: ['index.html'] })
+          serveStatic( path.join(this.dirProduction, '/bundled'), { index: ['index.html'] })
       )))
     // not in development mode (build version) and not supporting es6 (compiled version)
     this.app.use(
       conditional(this.mode !== 'development',
         conditional(useragent_supports_es6,
-          serveStatic( path.join(this.dir.dist[this.mode], '/compiled')), true
+          serveStatic( path.join(this.dirProduction, '/compiled')), true
       )))
     // in development mode (unbuild, uncompiled version)
-    this.app.use(serveStatic(this.dir.dist.development))
+    this.app.use(serveStatic(this.dirDevelopment))
 
     // Fallback (for in-app-page-routing neccessary)
     this.app.get('*', (req, res) => {
       res.location(req.originalUrl)
-      res.sendFile(path.join(this.dir.dist[this.mode], (this.mode === 'development' ? '' : (useragent_supports_es6(req) ? '/bundled' : '/compiled')), 'index.html'))
+      if (this.mode === 'development') {
+        res.sendFile(path.join(this.dirDevelopment, 'index.html'))
+      } else {
+        res.sendFile(path.join(this.dirProduction, (useragent_supports_es6(req) ? '/bundled' : '/compiled'), 'index.html'))
+      }
     })
 
-    this.createServer(this.settings.ssl, this.app);
+    this.setServer(this.settings.ssl, this.app);
 
     this.emit('ready');
   }
 
-  createServer(sslSettings, app) {
+  setServer(sslSettings, app) {
     sslSettings = sslSettings || this.settings.ssl
     app = app || this.app
     if (!sslSettings) {
@@ -343,12 +349,12 @@ class Router extends EventEmitter {
     this.settings.configfiles = configfiles
 
     // init facilities.json
-    mkdirp(this.dir.data, err => {
+    mkdirp(this.dirData, err => {
       if (err) {
-        console.error(`Failed to create ${this.dir.data}\n ${err}`)
+        console.error(`Failed to create ${this.dirData}\n ${err}`)
         return
       }
-      jsonfile.writeFile(path.resolve(this.dir.data, 'facilities.json'), [], err => {
+      jsonfile.writeFile(path.resolve(this.dirData, 'facilities.json'), [], err => {
         if (err) {
           console.error(`Failed to create facilities.json\n ${err}`)
           return
@@ -358,10 +364,10 @@ class Router extends EventEmitter {
   }
 
   setConfiguration(opt, facility) {
-    this.configuration[facility] = opt
-    mkdirp(this.dir.data, err => {
+    this.configurations[facility] = opt
+    mkdirp(this.dirData, err => {
       if (err) {
-        console.error(`Failed to create ${this.dir.data}\n ${err}`)
+        console.error(`Failed to create ${this.dirData}\n ${err}`)
         return
       }
       this.createStaticContent()
@@ -373,9 +379,9 @@ class Router extends EventEmitter {
       tmp, pth, dest, svgDest
 
     // write json
-    for (let facility in this.configuration) {
+    for (let facility in this.configurations) {
 
-      let opt = this.configuration[facility]
+      let opt = this.configurations[facility]
       tmp = []
 
       for (let ke in opt) {
@@ -392,7 +398,7 @@ class Router extends EventEmitter {
         })
 
         let comb = facility + '+' + system
-        dest = resolvePath(this.dir.data)
+        dest = resolvePath(this.dirData)
 
         // create required static settings
         for (let key in opt[system]) {
@@ -401,14 +407,14 @@ class Router extends EventEmitter {
           pth = path.resolve(dest, comb + '+' + key + '.json')
           fs.writeFile(pth, JSON.stringify(opt[system][key] || {}), err => {
             if (err)
-              console.error(`Writing Files for static content configuration data (${this.dir.data}) failed\n ${err}`)
+              console.error(`Writing Files for static content configuration data (${this.dirData}) failed\n ${err}`)
           })
         }
 
         // copy svgContent in staticContentFolder
         if (opt[system].svgSource && opt[system].svgSource.paths && Object.keys(opt[system].svgSource.paths).length) {
 
-          let svgDest = resolvePath(this.dir.image, facility, system)
+          let svgDest = resolvePath(this.dirImage, facility, system)
 
           mkdirp(svgDest, err => {
             if (err) console.error(`SVG-File Destination folder failed to create \n ${err}`)
@@ -462,15 +468,15 @@ class Router extends EventEmitter {
 
       if (tmp && tmp.length > 0) {
         facilities.push({
-          name: this.configuration[facility]._name,
-          title: this.configuration[facility]._title,
+          name: this.configurations[facility]._name,
+          title: this.configurations[facility]._title,
           systems: tmp
         })
       }
     }
 
     // create folder structure
-    jsonfile.writeFile(path.resolve(this.dir.data, 'facilities.json'), facilities, err => {
+    jsonfile.writeFile(path.resolve(this.dirData, 'facilities.json'), facilities, err => {
       if (err) {
         console.error(`Failed to write facilities.json\n ${err}`)
         return
