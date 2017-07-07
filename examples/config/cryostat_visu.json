@@ -4,7 +4,7 @@
   "connections": {
     "file": {
       "mode": "append",
-      "path": "examples/datafile/cryostat_visu.txt",
+      "path": "./examples/datafile/cryostat_visu.txt",
       "format": {
         "dateFormat": "DD.MM.YYYY hh:mm:ss",
         "decimalSeparator": ",",
@@ -101,7 +101,7 @@
   "connections": {
     "file": {
       "mode": "append",
-      "path": "examples/datafile/cryostat_visu2.txt",
+      "path": "./examples/datafile/cryostat_visu2.txt",
       "format": {
         "dateFormat": "DD.MM.YYYY hh:mm:ss",
         "decimalSeparator": ".",
