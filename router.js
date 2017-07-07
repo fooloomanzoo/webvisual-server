@@ -91,7 +91,7 @@ class Router extends EventEmitter {
     this.settings.server = options
     this.settings.ssl = sslSettings
 
-    this.dirTmp = resolvePath(this.settings.server._tmpDir) || path.join(__dirname, 'views')
+    this.dirTmp = this.settings.server._tmpDir ? resolvePath(this.settings.server._tmpDir) : path.join(__dirname, 'views')
     this.dirData = resolvePath(this.dirTmp, 'data')
     this.dirImage = resolvePath(this.dirTmp, 'images')
 

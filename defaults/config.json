@@ -2,7 +2,8 @@
   "server": {
     "auth": {
       "required": false,
-      "ldap": {
+      "type": {
+        "type": "ldap", 
         "baseDN": "dc=ibn-net,dc=kfa-juelich,dc=de",
         "url": "ldap://ibn-net.kfa-juelich.de"
       }
