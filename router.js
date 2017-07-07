@@ -61,7 +61,7 @@ class Router extends EventEmitter {
 
   setSettings(serverConfig, configfiles, sslSettings) {
     this.setApp(serverConfig, sslSettings)
-    this.setConfigurations(config.configfiles)
+    this.setConfigurations(configfiles)
   }
 
   connect() {
