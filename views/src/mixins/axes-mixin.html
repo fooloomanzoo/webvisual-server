@@ -383,7 +383,7 @@
         } else if (this.item && this.item.isIndicatorLamp) {
           return this.formatIndicator.bind(this, this.item.threshold);
         } else {
-          return this.formatNumber.bind(this, scale, base);
+          return this.formatNumber.bind(this);
         }
       }
 
@@ -450,7 +450,7 @@
         return ret;
       }
 
-      formatNumber(scale, base, num) {
+      formatNumber(num) {
         // format with thousands separators
         return this.numberFormat(',g')(num);
       }

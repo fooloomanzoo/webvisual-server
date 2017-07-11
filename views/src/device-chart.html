@@ -229,11 +229,8 @@
             <path d="M -2,0 M -5,-1 H 1 V 1 H -5 Z"/>
           </marker>
           <filter x="0" y="0" width="1" height="1" id="solid">
-            <feFlood flood-color="white" id="flood"/>
-            <feMerge>
-              <feMergeNode in="flood" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
+            <feFlood flood-color="white"/>
+            <feComposite in="SourceGraphic"/>
           </filter>
         </defs>
         <g id="chart">
@@ -510,11 +507,9 @@
                 if (closestGraph.item.threshold) {
                   switch (closestPoint.state) {
                     case 1:
-                      fill = closestGraph.getComputedStyleValue('--device-state-exceeds-color') || '#F20C0C';
-                      break;
+                      fill = closestGraph.getComputedStyleValue('--device-state-exceeds-color') || '#F20C0C'; break;
                     case -1:
-                      fill = closestGraph.getComputedStyleValue('--device-state-deceeds-color') || '#F20C0C';
-                      break;
+                      fill = closestGraph.getComputedStyleValue('--device-state-deceeds-color') || '#F20C0C'; break;
                   }
                 }
                 this._focusedValue = closestPoint;
@@ -913,14 +908,13 @@
 
       _moveInfo(d) {
         if (Number.isFinite(d.g.scaleY(d.y))) {
-          var x = this.formatTime(+d.x);
-          this._info.text(x + ' ' + d.y);
+          this._info.text(this.formatTime(+d.x) + ' ' + this.formatNumber(+d.y));
           var fixP = this._fixedValue;
           if (fixP) {
             var diffX = Math.abs(fixP.x - d.x),
               diffY = Math.abs(fixP.y - d.y);
             this._infoDeltaX.text(this.formatTimeAbsolute(diffX));
-            this._infoDeltaY.text(diffY);
+            this._infoDeltaY.text(this.formatNumber(diffY));
           }
           this._updateInfo();
         }
@@ -1018,20 +1012,19 @@
           alignmentBaseline = alignmentBaseline || 'ideographic',
           limitLeft = marginLeft,
           limitBottom = marginBottom;
-
         switch (textAnchor) { // list is not complete!
           case 'middle':
-            limitLeft += bbox.width / 2;
+            limitLeft += (bbox.width / 2); break;
           case 'end ':
-            limitLeft += bbox.width;
+            limitLeft += bbox.width; break;
         }
         switch (alignmentBaseline) { // list is not complete!
           case 'ideographic':
-            limitBottom += bbox.height;
+            limitBottom += bbox.height; break;
           case 'middle':
-            limitBottom += bbox.height / 2;
+            limitBottom += (bbox.height / 2); break;
           case 'hanging':
-            limitBottom -= bbox.height;
+            limitBottom -= bbox.height; break;
         }
 
         if (y - limitBottom < 0) { // above top
