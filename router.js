@@ -30,14 +30,6 @@ const EventEmitter = require('events').EventEmitter,
     'svgSource'
   ]
 
-function resolvePath() {
-  let p = path.resolve(...arguments)
-  mkdirp(path.dirname(p), err => {
-    if (err) console.error(err)
-  })
-  return p
-}
-
 class Router extends EventEmitter {
 
   constructor(mode) {
@@ -283,7 +275,7 @@ class Router extends EventEmitter {
     this.settings.ssl = sslSettings || this.settings.ssl
     this.settings.ssl.requestCert = true;
     this.settings.ssl.rejectUnauthorized = false;
-    
+
     app = app || this.app
     if (!this.settings.ssl) {
       console.warn('There are no settings available for SSL. The HTTP-connection will be unencrypted.');
@@ -327,7 +319,7 @@ class Router extends EventEmitter {
             //   err = 'Session not found';
             // }
             if (err) {
-              console.warn('Failed connection to socket.io:', err)
+              console.warn(`Failed connection to socket.io\n ${err.stack}`)
             } else if (session || !this.settings.server.auth.required) {
               // console.log('Successful connection to socket.io', session)
               next()
@@ -346,12 +338,12 @@ class Router extends EventEmitter {
     // init facilities.json
     mkdirp(this.dirData, err => {
       if (err) {
-        console.error(`Failed to create ${this.dirData}\n ${err}`)
+        console.error(`Failed to create ${this.dirData}\n ${err.stack}`)
         return
       }
       jsonfile.writeFile(path.resolve(this.dirData, 'facilities.json'), [], err => {
         if (err) {
-          console.error(`Failed to create facilities.json\n ${err}`)
+          console.error(`Failed to create facilities.json\n ${err.stack}`)
           return
         }
       })
@@ -362,7 +354,7 @@ class Router extends EventEmitter {
     this.configurations[facility] = opt
     mkdirp(this.dirData, err => {
       if (err) {
-        console.error(`Failed to create ${this.dirData}\n ${err}`)
+        console.error(`Failed to create ${this.dirData}\n ${err.stack}`)
         return
       }
       this.createStaticContent()
@@ -370,93 +362,64 @@ class Router extends EventEmitter {
   }
 
   createStaticContent() {
-    let facilities = [],
-      tmp, pth, dest, svgDest
+    let facilities = [], pth , room, toCopy = new Set(), promises = []
 
     // write json
     for (let facility in this.configurations) {
 
-      let opt = this.configurations[facility]
-      tmp = []
+      let opt = this.configurations[facility], tmp = []
 
-      for (let ke in opt) {
-        if (ke === '_name' || ke === '_title')
+      for (let system in opt) {
+        if (system === '_name' || system === '_title')
           continue
 
-        let system = ke
-
         tmp.push({
-          name: opt[system]._name,
+          name:  opt[system]._name,
           title: opt[system]._title,
-          view: opt[system]._view,
+          view:  opt[system]._view,
           items: opt[system].items,
         })
 
-        let comb = facility + '+' + system
-        dest = resolvePath(this.dirData)
+        // copy svgContent in staticContentFolder
+        let svgDest = resolvePath(this.dirImage, facility, system)
+        let origin = '', dest = '', wasSet = false;
+
+        for (var id in opt[system].itemMap) {
+          if (opt[system].itemMap[id].hasOwnProperty('svg')) {
+            if (opt[system].itemMap[id].svg.path && opt[system].itemMap[id].svg.dir) {
+              origin = path.resolve(opt[system].itemMap[id].svg.dir, opt[system].itemMap[id].svg.path)
+              dest = path.resolve(svgDest, opt[system].itemMap[id].svg.path)
+              if (origin && dest && !toCopy.has(dest)) {
+                wasSet = true
+                toCopy.add(dest)
+                delete opt[system].itemMap[id].svg.dir
+                promises.push(
+                  copy(origin, dest)
+                )
+              }
+            }
+          }
+        }
+
+        if (wasSet === true) {
+          promises.unshift( new Promise( (resolve, reject) => {
+            mkdirp(svgDest, error => {
+              if (error) reject(`SVG-File Destination folder failed to create \n ${error.stack}`)
+              resolve()
+            })
+          }))
+        }
 
         // create required static settings
+        room = facility + '+' + system
+        dest = resolvePath(this.dirData)
         for (let key in opt[system]) {
           if (requiredStaticSettings.indexOf(key) === -1)
             continue
-          pth = path.resolve(dest, comb + '+' + key + '.json')
+          pth = path.resolve(dest, room + '+' + key + '.json')
           fs.writeFile(pth, JSON.stringify(opt[system][key] || {}), err => {
             if (err)
-              console.error(`Writing Files for static content configuration data (${this.dirData}) failed\n ${err}`)
-          })
-        }
-
-        // copy svgContent in staticContentFolder
-        if (opt[system].svgSource && opt[system].svgSource.paths && Object.keys(opt[system].svgSource.paths).length) {
-
-          let svgDest = resolvePath(this.dirImage, facility, system)
-
-          mkdirp(svgDest, err => {
-            if (err) console.error(`SVG-File Destination folder failed to create \n ${err}`)
-
-            let origin = ''
-            dest = svgDest
-
-            // image origin folder
-            if (opt[system].svgSource.origin) {
-              origin = path.resolve(opt[system].svgSource.origin)
-            }
-            if (!origin || !fs.existsSync(origin)) {
-              origin = resolvePath('examples', 'svg')
-            }
-
-            // Optimize SVGs
-            function copy(opath, dpath) {
-              return new Promise((resolve, reject) => {
-                fs.readFile(opath, 'utf8', (err, data) => {
-                  if (err) reject(err)
-                  resolve(data)
-                })
-              }).then(data => {
-                fs.writeFile(dpath, data, 'utf8', err => {
-                  if (err) {
-                    console.error(`Transfer SVG-File failed \n from ${opath} \n ${err}`)
-                    return
-                  }
-                  console.log(`Transfer SVG-File successful \n from ${opath} \n to ${dpath}`)
-                })
-              }).catch(err => {
-                console.error(`Transfer SVG-File failed \n from ${opath} \n ${err}`)
-              })
-            }
-
-            var promises = []
-
-            for (var p in opt[system].svgSource.paths) {
-              let opath = path.resolve(origin, p)
-              let dpath = path.resolve(dest, p)
-              promises.push(copy(opath, dpath))
-            }
-            Promise.all(promises)
-              .then(() => {})
-              .catch(err => {
-                console.error(`Transfer SVG-Files failed \n ${err}`)
-              })
+              console.error(`Writing Files for static content configuration data (${this.dirData}) failed\n ${err.stack}`)
           })
         }
       }
@@ -470,7 +433,18 @@ class Router extends EventEmitter {
       }
     }
 
-    // create folder structure
+    // copy all svg files to dest folder
+    Promise.all(promises)
+      .then(res => {
+        for (var i = 0; i < res.length; i++) {
+          if (res[i])
+            console.info(res[i]);
+        }
+      })
+      .catch(err => {
+        console.error(err)
+      })
+    // create facility-structure
     jsonfile.writeFile(path.resolve(this.dirData, 'facilities.json'), facilities, err => {
       if (err) {
         console.error(`Failed to write facilities.json\n ${err}`)
@@ -494,12 +468,24 @@ const ensureLoggedIn = {
   }
 }
 
-// Returns a WriteableStream to process images
-function minify() {
-  return imagemin({
-    progressive: true,
-    interlaced: true
+function copy(origin, dest) {
+  return new Promise( (resolve, reject) => {
+    fs.readFile(origin, 'utf8', (err, data) => {
+      if (err) reject(`Transfer File failed \nfrom ${origin} \nto ${dest}\n ${err}`)
+      fs.writeFile(dest, data, 'utf8', error => {
+        if (error) reject(`Transfer File failed \nfrom ${origin} \nto ${dest}\n ${err}`)
+        resolve(`Transfer File successful \nfrom ${origin} \nto ${dest}`)
+      })
+    })
   })
+}
+
+function resolvePath() {
+  let p = path.resolve(...arguments)
+  mkdirp(path.dirname(p), err => {
+    if (err) console.error(err)
+  })
+  return p
 }
 
 function conditional(condition, middleware, negate) {

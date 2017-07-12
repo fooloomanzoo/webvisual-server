@@ -16,7 +16,6 @@
   },
   "initialView": "detail",
   "svgSource": {
-    "origin": "",
     "paths": {}
   },
   "clientRequest": {
@@ -113,7 +112,6 @@
   },
   "initialView": "detail",
   "svgSource": {
-    "origin": "",
     "paths": {}
   },
   "clientRequest": {

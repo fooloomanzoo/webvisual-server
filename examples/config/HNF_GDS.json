@@ -26,19 +26,18 @@
 		},
 
     "svgSource": {
-      "origin": "//ibn-vsrv/HNF-GDS$/Maps",
       "paths": {
-        "E0_gaskabinet.svg": {
+        "//ibn-vsrv/HNF-GDS$/Maps/E0_gaskabinet.svg": {
           "items": {
             "Cabinets": "g#Cabinets path"
           }
         },
-        "E1_bypack.svg": {
+        "//ibn-vsrv/HNF-GDS$/Maps/E1_bypack.svg": {
           "items": {
             "Cabinets": "g#Cabinets path"
           }
         },
-        "E2_reinraum.svg": {
+        "//ibn-vsrv/HNF-GDS$/Maps/E2_reinraum.svg": {
           "items": {
             "Cabinets": "g#Cabinets path"
           }
@@ -77,7 +76,7 @@
           },
           "svg": {
             "selector": "path#path4514,path#path4512",
-            "path": "E0_gaskabinet.svg"
+            "path": "//ibn-vsrv/HNF-GDS$/Maps/E0_gaskabinet.svg"
           },
           "color": "#53ABEB",
           "isIndicatorLamp": true,
@@ -97,7 +96,7 @@
           },
           "svg": {
             "selector": "path#path4514,path#path4512",
-            "path": "E0_gaskabinet.svg"
+            "path": "//ibn-vsrv/HNF-GDS$/Maps/E0_gaskabinet.svg"
           },
           "color": "#53ABEB",
           "isIndicatorLamp": true,
@@ -116,7 +115,7 @@
           },
           "svg": {
             "selector": "path#path5110-0,path#path5112-1,path#path5114-4",
-            "path": "E1_bypack.svg"
+            "path": "//ibn-vsrv/HNF-GDS$/Maps/E1_bypack.svg"
           },
           "color": "#53ABEB",
           "isIndicatorLamp": true,
@@ -135,7 +134,7 @@
           },
           "svg": {
             "selector": "path#path5110-0,path#path5112-1,path#path5114-4",
-            "path": "E1_bypack.svg"
+            "path": "//ibn-vsrv/HNF-GDS$/Maps/E1_bypack.svg"
           },
           "color": "#53ABEB",
           "isIndicatorLamp": true,
@@ -154,7 +153,7 @@
           },
           "svg": {
             "selector": "g#H2 path",
-            "path": "E2_reinraum.svg"
+            "path": "//ibn-vsrv/HNF-GDS$/Maps/E2_reinraum.svg"
           },
           "color": "#53ABEB",
           "isIndicatorLamp": true,
@@ -173,7 +172,7 @@
           },
           "svg": {
             "selector": "g#H2 path",
-            "path": "E2_reinraum.svg"
+            "path": "//ibn-vsrv/HNF-GDS$/Maps/E2_reinraum.svg"
           },
           "color": "#53ABEB",
           "isIndicatorLamp": true,
@@ -191,7 +190,7 @@
           "color": "#53ABEB",
           "svg": {
             "selector": "g#H2 path",
-            "path": "E2_reinraum.svg"
+            "path": "//ibn-vsrv/HNF-GDS$/Maps/E2_reinraum.svg"
           },
           "isIndicatorLamp": true,
           "threshold": {
@@ -259,7 +258,7 @@
           },
           "svg": {
             "selector": "g#HBR path, g#CL2 path",
-            "path": "E0_gaskabinet.svg"
+            "path": "//ibn-vsrv/HNF-GDS$/Maps/E0_gaskabinet.svg"
           },
           "color": "#B0B0B0",
           "isIndicatorLamp": true,
@@ -279,7 +278,7 @@
           },
           "svg": {
             "selector": "g#NH3 path, g#SIH4 path",
-            "path": "E0_gaskabinet.svg"
+            "path": "//ibn-vsrv/HNF-GDS$/Maps/E0_gaskabinet.svg"
           },
           "color": "#B0B0B0",
           "isIndicatorLamp": true,
@@ -298,7 +297,7 @@
           },
           "svg": {
             "selector": "g#CL2 path,g#HBR path, g#HCL path,g#NH3 path, g#SIH4 path",
-            "path": "E1_bypack.svg"
+            "path": "//ibn-vsrv/HNF-GDS$/Maps/E1_bypack.svg"
           },
           "color": "#B0B0B0",
           "isIndicatorLamp": true,
@@ -317,7 +316,7 @@
           },
           "svg": {
             "selector": "g#CL2 path,g#HBR path, g#HCL path,g#NH3 path, g#SIH4 path",
-            "path": "E2_reinraum.svg"
+            "path": "//ibn-vsrv/HNF-GDS$/Maps/E2_reinraum.svg"
           },
           "color": "#B0B0B0",
           "isIndicatorLamp": true,
@@ -336,7 +335,7 @@
           },
           "svg": {
             "selector": "g#HBR path",
-            "path": "E2_reinraum.svg"
+            "path": "//ibn-vsrv/HNF-GDS$/Maps/E2_reinraum.svg"
           },
           "color": "#ED2BA5",
           "isIndicatorLamp": true,
@@ -381,7 +380,7 @@
           },
           "svg": {
             "selector": "g#CL2 path",
-            "path": "E1_bypack.svg"
+            "path": "//ibn-vsrv/HNF-GDS$/Maps/E1_bypack.svg"
           },
           "color": "#4AE885",
           "isIndicatorLamp": true,
@@ -401,7 +400,7 @@
           },
           "svg": {
             "selector": "path#path4476,path#path4478",
-            "path": "E0_gaskabinet.svg"
+            "path": "//ibn-vsrv/HNF-GDS$/Maps/E0_gaskabinet.svg"
           },
           "color": "#4AE885",
           "isIndicatorLamp": true,
@@ -421,7 +420,7 @@
           },
           "svg": {
             "selector": "path#path4472,path#path4470",
-            "path": "E0_gaskabinet.svg"
+            "path": "//ibn-vsrv/HNF-GDS$/Maps/E0_gaskabinet.svg"
           },
           "color": "#ED2BA5",
           "isIndicatorLamp": true,
@@ -466,7 +465,7 @@
           },
           "svg": {
             "selector": "g#NH3 path",
-            "path": "E2_reinraum.svg"
+            "path": "//ibn-vsrv/HNF-GDS$/Maps/E2_reinraum.svg"
           },
           "color": "#E2E64D",
           "isIndicatorLamp": true,
@@ -485,7 +484,7 @@
           },
           "svg": {
             "selector": "",
-            "path": "E1_bypack.svg"
+            "path": "//ibn-vsrv/HNF-GDS$/Maps/E1_bypack.svg"
           },
           "color": "#E2E64D",
           "isIndicatorLamp": true,
@@ -507,7 +506,7 @@
           },
           "svg": {
             "selector": "path#path4508,path#path4510",
-            "path": "E0_gaskabinet.svg"
+            "path": "//ibn-vsrv/HNF-GDS$/Maps/E0_gaskabinet.svg"
           },
           "color": "#E2E64D",
           "isIndicatorLamp": true,
@@ -526,7 +525,7 @@
           },
           "svg": {
             "selector": "g#BCL3 path",
-            "path": "E2_reinraum.svg"
+            "path": "//ibn-vsrv/HNF-GDS$/Maps/E2_reinraum.svg"
           },
           "color": "#40A337",
           "isIndicatorLamp": true,
@@ -545,7 +544,7 @@
           },
           "svg": {
             "selector": "g#BCL3 path",
-            "path": "E2_reinraum.svg"
+            "path": "//ibn-vsrv/HNF-GDS$/Maps/E2_reinraum.svg"
           },
           "color": "#40A337",
           "isIndicatorLamp": true,
@@ -564,7 +563,7 @@
           },
           "svg": {
             "selector": "g#HBR path",
-            "path": "E1_bypack.svg"
+            "path": "//ibn-vsrv/HNF-GDS$/Maps/E1_bypack.svg"
           },
           "color": "#ED2BA5",
           "isIndicatorLamp": true,
@@ -583,7 +582,7 @@
           },
           "svg": {
             "selector": "g#SIH4 path",
-            "path": "E2_reinraum.svg"
+            "path": "//ibn-vsrv/HNF-GDS$/Maps/E2_reinraum.svg"
           },
           "color": "#D2AA50",
           "isIndicatorLamp": true,
@@ -602,7 +601,7 @@
           },
           "svg": {
             "selector": "g#SIH4 path",
-            "path": "E1_bypack.svg"
+            "path": "//ibn-vsrv/HNF-GDS$/Maps/E1_bypack.svg"
           },
           "color": "#D2AA50",
           "isIndicatorLamp": true,
@@ -622,7 +621,7 @@
           },
           "svg": {
             "selector": "path#path4504,path#path4506",
-            "path": "E0_gaskabinet.svg"
+            "path": "//ibn-vsrv/HNF-GDS$/Maps/E0_gaskabinet.svg"
           },
           "color": "#D2AA50",
           "isIndicatorLamp": true,
@@ -641,7 +640,7 @@
           },
           "svg": {
             "selector": "g#CL2 path",
-            "path": "E2_reinraum.svg"
+            "path": "//ibn-vsrv/HNF-GDS$/Maps/E2_reinraum.svg"
           },
           "color": "#4AE885",
           "isIndicatorLamp": true,
@@ -662,7 +661,7 @@
           },
           "svg": {
             "selector": "g#CL2 path",
-            "path": "E2_reinraum.svg"
+            "path": "//ibn-vsrv/HNF-GDS$/Maps/E2_reinraum.svg"
           },
           "color": "#4AE885",
           "isIndicatorLamp": true,
@@ -681,7 +680,7 @@
           },
           "svg": {
             "selector": "g#HBR path",
-            "path": "E1_bypack.svg"
+            "path": "//ibn-vsrv/HNF-GDS$/Maps/E1_bypack.svg"
           },
           "color": "#ED2BA5",
           "isIndicatorLamp": true,
@@ -701,7 +700,7 @@
           },
           "svg": {
             "selector": "path#path4474,path#path4470",
-            "path": "E0_gaskabinet.svg"
+            "path": "//ibn-vsrv/HNF-GDS$/Maps/E0_gaskabinet.svg"
           },
           "color": "#ED2BA5",
           "isIndicatorLamp": true,
@@ -721,7 +720,7 @@
           },
           "svg": {
             "selector": "g#O2 path",
-            "path": "E2_reinraum.svg"
+            "path": "//ibn-vsrv/HNF-GDS$/Maps/E2_reinraum.svg"
           },
           "color": "#E8E8E8",
           "isIndicatorLamp": true,
@@ -741,7 +740,7 @@
           },
           "svg": {
             "selector": "g#O2 path",
-            "path": "E2_reinraum.svg"
+            "path": "//ibn-vsrv/HNF-GDS$/Maps/E2_reinraum.svg"
           },
           "color": "#E8E8E8",
           "isIndicatorLamp": true,
@@ -761,7 +760,7 @@
           },
           "svg": {
             "selector": "g#O2 path",
-            "path": "E2_reinraum.svg"
+            "path": "//ibn-vsrv/HNF-GDS$/Maps/E2_reinraum.svg"
           },
           "color": "#E8E8E8",
           "isIndicatorLamp": true,
@@ -781,7 +780,7 @@
           },
           "svg": {
             "selector": "g#O2 path",
-            "path": "E2_reinraum.svg"
+            "path": "//ibn-vsrv/HNF-GDS$/Maps/E2_reinraum.svg"
           },
           "color": "#E8E8E8",
           "isIndicatorLamp": true,

@@ -99,7 +99,7 @@
         fill-opacity: 0.01;
         stroke: currentColor;
         stroke-opacity: 0.75;
-        transition: fill-opacity 150ms linear;
+        transition: fill-opacity 200ms linear;
       }
       .axis:hover path {
         fill-opacity: 0.3;
@@ -123,8 +123,12 @@
         cursor: default;
       }
       #graphs .area {
-        fill-opacity: 0.2;
+        fill-opacity: 0.4;
         @apply --chart-area;
+      }
+      #graphs .area:last-of-type {
+        fill-opacity: 0.5;
+        mix-blend-mode: hard-light;
       }
       #graphs .line {
         cursor: pointer;
@@ -440,11 +444,9 @@
         this._boundery = d3.select(this.$.boundery);
 
         this.axisX = this._computeAxisNode(this._axisInsertionPoint, this.axisOrientX, '', this.axisX)
-                           .attr('hidden', (this.multiAxesX) ? true: null)
-                           .classed('expanded', true);
+                           .attr('hidden', (this.multiAxesX) ? true: null);
         this.axisY = this._computeAxisNode(this._axisInsertionPoint, this.axisOrientY, '', this.axisY)
-                           .attr('hidden', (this.multiAxesY) ? true: null)
-                           .classed('expanded', true);
+                           .attr('hidden', (this.multiAxesY) ? true: null);
         this.axisGeneratorX = this._computeAxisGenerator(this.axisOrientX, this.scaleX, this.scalingX, this.scaleBaseX);
         this.axisGeneratorY = this._computeAxisGenerator(this.axisOrientY, this.scaleY, this.scalingY, this.scaleBaseY);
 
