@@ -27,7 +27,8 @@ const EventEmitter = require('events').EventEmitter,
     'groups',
     'groupingKeys',
     'preferedGroupingKey',
-    'svgSource'
+    'svgSource',
+    'items'
   ]
 
 class Router extends EventEmitter {
@@ -171,7 +172,7 @@ class Router extends EventEmitter {
             }
             this.reloadJob = setTimeout(() => {
               this.io.sockets.emit('reload')
-            }, 1500)
+            }, 3000)
           })
 
         console.info(`Watch for changes in ${srcpath}. Clients reload on change.`)
@@ -362,7 +363,7 @@ class Router extends EventEmitter {
   }
 
   createStaticContent() {
-    let facilities = [], pth , room, toCopy = new Set(), promises = []
+    let facilities = [], toCopy = new Set(), promises = []
 
     // write json
     for (let facility in this.configurations) {
@@ -377,9 +378,7 @@ class Router extends EventEmitter {
           name:  opt[system]._name,
           title: opt[system]._title,
           view:  opt[system]._view,
-          items: opt[system].items,
         })
-
         // copy svgContent in staticContentFolder
         let svgDest = resolvePath(this.dirImage, facility, system)
         let origin = '', dest = '', wasSet = false;
@@ -409,18 +408,15 @@ class Router extends EventEmitter {
             })
           }))
         }
-
         // create required static settings
-        room = facility + '+' + system
         dest = resolvePath(this.dirData)
-        for (let key in opt[system]) {
+        for (var key in opt[system]) {
           if (requiredStaticSettings.indexOf(key) === -1)
             continue
-          pth = path.resolve(dest, room + '+' + key + '.json')
-          fs.writeFile(pth, JSON.stringify(opt[system][key] || {}), err => {
-            if (err)
-              console.error(`Writing Files for static content configuration data (${this.dirData}) failed\n ${err.stack}`)
-          })
+          var room = facility + '+' + system
+          var pth = path.resolve(dest, room + '+' + key + '.json')
+          var data = opt[system][key]
+          promises.push( jsonfile.writeFileSync(pth, data) )
         }
       }
 
@@ -433,24 +429,20 @@ class Router extends EventEmitter {
       }
     }
 
-    // copy all svg files to dest folder
+    // create facility-structure
+    promises.push( jsonfile.writeFileSync(path.resolve(this.dirData, 'facilities.json'), facilities) )
+
+    // write all files
     Promise.all(promises)
       .then(res => {
-        for (var i = 0; i < res.length; i++) {
-          if (res[i])
-            console.info(res[i]);
-        }
+        // for (var i = 0; i < res.length; i++) {
+        //   if (res[i])
+        //     console.info(res[i]);
+        // }
       })
       .catch(err => {
         console.error(err)
       })
-    // create facility-structure
-    jsonfile.writeFile(path.resolve(this.dirData, 'facilities.json'), facilities, err => {
-      if (err) {
-        console.error(`Failed to write facilities.json\n ${err}`)
-        return
-      }
-    })
   }
 }
 

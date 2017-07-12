@@ -21,15 +21,13 @@
           },
 
           facilityName: {
-            type: String
+            type: String,
+            notify: true
           },
 
           systemName: {
-            type: String
-          },
-
-          itemName: {
-            type: String
+            type: String,
+            notify: true
           },
 
           facilities: {
@@ -70,7 +68,7 @@
           '_computeNames(room)',
           '_computeFacility(facilities, facilityName)',
           '_computeSystem(facility, systemName)',
-          '_computeItems(system)'
+          '_computeItems(facilityName, systemName)'
         ]
       }
 
@@ -78,7 +76,7 @@
         if (loggedIn || offline) {
           this._fetch('facilities.json', 'GET', 'include', 'json', 'facilities')
             .catch(err => {
-              console.log(err);
+              console.warn(err);
             });
         }
       }
@@ -133,25 +131,34 @@
         }
       }
 
-      _computeItems(system) {
-        var color = '';
-        if (system && system.items && system.items.length) {
-          for (var i = 0; i < system.items.length; i++) {
-            if (!system.items[i].color) {
-              // set custom colors
-              color = '#';
-              var perm = ['2C', 'F5'];
-              perm.push((4 * Math.floor(Math.random() * 64)).toString(16));
-              for (var j = 3; j > 0; j--) {
-                var pos = Math.floor(Math.random() * j);
-                color += ((perm[pos].length === 1) ? '0' : '') + perm[pos];
-                perm.splice(pos, 1);
+      _computeItems(facilityName, systemName) {
+        if (facilityName === undefined || systemName === undefined) return;
+
+        this._fetch(facilityName + '+' + systemName + '+items.json', 'GET', 'include', 'json')
+          .then(items => {
+            console.log(items);
+            var color = '';
+            if (items && items.length) {
+              for (var i = 0; i < items.length; i++) {
+                if (!items[i].color) {
+                  // set custom colors
+                  color = '#';
+                  var perm = ['2C', 'F5'];
+                  perm.push((4 * Math.floor(Math.random() * 64)).toString(16));
+                  for (var j = 3; j > 0; j--) {
+                    var pos = Math.floor(Math.random() * j);
+                    color += ((perm[pos].length === 1) ? '0' : '') + perm[pos];
+                    perm.splice(pos, 1);
+                  }
+                  items[i].color = color;
+                }
               }
-              system.items[i].color = color;
+              this.set('items', items);
             }
-          }
-          this.set('items', system.items);
-        }
+          })
+          .catch(err => {
+            console.warn(facilityName, systemName, err.stack);
+          });
       }
 
       _getNamedArrayItem(arr, name) {
