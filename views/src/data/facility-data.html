@@ -132,11 +132,12 @@
       }
 
       _computeItems(facilityName, systemName) {
+        // console.log(facilityName, systemName);
         if (facilityName === undefined || systemName === undefined) return;
 
         this._fetch(facilityName + '+' + systemName + '+items.json', 'GET', 'include', 'json')
           .then(items => {
-            console.log(items);
+            // console.log(items);
             var color = '';
             if (items && items.length) {
               for (var i = 0; i < items.length; i++) {
