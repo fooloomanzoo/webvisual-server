@@ -132,7 +132,7 @@
           opened$="[[visible]]"
           url-prefix="/images"
           src="[[_svgSrcPath]]"
-          selectable-items="[[_getSvgSelectable(item.svg.path, svgData.paths)]]"
+          selectable-items="[[_getSvgSelectable(item.svg.path, svgData)]]"
           item="[[item]]"
           items="[[items]]"
           multi
@@ -223,7 +223,7 @@
 
           _svgSrcPath: {
             type: Boolean,
-            computed: '_computeSvgSrcPat(room, item, svgData.paths)'
+            computed: '_computeSvgSrcPat(room, item, svgData)'
           },
 
           selectNotify: {

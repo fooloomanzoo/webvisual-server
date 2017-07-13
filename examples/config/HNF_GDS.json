@@ -2,21 +2,10 @@
   {
     "name": "GDS",
     "title": "GDS",
-    "connections": {
-      "file": {
-        "mode": "all",
-        "path": "./examples/datafile/HNF_Datafile.txt",
-        "#path": "//ibn-vsrv/HNF-GDS$/Datafile/HNF_Datafile.txt",
-        "format": {
-          "dateFormat": "DD.MM.YYYY;hh:mm:ss",
-          "decimalSeparator": ".",
-          "valueSeparator": ";",
-          "dimensions": 1
-        }
-      }
-    },
 
-    "initialView": "groups",
+    "view": {
+      "initial": "groups"
+    },
 
 		"clientRequest": {
 			"initial": {
@@ -25,8 +14,23 @@
 			}
 		},
 
-    "svgSource": {
-      "paths": {
+    "locals": [{
+
+      "connections": {
+        "file": {
+          "mode": "all",
+          "path": "./examples/datafile/HNF_Datafile.txt",
+          "#path": "//ibn-vsrv/HNF-GDS$/Datafile/HNF_Datafile.txt",
+          "format": {
+            "dateFormat": "DD.MM.YYYY;hh:mm:ss",
+            "decimalSeparator": ".",
+            "valueSeparator": ";",
+            "dimensions": 1
+          }
+        }
+      },
+
+      "svgSource": {
         "./examples/svg/E0_gaskabinet.svg": {
           "items": {
             "Cabinets": "g#Cabinets path"
@@ -42,10 +46,8 @@
             "Cabinets": "g#Cabinets path"
           }
         }
-      }
-    },
+      },
 
-    "locals": {
       "ignore": [0, 8, 16, 17, 21, 22],
       "items": [{
           "id": "Binary",
@@ -868,6 +870,6 @@
           }
         }
       }
-    }
+    }]
   }
 ]
