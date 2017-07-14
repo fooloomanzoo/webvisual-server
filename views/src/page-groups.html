@@ -1,6 +1,5 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
 <link rel="import" href="style/grid-layout.html">
-<link rel="import" href="data/group-data.html">
 <link rel="import" href="group-card.html">
 
 <dom-module id="page-groups">
@@ -25,11 +24,28 @@
         border-top-left-radius: 0px !important;
         border-top-right-radius: 0px !important;
       }
+      @media (min-width: 1981px) {
+        .grid.sign li {
+          -webkit-flex-basis: 25%;
+          flex-basis: 25%;
+          max-width: 25%;
+        }
+        .grid li:only-of-type .grid.sign li {
+          -webkit-flex-basis: 6.6%;
+          flex-basis: 6.6%;
+          max-width: 6.6%;
+        }
+      }
       @media (max-width: 1980px) {
         .grid.sign li {
           -webkit-flex-basis: 25%;
           flex-basis: 25%;
           max-width: 25%;
+        }
+        .grid li:only-of-type .grid.sign li {
+          -webkit-flex-basis: 8.25%;
+          flex-basis: 8.25%;
+          max-width: 8.25%;
         }
       }
       @media (max-width: 1280px) {
@@ -38,6 +54,11 @@
           flex-basis: 33.3%;
           max-width: 33.3%;
         }
+        .grid li:only-of-type .grid.sign li {
+          -webkit-flex-basis: 11.1%;
+          flex-basis: 11.1%;
+          max-width: 11.1%;
+        }
       }
       @media (min-width: 768px) and (max-width: 900px) {
         .grid.sign li {
@@ -45,32 +66,52 @@
           flex-basis: 50%;
           max-width: 50%;
         }
+        .grid li:only-of-type .grid.sign li {
+          -webkit-flex-basis: 14.2%;
+          flex-basis: 14.2%;
+          max-width: 14.2%;
+        }
+      }
+      @media (min-width: 521px) and (max-width: 767px) {
+        .grid.sign li {
+          -webkit-flex-basis: 33%;
+          flex-basis: 33%;
+          max-width: 33%;
+        }
+        .grid li:only-of-type .grid.sign li {
+          -webkit-flex-basis: 16.6%;
+          flex-basis: 16.6%;
+          max-width: 16.6%;
+        }
       }
       @media (max-width: 520px) {
         .grid.sign li {
-          -webkit-flex-basis: 50%;
-          flex-basis: 50%;
-          max-width: 50%;
+          -webkit-flex-basis: 25%;
+          flex-basis: 25%;
+          max-width: 25%;
+        }
+        .grid li:only-of-type .grid.sign li {
+          -webkit-flex-basis: 25%;
+          flex-basis: 25%;
+          max-width: 25%;
         }
       }
-      @media (max-width: 400px) {
+      @media (max-width: 360px) {
         .grid.sign li {
           -webkit-flex-basis: 33.3%;
           flex-basis: 33.3%;
           max-width: 33.3%;
+        }
+        .grid li:only-of-type .grid.sign li {
+          -webkit-flex-basis: 33%;
+          flex-basis: 33%;
+          max-width: 33%;
         }
       }
       :host(:-webkit-full-screen-ancestor) group-card:not(.fullscreen) {
         visibility: hidden;
       }
     </style>
-
-    <group-data
-      room="[[room]]"
-      logged-in="[[loggedIn]]"
-      subgroups="{{subgroups}}"
-      grouped-key="{{groupedKey}}"
-      grouping-keys="{{groupingKeys}}"></group-data>
 
     <svg-data
       room="[[room]]"

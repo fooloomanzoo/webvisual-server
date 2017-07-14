@@ -13,15 +13,14 @@
       .selectbox > * {
         -webkit-appearance: none;
         margin: 0;
-        padding: 0.75em 0;
       }
       .selectbox > span {
         flex: 1 0 auto;
         padding: 0.25em;
         text-align: center;
       }
-      .selectbox > iron-icon {
-        margin: 0;
+      .selectbox > iron-icon:first-child {
+        margin-right: 0.8em;
       }
       .selectbox > select {
         padding: 0.5em;
@@ -40,6 +39,9 @@
         will-change: opacity;
         flex: 1 0 auto;
         transition: opacity 0.25s cubic-bezier(0.6, 0, 0.1, 1);
+      }
+      .selectbox > select:last-child:not(:only-child) {
+        margin-left: 0.8em;
       }
       .selectbox > select:focus,
       .selectbox > select:hover {

@@ -89,7 +89,7 @@
       }
 
       _computeSubGroups(groups, groupedKey) {
-        if (groups && groupedKey) {
+        if (!(groups === undefined && groupedKey === undefined)) {
           for (var i = 0, group; group = groups[i]; ++i) {
             if (group.key === groupedKey) {
               return group.groups;

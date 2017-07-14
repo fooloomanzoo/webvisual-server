@@ -5,10 +5,11 @@
 <link rel="import" href="components/drawer-element.html">
 
 <link rel="import" href="style/shared-style.html">
+<link rel="import" href="style/selectbox-style.html">
 
 <dom-module id="page-detail">
   <template strip-whitespace>
-    <style include="shared-style">
+    <style include="shared-style selectbox-style">
       :host {
         --control-button-distance: 2px;
         --drawer-width: 16em;
@@ -102,6 +103,30 @@
         --caption-background: transparent;
         --caption-color: currentColor;
       }
+      .groupbox {
+        box-sizing: border-box;
+        flex-shrink: 0;
+        display: inline-flex;
+        flex-direction: row;
+        background-color: rgba(0,0,0,0.05);
+        border-bottom: thin solid rgba(0,0,0,0.5);
+        transition: background-color 150ms linear;
+      }
+      .groupbox:hover {
+        background-color: rgba(0,0,0,0.25);
+      }
+      .subgroup,
+      .groupbox ::slotted(*) {
+        flex: 1 0 1px;
+        padding: 0 !important;
+        margin: 0.5em !important;
+      }
+      .groupbox ::slotted(*) {
+        margin-right: 0.25em !important;
+      }
+      .subgroup {
+        margin-left: 0.25em !important;
+      }
       @media (max-width: 600px) {
         #drawer {
           --drawer-background: rgba(255,255,255,0.33);
@@ -143,8 +168,14 @@
         items="[[items]]" multi></device-chart>
 
       <drawer-element id="drawer" opened$="[[_ensureOpened(narrowLayout)]]" swipe-open$="[[narrowLayout]]" scrim persistent$="[[!narrowLayout]]" align="right" stretch>
+        <div class="groupbox">
+          <slot name="groupby"></slot>
+          <div class="selectbox subgroup" title="[[selectedSubgroup]]">
+            <select value="{{selectedSubgroup::change}}"></select>
+          </div>
+        </div>
         <tabs-container id="tabs" multi vertical items="{{checkboxes}}" selected-items="{{selectedCheckboxes}}" attr-for-selected="id" activate-event="item-select">
-          <template id="tablist" is="dom-repeat" items="[[elements]]">
+          <template id="tablist" is="dom-repeat" items="[[_shownElements]]">
             <device-checkbox class="checkbox"
               id="[[item.id]]"
               item="[[item]]"
@@ -170,7 +201,7 @@
       static get properties() {
         return {
 
-          query: {
+          selectedIds: {
             type: String,
             notify: true
           },
@@ -180,6 +211,21 @@
             notify: true
           },
 
+          subgroups: {
+            type: Array,
+            notify: true
+          },
+
+          selectedSubgroup: {
+            type: String,
+            notify: true
+          },
+
+          selectedSubgroup: {
+            type: String,
+            value: ''
+          },
+
           selectedCheckboxes: {
             type: Array,
             notify: true
@@ -187,6 +233,13 @@
 
           loggedIn: {
             type: Boolean
+          },
+
+          _shownElements: {
+            type: Array,
+            value: function() {
+              return [];
+            }
           },
 
           elements: {
@@ -258,8 +311,10 @@
 
       static get observers() {
         return [
-          '_queryChanged(query, checkboxes, visible)',
-          '_selectedCheckboxesChanged(selectedCheckboxes, checkboxes, visible)'
+          '_selectedIdsChanged(selectedIds, checkboxes, visible)',
+          '_selectedCheckboxesChanged(selectedCheckboxes, checkboxes, visible)',
+          '_subgroupsChanged(subgroups)',
+          '_selectedSubgroupChanged(selectedSubgroup, elements)'
         ]
       }
 
@@ -268,11 +323,11 @@
         this._debounceResize();
       }
 
-      _queryChanged(query, checkboxes, visible) {
-        if (query === undefined || checkboxes === undefined || !visible) return;
-        query = query || '';
+      _selectedIdsChanged(selectedIds, checkboxes, visible) {
+        if (selectedIds === undefined || checkboxes === undefined || !visible) return;
+        selectedIds = selectedIds || '';
 
-        var ids = query.split('/').filter(id => {
+        var ids = selectedIds.split('/').filter(id => {
           return checkboxes.some(c => {
             return c.id === id;
           })
@@ -290,9 +345,9 @@
         var ids = selectedCheckboxes.map(c => {
           return c.id;
         })
-        var query = ids.join('/');
-        if (query !== this.query) {
-          this.set('query', query);
+        var selectedIds = ids.join('/');
+        if (selectedIds !== this.selectedIds) {
+          this.set('selectedIds', selectedIds);
         }
         var len = this.items.length, pos = this.indexOf(this.items, this.item);
         this.items = this.items.filter(item => {
@@ -309,6 +364,52 @@
             this.notifyPath('items');
           }, 0)
         }
+      }
+
+      _subgroupsChanged(subgroups) {
+        var el = Polymer.dom(this.root).querySelector('.selectbox.subgroup');
+        var titles = subgroups.map(sg => { return sg.title });
+        var sel = el.querySelector('select');
+        if (sel) {
+          while (sel.hasChildNodes()) {
+            sel.removeChild(sel.lastChild);
+          }
+          titles.forEach(function(item) {
+            var option = document.createElement('option');
+            option.textContent = item;
+            option.value = item;
+            Polymer.dom(sel).appendChild(option);
+          });
+          this.selectedSubgroup = titles[0];
+        }
+      }
+
+      _selectedSubgroupChanged(selectedSubgroup, elements) {
+        if (selectedSubgroup === undefined || elements === undefined) return;
+        console.log(selectedSubgroup);
+        var subgroup;
+        for (var i = 0; i < this.subgroups.length; i++) {
+          if (this.subgroups[i].title === selectedSubgroup) {
+            subgroup = this.subgroups[i];
+            break;
+          }
+        }
+        var shownElements = [];
+        if (subgroup) {
+          for (var i = 0; i < subgroup.items.length; i++) {
+            for (var j = 0; j < elements.length; j++) {
+              if (elements[j].id === subgroup.items[i]) {
+                shownElements.push(elements[j]);
+                break;
+                // break next;
+              }
+            }
+            // next:
+          }
+        } else {
+          shownElements = elements;
+        }
+        this.set('_shownElements', shownElements);
       }
 
       _hasSvg(path, visible) {

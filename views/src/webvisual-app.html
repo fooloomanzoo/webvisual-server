@@ -24,6 +24,7 @@
 <link rel="import" href="dialog-login.html">
 <link rel="import" href="page-home.html">
 <link rel="import" href="data/facility-data.html">
+<link rel="import" href="data/group-data.html">
 
 <dom-module id="webvisual-app">
 
@@ -215,6 +216,13 @@
       logged-in="[[loggedIn]]"
       offline="[[offline]]"></facility-data>
 
+    <group-data
+      room="[[queryParams.room]]"
+      logged-in="[[loggedIn]]"
+      subgroups="{{subgroups}}"
+      grouped-key="{{queryParams.groupby}}"
+      grouping-keys="{{groupingKeys}}"></group-data>
+
     <device-socket-data id="socketHandler"
       name-space=""
       socket-room="[[queryParams.room]]"
@@ -235,8 +243,8 @@
           <iron-collapse opened$="[[showTabs]]" hidden$="[[!wideLayout]]" horizontal style="align-self: flex-end;">
             <div class="tab-drawer top">
 
-              <div class="selectbox toolbar grouping top" title="[[groupedKey]]" hidden$="[[hideGroupSelect]]">
-                <select value="{{groupedKey::change}}"></select>
+              <div class="selectbox toolbar grouping top" title="[[queryParams.groupby]]" hidden$="[[hideGroupSelect]]">
+                <select value="{{queryParams.groupby::change}}"></select>
               </div>
               <tabs-container class="tabs"
                 role="tablist"
@@ -288,10 +296,13 @@
         <page-list name="list" dark$="[[dark]]" plain$="[[plain]]" room="[[queryParams.room]]" elements="[[elements]]">
         </page-list>
         <!-- group view of items -->
-        <page-groups name="groups" dark$="[[dark]]" plain$="[[plain]]" room="[[queryParams.room]]" logged-in="[[loggedIn]]" elements="[[elements]]" grouped-key="{{groupedKey}}" grouping-keys="{{groupingKeys}}">
+        <page-groups name="groups" dark$="[[dark]]" plain$="[[plain]]" room="[[queryParams.room]]" logged-in="[[loggedIn]]" elements="[[elements]]" grouped-key="{{queryParams.groupby}}" grouping-keys="[[groupingKeys]]" subgroups="[[subgroups]]">
         </page-groups>
         <!-- detail view of one item -->
-        <page-detail id="detailpage" name="detail" dark$="[[dark]]" plain$="[[plain]]" class="fullbleed" room="[[queryParams.room]]" query="{{queryParams.ids}}" logged-in="[[loggedIn]]" elements="[[elements]]" show-toggle-icon="{{detailHasDrawer}}">
+        <page-detail id="detailpage" name="detail" dark$="[[dark]]" plain$="[[plain]]" class="fullbleed" room="[[queryParams.room]]" selected-ids="{{queryParams.ids}}" logged-in="[[loggedIn]]" elements="[[elements]]" show-toggle-icon="{{detailHasDrawer}}" subgroups="[[subgroups]]">
+          <div slot="groupby" class="selectbox grouping" title="{{localize('groupedKey')}}" hidden$="[[hideGroupSelect]]">
+            <select value="{{queryParams.groupby::change}}"></select>
+          </div>
         </page-detail>
       </iron-pages>
     </app-header-layout>
@@ -410,10 +421,10 @@
             </select>
           </div>
 
-          <div class="selectbox grouping" title="[[groupedKey]]" hidden$="[[hideGroupSelect]]">
+          <div class="selectbox grouping" title="[[queryParams.groupby]]" hidden$="[[hideGroupSelect]]">
             <iron-icon icon="filter-list"></iron-icon>
             <span>{{localize('groupedKey')}}</span>
-            <select value="{{groupedKey::change}}"></select>
+            <select value="{{queryParams.groupby::change}}"></select>
           </div>
         </div>
 
@@ -469,6 +480,11 @@
 
           groupedKey: {
             type: String,
+            notify: true
+          },
+
+          subgroups: {
+            type: Array,
             notify: true
           },
 
@@ -855,7 +871,7 @@
         }
         // Hack: initial binding to native select value property is not bound
         setTimeout(() => {
-          var groupedKey = this.groupedKey;
+          var groupedKey = this.queryParams.groupby;
           var groupingSelectors = Polymer.dom(this.root).querySelectorAll('.selectbox.grouping');
           var groupingKeys = this.groupingKeys;
 
@@ -913,7 +929,7 @@
       }
 
       _computeHideGroupSelect(page, loadComplete, groupingKeys) {
-        return page !== 'groups' || !loadComplete || !groupingKeys || !groupingKeys.length;
+        return (page !== 'groups' && page !== 'detail') || !loadComplete || !groupingKeys || !groupingKeys.length;
       }
 
       _computeStatusIcon(status) {
