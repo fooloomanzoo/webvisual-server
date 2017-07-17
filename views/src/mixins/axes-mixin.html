@@ -261,10 +261,19 @@
         delete this.axisBrushGeneratorY;
         delete this.axisBrushGeneratorX;
       }
-      _onAxisClicked(axis) {
+      _toggleAxis(axis) {
         var expanded = axis.classed('expanded');
         axis.classed('expanded', !expanded);
         this.sizeChanged();
+      }
+      _onAxisClicked(axis) {
+        if (this._activeToggleAxisJob) {
+          clearTimeout(this._axisToggleAxisJob);
+        }
+        this._activeToggleAxisJob = setTimeout( () => {
+          this._toggleAxis(axis);
+          this._activeToggleAxisJob = null;
+        }, 300)
       }
       _onAxisContextMenu(orient) {
         if (d3.event)

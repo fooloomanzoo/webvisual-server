@@ -102,7 +102,7 @@
         transition: fill-opacity 200ms linear;
       }
       .axis:hover path {
-        fill-opacity: 0.3;
+        fill-opacity: 0.2;
       }
       .axis.expanded path, .axis.expanded line {
         stroke-opacity: 0.9;
@@ -112,7 +112,7 @@
       }
       .brush .selection {
         fill: currentColor;
-        fill-opacity: 0.5;
+        fill-opacity: 0.75;
         stroke: currentColor;
         stroke-width: 0;
       }
@@ -154,7 +154,7 @@
       }
       #delta .line,
       #focus .line {
-        mix-blend-mode: overlay;
+        mix-blend-mode: exclusion;
         pointer-events: none;
       }
       #zoom {
@@ -550,6 +550,9 @@
         this.set('item', {});
         this.set('items', []);
         this.set('exceeding', []);
+        this._debouncedHideInfo();
+        this._fixedValue = null;
+        this._focusedValue = null;
       }
 
       sizeChanged() {
@@ -578,7 +581,8 @@
           return;
         }
 
-        // console.log('sizeLayout');
+        this._debouncedHideInfo();
+
         var top = -2,
           right = 1,
           bottom = 1,
@@ -946,7 +950,8 @@
         }
         this._activeHideInfoJob = setTimeout(() => {
           this._hideInfo();
-        }, 1000);
+          this._activeHideInfoJob = null;
+        }, 750);
       }
 
       _hideInfo() {
@@ -1154,6 +1159,7 @@
         this._graphs.forEach(g => {
           g.redraw();
         })
+        this._debouncedHideInfo();
       }
       _onZoomed() {
         if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") return; // ignore zoom-by-brush
@@ -1186,8 +1192,11 @@
           g.redraw();
         })
         this._isZoomed = !(t.k === 1 && t.x === 0 && t.y === 0);
+        this._debouncedHideInfo();
       }
-
+      _onAxisDblClicked() {
+        this._resetZoom();
+      }
       _onAxisContextMenu(orient) {
         if (d3.event)
           d3.event.preventDefault();
@@ -1196,6 +1205,7 @@
         } else {
           super._onAxisContextMenu(orient);
         }
+        this._debouncedHideInfo();
       }
       _closeControl() {
         this.showControl = false;

@@ -723,6 +723,14 @@
         this.redraw();
       }
       _onAxisClicked(axis) {
+        if (this._activeToggleAxisJob && (axis._isBrushed || this._chart._isZoomed)) {
+          console.log('cleartimeout');
+          clearTimeout(this._activeToggleAxisJob);
+          this._activeToggleAxisJob = null;
+          this._chart._resetZoom();
+          return;
+        }
+        console.log('clicked');
         super._onAxisClicked(axis);
       }
       _onAxisMouseover(axis, orient) {

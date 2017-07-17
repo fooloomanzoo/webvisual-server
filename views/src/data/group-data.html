@@ -105,7 +105,7 @@
         }
         var groupedKey = localStorage.getItem('groupedKey');
         setTimeout(() => {
-          if (groupedKey && groupingKeys.indexOf(groupedKey) !== -1) {
+          if (groupedKey !== undefined && groupingKeys.indexOf(groupedKey) !== -1) {
             this.set('groupedKey', groupedKey);
           } else if (this.roomUri) {
             this._fetch(this.roomUri + '+preferedGroupingKey.json', 'GET', 'include', 'json', 'groupedKey', true)
@@ -117,7 +117,7 @@
       }
 
       _groupedKeyChanged(groupedKey, old) {
-        if (groupedKey) {
+        if (groupedKey !== undefined) {
           localStorage.setItem('groupedKey', groupedKey);
         }
       }

@@ -218,11 +218,6 @@
 
           selectedSubgroup: {
             type: String,
-            notify: true
-          },
-
-          selectedSubgroup: {
-            type: String,
             value: ''
           },
 
@@ -314,7 +309,7 @@
           '_selectedIdsChanged(selectedIds, checkboxes, visible)',
           '_selectedCheckboxesChanged(selectedCheckboxes, checkboxes, visible)',
           '_subgroupsChanged(subgroups)',
-          '_selectedSubgroupChanged(selectedSubgroup, elements)'
+          '_selectedSubgroupChanged(selectedSubgroup, subgroups, elements)'
         ]
       }
 
@@ -380,13 +375,14 @@
             option.value = item;
             Polymer.dom(sel).appendChild(option);
           });
-          this.selectedSubgroup = titles[0];
+          sel.value = '';
         }
+        this.selectedSubgroup = '';
       }
 
-      _selectedSubgroupChanged(selectedSubgroup, elements) {
-        if (selectedSubgroup === undefined || elements === undefined) return;
-        console.log(selectedSubgroup);
+      _selectedSubgroupChanged(selectedSubgroup, subgroups, elements) {
+        if (elements === undefined) return;
+        selectedSubgroup = selectedSubgroup || '';
         var subgroup;
         for (var i = 0; i < this.subgroups.length; i++) {
           if (this.subgroups[i].title === selectedSubgroup) {
@@ -401,15 +397,18 @@
               if (elements[j].id === subgroup.items[i]) {
                 shownElements.push(elements[j]);
                 break;
-                // break next;
               }
             }
-            // next:
           }
         } else {
           shownElements = elements;
         }
         this.set('_shownElements', shownElements);
+        if (this.checkboxes) {
+          this.checkboxes.forEach(c => {
+            c.checked = false;
+          })
+        }
       }
 
       _hasSvg(path, visible) {
@@ -476,6 +475,7 @@
       _visibleChanged(visible) {
         if (visible === true) {
           this._debounceResize();
+          this.selectedSubgroup = '';
         } else if (visible === false) {
           this.selectedCheckboxes.forEach(c => {
             // prevent checkbox from firing change event while unsetting
@@ -484,6 +484,15 @@
           this.clearExceedings();
           this.clearItems();
           this.room = '';
+          this.set('_shownElements', []);
+          var el = Polymer.dom(this.root).querySelector('.selectbox.subgroup');
+          var titles = subgroups.map(sg => { return sg.title });
+          var sel = el.querySelector('select');
+          if (sel) {
+            while (sel.hasChildNodes()) {
+              sel.removeChild(sel.lastChild);
+            }
+          }
         }
       }
     }

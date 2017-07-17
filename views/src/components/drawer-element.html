@@ -314,12 +314,12 @@
         this._FLING_INITIAL_SLOPE = 1.5;
         this._CONDITION_PARTS = 0.5;
         this._DRAWER_STATE = {
-            INIT: 0,
-            OPENED: 1,
-            OPENED_PERSISTENT: 2,
-            CLOSED: 3,
-            TRACKING: 4,
-            FLINGING: 5
+          INIT: 0,
+          OPENED: 1,
+          OPENED_PERSISTENT: 2,
+          CLOSED: 3,
+          TRACKING: 4,
+          FLINGING: 5
         }
       }
 
@@ -401,9 +401,11 @@
 
       _addTrackListeners(horizontal) {
         Polymer.RenderStatus.afterNextRender(this, function() {
-          Polymer.Gestures.removeListener(this, 'track', e => this._track(e));
-          Polymer.Gestures.addListener(this, 'track', e => this._track(e));
-          Polymer.Gestures.setTouchAction(this, horizontal ? 'pan-x' : 'pan-y');
+          Polymer.Gestures.removeListener( this.$.contentContainer, 'track', e => this._track(e) );
+          Polymer.Gestures.addListener( this.$.contentContainer, 'track', e => this._track(e) );
+          Polymer.Gestures.setTouchAction( this.$.contentContainer, horizontal ? 'pan-x' : 'pan-y' );
+          Polymer.Gestures.removeListener( this.$.scrim, 'tap', e => this.close() );
+          Polymer.Gestures.addListener( this.$.scrim, 'tap', e => this.close() );
         });
       }
 

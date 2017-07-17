@@ -220,7 +220,7 @@
       room="[[queryParams.room]]"
       logged-in="[[loggedIn]]"
       subgroups="{{subgroups}}"
-      grouped-key="{{queryParams.groupby}}"
+      grouped-key="{{groupedKey}}"
       grouping-keys="{{groupingKeys}}"></group-data>
 
     <device-socket-data id="socketHandler"
@@ -243,8 +243,8 @@
           <iron-collapse opened$="[[showTabs]]" hidden$="[[!wideLayout]]" horizontal style="align-self: flex-end;">
             <div class="tab-drawer top">
 
-              <div class="selectbox toolbar grouping top" title="[[queryParams.groupby]]" hidden$="[[hideGroupSelect]]">
-                <select value="{{queryParams.groupby::change}}"></select>
+              <div class="selectbox toolbar grouping top" title="[[groupedKey]]" hidden$="[[hideGroupSelect]]">
+                <select value="{{groupedKey::change}}"></select>
               </div>
               <tabs-container class="tabs"
                 role="tablist"
@@ -296,12 +296,12 @@
         <page-list name="list" dark$="[[dark]]" plain$="[[plain]]" room="[[queryParams.room]]" elements="[[elements]]">
         </page-list>
         <!-- group view of items -->
-        <page-groups name="groups" dark$="[[dark]]" plain$="[[plain]]" room="[[queryParams.room]]" logged-in="[[loggedIn]]" elements="[[elements]]" grouped-key="{{queryParams.groupby}}" grouping-keys="[[groupingKeys]]" subgroups="[[subgroups]]">
+        <page-groups name="groups" dark$="[[dark]]" plain$="[[plain]]" room="[[queryParams.room]]" logged-in="[[loggedIn]]" elements="[[elements]]" grouped-key="[[groupedKey]]" grouping-keys="[[groupingKeys]]" subgroups="[[subgroups]]">
         </page-groups>
         <!-- detail view of one item -->
         <page-detail id="detailpage" name="detail" dark$="[[dark]]" plain$="[[plain]]" class="fullbleed" room="[[queryParams.room]]" selected-ids="{{queryParams.ids}}" logged-in="[[loggedIn]]" elements="[[elements]]" show-toggle-icon="{{detailHasDrawer}}" subgroups="[[subgroups]]">
           <div slot="groupby" class="selectbox grouping" title="{{localize('groupedKey')}}" hidden$="[[hideGroupSelect]]">
-            <select value="{{queryParams.groupby::change}}"></select>
+            <select value="{{groupedKey::change}}"></select>
           </div>
         </page-detail>
       </iron-pages>
@@ -421,10 +421,10 @@
             </select>
           </div>
 
-          <div class="selectbox grouping" title="[[queryParams.groupby]]" hidden$="[[hideGroupSelect]]">
+          <div class="selectbox grouping" title="[[groupedKey]]" hidden$="[[hideGroupSelect]]">
             <iron-icon icon="filter-list"></iron-icon>
             <span>{{localize('groupedKey')}}</span>
-            <select value="{{queryParams.groupby::change}}"></select>
+            <select value="{{groupedKey::change}}"></select>
           </div>
         </div>
 
@@ -615,7 +615,8 @@
           '_routePageChanged(path)',
           '_roomChanged(room)',
           '_resetLayout(showTabsOnBottom, wideLayout, thresholdTriggered)',
-          '_setGroupingSelectBoxes(hideGroupSelect)'
+          '_setGroupingSelectBoxes(groupedKey, groupingKeys)',
+          '_drawerChanged(_shouldRenderDrawer)'
         ]
       }
 
@@ -865,15 +866,13 @@
         }, 0);
       }
 
-      _setGroupingSelectBoxes(hideGroupSelect) {
-        if (hideGroupSelect) {
+      _setGroupingSelectBoxes(groupedKey, groupingKeys) {
+        if (groupedKey === undefined || groupingKeys === undefined) {
           return;
         }
         // Hack: initial binding to native select value property is not bound
         setTimeout(() => {
-          var groupedKey = this.queryParams.groupby;
           var groupingSelectors = Polymer.dom(this.root).querySelectorAll('.selectbox.grouping');
-          var groupingKeys = this.groupingKeys;
 
           Array.prototype.forEach.call(groupingSelectors, function(el) {
             var sel = el.querySelector('select');
@@ -891,6 +890,12 @@
             }
           })
         }, 0);
+      }
+
+      _drawerChanged(_shouldRenderDrawer) {
+        if (_shouldRenderDrawer) {
+          this._setGroupingSelectBoxes(this.groupedKey, this.groupingKeys)
+        }
       }
 
       _debouncedHideTabs(showTabs) {

@@ -381,40 +381,36 @@ class Router extends EventEmitter {
         })
         // copy svgContent in staticContentFolder
         let svgDest = resolvePath(this.dirImage, facility, system)
-        let origin = '', dest = '', wasSet = false;
 
-        for (var id in opt[system].itemMap) {
-          if (opt[system].itemMap[id].hasOwnProperty('svg')) {
-            if (opt[system].itemMap[id].svg.path && opt[system].itemMap[id].svg.dir) {
-              origin = path.resolve(opt[system].itemMap[id].svg.dir, opt[system].itemMap[id].svg.path)
-              dest = path.resolve(svgDest, opt[system].itemMap[id].svg.path)
+        promises.push( new Promise( (resolve, reject) => {
+          mkdirp(svgDest, error => {
+            if (error) reject(`SVG-File Destination folder failed to create \n ${error.stack}`)
+            resolve()
+          })
+        }))
+
+        opt[system].itemMap.forEach( (item, id) => {
+          if (item.hasOwnProperty('svg')) {
+            if (item.svg.path && item.svg.dir) {
+              var origin = path.resolve(item.svg.dir, item.svg.path)
+              var dest = path.resolve(svgDest, item.svg.path)
               if (origin && dest && !toCopy.has(dest)) {
-                wasSet = true
                 toCopy.add(dest)
-                delete opt[system].itemMap[id].svg.dir
+                delete item.svg.dir
                 promises.push(
                   copy(origin, dest)
                 )
               }
             }
           }
-        }
+        })
 
-        if (wasSet === true) {
-          promises.unshift( new Promise( (resolve, reject) => {
-            mkdirp(svgDest, error => {
-              if (error) reject(`SVG-File Destination folder failed to create \n ${error.stack}`)
-              resolve()
-            })
-          }))
-        }
         // create required static settings
-        dest = resolvePath(this.dirData)
         for (var key in opt[system]) {
           if (requiredStaticSettings.indexOf(key) === -1)
             continue
           var room = facility + '+' + system
-          var pth = path.resolve(dest, room + '+' + key + '.json')
+          var pth = path.resolve(this.dirData, room + '+' + key + '.json')
           var data = opt[system][key]
           promises.push( jsonfile.writeFileSync(pth, data) )
         }
