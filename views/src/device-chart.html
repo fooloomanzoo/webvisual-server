@@ -168,7 +168,7 @@
         cursor: pointer;
         stroke: #000;
         stroke-opacity: 0.9;
-        stroke-width: 0.5px;
+        stroke-width: 0.75px;
         pointer-events: all;
       }
       .selectbox > * {
@@ -447,9 +447,9 @@
         this._boundery = d3.select(this.$.boundery);
 
         this.axisX = this._computeAxisNode(this._axisInsertionPoint, this.axisOrientX, '', this.axisX)
-                           .attr('hidden', (this.multiAxesX) ? true: null);
+                        .attr('hidden', (this.multiAxesX) ? true: null);
         this.axisY = this._computeAxisNode(this._axisInsertionPoint, this.axisOrientY, '', this.axisY)
-                           .attr('hidden', (this.multiAxesY) ? true: null);
+                        .attr('hidden', (this.multiAxesY) ? true: null);
         this.axisGeneratorX = this._computeAxisGenerator(this.axisOrientX, this.scaleX, this.scalingX, this.scaleBaseX);
         this.axisGeneratorY = this._computeAxisGenerator(this.axisOrientY, this.scaleY, this.scalingY, this.scaleBaseY);
 
@@ -460,7 +460,9 @@
         this._focusDot = d3.select(this.$.focusDot);
         this._focusDot
           .on('mouseenter', () => {
-            this.cancelDebouncer('hideinfo');
+            if (this._activeHideInfoJob) {
+              clearTimeout(this._activeHideInfoJob);
+            }
           }, {
             passive: true
           })
@@ -479,7 +481,7 @@
         this._deltaDot = d3.select(this.$.deltaDot);
 
         this._zoomBehavior = d3.zoom()
-              .scaleExtent([0.99, Infinity])
+              .scaleExtent([0.95, Infinity])
               .on("zoom", this._onZoomed.bind(this));
 
         this._zoom = d3.select(this.$.zoom)
@@ -489,7 +491,9 @@
           .on('mouseenter touchstart', this._showInfo.bind(this), {
             passive: true
           })
-          .on('mouseleave touchend', this._debouncedHideInfo.bind(this), {
+          .on('mouseleave touchend', () => {
+            this._debouncedHideInfo(this);
+          }, {
             passive: true
           })
           .on('mousemove', () => {
@@ -824,7 +828,9 @@
         this.axisX.attr('hidden', hidden);
         hidden = multiAxesY ? true : null;
         this.axisY.attr('hidden', hidden);
-
+        hidden = (!multiAxesY && !multiAxesX) ? true : null;
+        this.axisX.select('.brush').attr('hidden', hidden);
+        this.axisY.select('.brush').attr('hidden', hidden);
         this._redomain();
         this.sizeChanged();
       }
@@ -840,6 +846,8 @@
           this.set('domainY', [null,null])
         }
         g = null;
+        this._fixedValue = null;
+        this._focusedValue = null;
         this.sizeChanged();
       }
 
@@ -930,7 +938,9 @@
       }
 
       _showInfo() {
-        this.cancelDebouncer('hideinfo');
+        if (this._activeHideInfoJob) {
+          clearTimeout(this._activeHideInfoJob);
+        }
         this._info.attr('hidden', null);
         this._focus.attr('hidden', null);
         if (this._fixedValue) {
@@ -1068,19 +1078,22 @@
           default:
 
         }
+        this._fixedValue = null;
+        this._focusedValue = null;
       }
 
       _dotClicked(d) {
         switch (this.modus) {
           case 'zoom':
-            var offsetX = (d.g.domainX[1] - d.g.domainX[0]) / 4,
-              offsetY = (d.g.domainY[1] - d.g.domainY[0]) / 4,
-              x = d.g.scaleX(+d.x),
-              y = d.g.scaleY(+d.y) || 0;
-            d3.event.selection = [
-              [x - offsetX, y - offsetY],
-              [x + offsetX, y + offsetY]
-            ];
+            var oldzoom = this._zoom.node().__zoom,
+                x = d.g.scaleX(+d.x) - this._width/6,
+                y = (d.g.scaleY(+d.y) || 0) - this._height/6,
+                scale = oldzoom.k * 3;
+            y = (oldzoom.y - y) / oldzoom.k;
+            x = (oldzoom.x - x) / oldzoom.k;
+            this._zoom.transition().duration(300).call(this._zoomBehavior.transform, d3.zoomIdentity
+              .scale(scale)
+              .translate(x, y));
             break;
           case 'delta':
             var fP = this._fixedValue;
@@ -1138,9 +1151,12 @@
           this.scaleY.domain(domain).nice();
           this.axisY.call(this.axisGeneratorY.scale(this.scaleY));
           this.axisY.select(".brush").call(this.axisBrushGeneratorY.move, null);
-          this._zoom.call(this._zoomBehavior.transform, d3.zoomIdentity
-            .scale(this._height / (s[1] - s[0]))
-            .translate(0, -s[0]));
+          var oldzoom = this._zoom.node().__zoom;
+          var scale = oldzoom.k * this._height / (s[1] - s[0]);
+          var y = (oldzoom.y - s[0])/ oldzoom.k;
+          this._zoom.transition().duration(300).call(this._zoomBehavior.transform, d3.zoomIdentity
+            .scale(scale)
+            .translate(0, y));
         }
         if (!vertical) {
           var domain = s.map(this.scaleX.invert, this.scaleX).sort((a, b) => { return a > b});
@@ -1152,14 +1168,17 @@
           this.scaleX.domain(domain);
           this.axisX.call(this.axisGeneratorX.scale(this.scaleX));
           this.axisX.select(".brush").call(this.axisBrushGeneratorX.move, null);
-          this._zoom.call(this._zoomBehavior.transform, d3.zoomIdentity
-            .scale(this._width / (s[1] - s[0]))
-            .translate(-s[0], 0));
+          var oldzoom = this._zoom.node().__zoom;
+          var scale = oldzoom.k * this._width / (s[1] - s[0]);
+          var x = (oldzoom.x - s[0])/ oldzoom.k;
+          this._zoom.transition().duration(300).call(this._zoomBehavior.transform, d3.zoomIdentity
+            .scale(scale)
+            .translate(x, 0));
         }
         this._graphs.forEach(g => {
           g.redraw();
         })
-        this._debouncedHideInfo();
+        this._updateInfo();
       }
       _onZoomed() {
         if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") return; // ignore zoom-by-brush
@@ -1192,10 +1211,18 @@
           g.redraw();
         })
         this._isZoomed = !(t.k === 1 && t.x === 0 && t.y === 0);
-        this._debouncedHideInfo();
+        this._updateInfo();
       }
-      _onAxisDblClicked() {
-        this._resetZoom();
+      _onAxisClicked(axis) {
+        if (this._activeToggleAxisJob) {
+          clearTimeout(this._activeToggleAxisJob);
+          this._activeToggleAxisJob = null;
+          if (axis._isBrushed || this._isZoomed) {
+            this._resetZoom();
+          }
+          return;
+        }
+        super._onAxisClicked(axis);
       }
       _onAxisContextMenu(orient) {
         if (d3.event)
@@ -1222,7 +1249,7 @@
         this._focusedValue = null;
         this.axisX._isBrushed = false;
         this.axisY._isBrushed = false;
-        this._zoom.call(this._zoomBehavior.transform, d3.zoomIdentity.scale(1));
+        this._zoom.transition().duration(200).call(this._zoomBehavior.transform, d3.zoomIdentity.scale(1));
         this._graphs.forEach(g => {
           g.axisX._isBrushed = false;
           g.axisY._isBrushed = false;
@@ -1234,7 +1261,6 @@
         this._hideInfo();
         this._redomain();
       }
-
       // _refresh() {
       //   this._buildLayout();
       //   this._graphs.forEach( g => {

@@ -59,7 +59,8 @@ export {
 
 export {
   zoom,
-  zoomIdentity
+  zoomIdentity,
+  zoomTransform
 } from "d3-zoom";
 
 export {

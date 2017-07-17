@@ -381,7 +381,7 @@
       }
 
       _selectedSubgroupChanged(selectedSubgroup, subgroups, elements) {
-        if (elements === undefined) return;
+        if (subgroups === undefined || elements === undefined) return;
         selectedSubgroup = selectedSubgroup || '';
         var subgroup;
         for (var i = 0; i < this.subgroups.length; i++) {
@@ -391,7 +391,7 @@
           }
         }
         var shownElements = [];
-        if (subgroup) {
+        if (subgroup && subgroup.items) {
           for (var i = 0; i < subgroup.items.length; i++) {
             for (var j = 0; j < elements.length; j++) {
               if (elements[j].id === subgroup.items[i]) {
@@ -403,12 +403,10 @@
         } else {
           shownElements = elements;
         }
-        this.set('_shownElements', shownElements);
-        if (this.checkboxes) {
-          this.checkboxes.forEach(c => {
-            c.checked = false;
-          })
-        }
+        setTimeout(() => {
+          this.clearItems();
+          this.set('_shownElements', shownElements);
+        }, 0)
       }
 
       _hasSvg(path, visible) {
@@ -483,10 +481,10 @@
           })
           this.clearExceedings();
           this.clearItems();
-          this.room = '';
+          this.room = undefined;
+          this.selectedSubgroup = undefined;
           this.set('_shownElements', []);
           var el = Polymer.dom(this.root).querySelector('.selectbox.subgroup');
-          var titles = subgroups.map(sg => { return sg.title });
           var sel = el.querySelector('select');
           if (sel) {
             while (sel.hasChildNodes()) {
@@ -494,6 +492,26 @@
             }
           }
         }
+      }
+
+      clearItems() {
+        if (this.selectedCheckboxes) {
+          for (var i = 0; i < this.selectedCheckboxes.length; i++) {
+            if (this.selectedCheckboxes[i].checked === true) {
+              this.selectedCheckboxes[i].checked = false;
+            }
+          }
+        }
+        if (this.checkboxes) {
+          for (var i = 0; i < this.checkboxes.length; i++) {
+            if (this.checkboxes[i].checked === true) {
+              this.checkboxes[i].checked = false;
+            }
+          }
+        }
+        this.selectedIds = '';
+        this.set('selectedCheckboxes', []);
+        super.clearItems();
       }
     }
     customElements.define(PageDetail.is, PageDetail);

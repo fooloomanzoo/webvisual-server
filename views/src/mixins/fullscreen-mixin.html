@@ -82,6 +82,9 @@
         } else {
           this.requestFullscreen();
         }
+        if (this._resetZoom) {
+          this._resetZoom(e);
+        }
       }
 
       fullScreenChanged() {

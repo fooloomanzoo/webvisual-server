@@ -101,36 +101,40 @@
           return;
         }
 
-        if (window.Webvisual && window.Webvisual.assignElement) {
-          window.Webvisual.assignElement(this);
+        // setTimeout(() => {
+          if (window.Webvisual && window.Webvisual.assignElement) {
+            window.Webvisual.assignElement(this);
 
-        this._olditem = item;
-        this.clearValues();
-        this.reset();
+          this._olditem = item;
+          this.clearValues();
+          this.reset();
 
-        this.requestValues(null, null, this.viewLength)
-          .then(data => {
-            for (var mount in data) {
-              if (mount === this.item.mount) {
-                this.insertValues(data[mount]);
-                break;
+          this.requestValues(null, null, this.viewLength)
+            .then(data => {
+              for (var mount in data) {
+                if (mount === this.item.mount) {
+                  this.insertValues(data[mount]);
+                  break;
+                }
               }
-            }
-          })
-          .catch(err => {
-            // if (err) {
-            //   console.log(err);
-            // }
-          });
-        }
+            })
+            .catch(err => {
+              // if (err) {
+              //   console.log(err);
+              // }
+            });
+          }
+        // }, 0)
       }
 
       _unlinkElement(item) {
         item = item || this.item || this._olditem;
-        if (window.Webvisual && Webvisual.retractElement && item && item.mount) {
-          window.Webvisual.retractElement(this, item);
-          this._olditem = null;
-        }
+        setTimeout(() => {
+          if (window.Webvisual && Webvisual.retractElement && item && item.mount) {
+            window.Webvisual.retractElement(this, item);
+            this._olditem = null;
+          }
+        }, 0)
       }
 
       getElement() {

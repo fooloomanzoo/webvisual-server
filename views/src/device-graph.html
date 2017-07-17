@@ -42,7 +42,7 @@
 
           dotRadius: {
             type: Number,
-            value: 3
+            value: 3.75
           },
 
           viewLength: {
@@ -723,14 +723,14 @@
         this.redraw();
       }
       _onAxisClicked(axis) {
-        if (this._activeToggleAxisJob && (axis._isBrushed || this._chart._isZoomed)) {
-          console.log('cleartimeout');
+        if (this._activeToggleAxisJob) {
           clearTimeout(this._activeToggleAxisJob);
           this._activeToggleAxisJob = null;
-          this._chart._resetZoom();
+          if (axis._isBrushed || this._isZoomed) {
+            this._chart._resetZoom();
+          }
           return;
         }
-        console.log('clicked');
         super._onAxisClicked(axis);
       }
       _onAxisMouseover(axis, orient) {
