@@ -209,8 +209,10 @@ class Router extends EventEmitter {
 
     // Signout
     this.app.use('/logout', (req, res) => {
+      if (req.session) {
+        req.session.destroy()
+      }
       req.logout()
-      req.session.destroy()
       res.sendStatus(200)
     })
 
