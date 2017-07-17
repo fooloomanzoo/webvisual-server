@@ -578,7 +578,7 @@
           pos = mid;
         // linear scan for coarse approximation
         for (i = lo; i < hi; i += precision) {
-          if ((currentDist = pixdistance2(values[i])) < minDist) {
+          if ((currentDist = pixdistance2(values[i])) <= minDist) {
             mid = i, minDist = currentDist;
           }
         }
@@ -586,7 +586,7 @@
 
         // linear search in positive prediction radius
         for (var i = mid + 1; i < hi && i < mid + precision - 1; i++) {
-          if ((currentDist = pixdistance2(values[i])) < minDist) {
+          if ((currentDist = pixdistance2(values[i])) <= minDist) {
             minDist = currentDist;
             pos = i;
           }
@@ -594,7 +594,7 @@
 
         // linear search in negative prediction radius
         for (var i = mid - 1; i > lo && i > mid - precision + 1; i--) {
-          if ((currentDist = pixdistance2(values[i])) < minDist) {
+          if ((currentDist = pixdistance2(values[i])) <= minDist) {
             minDist = currentDist;
             pos = i;
           }

@@ -871,10 +871,10 @@
           return;
         }
         // Hack: initial binding to native select value property is not bound
-        setTimeout(() => {
+        // setTimeout(() => {
           var groupingSelectors = Polymer.dom(this.root).querySelectorAll('.selectbox.grouping');
 
-          Array.prototype.forEach.call(groupingSelectors, function(el) {
+          Array.prototype.forEach.call(groupingSelectors, el => {
             var sel = el.querySelector('select');
             if (sel) {
               while (sel.hasChildNodes()) {
@@ -886,10 +886,10 @@
                 option.value = item;
                 Polymer.dom(sel).appendChild(option);
               });
-              sel.value = groupedKey;
+              this.groupedKey = sel.value = groupedKey || groupingKeys[0];
             }
           })
-        }, 0);
+        // }, 0);
       }
 
       _drawerChanged(_shouldRenderDrawer) {

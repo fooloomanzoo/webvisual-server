@@ -66,7 +66,7 @@
       }
       #table,
       #tabs {
-        flex: 1 0 50%;
+        flex: 1 0 1px;
         width: 100%;
         position: relative;
         box-sizing: border-box;
@@ -77,7 +77,6 @@
       }
       #table {
         padding-top: 0.1em;
-        height: 50%;
       }
       #drawer {
         position: absolute;
@@ -336,7 +335,7 @@
       }
 
       _selectedCheckboxesChanged(selectedCheckboxes, checkboxes, visible) {
-        if (selectedCheckboxes === undefined || checkboxes === undefined || checkboxes.length === 0 || !visible) return;
+        if (!visible || selectedCheckboxes === undefined || checkboxes === undefined || checkboxes.length === 0) return;
         var ids = selectedCheckboxes.map(c => {
           return c.id;
         })
@@ -377,31 +376,29 @@
           });
           sel.value = '';
         }
-        this.selectedSubgroup = '';
+        this._selectedSubgroupChanged(this.selectedSubgroup, this.subgroups, this.elements);
       }
 
       _selectedSubgroupChanged(selectedSubgroup, subgroups, elements) {
-        if (subgroups === undefined || elements === undefined) return;
+        if (!(subgroups && subgroups.length) || elements === undefined) return;
         selectedSubgroup = selectedSubgroup || '';
         var subgroup;
-        for (var i = 0; i < this.subgroups.length; i++) {
-          if (this.subgroups[i].title === selectedSubgroup) {
-            subgroup = this.subgroups[i];
+        for (var i = 0; i < subgroups.length; i++) {
+          if (subgroups[i].title === selectedSubgroup) {
+            subgroup = subgroups[i];
             break;
           }
         }
         var shownElements = [];
-        if (subgroup && subgroup.items) {
-          for (var i = 0; i < subgroup.items.length; i++) {
-            for (var j = 0; j < elements.length; j++) {
-              if (elements[j].id === subgroup.items[i]) {
-                shownElements.push(elements[j]);
-                break;
-              }
+        subgroup = subgroup || subgroups[subgroups.length-1];
+        console.log(subgroup, selectedSubgroup, subgroups, elements);
+        for (var i = 0; i < subgroup.items.length; i++) {
+          for (var j = 0; j < elements.length; j++) {
+            if (elements[j].id === subgroup.items[i]) {
+              shownElements.push(elements[j]);
+              break;
             }
           }
-        } else {
-          shownElements = elements;
         }
         setTimeout(() => {
           this.clearItems();
@@ -473,7 +470,7 @@
       _visibleChanged(visible) {
         if (visible === true) {
           this._debounceResize();
-          this.selectedSubgroup = '';
+          this._selectedSubgroupChanged(this.selectedSubgroup, this.subgroups, this.elements);
         } else if (visible === false) {
           this.selectedCheckboxes.forEach(c => {
             // prevent checkbox from firing change event while unsetting
@@ -482,7 +479,6 @@
           this.clearExceedings();
           this.clearItems();
           this.room = undefined;
-          this.selectedSubgroup = undefined;
           this.set('_shownElements', []);
           var el = Polymer.dom(this.root).querySelector('.selectbox.subgroup');
           var sel = el.querySelector('select');
@@ -509,7 +505,6 @@
             }
           }
         }
-        this.selectedIds = '';
         this.set('selectedCheckboxes', []);
         super.clearItems();
       }

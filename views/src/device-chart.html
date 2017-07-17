@@ -112,7 +112,7 @@
       }
       .brush .selection {
         fill: currentColor;
-        fill-opacity: 0.75;
+        fill-opacity: 0.8;
         stroke: currentColor;
         stroke-width: 0;
       }
@@ -167,8 +167,8 @@
         fill-opacity: 0.9;
         cursor: pointer;
         stroke: #000;
-        stroke-opacity: 0.9;
-        stroke-width: 0.75px;
+        stroke-opacity: 0.75;
+        stroke-width: 1px;
         pointer-events: all;
       }
       .selectbox > * {
@@ -996,17 +996,22 @@
               var xFix = fixP.g.scaleX(+fixP.x),
                 yFix = fixP.g.scaleY(+fixP.y);
               var x1D, x2D, y1D, y2D;
-              this._deltaX.attr('x1', x).attr('x2', xFix).attr('y1', yFix).attr('y2', yFix);
+              this._deltaX.attr('x1', x).attr('x2', xFix);
               this._deltaY.attr('y1', y).attr('y2', yFix);
-              if (yFix < y || x < xFix) {
+              if (yFix < y) {
                 this._deltaY.attr('x1', x).attr('x2', x);
                 this._alignText(this._infoDeltaY.node(), x, (yFix + y) / 2, null, null, null, 'middle');
               } else {
                 this._deltaY.attr('x1', xFix).attr('x2', xFix);
                 this._alignText(this._infoDeltaY.node(), xFix, (yFix + y) / 2, null, null, null, 'middle');
               }
-              this._deltaX
-              this._alignText(this._infoDeltaX.node(), (xFix + x) / 2, yFix, null, null, null, 'middle');
+              if (yFix < y || xFix < x) {
+                this._deltaX.attr('y1', yFix).attr('y2', yFix);
+                this._alignText(this._infoDeltaX.node(), (xFix + x) / 2, yFix, null, null, null, 'middle');
+              } else {
+                this._deltaX.attr('y1', y).attr('y2', y);
+                this._alignText(this._infoDeltaX.node(), (xFix + x) / 2, y, null, null, null, 'middle');
+              }
               this._deltaDot.attr('cy', yFix).attr('cx', xFix);
             } else {
               this._hideDelta();
@@ -1047,15 +1052,15 @@
             limitBottom -= bbox.height; break;
         }
 
-        if (y - limitBottom < 0) { // above top
+        if (y - limitBottom <= 0) { // above top
           alignmentBaseline = 'hanging';
         } else if (y + limitBottom > height) {
           y = height - limitBottom;
         }
 
-        if (x + limitLeft > width) { // beyond right
+        if (x + limitLeft >= width) { // beyond right
           textAnchor = 'end';
-        } else if (x - limitLeft < 0) { // beyond left
+        } else if (x - limitLeft <= 0) { // beyond left
           textAnchor = 'start';
         }
         node.setAttribute('x', x + marginLeft);
