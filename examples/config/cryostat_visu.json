@@ -20,8 +20,7 @@
         "format": {
           "dateFormat": "DD.MM.YYYY hh:mm:ss",
           "decimalSeparator": ",",
-          "valueSeparator": ";",
-          "dimensions": 1
+          "valueSeparator": ";"
         },
         "ignoredFirstLines": 0
       }
@@ -119,8 +118,7 @@
         "format": {
           "dateFormat": "DD.MM.YYYY hh:mm:ss",
           "decimalSeparator": ".",
-          "valueSeparator": ",",
-          "dimensions": 1
+          "valueSeparator": ","
         },
         "ignoredFirstLines": 3
       }
@@ -239,6 +237,79 @@
     },
     "exclusiveGroups": {
       "Bezeichner": {}
+    }
+  }]
+}, {
+  "name": "entropy",
+  "title": "Entropy",
+
+  "view": {
+    "initial": "detail"
+  },
+  "clientRequest": {
+    "initial": {
+      "mobile": 300,
+      "stationary": 1000
+    }
+  },
+
+  "locals": [{
+    "connections": {
+      "file": {
+        "mode": "append",
+        "path": [
+          "./examples/datafile/cryostat_visu3.txt",
+          "./examples/datafile/cryostat_visu4.txt"
+        ],
+        "format": {
+          "dateFormat": "iso",
+          "decimalSeparator": ".",
+          "valueSeparator": "\t"
+        },
+        "ignoredFirstLines": 8
+      }
+    },
+
+    "svgSource": {},
+    "ignore": [],
+    "groupingKeys": [ "Sensorname", "Messwert" ],
+    "preferedGroupingKey": "Messwert",
+    "items": [ {
+      "id": "HS-1-1",
+      "keys": {
+        "Sensorname": "HS-1",
+        "Messwert": "time"
+      },
+      "unit": "ms",
+      "color": "#2575C8"
+    }, {
+      "id": "HS-1-2",
+      "keys": {
+        "Sensorname": "HS-1",
+        "Messwert": "Widerstand"
+      },
+      "unit": "Ω",
+      "color": "#B65814"
+    }, {
+      "id": "HS-1-3",
+      "keys": {
+        "Sensorname": "HS-1",
+        "Messwert": "Temperatur"
+      },
+      "unit": "K",
+      "color": "#B6144E"
+    } ],
+    "unnamedItem": {
+      "id": "id",
+      "keys": {
+        "Sensorname": "Sensor",
+        "Messwert": "Messwert"
+      },
+      "isBoolean": false,
+      "unit": "",
+      "color": "#6C6C6C"
+    },
+    "exclusiveGroups": {
     }
   }]
 } ]

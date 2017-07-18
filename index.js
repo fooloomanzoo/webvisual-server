@@ -172,7 +172,7 @@ class WebvisualServer extends processEmiter {
     if (this.isRunning === false) {
       process.send( { info: 'WEBVISUAL SERVER is starting' } )
       this.setConfig(config)
-        .then((sslSettings) => {
+        .then(sslSettings => {
 
           this.dataHandler = new DataModule()
           this.dataHandler.on('error', err => { process.send( { error: err.stack } ) })
@@ -203,12 +203,12 @@ class WebvisualServer extends processEmiter {
           this.router.on('ready', () => {
             this.dataHandler.setServer(this.router.io)
           })
-          this.router.setSettings(config.server, config.configfiles, sslSettings)
+          this.router.setSettings(this.config.server, this.config.configfiles, sslSettings)
 
           this.configfilesHandler = new ConfigFileProcessor()
-          this.configfilesHandler.on('change', (config, facility) => {
-            this.dataHandler.setConfiguration(config, facility)
-            this.router.setConfiguration(config, facility)
+          this.configfilesHandler.on('change', (con, facility) => {
+            this.dataHandler.setConfiguration(con, facility)
+            this.router.setConfiguration(con, facility)
           })
           this.configfilesHandler.watch(this.config.configfiles, this.config.database)
 

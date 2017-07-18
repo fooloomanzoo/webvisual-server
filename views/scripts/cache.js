@@ -3,7 +3,7 @@
     function ClientCache(mount, indexKey, options) {
       this.mount = mount;
       this.indexKey = indexKey || 'x';
-      this.maxCount = options && options.maxCount ? options.maxCount : 1800;
+      this.maxCount = options && options.maxCount ? options.maxCount : 30000;
       this.values = [];
       this._splices = [];
       Object.defineProperty(this, "splices", {
