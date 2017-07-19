@@ -106,8 +106,10 @@
             window.Webvisual.assignElement(this);
 
           this._olditem = item;
-          this.clearValues();
-          this.reset();
+          if (this._initialized) {
+            this.clearValues();
+            this.reset();
+          }
 
           this.requestValues(null, null, this.viewLength)
             .then(data => {

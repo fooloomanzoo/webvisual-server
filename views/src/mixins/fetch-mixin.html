@@ -62,7 +62,8 @@
             }
           })
           .then( data => {
-            if (property !== undefined && data !== undefined) {
+            if (property && data !== undefined) {
+              // console.log(property, data);
               var set = (noEqualityCheck || !this[property]) ? true : !this._equals(this[property], data);
               if (set) {
                 this.set(property, data);
@@ -80,7 +81,7 @@
             return Promise.resolve(data);
           })
           .catch( res => {
-            if (saveInLocalStorage && property !== undefined && url !== undefined) {
+            if (saveInLocalStorage && property && url !== undefined) {
               var data = localStorage.getItem(url);
               if (data) {
                 if (type === 'json') {

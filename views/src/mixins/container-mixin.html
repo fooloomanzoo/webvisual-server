@@ -29,13 +29,11 @@
           },
 
           openOnSelect: {
-            type: Boolean,
-            value: false
+            type: Boolean
           },
 
           openOnExceed: {
-            type: Boolean,
-            value: false
+            type: Boolean
           },
 
           forceOpened: {
@@ -48,13 +46,11 @@
           },
 
           selectNotify: {
-            type: Boolean,
-            value: false
+            type: Boolean
           },
 
           exceedNotify: {
-            type: Boolean,
-            value: false
+            type: Boolean
           },
 
           multi: {
@@ -71,7 +67,11 @@
           },
 
           item: {
-            type: Object
+            type: Object,
+            value: function() {
+              return {};
+            },
+            notify: true
           },
 
           items: {
@@ -97,11 +97,10 @@
         }
       }
 
-      static get observers() {
-        return [
-          '_watchSelect(selectNotify, openOnSelect)',
-          '_watchExceed(exceedNotify, openOnExceed)'
-        ]
+      connectedCallback() {
+        super.connectedCallback();
+        this._watchSelect(this.selectNotify, this.openOnSelect);
+        this._watchExceed(this.exceedNotify, this.openOnExceed);
       }
 
       disconnectedCallback() {
@@ -143,15 +142,16 @@
         this.set('item', item); // store nevertheless the multi option the last selected Element
         if (this.multi === true) {
           if (this.indexOf(this.items, item) === -1) {
-            // this.set('selectedItemIndex', this.items.length);
             this.push('items', item);
           }
         }
-
         this.opened = this.forceOpened ||
           Boolean((this.openOnSelect && (this.item || (this.items && this.items.length))) ||
             (this.openOnExceed && (this.exceeding && this.exceeding.length)));
+        // this.notifyPath('item');
+        // this.notifyPath('items');
       }
+
 
       deselect(item) {
         if (this.multi) {
@@ -165,10 +165,6 @@
           } else if (this.indexOf(this.items, this.item) === -1) {
             this.set('item', this.items[0]);
           }
-
-          // else if ((pos = this.indexOf(this.items, this.item)) !== this.selectedItemIndex) {
-          //   this.set('selectedItemIndex', pos > -1 ? pos : 0);
-          // }
         } else {
           this.set('item', null);
         }
@@ -176,6 +172,8 @@
         this.opened = this.forceOpened ||
           Boolean((this.openOnSelect && (this.item || (this.items && this.items.length))) ||
             (this.openOnExceed && (this.exceeding && this.exceeding.length)));
+        // this.notifyPath('item');
+        // this.notifyPath('items');
       }
 
       clearItems() {

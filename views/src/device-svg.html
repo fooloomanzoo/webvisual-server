@@ -271,24 +271,15 @@
           multi: Boolean,
 
           item: {
-            type: Object,
-            value: function() {
-              return {};
-            }
+            type: Object
           },
 
           items: {
-            type: Array,
-            value: function() {
-              return [];
-            }
+            type: Array
           },
 
           exceeding: {
-            type: Array,
-            value: function() {
-              return [];
-            }
+            type: Array
           },
 
           /**
@@ -408,8 +399,8 @@
       _initialize() {
         setTimeout(() => {
           this._selectableItemsChanged();
-          this._selectSelected();
-          this._selectExceeds();
+          this._selectedItemsChanged();
+          this._exceedingChanged();
         }, 0)
       }
 

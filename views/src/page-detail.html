@@ -157,7 +157,6 @@
           url-prefix="/images"
           src="[[_svgSrcPath]]"
           selectable-items="[[_getSvgSelectable(item.svg.path, svgData)]]"
-          item="[[item]]"
           items="[[items]]"
           multi
           exceeding="[[exceeding]]"></device-svg>
@@ -173,7 +172,7 @@
             <select value="{{selectedSubgroup::change}}"></select>
           </div>
         </div>
-        <tabs-container id="tabs" multi vertical items="{{checkboxes}}" selected-items="{{selectedCheckboxes}}" attr-for-selected="id" activate-event="item-select">
+        <tabs-container id="tabs" multi vertical items="{{checkboxes}}" attr-for-selected="id" activate-event="item-select">
           <template id="tablist" is="dom-repeat" items="[[_shownElements]]">
             <device-checkbox class="checkbox"
               id="[[item.id]]"
@@ -218,11 +217,6 @@
           selectedSubgroup: {
             type: String,
             value: ''
-          },
-
-          selectedCheckboxes: {
-            type: Array,
-            notify: true
           },
 
           loggedIn: {
@@ -306,7 +300,6 @@
       static get observers() {
         return [
           '_selectedIdsChanged(selectedIds, checkboxes, visible)',
-          '_selectedCheckboxesChanged(selectedCheckboxes, checkboxes, visible)',
           '_subgroupsChanged(subgroups)',
           '_selectedSubgroupChanged(selectedSubgroup, subgroups, elements)'
         ]
@@ -318,46 +311,48 @@
       }
 
       _selectedIdsChanged(selectedIds, checkboxes, visible) {
-        if (selectedIds === undefined || checkboxes === undefined || !visible) return;
+        if (selectedIds === undefined || !(checkboxes && checkboxes.length !== 0) || !visible) return;
         selectedIds = selectedIds || '';
 
-        var ids = selectedIds.split('/').filter(id => {
-          return checkboxes.some(c => {
-            return c.id === id;
-          })
-        });
+        setTimeout(() => {
+          var ids = selectedIds.split('/').filter(id => {
+            return checkboxes.some(c => {
+              return c.id === id;
+            })
+          });
 
-        checkboxes.forEach(c => {
-          if (ids.indexOf(c.id) !== -1) {
-            c.checked = true;
-          }
-        })
+          checkboxes.forEach(c => {
+            if (ids.indexOf(c.id) !== -1 && !c.checked) {
+              c.checked = true;
+            }
+          })
+          this._initialized = true;
+        }, 0)
       }
 
-      _selectedCheckboxesChanged(selectedCheckboxes, checkboxes, visible) {
-        if (!visible || selectedCheckboxes === undefined || checkboxes === undefined || checkboxes.length === 0) return;
-        var ids = selectedCheckboxes.map(c => {
-          return c.id;
-        })
-        var selectedIds = ids.join('/');
-        if (selectedIds !== this.selectedIds) {
-          this.set('selectedIds', selectedIds);
+      select(item) {
+        super.select(item);
+        var ids = (this.selectedIds || '').split('/').filter(id => {
+          return id !== '';
+        });
+        if (ids.indexOf(item.id) === -1) {
+          ids.push(item.id);
+          this.set('selectedIds', ids.join('/'));
         }
-        var len = this.items.length, pos = this.indexOf(this.items, this.item);
-        this.items = this.items.filter(item => {
-          return ids.indexOf(item.id) !== -1
-        })
-        if (len !== this.items.length) {
-          setTimeout(() => {
-            var index = this.indexOf(this.items, this.item)
-            if (this.items.length === 0 || index === -1) {
-              this.set('item', null);
-            } else if (pos !== index) {
-              this.set('item', this.items[index]);
-            }
-            this.notifyPath('items');
-          }, 0)
+        // console.log('after select', ids, this.items);
+      }
+
+      deselect(item) {
+        super.deselect(item);
+        var ids = (this.selectedIds || '').split('/').filter(id => {
+          return id !== '';
+        });
+        var pos;
+        if ((pos = ids.indexOf(item.id)) !== -1) {
+          ids.splice(pos, 1);
+          this.set('selectedIds', ids.join('/'));
         }
+        // console.log('after deselect', ids, this.items);
       }
 
       _subgroupsChanged(subgroups) {
@@ -407,6 +402,7 @@
 
       _hasSvg(path, visible) {
         // notify the chart to resize
+        // console.log('_hasSvg', path, visible);
         var _withSvg = Boolean(path && visible);
         if (_withSvg !== this._withSvg) {
           this._debounceResize();
@@ -415,9 +411,10 @@
       }
 
       _computeSvgSrcPat(room, item, svgPaths) {
-        var path = '';
-        if (room && item && item.svg && item.svg.path && svgPaths && svgPaths[item.svg.path])
-          path = '/' + room + '/' + item.svg.path;
+        // console.log(room, item, svgPaths);
+        var path;
+        if (room && this.item && this.item.svg && this.item.svg.path && svgPaths && svgPaths[this.item.svg.path])
+          path = '/' + room + '/' + this.item.svg.path;
         return path;
       }
 
@@ -470,11 +467,7 @@
         if (visible === true) {
           this._debounceResize();
           this._selectedSubgroupChanged(this.selectedSubgroup, this.subgroups, this.elements);
-        } else if (visible === false) {
-          this.selectedCheckboxes.forEach(c => {
-            // prevent checkbox from firing change event while unsetting
-            c.select(false);
-          })
+        } else if (visible === false && this._initialized) {
           this.clearExceedings();
           this.clearItems();
           this.room = undefined;
@@ -487,25 +480,6 @@
             }
           }
         }
-      }
-
-      clearItems() {
-        if (this.selectedCheckboxes) {
-          for (var i = 0; i < this.selectedCheckboxes.length; i++) {
-            if (this.selectedCheckboxes[i].checked === true) {
-              this.selectedCheckboxes[i].checked = false;
-            }
-          }
-        }
-        if (this.checkboxes) {
-          for (var i = 0; i < this.checkboxes.length; i++) {
-            if (this.checkboxes[i].checked === true) {
-              this.checkboxes[i].checked = false;
-            }
-          }
-        }
-        this.set('selectedCheckboxes', []);
-        super.clearItems();
       }
     }
     customElements.define(PageDetail.is, PageDetail);

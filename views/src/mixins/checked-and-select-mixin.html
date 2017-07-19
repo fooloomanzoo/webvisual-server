@@ -139,6 +139,7 @@
       }
 
       _checkedChanged(checked, old) {
+        // console.log(this.checked, old, this.nodeName,this.item.id);
         if (this.selectable && this.selectEvent && !this._preventSelectEvent) {
           this.dispatchEvent(new CustomEvent(this.selectEvent, {
             bubbles: true, composed: true,
@@ -153,6 +154,7 @@
       select(value, preventEvent) {
         if (this.selectable === true) {
           this._preventSelectEvent = preventEvent;
+          // console.log(value, preventEvent);
           if (value !== undefined) {
             this.checked = value;
           } else if (this.toggles === true) {
@@ -175,6 +177,7 @@
       }
 
       reset() {
+        if (!this._initialized) return;
         if (super.reset) {
           super.reset();
         }
