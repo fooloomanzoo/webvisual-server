@@ -45,7 +45,7 @@
         --control-right: 16px;
       }
       #chart {
-        margin: 0.5em 0.5em 16px 16px;
+        padding: 0.5em 0.5em 16px 16px;
         --chart-plot-background-color: #fff;
         --chart-plot-background-opacity: 0.75;
         /*--control-bottom: 20px;*/
@@ -107,7 +107,7 @@
         flex-shrink: 0;
         display: inline-flex;
         flex-direction: row;
-        background-color: rgba(0,0,0,0.05);
+        background-color: rgba(0,0,0,0.0625);
         border-bottom: thin solid rgba(0,0,0,0.5);
         transition: background-color 150ms linear;
       }
@@ -151,6 +151,9 @@
 
     <div id="content">
 
+      <device-chart id="chart" opened$="[[visible]]" fullheight$="[[!_withSvg]]"
+        items="[[items]]" multi></device-chart>
+
       <template is="dom-if" if="[[_withSvg]]">
         <device-svg id="svg"
           opened$="[[visible]]"
@@ -161,9 +164,6 @@
           multi
           exceeding="[[exceeding]]"></device-svg>
       </template>
-
-      <device-chart id="chart" opened$="[[visible]]" fullheight$="[[!_withSvg]]"
-        items="[[items]]" multi></device-chart>
 
       <drawer-element id="drawer" opened$="[[_ensureOpened(narrowLayout)]]" swipe-open$="[[narrowLayout]]" scrim persistent$="[[!narrowLayout]]" align="right" stretch>
         <div class="groupbox">
