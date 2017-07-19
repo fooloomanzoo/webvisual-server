@@ -202,9 +202,17 @@
         }
       }
 
-      _getSubGroups(subgroup) {
+      _getSubGroups(subgroups) {
         // Return placeholder items when the items haven't loaded yet.
-        return subgroup || [{}, {}, {}, {}, {}];
+        if (subgroups) {
+          if (subgroups.length === 1) {
+            return subgroups;
+          }
+          if (subgroups.length > 1) {
+            return subgroups.filter(s => {return s.title !== ''});
+          }
+        }
+        return [{}, {}, {}, {}, {}];
       }
 
       _getItem(id, elements) {

@@ -7,7 +7,7 @@
     "fooloomanzoo <hannes-b@web.de>"
   ],
   "dependencies": {
-    "polymer": "polymer/polymer#2.0.1",
+    "polymer": "polymer/polymer#2.0.2",
     "iron-location": "polymerelements/iron-location",
     "app-layout": "polymerelements/app-layout",
     "iron-flex-layout": "polymerelements/iron-flex-layout",
@@ -25,7 +25,7 @@
     "paper-dialog-behavior": "polymerelements/paper-dialog-behavior",
     "datetime-picker": "fooloomanzoo/datetime-picker",
     "fetch": "*",
-    "es6-promise": "^4.0.5"
+    "es6-promise": "*"
   },
   "devDependencies": {
     "web-component-tester": "^6.0.0-prerelease.6"
