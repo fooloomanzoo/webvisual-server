@@ -2,6 +2,10 @@ module.exports = {
   stripPrefix: '../views',
   staticFileGlobs: [
     'bower_components/**/*',
+    'src/**/*',
+    'scripts/**/*',
+    'fonts/**/*',
+    'icons/**/*',
     'index.html'
   ],
   verbose: true,
@@ -9,7 +13,7 @@ module.exports = {
   navigateFallbackWhitelist: [/^(?!.*\.html$|\/data\/$|\/images\/$|\/auth\/).*/],
   runtimeCaching: [
   {
-    urlPattern: /\/images\/.*/,
+    urlPattern: /images\/.*/,
     handler: 'cacheFirst',
     options: {
       cache: {
@@ -17,7 +21,7 @@ module.exports = {
       }
     }
   }, {
-    urlPattern: /\/data\/.*/,
+    urlPattern: /data\/.*/,
     handler: 'fastest',
     options: {
       cache: {
@@ -25,7 +29,7 @@ module.exports = {
       }
     }
   }, {
-    urlPattern: /\/fonts\/.*/,
+    urlPattern: /fonts\/.*/,
     handler: 'cacheFirst',
     options: {
       cache: {
@@ -33,7 +37,7 @@ module.exports = {
       }
     }
   }, {
-    urlPattern: /\/locales\/.*/,
+    urlPattern: /locales\/.*/,
     handler: 'cacheFirst',
     options: {
       cache: {
@@ -41,7 +45,7 @@ module.exports = {
       }
     }
   }, {
-    urlPattern: /\/icons\/.*/,
+    urlPattern: /icons\/.*/,
     handler: 'cacheFirst',
     options: {
       cache: {
@@ -49,7 +53,7 @@ module.exports = {
       }
     }
   }, {
-    urlPattern: /\/scripts\/.*/,
+    urlPattern: /scripts\/.*/,
     handler: 'fastest',
     options: {
       cache: {
@@ -57,7 +61,7 @@ module.exports = {
       }
     }
   }, {
-    urlPattern: /\/socket\.io\/socket\.io\.js/,
+    urlPattern: /socket\.io\/socket\.io\.js/,
     handler: 'fastest',
     options: {
       cache: {
