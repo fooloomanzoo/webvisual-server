@@ -45,7 +45,9 @@
         width: 100%;
         height: 100%;
         border-radius: inherit;
-        isolation: isolate;
+      }
+      :host(:-webkit-full-screen) * {
+        mix-blend-mode: unset !important;
       }
       #svg {
         position: absolute;
@@ -73,12 +75,11 @@
         fill-opacity: var(--chart-plot-background-opacity, 0.2);
         stroke-opacity: 0.5;
         stroke-width: 1px;
+        isolation: isolate;
       }
       .grid .tick line {
         stroke: currentColor;
         stroke-opacity: 0.15;
-      }
-      .grid {
         mix-blend-mode: exclusion;
       }
       .grid path {
