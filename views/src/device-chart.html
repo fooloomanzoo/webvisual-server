@@ -226,19 +226,20 @@
     <div id="svgContainer">
       <svg id="svg" version="1.1" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" on-click="_closeControl">
         <defs>
-          <marker id="arrowToLeft" markerWidth="20" markerHeight="20" refX="0" refY="0" orient="auto" markerUnits="strokeWidth" viewBox="-10 0 15 10">
-            <path d="m 5.29167,-1.7197893 v 3.439581 L 0,2.6966667e-6 Z"/>
+          <marker id="arrowToLeft" viewBox="0 0 20 10" refX="0" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+            <path d="M 20,0 L 0,5 L 20,10 Z" />
           </marker>
-          <marker id="arrowToRight" markerWidth="20" markerHeight="20" refX="0" refY="0" orient="auto" markerUnits="strokeWidth" viewBox="-10 0 15 10">
-            <path d="m -5.2916667,-1.7197893 v 3.439581 L 3.3333333e-6,2.6966667e-6 Z"/>
+          <marker id="arrowToRight" viewBox="0 0 20 10" refX="20" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+            <path d="M 0,0 L 20,5 L 0,10 Z" />
           </marker>
-          <marker id="stub" markerWidth="5" markerHeight="5" refX="0" refY="0" orient="auto" markerUnits="strokeWidth" viewBox="-1 -5 2 10">
-            <path d="M0,0 m-1,-5 L1,-5 L1,5 L-1,5 z"/>
-            <path d="M -2,0 M -5,-1 H 1 V 1 H -5 Z"/>
+          <marker id="stub" markerWidth="8" markerHeight="6" refX="6" refY="5" orient="auto" markerUnits="strokeWidth" viewBox="0 0 6 10">
+            <path d="M 5,10 M 4,0 H 6 V 10 H 4 Z"/>
+            <path d="M 3,5 M 0,4 H 6 V 6 H 0 Z"/>
           </marker>
-          <filter x="0" y="0" width="1" height="1" id="solid">
-            <feFlood flood-color="white"/>
-            <feComposite in="SourceGraphic"/>
+          <filter id="solid">
+            <feFlood flood-color="white" result="out1" />
+            <feComposite in="SourceGraphic" in2="out1"
+              operator="over" />
           </filter>
         </defs>
         <g id="chart">
