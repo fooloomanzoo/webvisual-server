@@ -1104,7 +1104,7 @@
             break;
           case 'delta':
             var fP = this._fixedValue;
-            if (!(fP && fP.x && fP.y && fP.x === d.x && fP.y === d.y)) {
+            if (!(fP && fP.x !== undefined && fP.y !== undefined && fP.x === d.x && fP.y === d.y)) {
               this._fixedValue = d;
               this._deltaDot.datum(this._fixedValue)
                 .attr('cx', d => {
