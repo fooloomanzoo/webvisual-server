@@ -66,7 +66,7 @@ if (!(self.Promise && self.Promise.all)) {
         return tx.complete;
       }.bind(this))
       .catch( function(err) {
-        console.log(err);
+        console.log(err, err.name);
         return {};
       });
     },
@@ -107,7 +107,7 @@ if (!(self.Promise && self.Promise.all)) {
         return tx.complete;
       }.bind(this))
       .catch( function(err) {
-        console.log(err);
+        console.log(err, err.name);
         return {};
       });
     },

@@ -50,6 +50,7 @@
   },
   "devDependencies": {
     "d3": "*",
+    "eslint-plugin-html": "^2.0.1",
     "rollup": "*",
     "rollup-plugin-node-resolve": "*",
     "uglify-js": "*"
