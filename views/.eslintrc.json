@@ -44,6 +44,7 @@
     "Store": true,
     "d3": true,
     "io": true,
+    "idb": true,
     "Webvisual": true,
     "WebvisualMixins": true
   }
