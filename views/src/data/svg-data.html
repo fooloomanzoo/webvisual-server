@@ -41,16 +41,15 @@
         ]
       }
 
-      _fetchSvgSource(room, loggedIn) {
+      _fetchSvgSource(room) {
         if (!room) return;
 
-        var facilityName, systemName;
-        var names = room.split('/')
+        const names = room.split('/')
           .filter(function(str) {
             return str !== '';
           });
         if (names.length === 2) {
-          var url = names[0] + '+' + names[1] + '+svgSource.json';
+          const url = names[0] + '+' + names[1] + '+svgSource.json';
           this._fetch(url, 'GET', 'include', 'json', 'data')
             .catch(err => {
               console.log(err);

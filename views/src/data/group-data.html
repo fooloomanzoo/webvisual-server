@@ -64,10 +64,10 @@
         ]
       }
 
-      _fetchGroups(room, loggedIn) {
+      _fetchGroups(room) {
         if (!room) return;
 
-        var names = room.split('/')
+        const names = room.split('/')
           .filter(function(str) {
             return str !== '';
           });
@@ -90,7 +90,8 @@
 
       _computeSubGroups(groups, groupedKey) {
         if (!(groups === undefined && groupedKey === undefined)) {
-          for (var i = 0, group; group = groups[i]; ++i) {
+          let group;
+          for (let i = 0; (group = groups[i]); ++i) {
             if (group.key === groupedKey) {
               return group.groups;
             }
@@ -103,7 +104,7 @@
         if (!(groupingKeys && groupingKeys.length)) {
           return;
         }
-        var groupedKey = localStorage.getItem('groupedKey');
+        const groupedKey = localStorage.getItem('groupedKey');
         setTimeout(() => {
           if (groupedKey !== undefined && groupingKeys.indexOf(groupedKey) !== -1) {
             this.set('groupedKey', groupedKey);
@@ -116,7 +117,7 @@
         }, 0);
       }
 
-      _groupedKeyChanged(groupedKey, old) {
+      _groupedKeyChanged(groupedKey) {
         if (groupedKey !== undefined) {
           localStorage.setItem('groupedKey', groupedKey);
         }

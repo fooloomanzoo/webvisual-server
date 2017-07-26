@@ -589,80 +589,39 @@
 
         this._debouncedHideInfo();
 
-        let top = -2,
-          right = 1,
-          bottom = 1,
-          left = -2,
-          size;
-
-        const q = [];
-
-        function incremPosition(pos, size) {
-          if (pos === 'left') {
-            this._left = left;
-            this._right = 0;
-            left -= size;
-          } else if (pos === 'right') {
-            this._left = 0;
-            this._right = right;
-            right += size;
-          } else {
-            this._left = 0;
-            this._right = 0;
-          }
-          if (pos === 'top') {
-            this._bottom = 0;
-            this._top = top;
-            top -= size;
-          } else if (pos === 'bottom') {
-            this._bottom = bottom;
-            this._top = 0;
-            bottom += size;
-          } else {
-            this._bottom = 0;
-            this._top = 0;
-          }
-          return true;
-        }
-
-        function finalizePosition(pos, width, height) {
-          this._left += this._right;
-          this._top += this._bottom;
-          this._bottom = 0; this._right = 0;
-          if (pos === 'right') {
-            this._left += width;
-          } else if (pos === 'bottom') {
-            this._top += height;
-          }
-          return true;
-        }
+        this._chart._top = -2;
+        this._chart._right = 1;
+        this._chart._bottom = 1;
+        this._chart._left = -2;
+        let size;
+        const q = [], p = [];
 
         this._graphs.forEach( g => {
           if (g._isAttached) {
             let size;
             if (!g.axisX.attr('hidden')) {
               size = g.axisX.classed('expanded') ? g.axisSizeX : g.tickSize + g.axisMargin;
-              q.push(incremPosition.call(g.axisX, g.axisOrientX, size));
+              q.push(this._incremAxisPosition(g.axisX, g.axisOrientX, size));
             }
             if (!g.axisY.attr('hidden')) {
               size = g.axisY.classed('expanded') ? g.axisSizeY : g.tickSize + g.axisMargin;
-              q.push(incremPosition.call(g.axisY, g.axisOrientY, size));
+              q.push(this._incremAxisPosition(g.axisY, g.axisOrientY, size));
             }
           }
         })
         if (!this.axisX.attr('hidden')) {
           size = this.axisX.classed('expanded') ? this.axisSizeX : this.tickSize + this.axisMargin;
-          q.push(incremPosition.call(this.axisX, this.axisOrientX, size));
+          q.push(this._incremAxisPosition(this.axisX, this.axisOrientX, size));
         }
         if (!this.axisY.attr('hidden')) {
           size = this.axisY.classed('expanded') ? this.axisSizeY : this.tickSize + this.axisMargin;
-          q.push(incremPosition.call(this.axisY, this.axisOrientY, size));
+          q.push(this._incremAxisPosition(this.axisY, this.axisOrientY, size));
         }
 
         Promise.all(q).then(() => {
           const bRect = this.$.svg.getBoundingClientRect();
-          this._width = Math.abs(bRect.width - Math.abs(left || 0) - Math.abs(right || 0));
-          this._height = Math.abs(bRect.height - Math.abs(bottom || 0) - Math.abs(top || 0));
+          this._width = Math.abs(bRect.width - Math.abs(this._chart._left || 0) - Math.abs(this._chart._right || 0));
+          this._height = Math.abs(bRect.height - Math.abs(this._chart._bottom || 0) - Math.abs(this._chart._top || 0));
 
           this.set('rangeX', [0, this._width]);
           this.set('rangeY', [this._height,0]);
@@ -673,31 +632,24 @@
             .extent([[0, 0], [this._width, this._height]])
           // this._zoom.call(this._zoomBehavior.transform, d3.zoomIdentity);
 
-          const p = [];
-
           this._graphs.forEach( g => {
             if (g._isAttached) {
               if (!g.axisX.attr('hidden')) {
-                p.push(finalizePosition.call(g.axisX, g.axisOrientX, this._width, this._height));
+                p.push(this._finalizeAxisPosition(g.axisX, g.axisOrientX, this._width, this._height));
               }
               if (!g.axisY.attr('hidden')) {
-                p.push(finalizePosition.call(g.axisY, g.axisOrientY, this._width, this._height));
+                p.push(this._finalizeAxisPosition(g.axisY, g.axisOrientY, this._width, this._height));
               }
             }
           })
           if (!this.axisX.attr('hidden')) {
-            p.push(finalizePosition.call(this.axisX, this.axisOrientX, this._width, this._height));
+            p.push(this._finalizeAxisPosition(this.axisX, this.axisOrientX, this._width, this._height));
           }
           if (!this.axisY.attr('hidden')) {
-            p.push(finalizePosition.call(this.axisY, this.axisOrientY, this._width, this._height));
+            p.push(this._finalizeAxisPosition(this.axisY, this.axisOrientY, this._width, this._height));
           }
 
           Promise.all(p).then(() => {
-            this._chart._top = top;
-            this._chart._right = right;
-            this._chart._bottom = bottom;
-            this._chart._left = left;
-
             this._control.transition(100).style('transform', 'translate(' + (-this._chart._right) + 'px,' + (-this._chart._bottom) + 'px)');
             this._controlcontent.transition(100).style('transform', 'translate(' + (-this._chart._right) + 'px,' + (-this._chart._top) + 'px)');
 
@@ -754,6 +706,46 @@
             }
           })
         })
+      }
+
+      _incremAxisPosition(node, orient, size) {
+        if (orient === 'left') {
+          node._left = this._chart._left;
+          node._right = 0;
+          this._chart._left -= size;
+        } else if (orient === 'right') {
+          node._left = 0;
+          node._right = this._chart._right;
+          this._chart._right += size;
+        } else {
+          node._left = 0;
+          node._right = 0;
+        }
+        if (orient === 'top') {
+          node._bottom = 0;
+          node._top = top;
+          this._chart._top -= size;
+        } else if (orient === 'bottom') {
+          node._bottom = this._chart._bottom;
+          node._top = 0;
+          this._chart._bottom += size;
+        } else {
+          node._bottom = 0;
+          node._top = 0;
+        }
+        return true;
+      }
+
+      _finalizeAxisPosition(node, orient, width, height) {
+        node._left += node._right;
+        node._top += node._bottom;
+        node._bottom = 0; node._right = 0;
+        if (orient === 'right') {
+          node._left += width;
+        } else if (orient === 'bottom') {
+          node._top += height;
+        }
+        return true;
       }
 
       _redomain() {

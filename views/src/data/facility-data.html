@@ -83,7 +83,7 @@
 
       _computeNames(room) {
         if (room) {
-          var names = room.split('/').filter(function(str) {
+          const names = room.split('/').filter(function(str) {
             return str !== '';
           });
           if (names.length === 2) {
@@ -105,7 +105,7 @@
                 this.set('facility', facility);
               }
             })
-            .catch(e => {
+            .catch(() => {
               this.dispatchEvent(new CustomEvent('empty-configuration', {
                 bubbles: true,
                 composed: true
@@ -122,7 +122,7 @@
                 this.set('system', system);
               }
             })
-            .catch(e => {
+            .catch(() => {
               this.dispatchEvent(new CustomEvent('empty-configuration', {
                 bubbles: true,
                 composed: true
@@ -138,16 +138,16 @@
         this._fetch(facilityName + '+' + systemName + '+items.json', 'GET', 'include', 'json')
           .then(items => {
             // console.log(items);
-            var color = '';
+            let color = '', perm, pos;
             if (items && items.length) {
-              for (var i = 0; i < items.length; i++) {
+              for (let i = 0; i < items.length; i++) {
                 if (!items[i].color) {
                   // set custom colors
                   color = '#';
-                  var perm = ['2C', 'F5'];
+                  perm = ['2C', 'F5'];
                   perm.push((4 * Math.floor(Math.random() * 64)).toString(16));
-                  for (var j = 3; j > 0; j--) {
-                    var pos = Math.floor(Math.random() * j);
+                  for (let j = 3; j > 0; j--) {
+                    pos = Math.floor(Math.random() * j);
                     color += ((perm[pos].length === 1) ? '0' : '') + perm[pos];
                     perm.splice(pos, 1);
                   }
@@ -156,9 +156,6 @@
               }
               this.set('items', items);
             }
-          })
-          .catch(err => {
-            console.warn(facilityName, systemName, err.stack);
           });
       }
 
@@ -166,7 +163,8 @@
         return new Promise((resolve, reject) => {
           if (!arr || !name)
             reject('empty');
-          for (var i = 0, c; c = arr[i]; ++i) {
+          let c;
+          for (let i = 0; (c = arr[i]); ++i) {
             if (c.name === name) {
               resolve(c);
             }
