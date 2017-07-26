@@ -205,7 +205,7 @@
             if (!this._initialized)
               this._initialized = true;
 
-            var value = values[values.length-1];
+            const value = values[values.length-1];
 
             if (!this.item.isIndicatorLamp) {
               this.$.value.textContent = this.computeValue(value.y);
@@ -231,7 +231,7 @@
         return y;
       }
 
-      renderClearing(values) {
+      renderClearing() {
         if (!this._initialized) {
           this.hasExceeded = false;
           this.isExceeding = false;
@@ -241,7 +241,7 @@
         this.setAttribute('state', null);
       }
 
-      _requestExceedingDetails(e) {
+      _requestExceedingDetails() {
         this.dispatchEvent(new CustomEvent('request-exceeding-details', {
           bubbles: true,
           composed: true,

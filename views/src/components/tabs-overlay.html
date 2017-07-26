@@ -91,19 +91,19 @@ Modification from Polymer Shop Demo App
       }
 
       _move(oldTarget, newTarget) {
-        let from = oldTarget || newTarget;
-        let to = newTarget || oldTarget;
+        const from = oldTarget || newTarget;
+        const to = newTarget || oldTarget;
 
         if (!from && !to) return;
 
-        let fromOpacity = oldTarget ? 1 : 0;
-        let toOpacity = newTarget ? 1 : 0;
+        const fromOpacity = oldTarget ? 1 : 0;
+        const toOpacity = newTarget ? 1 : 0;
 
         Polymer.dom.flush();
-        let thisRect = this.getBoundingClientRect();
-        let thisStyle = window.getComputedStyle(this);
-        let fromRect = from.getBoundingClientRect();
-        let toRect = to.getBoundingClientRect();
+        const thisRect = this.getBoundingClientRect();
+        const thisStyle = window.getComputedStyle(this);
+        const fromRect = from.getBoundingClientRect();
+        const toRect = to.getBoundingClientRect();
 
         if (toRect.top === 0 && toRect.right === 0 &&
           toRect.bottom === 0 && toRect.left === 0 &&
@@ -137,8 +137,8 @@ Modification from Polymer Shop Demo App
         bottom -= toRect.bottom - fromRect.bottom;
         left += toRect.left - fromRect.left;
 
-        let durations = [0.2, 0.2, 0.2, 0.2, 0.2];
-        let delays = [0, 0, 0, 0, 0];
+        const durations = [0.2, 0.2, 0.2, 0.2, 0.2];
+        const delays = [0, 0, 0, 0, 0];
         // Delay left / right transitions if element is left / right of the target.
         if (fromRect.left < toRect.left && fromRect.right < toRect.right) {
           delays[3] = 0.1;
@@ -153,7 +153,7 @@ Modification from Polymer Shop Demo App
           delays[2] = 0.1;
         }
 
-        let endValues = [
+        const endValues = [
           top + 'px',
           right + 'px',
           bottom + 'px',
@@ -161,7 +161,7 @@ Modification from Polymer Shop Demo App
           String(toOpacity)
         ];
 
-        let names = ['top', 'right', 'bottom', 'left', 'opacity'];
+        const names = ['top', 'right', 'bottom', 'left', 'opacity'];
         for (let i = 0; i < startValues.length; i++) {
           if (startValues[i] === endValues[i]) continue;
           if (durations[i] === 0 && delays[i] === 0) continue;

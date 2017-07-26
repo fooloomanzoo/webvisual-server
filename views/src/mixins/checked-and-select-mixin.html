@@ -89,17 +89,17 @@
         if (disabled) {
           this._removeTouchListeners();
         } else {
-          var eventTarget = this.eventTarget;
-          if (!eventTarget) {
+          let eventTarget;
+          if (!this.eventTarget) {
             eventTarget = this;
           } else {
-            eventTarget = this.$[eventTarget];
+            eventTarget = this.$[this.eventTarget];
           }
           if (tapEvent) {
             Polymer.Gestures.addListener(eventTarget, 'down', e => this._handleTouch(e));
             Polymer.Gestures.addListener(eventTarget, 'up', e => this._handleTouch(e));
           } else if (selectEvent) {
-            Polymer.Gestures.addListener(eventTarget, 'tap', e => this.select());
+            Polymer.Gestures.addListener(eventTarget, 'tap', () => this.select());
           } else {
             this._removeTouchListeners();
           }
@@ -107,15 +107,15 @@
       }
 
       _removeTouchListeners() {
-        var eventTarget = this.eventTarget;
-        if (!eventTarget) {
+        let eventTarget;
+        if (!this.eventTarget) {
           eventTarget = this;
         } else {
-          eventTarget = this.$[eventTarget];
+          eventTarget = this.$[this.eventTarget];
         }
         Polymer.Gestures.removeListener(eventTarget, 'down', e => this._handleTouch(e));
         Polymer.Gestures.removeListener(eventTarget, 'up', e => this._handleTouch(e));
-        Polymer.Gestures.removeListener(eventTarget, 'tap', e => this.select());
+        Polymer.Gestures.removeListener(eventTarget, 'tap', () => this.select());
       }
 
       _handleTouch(e) {
@@ -138,14 +138,14 @@
         }
       }
 
-      _checkedChanged(checked, old) {
+      _checkedChanged(checked) {
         // console.log(this.checked, old, this.nodeName,this.item.id);
         if (this.selectable && this.selectEvent && !this._preventSelectEvent) {
           this.dispatchEvent(new CustomEvent(this.selectEvent, {
             bubbles: true, composed: true,
             detail: {
               item: this.item,
-              value: this.checked
+              value: checked
             }
           }));
         }

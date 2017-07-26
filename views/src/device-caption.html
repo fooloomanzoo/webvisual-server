@@ -127,13 +127,13 @@
       }
 
       _computeReducedCaptionKeys(groupedKey, keys, onlyGroupedKey, withoutGroupedKey) {
-        var captionKeys = Object.keys(keys || {});
+        const captionKeys = Object.keys(keys || {});
         if (captionKeys.length === 0) return [];
 
-        var reducedCaptionKeys = [];
-        if (this.withoutGroupedKey === true)
+        let reducedCaptionKeys = [];
+        if (withoutGroupedKey === true)
           reducedCaptionKeys = captionKeys.filter( function(key) { return (groupedKey !== key) } );
-        else if (this.onlyGroupedKey === true)
+        else if (onlyGroupedKey === true)
           reducedCaptionKeys = captionKeys.filter( function(key) { return (groupedKey === key) } );
         if (this.hasAttribute('unresolved')) {
           this.removeAttribute('unresolved');

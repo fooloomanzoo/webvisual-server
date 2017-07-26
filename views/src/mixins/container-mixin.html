@@ -155,7 +155,7 @@
 
       deselect(item) {
         if (this.multi) {
-          var pos = this.indexOf(this.items, item);
+          const pos = this.indexOf(this.items, item);
           if (pos !== -1) {
             this.splice('items', pos, 1);
           }
@@ -206,7 +206,7 @@
       }
 
       setExceeding(item) {
-        var pos = this.indexOf(this.exceeding, item);
+        const pos = this.indexOf(this.exceeding, item);
         if (pos === -1)
           this.push('exceeding', item);
 
@@ -223,13 +223,13 @@
 
       unsetExceeding(item) {
         if (this.noAutoRemovalExceedings === true) return;
-        var pos = this.indexOf(this.exceeding, item);
+        const pos = this.indexOf(this.exceeding, item);
         if (pos !== -1)
           this.splice('exceeding', pos, 1);
 
         this.isExceeding = (this.exceeding.length > 0) ? true : false;
 
-        var opened = this.forceOpened ||
+        const opened = this.forceOpened ||
           Boolean((this.openOnSelect && (this.item || (this.items && this.items.length))) ||
             (this.openOnExceed && (this.exceeding && this.exceeding.length)));
 
@@ -257,12 +257,12 @@
           Boolean(this.opened && this.openOnSelect && (this.item || (this.items && this.items.length)));
       }
 
-      _handleExceeding(value) {}
+      _handleExceeding() {}
 
       indexOf(items, item) {
         if (item && item.mount && items) {
           if (Array.isArray(items)) {
-            for (var i = 0; i < items.length; i++) {
+            for (let i = 0; i < items.length; i++) {
               if (item.mount === items[i].mount)
                 return i;
             }

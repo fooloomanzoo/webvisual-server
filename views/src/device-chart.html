@@ -499,13 +499,13 @@
             passive: true
           })
           .on('mousemove', () => {
-            var m = d3.mouse(this._chart.node());
+            const m = d3.mouse(this._chart.node());
             requestAnimationFrame( () => {
-              var closestGraph, closestPoint, closestDistance;
+              let closestGraph, closestPoint, closestDistance, fill;
               this._graphs.forEach(g => {
                 if (g.values && g.values.length) {
-                  var d = g._closestPoint(m);
-                  var currentMin2 = Math.pow(m[0] - g.scaleX(d.x), 2) + Math.pow(m[1] - g.scaleY(d.y), 2); // in px²
+                  const d = g._closestPoint(m);
+                  const currentMin2 = Math.pow(m[0] - g.scaleX(d.x), 2) + Math.pow(m[1] - g.scaleY(d.y), 2); // in px²
                   if (closestDistance === undefined || currentMin2 < closestDistance) {
                     closestDistance = currentMin2;
                     closestPoint = d;
@@ -514,7 +514,7 @@
                 }
               });
               if (closestPoint) {
-                var fill = '#fff';
+                fill = '#fff';
                 if (closestGraph.item.threshold) {
                   switch (closestPoint.state) {
                     case 1:
@@ -574,7 +574,7 @@
 
       sizeLayout() {
         if (!(this.opened && this._isAttached)) return;
-        var bRect = this.$.svg.getBoundingClientRect();
+        const bRect = this.$.svg.getBoundingClientRect();
 
         if (this._activeSizeJob) {
           cancelAnimationFrame(this._activeSizeJob);
@@ -589,12 +589,13 @@
 
         this._debouncedHideInfo();
 
-        var top = -2,
+        let top = -2,
           right = 1,
           bottom = 1,
-          left = -2;
+          left = -2,
+          size;
 
-        var q = [];
+        const q = [];
 
         function incremPosition(pos, size) {
           if (pos === 'left') {
@@ -638,27 +639,28 @@
 
         this._graphs.forEach( g => {
           if (g._isAttached) {
+            let size;
             if (!g.axisX.attr('hidden')) {
-              var size = g.axisX.classed('expanded') ? g.axisSizeX : g.tickSize + g.axisMargin;
+              size = g.axisX.classed('expanded') ? g.axisSizeX : g.tickSize + g.axisMargin;
               q.push(incremPosition.call(g.axisX, g.axisOrientX, size));
             }
             if (!g.axisY.attr('hidden')) {
-              var size = g.axisY.classed('expanded') ? g.axisSizeY : g.tickSize + g.axisMargin;
+              size = g.axisY.classed('expanded') ? g.axisSizeY : g.tickSize + g.axisMargin;
               q.push(incremPosition.call(g.axisY, g.axisOrientY, size));
             }
           }
         })
         if (!this.axisX.attr('hidden')) {
-          var size = this.axisX.classed('expanded') ? this.axisSizeX : this.tickSize + this.axisMargin;
+          size = this.axisX.classed('expanded') ? this.axisSizeX : this.tickSize + this.axisMargin;
           q.push(incremPosition.call(this.axisX, this.axisOrientX, size));
         }
         if (!this.axisY.attr('hidden')) {
-          var size = this.axisY.classed('expanded') ? this.axisSizeY : this.tickSize + this.axisMargin;
+          size = this.axisY.classed('expanded') ? this.axisSizeY : this.tickSize + this.axisMargin;
           q.push(incremPosition.call(this.axisY, this.axisOrientY, size));
         }
 
         Promise.all(q).then(() => {
-          var bRect = this.$.svg.getBoundingClientRect();
+          const bRect = this.$.svg.getBoundingClientRect();
           this._width = Math.abs(bRect.width - Math.abs(left || 0) - Math.abs(right || 0));
           this._height = Math.abs(bRect.height - Math.abs(bottom || 0) - Math.abs(top || 0));
 
@@ -671,7 +673,7 @@
             .extent([[0, 0], [this._width, this._height]])
           // this._zoom.call(this._zoomBehavior.transform, d3.zoomIdentity);
 
-          var p = [];
+          const p = [];
 
           this._graphs.forEach( g => {
             if (g._isAttached) {
@@ -817,7 +819,7 @@
 
       _multiAxesChanged(multiAxesX, multiAxesY) {
         if (!this._isAttached) return;
-        var hidden;
+        let hidden;
         this._graphs.forEach( g => {
           if (g._isAttached) {
             hidden = multiAxesX ? null : true;
@@ -856,15 +858,15 @@
       _getDomain() {
         // console.log('_getDomain');
         return new Promise((resolve, reject) => {
-          var p = [], q = [];
+          const p = [], q = [];
           this._graphs.forEach( g => {
             p.push( g._getDomain('x', this.multiAxesX) )
             q.push( g._getDomain('y', this.multiAxesY) )
           })
           Promise.all(p)
             .then(res => {
-              var min, max, domain;
-              for (var i = 0; i < res.length; i++) {
+              let min, max, domain;
+              for (let i = 0; i < res.length; i++) {
                 min = (min === undefined || min > res[i].domain[0]) ? res[i].domain[0] : min;
                 max = (max === undefined || max < res[i].domain[1]) ? res[i].domain[1] : max;
               }
@@ -883,8 +885,8 @@
               }
               Promise.all(q)
                 .then(res => {
-                  var min, max, domain;
-                  for (var i = 0; i < res.length; i++) {
+                  let min, max, domain;
+                  for (let i = 0; i < res.length; i++) {
                     min = (min === undefined || min > res[i].domain[0]) ? res[i].domain[0] : min;
                     max = (max === undefined || max < res[i].domain[1]) ? res[i].domain[1] : max;
                   }
@@ -927,13 +929,15 @@
 
       _moveInfo(d) {
         if (Number.isFinite(d.g.scaleY(d.y))) {
-          this._info.text(this.formatTime(+d.x) + ' ' + this.formatNumber(+d.y));
-          var fixP = this._fixedValue;
+          const formatX = this._computeFormatFn.call(d.g, d.g.scalingX, d.g.scaleBaseX),
+            formatY = this._computeFormatFn.call(d.g, d.g.scalingY, d.g.scaleBaseY),
+            fixP = this._fixedValue;
+          this._info.text(formatX(d.x) + ' ' + formatY(d.y));
           if (fixP) {
-            var diffX = Math.abs(fixP.x - d.x),
+            const diffX = Math.abs(fixP.x - d.x),
               diffY = Math.abs(fixP.y - d.y);
-            this._infoDeltaX.text(this.formatTimeAbsolute(diffX));
-            this._infoDeltaY.text(this.formatNumber(diffY));
+            this._infoDeltaX.text((this.scalingX === 'time' ? d.g.formatTimeAbsolute : formatX)(diffX));
+            this._infoDeltaY.text((this.scalingY === 'time' ? d.g.formatTimeAbsolute : formatY)(diffY));
           }
           this._updateInfo();
         }
@@ -983,47 +987,43 @@
 
       _updateInfo() {
         if (!this._focusedValue || this._info.attr('hidden') === '') return;
-        var focP = this._focusedValue;
-        var x = focP.g.scaleX(+focP.x),
+        const focP = this._focusedValue;
+        const x = focP.g.scaleX(+focP.x),
           y = focP.g.scaleY(+focP.y);
         if (!x || !y) {
           return;
         }
 
         this._alignText(this._info.node(), x, y, null, 1.5 * this._focusDot.attr('r'));
-        switch (this.modus) {
-          case 'delta':
-            var fixP = this._fixedValue;
-            if (fixP && fixP.x && focP.x !== fixP.x && fixP.y && focP.y !== fixP.y) {
-              var xFix = fixP.g.scaleX(+fixP.x),
-                yFix = fixP.g.scaleY(+fixP.y);
-              var x1D, x2D, y1D, y2D;
-              this._deltaX.attr('x1', x).attr('x2', xFix);
-              this._deltaY.attr('y1', y).attr('y2', yFix);
-              if (yFix < y) {
-                this._deltaY.attr('x1', x).attr('x2', x);
-                this._alignText(this._infoDeltaY.node(), x, (yFix + y) / 2, null, null, null, 'middle');
-              } else {
-                this._deltaY.attr('x1', xFix).attr('x2', xFix);
-                this._alignText(this._infoDeltaY.node(), xFix, (yFix + y) / 2, null, null, null, 'middle');
-              }
-              if (yFix < y || xFix < x) {
-                this._deltaX.attr('y1', yFix).attr('y2', yFix);
-                this._alignText(this._infoDeltaX.node(), (xFix + x) / 2, yFix, null, null, null, 'middle');
-              } else {
-                this._deltaX.attr('y1', y).attr('y2', y);
-                this._alignText(this._infoDeltaX.node(), (xFix + x) / 2, y, null, null, null, 'middle');
-              }
-              this._deltaDot.attr('cy', yFix).attr('cx', xFix);
+        if (this.modus === 'delta') {
+          const fixP = this._fixedValue;
+          if (fixP && fixP.x !== undefined && fixP.y !== undefined && !(focP.x === fixP.x && focP.y === fixP.y)) {
+            const xFix = fixP.g.scaleX(+fixP.x),
+              yFix = fixP.g.scaleY(+fixP.y);
+            this._deltaX.attr('x1', x).attr('x2', xFix);
+            this._deltaY.attr('y1', y).attr('y2', yFix);
+            if (yFix < y) {
+              this._deltaY.attr('x1', x).attr('x2', x);
+              this._alignText(this._infoDeltaY.node(), x, (yFix + y) / 2, null, null, null, 'middle');
             } else {
-              this._hideDelta();
+              this._deltaY.attr('x1', xFix).attr('x2', xFix);
+              this._alignText(this._infoDeltaY.node(), xFix, (yFix + y) / 2, null, null, null, 'middle');
             }
-          case 'integral':
-          default: // always performed
-            this._focusX.attr('x1', focP._left).attr('x2', x).attr('y2', y).attr('y1', y);
-            this._focusY.attr('y1', focP._top).attr('y2', y).attr('x2', x).attr('x1', x);
-            this._focusDot.attr('cy', y).attr('cx', x);
+            if (yFix < y || xFix < x) {
+              this._deltaX.attr('y1', yFix).attr('y2', yFix);
+              this._alignText(this._infoDeltaX.node(), (xFix + x) / 2, yFix, null, null, null, 'middle');
+            } else {
+              this._deltaX.attr('y1', y).attr('y2', y);
+              this._alignText(this._infoDeltaX.node(), (xFix + x) / 2, y, null, null, null, 'middle');
+            }
+            this._deltaDot.attr('cy', yFix).attr('cx', xFix);
+          } else {
+            this._hideDelta();
+          }
         }
+        this._focusX.attr('x1', focP._left).attr('x2', x).attr('y2', y).attr('y1', y);
+        this._focusY.attr('y1', focP._top).attr('y2', y).attr('x2', x).attr('x1', x);
+        this._focusDot.attr('cy', y).attr('cx', x);
         this._svg.selectAll('g,line,text,path,rect')
           .classed('style-scope', true)
           .classed('device-chart', true);
@@ -1032,20 +1032,20 @@
       _alignText(node, x, y, marginLeft, marginBottom, textAnchor, alignmentBaseline) {
         marginLeft = marginLeft || 0;
         marginBottom = marginBottom || 0;
-        var bbox = node.getBBox(),
+        const bbox = node.getBBox(),
           height = this._height,
-          width = this._width,
-          textAnchor = textAnchor || 'middle',
-          alignmentBaseline = alignmentBaseline || 'ideographic',
+          width = this._width;
+        let anchor = textAnchor || 'middle',
+          alignment = alignmentBaseline || 'ideographic',
           limitLeft = marginLeft,
           limitBottom = marginBottom;
-        switch (textAnchor) { // list is not complete!
+        switch (anchor) { // list is not complete!
           case 'middle':
             limitLeft += (bbox.width / 2); break;
           case 'end ':
             limitLeft += bbox.width; break;
         }
-        switch (alignmentBaseline) { // list is not complete!
+        switch (alignment) { // list is not complete!
           case 'ideographic':
             limitBottom += bbox.height; break;
           case 'middle':
@@ -1055,20 +1055,20 @@
         }
 
         if (y - limitBottom <= 0) { // above top
-          alignmentBaseline = 'hanging';
+          alignment = 'hanging';
         } else if (y + limitBottom > height) {
           y = height - limitBottom;
         }
 
         if (x + limitLeft >= width) { // beyond right
-          textAnchor = 'end';
+          anchor = 'end';
         } else if (x - limitLeft <= 0) { // beyond left
-          textAnchor = 'start';
+          anchor = 'start';
         }
         node.setAttribute('x', x + marginLeft);
         node.setAttribute('y', y - marginBottom);
-        node.setAttribute('text-anchor', textAnchor);
-        node.setAttribute('alignment-baseline', alignmentBaseline);
+        node.setAttribute('text-anchor', anchor);
+        node.setAttribute('alignment-baseline', alignment);
       }
 
       _modusChanged(modus) {
@@ -1090,12 +1090,14 @@
       }
 
       _dotClicked(d) {
+        const oldzoom = this._zoom.node().__zoom,
+          fP = this._fixedValue;
+        let x, y, scale;
         switch (this.modus) {
           case 'zoom':
-            var oldzoom = this._zoom.node().__zoom,
-                x = d.g.scaleX(+d.x) - this._width/6,
-                y = (d.g.scaleY(+d.y) || 0) - this._height/6,
-                scale = oldzoom.k * 3;
+            x = d.g.scaleX(+d.x) - this._width/6;
+            y = (d.g.scaleY(+d.y) || 0) - this._height/6;
+            scale = oldzoom.k * 3;
             y = (oldzoom.y - y) / oldzoom.k;
             x = (oldzoom.x - x) / oldzoom.k;
             this._zoom.transition().duration(300).call(this._zoomBehavior.transform, d3.zoomIdentity
@@ -1103,10 +1105,9 @@
               .translate(x, y));
             break;
           case 'delta':
-            var fP = this._fixedValue;
             if (!(fP && fP.x !== undefined && fP.y !== undefined && fP.x === d.x && fP.y === d.y)) {
               this._fixedValue = d;
-              this._deltaDot.datum(this._fixedValue)
+              this._deltaDot.datum(d)
                 .attr('cx', d => {
                   return d.g.scaleX(d.x)
                 })
@@ -1130,7 +1131,7 @@
         this.showMenu = false;
       }
 
-      changeInterpolation(interpolation, oldValue) {
+      changeInterpolation(interpolation) {
         this._graphs.forEach( g => {
           if (g && g._isAttached)
             g.set('interpolation', interpolation);
@@ -1138,7 +1139,7 @@
       }
       _onAxisBrushEnd(key) {
         if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
-        var s = d3.event.selection;
+        const s = d3.event.selection;
         if (!s) {
           return;
         }
@@ -1147,9 +1148,10 @@
           if (key === 'y') this.axisY.select(".brush").call(this.axisBrushGeneratorY.move, null);
           return; // TODO: zoomm does not work correctly if brushing on all combined axes
         }
-        var vertical = (key === 'y');
+        const vertical = (key === 'y');
+        let domain, oldzoom, scale, y, x;
         if (vertical) {
-          var domain = s.map(this.scaleY.invert, this.scaleY).sort((a, b) => { return a > b});
+          domain = s.map(this.scaleY.invert, this.scaleY).sort((a, b) => { return a > b});
           this._graphs.forEach(g => {
             g.scaleY.domain(domain).nice();
             g.axisGeneratorY.scale(g.scaleY);
@@ -1158,15 +1160,15 @@
           this.scaleY.domain(domain).nice();
           this.axisY.call(this.axisGeneratorY.scale(this.scaleY));
           this.axisY.select(".brush").call(this.axisBrushGeneratorY.move, null);
-          var oldzoom = this._zoom.node().__zoom;
-          var scale = oldzoom.k * this._height / (s[1] - s[0]);
-          var y = (oldzoom.y - s[0])/ oldzoom.k;
+          oldzoom = this._zoom.node().__zoom;
+          scale = oldzoom.k * this._height / (s[1] - s[0]);
+          y = (oldzoom.y - s[0])/ oldzoom.k;
           this._zoom.transition().duration(300).call(this._zoomBehavior.transform, d3.zoomIdentity
             .scale(scale)
             .translate(0, y));
         }
         if (!vertical) {
-          var domain = s.map(this.scaleX.invert, this.scaleX).sort((a, b) => { return a > b});
+          domain = s.map(this.scaleX.invert, this.scaleX).sort((a, b) => { return a > b});
           this._graphs.forEach(g => {
             g.scaleX.domain(domain);
             g.axisGeneratorX.scale(g.scaleX);
@@ -1175,9 +1177,9 @@
           this.scaleX.domain(domain);
           this.axisX.call(this.axisGeneratorX.scale(this.scaleX));
           this.axisX.select(".brush").call(this.axisBrushGeneratorX.move, null);
-          var oldzoom = this._zoom.node().__zoom;
-          var scale = oldzoom.k * this._width / (s[1] - s[0]);
-          var x = (oldzoom.x - s[0])/ oldzoom.k;
+          oldzoom = this._zoom.node().__zoom;
+          scale = oldzoom.k * this._width / (s[1] - s[0]);
+          x = (oldzoom.x - s[0])/ oldzoom.k;
           this._zoom.transition().duration(300).call(this._zoomBehavior.transform, d3.zoomIdentity
             .scale(scale)
             .translate(x, 0));
@@ -1189,13 +1191,13 @@
       }
       _onZoomed() {
         if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") return; // ignore zoom-by-brush
-        var t = d3.event.transform;
+        const t = d3.event.transform;
         if (!this.domainX || !this.domainY) {
           return;
         }
-        var x = d3.event.transform.rescaleX(this.scaleX.domain(this.domainX));
-        var y = d3.event.transform.rescaleY(this.scaleY.domain(this.domainY).nice());
-        var domain;
+        const x = d3.event.transform.rescaleX(this.scaleX.domain(this.domainX));
+        const y = d3.event.transform.rescaleY(this.scaleY.domain(this.domainY).nice());
+        let domain;
         if (!this.multiAxesX) {
           domain = x.domain();
           this._graphs.forEach(g => {

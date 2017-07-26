@@ -171,18 +171,18 @@
 
       _computeAxisNode(insertionPoint, orient, title, old) {
         if (insertionPoint === undefined) return;
-        var color = this.axisColor || '';
+        const color = this.axisColor || '';
         title = title || this.axisTitle || '';
-        var vertical = this._isVertical(orient);
+        const vertical = this._isVertical(orient);
 
         if (old && old.node) {
-          var node = old.node();
+          const node = old.node();
           if (node && node.parentElement)
             node.parentElement.removeChild(node);
           old = null;
         }
 
-        var axis = insertionPoint.append('svg:g')
+        const axis = insertionPoint.append('svg:g')
           .classed('axis', true)
           .attr('orient', orient)
           .classed('y', vertical)
@@ -215,7 +215,7 @@
 
       _updateAxisBrushGenerator(range, pos, tickSize) {
         tickSize = tickSize || 8;
-        var extent = [[0,0],[range[1],range[0]]]
+        const extent = [[0,0],[range[1],range[0]]]
         if (pos === 'left') {
           extent[0][0] = -tickSize;
         } else if (pos === 'right') {
@@ -230,7 +230,7 @@
 
       _computeAxisGenerator(pos, scale, scaling, base) {
         if (!pos || scale === undefined || scaling === undefined) return;
-        var tickSize = this.tickSize || 6;
+        const tickSize = this.tickSize || 6;
         return ((pos === 'left') ? d3.axisLeft(scale) :
           (pos === 'right') ? d3.axisRight(scale) :
           (pos === 'top') ? d3.axisTop(scale) :
@@ -244,14 +244,15 @@
       }
 
       _removeAxes() {
+        let node;
         if (this.axisX && this.axisX.node) {
-          var node = this.axisX.node();
+          node = this.axisX.node();
           if (node && node.parentElement)
             node.parentElement.removeChild(node);
           this.axisX = null;
         }
         if (this.axisY && this.axisY.node) {
-          var node = this.axisY.node();
+          node = this.axisY.node();
           if (node && node.parentElement)
             node.parentElement.removeChild(node);
           this.axisY = null;
@@ -262,7 +263,7 @@
         delete this.axisBrushGeneratorX;
       }
       _toggleAxis(axis) {
-        var expanded = axis.classed('expanded');
+        const expanded = axis.classed('expanded');
         axis.classed('expanded', !expanded);
         this.sizeChanged();
       }
@@ -278,7 +279,7 @@
       _onAxisContextMenu(orient) {
         if (d3.event)
           d3.event.preventDefault();
-        var vertical = (orient === 'left' || orient === 'right');
+        const vertical = (orient === 'left' || orient === 'right');
         if (vertical) {
           this.axisY._isBrushed = false;
           this.scaleY.domain(this.domainY).nice();
@@ -296,12 +297,11 @@
         this.axisX.raise();
         this.axisY.raise();
       }
-      _onAxisMouseleave(axis, orient) {
-
+      _onAxisMouseleave() {
       }
       _onAxisDragStart() {
         d3.select(this).raise().classed('dragged', true);
-        var vertical = d3.select(this).classed('vertical');
+        const vertical = d3.select(this).classed('vertical');
         if (vertical) {
           this._startleft = d3.event.x;
           this._starttop = 0;
@@ -311,7 +311,8 @@
         }
       }
       _onAxisDragged() {
-        var vertical = d3.select(this).classed('vertical'), left = 0, top = 0;
+        const vertical = d3.select(this).classed('vertical');
+        let left = 0, top = 0;
         if (vertical) {
           left = (this._axis._left || 0) + d3.event.x - this._startleft;
         } else {
@@ -321,7 +322,8 @@
       }
       _onAxisDragEnd() {
         d3.select(this).classed('dragged', false);
-        var vertical = d3.select(this).classed('vertical'), left = 0, top = 0, pos, g = this._genitor;
+        const vertical = d3.select(this).classed('vertical'), g = this._genitor;
+        let left = 0, top = 0, pos;
         if (vertical) {
           left = (this._axis._left || 0) + d3.event.x - this._startleft;
           pos = (left > g.rangeX[1] / 2) ? 'right' : 'left';
@@ -353,19 +355,20 @@
       }
       _onAxisBrushEnd(key) {
         if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
-        var s = d3.event.selection;
+        const s = d3.event.selection;
         if (!s) {
           return;
         }
-        var vertical = (key === 'y');
+        const vertical = (key === 'y');
+        let domain;
         if (vertical) {
-          var domain = s.map(this.scaleY.invert, this.scaleY).sort((a, b) => { return a > b});
+          domain = s.map(this.scaleY.invert, this.scaleY).sort((a, b) => { return a > b});
           this.axisY._isBrushed = true;
           this.scaleY.domain(domain).nice();
           this.axisY.call(this.axisGeneratorY.scale(this.scaleY));
           this.axisY.select(".brush").call(this.axisBrushGeneratorY.move, null);
         } else {
-          var domain = s.map(this.scaleX.invert, this.scaleX).sort((a, b) => { return a > b});
+          domain = s.map(this.scaleX.invert, this.scaleX).sort((a, b) => { return a > b});
           this.axisX._isBrushed = true;
           this.scaleX.domain(domain);
           this.axisX.call(this.axisGeneratorX.scale(this.scaleX));
@@ -387,8 +390,8 @@
         return (orient === 'left' || orient === 'right');
       }
 
-      _computeFormatFn(scale, base) {
-        if (scale === 'time') {
+      _computeFormatFn() {
+        if (arguments[0] === 'time') {
           return this.formatTime.bind(this);
         } else if (this.item && this.item.isIndicatorLamp) {
           return this.formatIndicator.bind(this, this.item.threshold);
@@ -412,11 +415,11 @@
           d3.timeYear(date) < date ? this.timeFormat('%d. %b') :
           this.timeFormat('%Y'))(date);
       }
-      /**
+      /*
        * format date according to a time-range and pixel-range
-       **/
+       */
       formatTimeRange(date, range, pixels) {
-        var rangeRatio = (range[1] - range[0]).valueOf() / pixels;
+        const rangeRatio = (range[1] - range[0]).valueOf() / pixels;
         return (rangeRatio < 100 ? this.timeFormat(':%S.%L') :
           rangeRatio < 5E2 ? this.timeFormat(':%M:%S.%L') :
           rangeRatio < 5E3 ? this.timeFormat(':%M:%S') :
@@ -428,13 +431,13 @@
           rangeRatio < 24192E5 ? this.timeFormat('%d. %b') :
           this.timeFormat('%Y'))(date);
       }
-      /**
+      /*
        * format absolute time (like differences)
        * e.g. 3600001 => 1h 1ms
-       **/
+       */
       formatTimeAbsolute(date) {
         // one year = 365.25 days = 315576E5ms (Julian Calendar)
-        var ry = date % 315576E5,
+        const ry = date % 315576E5,
           y = (date - ry) / 315576E5,
           rd = ry % 864E5,
           d = (ry - rd) / 864E5,
@@ -443,8 +446,8 @@
           rm = rh % 6E4,
           m = (rh - rm) / 6E4,
           rs = rm % 1E3,
-          s = (rm - rs) / 1E3,
-          ret = '';
+          s = (rm - rs) / 1E3;
+        let ret = '';
         if (y)
           ret += y + 'y ';
         if (d)

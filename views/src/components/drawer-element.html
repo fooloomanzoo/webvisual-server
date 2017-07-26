@@ -404,14 +404,13 @@
           Polymer.Gestures.removeListener( this.$.contentContainer, 'track', e => this._track(e) );
           Polymer.Gestures.addListener( this.$.contentContainer, 'track', e => this._track(e) );
           Polymer.Gestures.setTouchAction( this.$.contentContainer, horizontal ? 'pan-x' : 'pan-y' );
-          Polymer.Gestures.removeListener( this.$.scrim, 'tap', e => this.close() );
-          Polymer.Gestures.addListener( this.$.scrim, 'tap', e => this.close() );
+          Polymer.Gestures.removeListener( this.$.scrim, 'tap', () => this.close() );
+          Polymer.Gestures.addListener( this.$.scrim, 'tap', () => this.close() );
         });
       }
 
       _escKeydownHandler(event) {
-        var ESC_KEYCODE = 27;
-        if (event.keyCode === ESC_KEYCODE) {
+        if (event.keyCode === 27) {
           // Prevent any side effects if app-drawer closes.
           event.preventDefault();
           this.close();
@@ -439,14 +438,14 @@
         }
       }
 
-      _trackStart(event) {
+      _trackStart() {
         this._drawerState = this._DRAWER_STATE.TRACKING;
 
         // Disable transitions since style attributes will reflect user track events.
         this._styleTransitionDuration(0);
         this.style.visibility = 'visible';
 
-        var rect = this.$.contentContainer.getBoundingClientRect();
+        const rect = this.$.contentContainer.getBoundingClientRect();
         switch (this.align) {
           case 'left':
             this._translateOffset = rect.left;
@@ -465,7 +464,7 @@
       }
 
       _trackMove(event) {
-        var d = this.horizontal ? event.detail.dy : event.detail.dx;
+        const d = this.horizontal ? event.detail.dy : event.detail.dx;
         this._translateDrawer(d + this._translateOffset);
         this._trackDetails.push({
           d: d,
@@ -474,16 +473,16 @@
       }
 
       _trackEnd(event) {
-        var d = this.horizontal ? event.detail.dy : event.detail.dx;
-        var dd = d + this._translateOffset;
-        var drawerExpandedSide = this._getExpandedLength();
+        const d = this.horizontal ? event.detail.dy : event.detail.dx;
+        const dd = d + this._translateOffset;
+        const drawerExpandedSide = this._getExpandedLength();
 
-        var isInEndState = !this.endPositioned ? (dd >= 0 || dd <= -drawerExpandedSide) :
+        const isInEndState = !this.endPositioned ? (dd >= 0 || dd <= -drawerExpandedSide) :
           (dd <= 0 || dd >= drawerExpandedSide);
 
         if (!isInEndState) {
           // No longer need the track events after this method returns - allow them to be GC'd.
-          var trackDetails = this._trackDetails;
+          const trackDetails = this._trackDetails;
           this._trackDetails = null;
 
           this._flyingDrawer(event, trackDetails);
@@ -494,7 +493,7 @@
 
         // If the drawer is not flinging, toggle the opened state based on the align of
         // the drawer.
-        var conditionalDragLength = drawerExpandedSide * this._CONDITION_PARTS;
+        const conditionalDragLength = drawerExpandedSide * this._CONDITION_PARTS;
 
         if (d < -conditionalDragLength) {
           this.opened = this.endPositioned;
@@ -518,16 +517,14 @@
           return 0;
         }
         // Find the oldest track event that is within 100ms using binary search.
-        var now = Date.now();
-        var timeLowerBound = now - 100;
-        var trackDetail;
-        var min = 0;
-        var max = trackDetails.length - 1;
+        const now = Date.now();
+        const timeLowerBound = now - 100;
+        let trackDetail, min = 0, max = trackDetails.length - 1, mid, d, dt;
 
         while (min <= max) {
           // Floor of average of min and max.
-          var mid = (min + max) >> 1;
-          var d = trackDetails[mid];
+          mid = (min + max) >> 1;
+          d = trackDetails[mid];
           if (d.timeStamp >= timeLowerBound) {
             trackDetail = d;
             max = mid - 1;
@@ -537,15 +534,15 @@
         }
 
         if (trackDetail) {
-          var d = this.horizontal ? event.detail.dy - trackDetail.d : event.detail.dx - trackDetail.d;
-          var dt = (now - trackDetail.timeStamp) || 1;
+          d = this.horizontal ? event.detail.dy - trackDetail.d : event.detail.dx - trackDetail.d;
+          dt = (now - trackDetail.timeStamp) || 1;
           return d / dt;
         }
         return 0;
       }
 
       _flyingDrawer(event, trackDetails) {
-        var velocity = this._calculateVelocity(event, trackDetails);
+        let velocity = this._calculateVelocity(event, trackDetails);
 
         // Do not fling if velocity is not above a threshold.
         if (Math.abs(velocity) < this._MIN_FLING_THRESHOLD) {
@@ -554,13 +551,13 @@
 
         this._drawerState = this._DRAWER_STATE.FLINGING;
 
-        var d = this.horizontal ? event.detail.dy + this._translateOffset : event.detail.dx + this._translateOffset;
-        var drawerExpandedSide = this._getExpandedLength();
+        const d = this.horizontal ? event.detail.dy + this._translateOffset : event.detail.dx + this._translateOffset,
+          drawerExpandedSide = this._getExpandedLength(),
+          isVelocityPositive = velocity > 0,
+          isClosingStart = !isVelocityPositive && this.endPositioned,
+          isClosingEnd = isVelocityPositive && !this.endPositioned;
+        let dd;
 
-        var isVelocityPositive = velocity > 0;
-        var isClosingStart = !isVelocityPositive && this.endPositioned;
-        var isClosingEnd = isVelocityPositive && !this.endPositioned;
-        var dd;
         if (isClosingStart) {
           dd = -(d + drawerExpandedSide);
         } else if (isClosingEnd) {
@@ -579,7 +576,7 @@
 
         // Calculate the amount of time needed to finish the transition based on the
         // initial slope of the timing function.
-        var t = this._FLING_INITIAL_SLOPE * dd / velocity;
+        let t = this._FLING_INITIAL_SLOPE * dd / velocity;
         this._styleTransitionDuration(t);
         this._styleTransitionTimingFunction(this._FLING_TIMING_FUNCTION);
 
@@ -601,8 +598,8 @@
       }
 
       _translateDrawer(d) {
-        var drawerExpandedSide = this._getExpandedLength();
-        var transform = '';
+        const drawerExpandedSide = this._getExpandedLength();
+        let transform = '';
         requestAnimationFrame( () => {
           switch (this.align) {
             case 'left':
@@ -640,7 +637,7 @@
       }
 
       _resetDrawerState() {
-        var oldState = this._drawerState;
+        const oldState = this._drawerState;
 
         // If the drawer was flinging, we need to reset the style attributes.
         if (oldState === this._DRAWER_STATE.FLINGING) {

@@ -185,13 +185,13 @@
         });
       }
 
-      /**
+      /*
        * Let users sign-in without typing credentials
        * @param  {Boolean} unmediated Determines if user mediation is required.
        * @return {Promise} Resolves if credential info is available.
        */
       autoSignIn(unmediated) {
-        var p;
+        let p;
         if (navigator.credentials) {
           // Actual Credential Management API call to get credential object
           p = navigator.credentials.get({
@@ -266,14 +266,14 @@
           });
       }
 
-      /**
+      /*
        * When password sign-in button is pressed.
        * @return {void}
        */
       onSubmit(e) {
         e.preventDefault();
 
-        var signinForm = Polymer.dom(this.root).querySelector('#signinform');
+        const signinForm = Polymer.dom(this.root).querySelector('#signinform');
 
         // Polymer `iron-form` feature to validate the form
         if (signinForm.validate && !signinForm.validate()) return;
@@ -286,10 +286,10 @@
 
         if (navigator.credentials) {
           // Construct `FormData` object from actual `form`
-          var cred = new PasswordCredential(signinForm);
+          const cred = new PasswordCredential(signinForm);
           // Sign-In with our own server
           this.signIn(this.signInUrl, cred)
-            .then(profile => {
+            .then(() => {
               navigator.credentials.store(cred);
               this.dispatchEvent(new CustomEvent('announce', {
                 detail: this.localize ? this.localize('notification', 'loggedIn', true) : 'You are signed in',
@@ -338,7 +338,7 @@
         this.$$('#password').value = '';
       }
 
-      /**
+      /*
        * Let user sign-in using id/password
        * @param  {CredentialObject} cred FormData or CredentialObject
        * @return {Promise} Returns result of `noCredApiSignIn()`
@@ -389,7 +389,7 @@
 
       notSignedIn(err) {
         console.warn('not signed in', err);
-        var status = '';
+        let status = '';
         this.loggedIn = false;
         if (err && err.statusCode) {
           if (err.statusCode >= 400 && err.statusCode < 500) {
@@ -401,7 +401,7 @@
           }
         }
         this.dispatchEvent(new CustomEvent('announce', {
-          detail: status ? status : statusText,
+          detail: status ? status : '',
           bubbles: true,
           composed: true
         }));
@@ -412,7 +412,7 @@
         }
       }
 
-      /**
+      /*
        * Authentication flow with our own server
        * @param  {String} url Credential type string.
        * @param  {FormData} loginData loginData to POST to the server

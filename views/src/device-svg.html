@@ -362,7 +362,7 @@
         if (!(xml && xml.documentElement)) return;
 
         // import svg to document
-        var svgNode = document.importNode(xml.documentElement.cloneNode(true), true);
+        const svgNode = document.importNode(xml.documentElement.cloneNode(true), true);
 
         this._svg = d3.select(this.$.svgContainer).select('#main');
         if (this._svg && !this._svg.empty()) {
@@ -386,7 +386,7 @@
 
         // get original dimensions
         if (this._svg.attr('viewBox')) {
-          var viewBox = this._svg.attr('viewBox').split(' ');
+          const viewBox = this._svg.attr('viewBox').split(' ');
           this._width = viewBox[2] - viewBox[0];
           this._height = viewBox[3] - viewBox[1];
           this._ratio = this._height / this._width;
@@ -414,8 +414,8 @@
       }
 
       _selectedItemsChanged() {
-        var item = this.item;
-        var items = this.items;
+        const item = this.item;
+        const items = this.items;
 
         if ((item && Object.keys(item).length) || (items && items.length)) {
           if (!this.src) {
@@ -434,7 +434,7 @@
       }
 
       _exceedingChanged() {
-        var exceeding = this.exceeding;
+        const exceeding = this.exceeding;
 
         if (exceeding && exceeding.length) {
           if (!this.src && exceeding[exceeding.length - 1].svg && exceeding[exceeding.length - 1].svg.path) {
@@ -464,8 +464,8 @@
         if (!(this._mainG && this._mainG.node && this.src)) return;
 
         if (this.selectableItems && this.selectableItems.items) {
-          var self = this;
-          for (var key in this.selectableItems.items) {
+          const self = this;
+          for (let key in this.selectableItems.items) {
             this._mainG.selectAll(this.selectableItems.items[key])
               .classed('selectable', true) // for styling selectable
               .classed('style-scope', true).classed('device-svg', true) // for style-scoping in polymer
@@ -501,8 +501,8 @@
       _zoomToElement(elem) {
         if (elem === undefined || !this._svg.node()) return;
         // calc centered zoom coordinates
-        var transform = this._calcCenterZoom(elem);
-        var t = d3.zoomIdentity.translate(transform.x, transform.y).scale(transform.k);
+        const transform = this._calcCenterZoom(elem);
+        const t = d3.zoomIdentity.translate(transform.x, transform.y).scale(transform.k);
         // save last transition
         this._svg.node().__zoom = t;
         this._mainG.transition(300)
@@ -511,27 +511,27 @@
 
       _selectSelected() {
         requestAnimationFrame( () => {
-          var sel = this.multi ? (this.items || []) : [];
+          const sel = this.multi ? (this.items || []) : [];
           if (this.item && Object.keys(this.item).length && sel.indexOf(this.item) === -1)
             sel.push(this.item);
           // Use elements color as fill-color by creating a CSS rule
-          var style, scopeName;
+          let style;
           if (ShadyCSS && ShadyCSS.nativeShadow === true) { // shadowDOM
             style = this.shadowRoot.querySelector('style');
           } else { // shadyDOM
             style = document.querySelector('style[scope="device-svg"]');
           }
           if (style && sel && sel.length) {
-            var selector, selectorText, hasRule;
-            for (var i = 0; i < sel.length; i++) {
+            let selector, selectorText, hasRule;
+            for (let i = 0; i < sel.length; i++) {
               if (sel[i] && sel[i].color && sel[i].svg && sel[i].svg.selector) {
                 // Add to StyleSheet
                 if (style && style.sheet && style.sheet.cssRules && style.sheet.insertRule) {
                   selector = sel[i].svg.selector.split(',');
-                  for (var j = 0; j < selector.length; j++) {
+                  for (let j = 0; j < selector.length; j++) {
                     selectorText = selector[j] + '.' + this.selectedClass;
                     hasRule = false;
-                    for (var k = 0; k < style.sheet.cssRules.length; k++) {
+                    for (let k = 0; k < style.sheet.cssRules.length; k++) {
                       if (style.sheet.cssRules[i].selectorText === selectorText) {
                         hasRule = true;
                       }
@@ -560,30 +560,30 @@
         this._mainG = this._svg.select('g');
         this._mainG.selectAll('.' + selectedClass)
           .classed(selectedClass, false);
-        var elems;
-        var sel = [];
+        let elems, s;
+        const sel = [];
         if (Array.isArray(selected)) {
-          for (var i = 0; i < selected.length; i++) {
+          for (let i = 0; i < selected.length; i++) {
             if (selected[i].svg && selected[i].svg.selector)
               sel.push(selected[i].svg.selector);
           }
-          sel = sel.join(',');
+          s = sel.join(',');
         } else {
           if (selected && selected.svg && selected.svg.selector)
-            sel = selected.svg.selector;
+            s = selected.svg.selector;
           else
-            sel = '';
+            s = '';
         }
-        if (sel === '' ||
-          (elems = this._mainG.selectAll(sel)).classed(selectedClass, true).empty()) {
+        if (s === '' ||
+          (elems = this._mainG.selectAll(s)).classed(selectedClass, true).empty()) {
           if (this.opened) {
             this._resetZoom();
           }
           return;
         }
 
-        var boundE, bounds = [];
-        var self = this;
+        let boundE;
+        const bounds = [];
         elems.each(
           function() {
             boundE = this.getBoundingClientRect();
@@ -606,7 +606,7 @@
 
       _calcCenterZoom(elem) {
         // get view height and width
-        var view = this.getBoundingClientRect();
+         const view = this.getBoundingClientRect();
         if (view === undefined || elem === undefined || view.height === 0 || view.width === 0)
           return {
             x: 0,
@@ -615,22 +615,23 @@
           };
 
         // calculate scale based on partioned view and dimensions of the element
-        var boundE, bboxE, viewRatio = view.height / view.width, scale;
+        const viewRatio = view.height / view.width;
+        let boundE, scale;
         if (elem.nodeType !== undefined)
           boundE = elem.getBoundingClientRect();
         else boundE = elem;
 
-        var bboxG = this._mainG.node().getBBox();
-        var boundG = this._mainG.node().getBoundingClientRect();
+        const bboxG = this._mainG.node().getBBox();
+        const boundG = this._mainG.node().getBoundingClientRect();
 
         // absolute position (for angled or transioned element)
-        var vs = bboxG.width / boundG.width || 1; // view scale
-        var x = (boundE.left - boundG.left) * vs + bboxG.x;
-        var y = (boundE.top - boundG.top) * vs + bboxG.y;
-        var svgHeight = this._height;
-        var svgWidth = this._width;
-        var svgRatio = this._ratio;
-        var zoomPartition = this.zoomPartition;
+        const vs = bboxG.width / boundG.width || 1; // view scale
+        let x = (boundE.left - boundG.left) * vs + bboxG.x,
+          y = (boundE.top - boundG.top) * vs + bboxG.y;
+        const svgHeight = this._height,
+          svgWidth = this._width,
+          svgRatio = this._ratio,
+          zoomPartition = this.zoomPartition;
 
         // calculate zoom based on partions or minZoom or maxZoom
         // scaling and centering
@@ -691,8 +692,8 @@
             }
             // zoom to initial
             if (this.initial) {
-              var initial;
-              if (!(initial = this._mainG.selectAll(this.initial)).empty()) {
+              const initial = this._mainG.selectAll(this.initial);
+              if (!(initial && initial.empty())) {
                 this.select([{
                   svg: {
                     selector: this.initial

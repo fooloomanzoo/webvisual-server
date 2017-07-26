@@ -36,7 +36,7 @@
       }
 
       _getParent() {
-        var root = Polymer.dom(this).getOwnerRoot();
+        const root = Polymer.dom(this).getOwnerRoot();
         if (!root)
           return Polymer.dom(this).parentNode;
         else if (root.nodeType == Node.DOCUMENT_FRAGMENT_NODE)
@@ -94,8 +94,8 @@
 
       _fullScreenChanged() {
         requestAnimationFrame( () => {
-          var isFullscreen = this._isFullscreen();
-          var parent = this._getParent();
+          const isFullscreen = this._isFullscreen();
+          const parent = this._getParent();
           if (isFullscreen) {
             this.fullscreen = true;
             this.style.position = 'fixed';

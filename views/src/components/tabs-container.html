@@ -122,8 +122,8 @@ Modification from Polymer Shop Demo App
         if (!e) {
           return;
         }
-        var scrollChange;
-        var mult;
+        let scrollChange, mult;
+
         switch (e.deltaMode) {
           case 0:
             mult = 0.2;
@@ -149,7 +149,7 @@ Modification from Polymer Shop Demo App
 
       _onScroll(e, detail) {
         e.stopImmediatePropagation();
-        var scrollChange;
+        let scrollChange;
         if (this.vertical) {
           scrollChange = (detail && -detail.ddy) || 0;
           this.$.container.scrollTop += scrollChange;

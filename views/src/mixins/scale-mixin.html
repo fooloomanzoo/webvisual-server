@@ -122,7 +122,7 @@
 
       _computeScaleFn(scale, base, key) {
         if (scale === undefined) return;
-        var fn = (scale === 'time' ? d3.scaleTime() :
+        const fn = (scale === 'time' ? d3.scaleTime() :
             scale === 'ln' ? d3.scaleLog().base(Math.E) :
             scale === 'log' ? d3.scaleLog().base(base || 10) :
             scale === 'log₂' ? d3.scaleLog().base(2) :

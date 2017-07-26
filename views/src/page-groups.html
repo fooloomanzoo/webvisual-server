@@ -217,7 +217,7 @@
 
       _getItem(id, elements) {
         if (id && elements) {
-          for (var i = 0, item; item = elements[i]; ++i) {
+          for (let i = 0, item; (item = elements[i]); ++i) {
             if (item.id === id) {
               return item;
             }
@@ -228,7 +228,7 @@
 
       _getItemKeys(id, elements) {
         if (id && elements) {
-          for (var i = 0, item; item = elements[i]; ++i) {
+          for (let i = 0, item; (item = elements[i]); ++i) {
             if (item.id === id) {
               return item.keys;
             }
@@ -243,12 +243,12 @@
 
       _groupedKeyChanged(groupedKey, old) {
         if (old !== undefined) {
-          var sel = Polymer.dom(this.root).querySelectorAll('[is-device]');
+          const sel = Polymer.dom(this.root).querySelectorAll('[is-device]');
           sel.forEach(function(el) {
             el.reset();
           });
 
-          var cards = Polymer.dom(this.root).querySelectorAll('group-card');
+          const cards = Polymer.dom(this.root).querySelectorAll('group-card');
           cards.forEach(function(gr) {
             gr.clearItems();
             gr._resetTransitionState();

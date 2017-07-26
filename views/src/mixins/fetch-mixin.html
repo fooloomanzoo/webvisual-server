@@ -34,13 +34,13 @@
       }
 
       _fetch(uri, method, cred, type, property, saveInLocalStorage, noEqualityCheck, body) {
-        if (uri === undefined) return Promis.resolve();
+        if (uri === undefined) return Promise.resolve();
 
-        var url = this.urlPrefix + uri;
-        var saveInLocalStorage = saveInLocalStorage || this.saveInLocalStorage;
-        var noEqualityCheck = noEqualityCheck || this.noEqualityCheck;
+        const url = this.urlPrefix + uri;
+        saveInLocalStorage = saveInLocalStorage || this.saveInLocalStorage;
+        noEqualityCheck = noEqualityCheck || this.noEqualityCheck;
 
-        var options = {
+        const options = {
           method: method,
           credentials: cred || 'include',
           body: body
@@ -54,7 +54,7 @@
               } else {
                 return res.text();
               }
-            } else if (res = localStorage.getItem(url)) {
+            } else if ((res = localStorage.getItem(url))) {
               console.warn(url, res);
               return res;
             } else {
@@ -64,8 +64,7 @@
           .then( data => {
             if (property && data !== undefined) {
               // console.log(property, data);
-              var set = (noEqualityCheck || !this[property]) ? true : !this._equals(this[property], data);
-              if (set) {
+              if ((noEqualityCheck || !this[property]) ? true : !this._equals(this[property], data)) {
                 this.set(property, data);
               }
             }
@@ -82,7 +81,7 @@
           })
           .catch( res => {
             if (saveInLocalStorage && property && url !== undefined) {
-              var data = localStorage.getItem(url);
+              let data = localStorage.getItem(url);
               if (data) {
                 if (type === 'json') {
                   data = JSON.parse(data);
@@ -101,7 +100,7 @@
 
         if (x.constructor !== y.constructor) return false;
 
-        for (var p in x) {
+        for (let p in x) {
           if (!x.hasOwnProperty(p)) continue;
           if (!y.hasOwnProperty(p)) return false;
           if (x[p] === y[p]) continue;
@@ -109,7 +108,7 @@
           if (!this._equals(x[p], y[p])) return false;
         }
 
-        for (p in y) {
+        for (let p in y) {
           if (y.hasOwnProperty(p) && !x.hasOwnProperty(p)) return false;
         }
         return true;

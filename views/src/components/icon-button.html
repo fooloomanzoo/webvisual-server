@@ -113,8 +113,8 @@
       }
 
       _altChanged(newValue, oldValue) {
-        var system = this.getAttribute('aria-system');
-        if (!system || oldValue == system) {
+        const system = this.getAttribute('aria-system');
+        if (!system || oldValue === system) {
           this.setAttribute('aria-system', newValue);
         }
       }

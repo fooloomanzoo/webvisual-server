@@ -79,7 +79,7 @@
             return this.scaleX(d.x);
           })
           .y0(d => {
-            if (this.keys && this.keys.y && this._IS_LOG_SCALE(this.keys.y.scale)) {
+            if (d && this._IS_LOG_SCALE(this.scalingY)) {
               return this._chart._height;
             } else {
               return this.scaleY(0)
@@ -113,7 +113,7 @@
       }
 
       get _containerRoot() {
-        var root = Polymer.dom(this).getOwnerRoot();
+        const root = Polymer.dom(this).getOwnerRoot();
         if (!root)
           return Polymer.dom(this).parentNode;
         else if (root.host || root.nodeType === Node.DOCUMENT_FRAGMENT_NODE)
@@ -140,7 +140,7 @@
         if (this._isAttached) {
           this.clearValues(true);
         }
-        var containerRoot = this._containerRoot;
+        const containerRoot = this._containerRoot;
         if (!containerRoot || containerRoot.nodeName !== 'DEVICE-CHART') {
           console.warn('No parentElement (chart) for graph found. Registration of Graph Element failed', containerRoot);
           return;
@@ -182,7 +182,7 @@
 
       removeNodes() {
         // console.log('removeNodes', this.item.mount);
-        var node;
+        let node;
         if (this.axisX) {
           node = this.axisX.node();
           if (node && node.parentElement)
@@ -206,7 +206,7 @@
         if (!hasArea) {
           // remove fill area
           if (this._area && this._area.node) {
-            var node = this._area.node();
+            let node = this._area.node();
             if (node && node.parentElement)
               node.parentElement.removeChild(node);
             this._area = null;
@@ -234,7 +234,7 @@
         if (!hasLine) {
           // remove line
           if (this._line && this._line.node) {
-            var node = this._line.node();
+            let node = this._line.node();
             if (node && node.parentElement)
               node.parentElement.removeChild(node);
             this._line = null;
@@ -274,7 +274,7 @@
         } else {
           // remove threshold colors
           if (this.boundery && this.boundery.node) {
-            var node = this.boundery.node();
+            let node = this.boundery.node();
             if (node && node.parentElement)
               node.parentElement.removeChild(node);
             this.boundery = null;
@@ -308,7 +308,7 @@
         if (values === undefined) {
           return;
         }
-        var len = len || (this.viewLength > 0 ? this.viewLength : values.length);
+        len = len || (this.viewLength > 0 ? this.viewLength : values.length);
         if (len) {
           values = values.slice(values.length - len, values.length);
         }
@@ -321,8 +321,8 @@
         });
         if (this.storeInside) {
           this.values = this.values.concat(values);
-          var min = this.min(this.values, 'x');
-          var max = this.max(this.values, 'x');
+          let min = this.min(this.values, 'x');
+          let max = this.max(this.values, 'x');
           if (min !== undefined && max !== undefined) {
             if (this.axisX && !this.axisX._isBrushed && !this._chart.axisX._isBrushed && !(this._chart._isZoomed && !this._chart.multiAxesX)) {
               this.set('domainX', [ min, max ] );
@@ -362,8 +362,9 @@
         // requestAnimationFrame( () => {
         // var changeRecord = [];
 
-        for (var i = 0; i < splices.length; i++) {
-          for (var j = this.values.length - 1; j >= 0; j--) {
+        for (let i = 0; i < splices.length; i++) {
+          let j;
+          for (j = this.values.length - 1; j >= 0; j--) {
             if (this.values[j].x === splices[i].x)
               break;
           }
@@ -383,7 +384,7 @@
           this.addNodes();
         }
         if (this._chart) {
-          var redomain_and_draw;
+          let redomain_and_draw;
           if (this._chart.domainX && this._chart.domainX.some(e => { return e === undefined || e === null; })) {
             this._chart.set('domainX', this.domainX );
             redomain_and_draw = true;
@@ -413,7 +414,7 @@
         }
         // console.log('graph redraw', this.item.mount, this.values.length);
 
-        var data = this.values || [];
+        const data = this.values || values || [];
 
         // fill area
         if (this.hasArea) {
@@ -440,11 +441,11 @@
           if (!(this.boundery && this.boundery.node)) {
             this._thresholdChanged(this.item.threshold);
           }
-          var b_line = [],
-            y,
+          const b_line = [],
             u_color = this.getComputedStyleValue('--device-state-exceeds-color') || '#F20C0C',
             l_color = this.getComputedStyleValue('--device-state-deceeds-color') || '#F20C0C',
             i_color = this.item.color || '#000';
+          let y;
 
           if (this.item.threshold.from !== undefined) {
             y = ((1 - Math.ceil(this.scaleY(this.item.threshold.from) + this.lineWidth * 1.25) / this._chart._height) * 100);
@@ -472,7 +473,7 @@
               });
             }
           }
-          var gradients = this.boundery
+          const gradients = this.boundery
             .attr('x1', 0).attr('y1', this._chart._height)
             .attr('x2', 0).attr('y2', 0)
             .selectAll('stop')
@@ -502,7 +503,7 @@
 
       _getDomain(key, save) {
         return new Promise((resolve, reject) => {
-          var vertical = (key === 'y'),
+          const vertical = (key === 'y'),
             scale = vertical ? this.scalingY : this.scalingX;
           this.requestRange(key)
             .then(domain => {
@@ -512,9 +513,9 @@
                   domain[1]++;
                 }
                 // logarithmic scales need scales of same prefix
-                var is_log = this._IS_LOG_SCALE(scale);
+                let is_log = this._IS_LOG_SCALE(scale);
                 if (is_log) {
-                  var sign = (domain[0]*domain[1] > 0);
+                  let sign = (domain[0]*domain[1] > 0);
                   if (sign && domain[0] <= 0) {
                     domain[0] = Math.sign(domain[1])*Number.EPSILON;
                   }
@@ -539,10 +540,10 @@
         });
       }
 
-      _defined(d, i) {
+      _defined(d) {
         if (!Number.isFinite(d.y))
           return null;
-        else if (d.y <= 0 && this.keys && this.keys.y && this._IS_LOG_SCALE(this.keys.y.scale))
+        else if (d.y <= 0 && this._IS_LOG_SCALE(this.scalingY))
           return null; // log- and sqrt-scale require larger than 0-Values
         // else if ((d.x >= domainX[0] && d.x <= domainX[1]) ||
         //   (data[i + 1] && data[i + 1].x >= domainX[0] && data[i + 1].x <= domainX[1]) ||
@@ -557,27 +558,27 @@
       // if looking just at to path (instabil): https://bl.ocks.org/mbostock/8027637 https://pomax.github.io/bezierinfo/#projections
       _closestPoint(m) {
         // find good prediction
-        var _x = this.scaleX,
+        const _x = this.scaleX,
           _y = this.scaleY,
           values = this.values,
           x_0 = _x.invert(m[0]),
           precision = Math.ceil(this._chart._width / values.length),
-          variance = Math.pow(Math.ceil(values.length / this._chart._width), 2),
-          mid = this.bisectDate.left(values, x_0, 0, values.length - 1),
+          variance = Math.pow(Math.ceil(values.length / this._chart._width), 2);
+        let mid = this.bisectDate.left(values, x_0, 0, values.length - 1),
           r2 = pixdistance2(values[mid]),
-          searchRadius = Math.sqrt(r2) / variance;
-        var x_lo = _x.invert(m[0] - searchRadius),
+          searchRadius = Math.sqrt(r2) / variance,
+          x_lo = _x.invert(m[0] - searchRadius),
           lo = this.bisectDate.left(values, x_lo, 0, mid),
           hi = 2 * mid - lo;
 
         if (lo < 0) lo = 0;
         if (hi > values.length) hi = values.length;
 
-        var minDist = r2,
+        let minDist = r2,
           currentDist,
           pos = mid;
         // linear scan for coarse approximation
-        for (i = lo; i < hi; i += precision) {
+        for (let i = lo; i < hi; i += precision) {
           if ((currentDist = pixdistance2(values[i])) <= minDist) {
             mid = i, minDist = currentDist;
           }
@@ -585,7 +586,7 @@
         pos = mid;
 
         // linear search in positive prediction radius
-        for (var i = mid + 1; i < hi && i < mid + precision - 1; i++) {
+        for (let i = mid + 1; i < hi && i < mid + precision - 1; i++) {
           if ((currentDist = pixdistance2(values[i])) <= minDist) {
             minDist = currentDist;
             pos = i;
@@ -593,7 +594,7 @@
         }
 
         // linear search in negative prediction radius
-        for (var i = mid - 1; i > lo && i > mid - precision + 1; i--) {
+        for (let i = mid - 1; i > lo && i > mid - precision + 1; i--) {
           if ((currentDist = pixdistance2(values[i])) <= minDist) {
             minDist = currentDist;
             pos = i;
@@ -603,7 +604,7 @@
         return values[pos];
 
         function pixdistance2(p) {
-          var dx = _x(new Date(p.x)) - m[0],
+          const dx = _x(new Date(p.x)) - m[0],
             dy = _y(p.y) - m[1];
           return dx * dx + dy * dy;
         }
@@ -614,14 +615,14 @@
       // https://pomax.github.io/bezierinfo/#projections
       _closestInterpolatedPoint(point, pathNode) {
         pathNode = pathNode || this._area.node() || this._line.node();
-        var pathLength = pathNode.getTotalLength(),
-          precision = Math.ceil(pathLength / this._chart._width / 2.0) * 2,
+        const pathLength = pathNode.getTotalLength();
+        let precision = Math.ceil(pathLength / this._chart._width / 2.0) * 2,
           best,
           bestLength,
           bestDistance = Infinity;
 
         // linear scan for coarse approximation
-        for (var scan, scanLength = 0, scanDistance; scanLength <= pathLength; scanLength += precision) {
+        for (let scan, scanLength = 0, scanDistance; scanLength <= pathLength; scanLength += precision) {
           if ((scanDistance = distance2(scan = pathNode.getPointAtLength(scanLength))) < bestDistance) {
             best = scan, bestLength = scanLength, bestDistance = scanDistance;
           }
@@ -630,7 +631,7 @@
         // binary search for precise estimate
         precision /= 2;
         while (precision > 0.5) {
-          var before,
+          let before,
             after,
             beforeLength,
             afterLength,
@@ -653,7 +654,7 @@
         return best;
 
         function distance2(p) {
-          var dx = p.x - point[0],
+          const dx = p.x - point[0],
             dy = p.y - point[1];
           return dx * dx + dy * dy;
         }
@@ -688,7 +689,7 @@
       }
 
       _interpolationChanged(interpolation) {
-        var curve;
+        let curve;
         switch (interpolation) {
           case 'Basis Spline':
             curve = d3.curveBasis;

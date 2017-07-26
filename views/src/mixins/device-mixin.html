@@ -113,7 +113,7 @@
 
           this.requestValues(null, null, this.viewLength)
             .then(data => {
-              for (var mount in data) {
+              for (let mount in data) {
                 if (mount === this.item.mount) {
                   this.insertValues(data[mount]);
                   break;
@@ -121,9 +121,9 @@
               }
             })
             .catch(err => {
-              // if (err) {
-              //   console.log(err);
-              // }
+              if (err) {
+                console.log(err);
+              }
             });
           }
         // }, 0)
@@ -156,7 +156,7 @@
           return;
         }
 
-        var len = len || this.viewLength;
+        len = len || this.viewLength;
 
         // len = (len && isFinite(len) && len <= values.length) ? len : ( (this.viewLength && isFinite(this.viewLength) && this.viewLength <= values.length) ? this.viewLength : values.length );
 
@@ -175,7 +175,7 @@
           // console.log(this.values);
           this.renderInsertedValues(values);
         } else {
-          var tmp = values.slice(values.length - len, values.length);
+          const tmp = values.slice(values.length - len, values.length);
           if (this.item && this.item.exceedable === true) {
             tmp.forEach(value => {
               this.checkExceedingState(value);
@@ -211,7 +211,7 @@
         this.renderInsertedValues(this.values);
       }
 
-      clearValues(force) {
+      clearValues() {
         this.values = [];
         this.notifyPath('values');
       }
@@ -223,7 +223,7 @@
           })
         }
         len = len || this.viewLength || 1;
-        var req = {
+        const req = {
           target: 'cache',
           operation: 'request',
           args: {
@@ -235,7 +235,7 @@
         };
 
         if (window.Webvisual) {
-          return new Promise((resolve, reject) => {
+          return new Promise((resolve) => {
             window.Webvisual.request(req, resolve);
           })
         } else {
@@ -251,11 +251,11 @@
 
       requestRange(key) {
         if (!(this.item && this.item.mount)) {
-          return new Promise((resolve, reject) => {
+          return new Promise((resolve) => {
             resolve( [ undefined, undefined ] );
           })
         }
-        var req = {
+        const req = {
           target: 'cache',
           operation: 'range',
           forced: true,
@@ -266,14 +266,14 @@
         };
 
         if (!this.storeInside && window.Webvisual) {
-          return new Promise( (resolve, reject) => {
+          return new Promise( (resolve) => {
             window.Webvisual.request(req, resolve);
           })
         } else {
-          return new Promise( (resolve, reject) => {
+          return new Promise( (resolve) => {
             if (this.values && this.values.length) {
-              var min = this.min(this.values, key);
-              var max = this.max(this.values, key);
+              const min = this.min(this.values, key);
+              const max = this.max(this.values, key);
               if (!(min === undefined && max === undefined)) {
                 resolve( [ min, max ] );
               }
@@ -284,30 +284,30 @@
       }
 
       min(array, key) { // inspired by d3.array
-        var i = -1,
+        let i = -1,
             a,
             b;
-        var n = array.length;
+        const n = array.length;
         while (++i < n) if ((b = array[i][key]) !== null && b >= b) { a = b; break; }
         while (++i < n) if ((b = array[i][key]) !== null && a > b) a = b;
         return a;
       }
 
       max(array, key) { // inspired by d3.array
-        var i = -1,
+        let i = -1,
             a,
             b;
-        var n = array.length;
+        const n = array.length;
         while (++i < n) if ((b = array[i][key]) !== null && b >= b) { a = b; break; }
         while (++i < n) if ((b = array[i][key]) !== null && a < b) { a = b; }
         return a;
       }
 
-      renderInsertedValues(values) {}
+      renderInsertedValues() {}
 
-      renderSplicedValues(values) {}
+      renderSplicedValues() {}
 
-      renderClearing(values) {}
+      renderClearing() {}
 
       checkExceedingState(value) {
         if (!this.item || this.item.exceedable === false || value === undefined) return;
@@ -325,7 +325,7 @@
         }
       }
 
-      _exceedingChanged(isExceeding, old) {
+      _exceedingChanged(isExceeding) {
         if (this.item && this.item.exceedable === true) {
           this.dispatchEvent(new CustomEvent('exceeding', {
             bubbles: true,

@@ -159,7 +159,7 @@
 							this.set('values', values.reverse());
 							this._initialized = true;
 						} else {
-							for (var i = 0; i < values.length; i++) {
+							for (let i = 0; i < values.length; i++) {
 								this.unshift('values', values[i]);
 							}
 						}
@@ -173,9 +173,10 @@
 				// var list = this.$.list.items;
 
 				setTimeout(() => {
-          var changeRecord = [];
-					for (var i = 0; i < splices.length; i++) {
-						for (var j = this.values.length - 1; j >= 0; j--) {
+          const changeRecord = [];
+					for (let i = 0; i < splices.length; i++) {
+            let j;
+						for (j = this.values.length - 1; j >= 0; j--) {
 							if (this.values[j].x === splices[i].x)
 								break;
 						}
@@ -200,8 +201,8 @@
 
 			_computeKeysForCaption(keysForCaption, item) {
 				if (keysForCaption && item && item.keys) {
-					var cap = '';
-					for (var key in this.item.keys) {
+					let cap = '';
+					for (let key in this.item.keys) {
 						cap += this.item.keys[key] + ' ';
 					}
 					this.$.caption.textContent = cap;
@@ -216,7 +217,7 @@
 			}
 
 			_toggleGridView() {
-				this.$.list.grid = !!!this.$.list.grid;
+				this.$.list.grid = !this.$.list.grid;
 			}
 		}
 		customElements.define(DeviceTable.is, DeviceTable);

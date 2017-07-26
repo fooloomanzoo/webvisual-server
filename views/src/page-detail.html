@@ -315,7 +315,7 @@
         selectedIds = selectedIds || '';
 
         setTimeout(() => {
-          var ids = selectedIds.split('/').filter(id => {
+          const ids = selectedIds.split('/').filter(id => {
             return checkboxes.some(c => {
               return c.id === id;
             })
@@ -332,7 +332,7 @@
 
       select(item) {
         super.select(item);
-        var ids = (this.selectedIds || '').split('/').filter(id => {
+        const ids = (this.selectedIds || '').split('/').filter(id => {
           return id !== '';
         });
         if (ids.indexOf(item.id) === -1) {
@@ -344,10 +344,10 @@
 
       deselect(item) {
         super.deselect(item);
-        var ids = (this.selectedIds || '').split('/').filter(id => {
+        const ids = (this.selectedIds || '').split('/').filter(id => {
           return id !== '';
         });
-        var pos;
+        let pos;
         if ((pos = ids.indexOf(item.id)) !== -1) {
           ids.splice(pos, 1);
           this.set('selectedIds', ids.join('/'));
@@ -356,15 +356,15 @@
       }
 
       _subgroupsChanged(subgroups) {
-        var el = Polymer.dom(this.root).querySelector('.selectbox.subgroup');
-        var titles = subgroups.map(sg => { return sg.title });
-        var sel = el.querySelector('select');
+        const el = Polymer.dom(this.root).querySelector('.selectbox.subgroup');
+        const titles = subgroups.map(sg => { return sg.title });
+        const sel = el.querySelector('select');
         if (sel) {
           while (sel.hasChildNodes()) {
             sel.removeChild(sel.lastChild);
           }
           titles.forEach(function(item) {
-            var option = document.createElement('option');
+            const option = document.createElement('option');
             option.textContent = item;
             option.value = item;
             Polymer.dom(sel).appendChild(option);
@@ -377,17 +377,17 @@
       _selectedSubgroupChanged(selectedSubgroup, subgroups, elements) {
         if (!(subgroups && subgroups.length) || elements === undefined) return;
         selectedSubgroup = selectedSubgroup || '';
-        var subgroup;
-        for (var i = 0; i < subgroups.length; i++) {
+        let subgroup;
+        for (let i = 0; i < subgroups.length; i++) {
           if (subgroups[i].title === selectedSubgroup) {
             subgroup = subgroups[i];
             break;
           }
         }
-        var shownElements = [];
+        const shownElements = [];
         subgroup = subgroup || subgroups[subgroups.length-1];
-        for (var i = 0; i < subgroup.items.length; i++) {
-          for (var j = 0; j < elements.length; j++) {
+        for (let i = 0; i < subgroup.items.length; i++) {
+          for (let j = 0; j < elements.length; j++) {
             if (elements[j].id === subgroup.items[i]) {
               shownElements.push(elements[j]);
               break;
@@ -403,7 +403,7 @@
       _hasSvg(path, visible) {
         // notify the chart to resize
         // console.log('_hasSvg', path, visible);
-        var _withSvg = Boolean(path && visible);
+        const _withSvg = Boolean(path && visible);
         if (_withSvg !== this._withSvg) {
           this._debounceResize();
         }
@@ -412,7 +412,7 @@
 
       _computeSvgSrcPat(room, item, svgPaths) {
         // console.log(room, item, svgPaths);
-        var path;
+        let path;
         if (room && this.item && this.item.svg && this.item.svg.path && svgPaths && svgPaths[this.item.svg.path])
           path = '/' + room + '/' + this.item.svg.path;
         return path;
@@ -422,7 +422,7 @@
         return svgPaths[src] || {};
       }
 
-      _ensureOpened(narrowLayout) {
+      _ensureOpened() {
         return true; // if 'narrowLayout' changes the drawer is opened
       }
 
@@ -472,8 +472,8 @@
           this.clearItems();
           this.room = undefined;
           this.set('_shownElements', []);
-          var el = Polymer.dom(this.root).querySelector('.selectbox.subgroup');
-          var sel = el.querySelector('select');
+          const el = Polymer.dom(this.root).querySelector('.selectbox.subgroup');
+          const sel = el.querySelector('select');
           if (sel) {
             while (sel.hasChildNodes()) {
               sel.removeChild(sel.lastChild);

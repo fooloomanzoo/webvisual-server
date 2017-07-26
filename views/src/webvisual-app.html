@@ -614,7 +614,7 @@
         return [
           '_routePageChanged(path)',
           '_roomChanged(room)',
-          '_resetLayout(showTabsOnBottom, wideLayout, thresholdTriggered)',
+          // '_resetLayout(showTabsOnBottom, wideLayout, thresholdTriggered)',
           '_setGroupingSelectBoxes(groupedKey, groupingKeys)',
           '_drawerChanged(_shouldRenderDrawer)'
         ]
@@ -639,7 +639,7 @@
       }
 
       _routePageChanged(path) {
-        var page = path.split('/').filter(function(p) {
+        const page = path.split('/').filter(function(p) {
           return p !== '';
         }).join('');
 
@@ -671,7 +671,7 @@
         });
       }
 
-      _resetLayout(showTabsOnBottom, wideLayout, thresholdTriggered) {
+      // _resetLayout(showTabsOnBottom, wideLayout, thresholdTriggered) {
         // Polymer.RenderStatus.afterNextRender(this, function() {
         //   if (!wideLayout && (thresholdTriggered || showTabsOnBottom) && !this._isFullbleedPage) {
         //     this.$.pages.style.marginBottom = '2.5em';
@@ -679,7 +679,7 @@
         //     this.$.pages.style.marginBottom = '0';
         //   }
         // });
-      }
+      // }
 
       _nextPage() {
         this._switchPage(1);
@@ -691,8 +691,8 @@
 
       _switchPage(num) {
         this.async(function() {
-          var order = ['home', 'list', 'groups', 'detail'];
-          var pos = order.indexOf(this.page) || 0;
+          const order = ['home', 'list', 'groups', 'detail'];
+          let pos = order.indexOf(this.page) || 0;
           pos = (pos + num + order.length) % order.length;
           this.setProperties({
             path: '/' + order[pos],
@@ -706,14 +706,13 @@
         if (!room) {
           return;
         }
-        var names = room.split('/').filter(function(str) {
+        const names = room.split('/').filter(function(str) {
           return str !== '';
         });
 
         if (names.length >= 2) {
-          var page = this.page;
           this.room = names[0] + '+' + names[1];
-          document.title = names.join('/') + ' - ' + (this.localize ? this.localize(page, 'name') : page);
+          document.title = names.join('/') + ' - ' + (this.localize ? this.localize(this.page, 'name') : this.page);
         }
       }
 
@@ -732,7 +731,6 @@
               this.resolveUrl('page-' + page + '.html'),
               function() {
                 this._pageLoaded(Boolean(oldPage));
-                var item;
                 this._debouncedHideTabs();
               },
               function() {
@@ -742,7 +740,7 @@
         }
       }
 
-      _socketConnect(e) {
+      _socketConnect() {
         if (this.$.socketHandler.socketStatus === 'sync-disabled') {
           this.$.socketHandler.connect();
         } else {
@@ -781,7 +779,7 @@
       }
 
       _notifyNetworkStatus() {
-        var oldOffline = this.offline;
+        const oldOffline = this.offline;
         this.offline = !navigator.onLine;
         // Show the drawer if the user is offline when starting a new session
         // or if the network status changed.
@@ -793,7 +791,7 @@
       }
 
       _notifyAnnouncement(e) {
-        var message = e.detail;
+        const message = e.detail;
         // Show the drawer if the user is offline when starting a new session
         // or if the network status changed.
         if (message) {
@@ -831,8 +829,8 @@
       }
 
       _loadPresettings() {
-        var settings = JSON.parse(localStorage.getItem('settings'));
-        for (var key in settings) {
+        const settings = JSON.parse(localStorage.getItem('settings'));
+        for (let key in settings) {
           this.set(key, settings[key]);
         }
         this._updateStyles();
@@ -842,7 +840,7 @@
         if (old === undefined)
           return;
 
-        var settings = JSON.parse(localStorage.getItem('settings')) || {};
+        const settings = JSON.parse(localStorage.getItem('settings')) || {};
         settings.plain = plain;
         localStorage.setItem('settings', JSON.stringify(settings));
 
@@ -853,7 +851,7 @@
         if (old === undefined)
           return;
 
-        var settings = JSON.parse(localStorage.getItem('settings')) || {};
+        const settings = JSON.parse(localStorage.getItem('settings')) || {};
         settings.dark = dark;
         localStorage.setItem('settings', JSON.stringify(settings));
 
@@ -872,16 +870,16 @@
         }
         // Hack: initial binding to native select value property is not bound
         // setTimeout(() => {
-          var groupingSelectors = Polymer.dom(this.root).querySelectorAll('.selectbox.grouping');
+          const groupingSelectors = Polymer.dom(this.root).querySelectorAll('.selectbox.grouping');
 
           Array.prototype.forEach.call(groupingSelectors, el => {
-            var sel = el.querySelector('select');
+            const sel = el.querySelector('select');
             if (sel) {
               while (sel.hasChildNodes()) {
                 sel.removeChild(sel.lastChild);
               }
               groupingKeys.forEach(function(item) {
-                var option = document.createElement('option');
+                const option = document.createElement('option');
                 option.textContent = item;
                 option.value = item;
                 Polymer.dom(sel).appendChild(option);
@@ -952,13 +950,13 @@
 
       _toggleCollapse(e) {
         // TODO: very probable that this will change in Polymer 2.0
-        var button = e.currentTarget;
+        const button = e.currentTarget;
         if (!button.hasAttribute('for')) {
           return;
         }
-        var id = button.getAttribute('for');
-        var collapse = this.$$('#' + id);
-        var iconbutton = button.querySelector('iron-icon.right');
+        const id = button.getAttribute('for');
+        const collapse = this.$$('#' + id);
+        const iconbutton = button.querySelector('iron-icon.right');
 
         if (collapse && collapse.toggle) {
           collapse.toggle();

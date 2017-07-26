@@ -5,9 +5,9 @@
     "ecmaVersion": 6
   },
   "rules": {
-    "no-console": "off",
     "no-var": "error",
-    "strict": "error",
+    "no-undef": ["error", { "typeof": true }],
+    "no-console": "off",
     "valid-jsdoc": ["error", {
       "requireReturn": false,
       "prefer": {
@@ -36,6 +36,9 @@
     "Polymer": true,
     "ShadyDOM": true,
     "ShadyCSS": true,
-    "JSCompiler_renameProperty": true
+    "JSCompiler_renameProperty": true,
+    "d3": true,
+    "Webvisual": true,
+    "WebvisualMixins": true
   }
 }
