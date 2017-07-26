@@ -26,7 +26,6 @@ if (!(self.Promise && self.Promise.all)) {
 
     add: function(mount) {
       if (!this._store.has(mount)) {
-        var obj = new Object();
         this._store.set(mount, this._newStoreKey(mount));
       }
     },
@@ -35,22 +34,20 @@ if (!(self.Promise && self.Promise.all)) {
       switch (this.type) {
         case 'database':
           return new ClientDatabase(mount, this.indexKey, this.options);
-          break;
         case 'cache':
           return new ClientCache(mount, this.indexKey, this.options);
-          break;
       }
     },
 
     clear: function() {
-        this._store.forEach( function(el, key) {
+        this._store.forEach( function(el) {
             el.clear();
         })
         this._store.clear();
     },
 
     place: function(data) {
-        for (var mount in data) {
+        for (let mount in data) {
             this.add(mount);
             try {
               this._store.get(mount).set(data[mount]);
@@ -61,7 +58,7 @@ if (!(self.Promise && self.Promise.all)) {
     },
 
     delete: function(data) {
-        for (var mount in data) {
+        for (let mount in data) {
             this.add(mount);
             try {
               this._store.get(mount).delete(data[mount]);
@@ -72,15 +69,15 @@ if (!(self.Promise && self.Promise.all)) {
     },
 
     request: function(args) {
-        var ret = {};
+        const ret = {};
 
-        return new Promise( function(resolve, reject) {
+        return new Promise( function(resolve) {
             if (args.mounts === undefined || !Array.isArray(args.mounts)) {
                 this._store.forEach(function(el, key) {
-                    ret[v] = el.get(args.start, args.end, args.length);
+                    ret[key] = el.get(args.start, args.end, args.length);
                 })
             } else {
-                for (var i = 0; i < args.mounts.length; i++) {
+                for (let i = 0; i < args.mounts.length; i++) {
                     ret[args.mounts[i]] = [];
                     if (this._store.has(args.mounts[i])) {
                         ret[args.mounts[i]] = this._store.get(args.mounts[i])
@@ -107,20 +104,20 @@ if (!(self.Promise && self.Promise.all)) {
 
     range: function(opts) {
       if (opts.key) {
-          return new Promise( function(resolve, reject) {
+          return new Promise( function(resolve) {
               resolve([this.min(opts), this.max(opts)]);
           }.bind(this));
       } else {
-          return new Promise( function(resolve, reject) {
+          return new Promise( function(resolve) {
               resolve([this.first(opts), this.last(opts)]);
           }.bind(this));
       }
     },
 
     _operation: function(func, compareFn, key, mounts) {
-        var ret = [];
+        const ret = [];
         if (Array.isArray(mounts)) {
-          for (var i = 0; i < mounts.length; i++) {
+          for (let i = 0; i < mounts.length; i++) {
               if (this._store.has(mounts[i])) {
                   ret.push(this._store.get(mounts[i])[func](key));
               }
@@ -139,10 +136,10 @@ if (!(self.Promise && self.Promise.all)) {
     },
 
     _max: function(array) { // inspired by d3.array
-        var i = -1,
+        let i = -1,
             a,
             b;
-        var n = array.length;
+        const n = array.length;
 
         while (++i < n)
             if ((b = array[i]) !== null && b >= b) {
@@ -156,10 +153,10 @@ if (!(self.Promise && self.Promise.all)) {
     },
 
     _min: function(array) { // inspired by d3.array
-        var i = -1,
+        let i = -1,
             a,
             b;
-        var n = array.length;
+        const n = array.length;
 
         while (++i < n)
             if ((b = array[i]) !== null && b >= b) {
