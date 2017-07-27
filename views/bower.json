@@ -26,13 +26,10 @@
     "datetime-picker": "fooloomanzoo/datetime-picker",
     "fetch": "*",
     "es6-promise": "*",
-    "webcomponentsjs": "webcomponentsjs#1.0.1"
-  },
-  "devDependencies": {
-    "web-component-tester": "^6.0.0-prerelease.6"
+    "webcomponentsjs": "webcomponentsjs#1.0.4"
   },
   "resolutions": {
     "polymer": "1.9 - 2",
-    "webcomponentsjs": "^v1.0.1"
+    "webcomponentsjs": "^v1.0.4"
   }
 }

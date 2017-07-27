@@ -924,12 +924,12 @@
           const formatX = this._computeFormatFn.call(d.g, d.g.scalingX, d.g.scaleBaseX),
             formatY = this._computeFormatFn.call(d.g, d.g.scalingY, d.g.scaleBaseY),
             fixP = this._fixedValue;
-          this._info.text(formatX(d.x) + ' ' + formatY(d.y));
+          this._info.text(formatX(d.x) + ' ' + formatY(d.y) + ' ' + (d.g.item.unit || ''));
           if (fixP) {
             const diffX = Math.abs(fixP.x - d.x),
               diffY = Math.abs(fixP.y - d.y);
-            this._infoDeltaX.text((this.scalingX === 'time' ? d.g.formatTimeAbsolute : formatX)(diffX));
-            this._infoDeltaY.text((this.scalingY === 'time' ? d.g.formatTimeAbsolute : formatY)(diffY));
+            this._infoDeltaX.text((d.g.scalingX === 'time' ? d.g.formatTimeAbsolute : formatX)(diffX));
+            this._infoDeltaY.text((d.g.scalingY === 'time' ? d.g.formatTimeAbsolute : formatY)(diffY));
           }
           this._updateInfo();
         }
