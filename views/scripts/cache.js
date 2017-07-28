@@ -140,5 +140,7 @@
 	}
 	if (self) {
 		self.ClientCache = ClientCache;
-	}
+	} else if (window) {
+    window.ClientCache = ClientCache;
+  }
 })();

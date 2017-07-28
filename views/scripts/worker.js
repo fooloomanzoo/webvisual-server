@@ -2,7 +2,7 @@ try {
 	importScripts('/socket.io/socket.io.js');
 	importScripts('/polyfills/polyfills.js');
 	importScripts('/scripts/store.js');
-	if (!(self.Promise && self.Promise.all)) {
+	if (self && !(self.Promise && self.Promise.all)) {
 		importScripts('/bower_components/es6-promise/es6-promise.auto.min.js');
 	}
 } catch (e) {
