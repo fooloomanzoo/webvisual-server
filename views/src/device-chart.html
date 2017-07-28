@@ -224,7 +224,7 @@
     </style>
 
     <div id="svgContainer">
-      <svg id="svg" version="1.1" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" on-click="_closeControl">
+      <svg id="svg" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="xMinYMin meet" on-click="_save">
         <defs>
           <marker id="arrowToLeft" viewBox="0 0 20 10" refX="0" refY="5" markerWidth="8" markerHeight="8" orient="auto">
             <path d="M 20,0 L 0,5 L 20,10 Z" />
@@ -317,8 +317,8 @@
       <template is="dom-repeat" items="[[items]]">
         <device-graph item="[[item]]" interpolation="[[interpolation]]" locale-date="[[localeDate]]" locale-number=[[localeNumber]] range-x=[[rangeX]] range-y=[[rangeY]] no-link="[[!opened]]" scaling-y="[[scalingY]]" scaling-x="[[scalingX]]"></device-graph>
       </template>
-    </template>
-    <template is="dom-if" if="[[!multi]]" restamp>
+  </template>
+  <template is="dom-if" if="[[!multi]]" restamp>
       <device-graph item="[[item]]" interpolation="[[interpolation]]" locale-date="[[localeDate]]" locale-number=[[localeNumber]] range-x=[[rangeX]] range-y=[[rangeY]] no-link="[[!opened]]" scaling-y="[[scalingY]]" scaling-x="[[scalingX]]"></device-graph>
     </template>
   </template>
@@ -449,9 +449,9 @@
         this._boundery = d3.select(this.$.boundery);
 
         this.axisX = this._computeAxisNode(this._axisInsertionPoint, this.axisOrientX, '', this.axisX)
-                        .attr('hidden', (this.multiAxesX) ? true: null);
+          .attr('hidden', (this.multiAxesX) ? true : null);
         this.axisY = this._computeAxisNode(this._axisInsertionPoint, this.axisOrientY, '', this.axisY)
-                        .attr('hidden', (this.multiAxesY) ? true: null);
+          .attr('hidden', (this.multiAxesY) ? true : null);
         this.axisGeneratorX = this._computeAxisGenerator(this.axisOrientX, this.scaleX, this.scalingX, this.scaleBaseX);
         this.axisGeneratorY = this._computeAxisGenerator(this.axisOrientY, this.scaleY, this.scalingY, this.scaleBaseY);
 
@@ -483,11 +483,11 @@
         this._deltaDot = d3.select(this.$.deltaDot);
 
         this._zoomBehavior = d3.zoom()
-              .scaleExtent([0.95, Infinity])
-              .on("zoom", this._onZoomed.bind(this));
+          .scaleExtent([0.95, Infinity])
+          .on("zoom", this._onZoomed.bind(this));
 
         this._zoom = d3.select(this.$.zoom)
-                      .call(this._zoomBehavior);
+          .call(this._zoomBehavior);
 
         this._zoom
           .on('mouseenter touchstart', this._showInfo.bind(this), {
@@ -500,7 +500,7 @@
           })
           .on('mousemove', () => {
             const m = d3.mouse(this._chart.node());
-            requestAnimationFrame( () => {
+            requestAnimationFrame(() => {
               let closestGraph, closestPoint, closestDistance, fill;
               this._graphs.forEach(g => {
                 if (g.values && g.values.length) {
@@ -518,9 +518,11 @@
                 if (closestGraph.item.threshold) {
                   switch (closestPoint.state) {
                     case 1:
-                      fill = closestGraph.getComputedStyleValue('--device-state-exceeds-color') || '#F20C0C'; break;
+                      fill = closestGraph.getComputedStyleValue('--device-state-exceeds-color') || '#F20C0C';
+                      break;
                     case -1:
-                      fill = closestGraph.getComputedStyleValue('--device-state-deceeds-color') || '#F20C0C'; break;
+                      fill = closestGraph.getComputedStyleValue('--device-state-deceeds-color') || '#F20C0C';
+                      break;
                   }
                 }
                 this._focusedValue = closestPoint;
@@ -594,9 +596,10 @@
         this._chart._bottom = 1;
         this._chart._left = -2;
         let size;
-        const q = [], p = [];
+        const q = [],
+          p = [];
 
-        this._graphs.forEach( g => {
+        this._graphs.forEach(g => {
           if (g._isAttached) {
             let size;
             if (!g.axisX.attr('hidden')) {
@@ -624,15 +627,21 @@
           this._height = Math.abs(bRect.height - Math.abs(this._chart._bottom || 0) - Math.abs(this._chart._top || 0));
 
           this.set('rangeX', [0, this._width]);
-          this.set('rangeY', [this._height,0]);
+          this.set('rangeY', [this._height, 0]);
 
           this._zoom.attr('height', this._height).attr('width', this._width);
           this._zoomBehavior
-            .translateExtent([[0, 0], [this._width, this._height]])
-            .extent([[0, 0], [this._width, this._height]])
+            .translateExtent([
+              [0, 0],
+              [this._width, this._height]
+            ])
+            .extent([
+              [0, 0],
+              [this._width, this._height]
+            ])
           // this._zoom.call(this._zoomBehavior.transform, d3.zoomIdentity);
 
-          this._graphs.forEach( g => {
+          this._graphs.forEach(g => {
             if (g._isAttached) {
               if (!g.axisX.attr('hidden')) {
                 p.push(this._finalizeAxisPosition(g.axisX, g.axisOrientX, this._width, this._height));
@@ -665,16 +674,18 @@
             this._chart.transition(100).attr('transform', 'translate(' + (-this._chart._left || 0) + ',' + (-this._chart._top || 0) + ')');
             this._focusY.attr('y1', this._height);
 
-            this._graphs.forEach( g => {
+            this._graphs.forEach(g => {
               if (g._isAttached) {
                 if (!g.axisX.attr('hidden')) {
-                  g.axisGeneratorX = g._computeAxisGenerator.call(g, g.axisOrientX, g.scaleX, g.scalingX, g.scaleBaseX).ticks(g.ticksX).tickSize(g.tickSize).tickFormat(g.axisX.classed('expanded') ? g._computeFormatFn(g.scalingX, g.scaleBaseX) : '');
+                  g.axisGeneratorX = g._computeAxisGenerator.call(g, g.axisOrientX, g.scaleX, g.scalingX, g.scaleBaseX).ticks(g.ticksX).tickSize(g.tickSize).tickFormat(g.axisX.classed('expanded') ? g._computeFormatFn(g.scalingX, g.scaleBaseX) :
+                    '');
                   g._updateAxisBrushGenerator.call(g.axisBrushGeneratorX, this.rangeX, g.axisOrientX);
                   g.axisX.select('.brush').raise().call(g.axisBrushGeneratorX);
                   g.axisX.attr('transform', 'translate(' + (g.axisX._left || 0) + ',' + (g.axisX._top || 0) + ')');
                 }
                 if (!g.axisY.attr('hidden')) {
-                  g.axisGeneratorY = g._computeAxisGenerator.call(g, g.axisOrientY, g.scaleY, g.scalingY, g.scaleBaseY).ticks(g.ticksY).tickSize(g.tickSize).tickFormat(g.axisY.classed('expanded') ? g._computeFormatFn(g.scalingY, g.scaleBaseY) : '');
+                  g.axisGeneratorY = g._computeAxisGenerator.call(g, g.axisOrientY, g.scaleY, g.scalingY, g.scaleBaseY).ticks(g.ticksY).tickSize(g.tickSize).tickFormat(g.axisY.classed('expanded') ? g._computeFormatFn(g.scalingY, g.scaleBaseY) :
+                    '');
                   g._updateAxisBrushGenerator.call(g.axisBrushGeneratorY, this.rangeY, g.axisOrientY);
                   g.axisY.select('.brush').raise().call(g.axisBrushGeneratorY);
                   g.axisY.attr('transform', 'translate(' + (g.axisY._left || 0) + ',' + (g.axisY._top || 0) + ')');
@@ -683,13 +694,15 @@
             })
 
             if (!this.axisX.attr('hidden')) {
-              this.axisGeneratorX = this._computeAxisGenerator(this.axisOrientX, this.scaleX, this.scalingX, this.scaleBaseX).ticks(this.ticksX).tickSize(this.tickSize).tickFormat(this.axisX.classed('expanded') ? this._computeFormatFn(this.scalingX, this.scaleBaseX) : '');
+              this.axisGeneratorX = this._computeAxisGenerator(this.axisOrientX, this.scaleX, this.scalingX, this.scaleBaseX).ticks(this.ticksX).tickSize(this.tickSize).tickFormat(this.axisX.classed('expanded') ? this._computeFormatFn(
+                this.scalingX, this.scaleBaseX) : '');
               this._updateAxisBrushGenerator.call(this.axisBrushGeneratorX, this.rangeX, this.axisOrientX);
               this.axisX.select('.brush').raise().call(this.axisBrushGeneratorX);
               this.axisX.attr('transform', 'translate(' + (this.axisX._left || 0) + ',' + (this.axisX._top || 0) + ')');
             }
             if (!this.axisY.attr('hidden')) {
-              this.axisGeneratorY = this._computeAxisGenerator(this.axisOrientY, this.scaleY, this.scalingY, this.scaleBaseY).ticks(this.ticksY).tickSize(this.tickSize).tickFormat(this.axisY.classed('expanded') ? this._computeFormatFn(this.scalingY, this.scaleBaseY) : '');
+              this.axisGeneratorY = this._computeAxisGenerator(this.axisOrientY, this.scaleY, this.scalingY, this.scaleBaseY).ticks(this.ticksY).tickSize(this.tickSize).tickFormat(this.axisY.classed('expanded') ? this._computeFormatFn(
+                this.scalingY, this.scaleBaseY) : '');
               this._updateAxisBrushGenerator.call(this.axisBrushGeneratorY, this.rangeY, this.axisOrientY);
               this.axisY.select('.brush').raise().call(this.axisBrushGeneratorY);
               this.axisY.attr('transform', 'translate(' + (this.axisY._left || 0) + ',' + (this.axisY._top || 0) + ')');
@@ -699,7 +712,11 @@
               .classed('style-scope device-chart', true)
               .classed('device-chart', true);
 
-            if (!this.domainX || !this.domainY || this.domainX.some(e => { return e === undefined || e === null; }) || this.domainY.some(e => { return e === undefined || e === null; })) {
+            if (!this.domainX || !this.domainY || this.domainX.some(e => {
+                return e === undefined || e === null;
+              }) || this.domainY.some(e => {
+                return e === undefined || e === null;
+              })) {
               this.redraw(true);
             } else {
               this.redraw();
@@ -739,7 +756,8 @@
       _finalizeAxisPosition(node, orient, width, height) {
         node._left += node._right;
         node._top += node._bottom;
-        node._bottom = 0; node._right = 0;
+        node._bottom = 0;
+        node._right = 0;
         if (orient === 'right') {
           node._left += width;
         } else if (orient === 'bottom') {
@@ -785,7 +803,7 @@
             this.axisY.transition(100).attr('transform', 'translate(' + (this.axisY._left || 0) + ',' + (this.axisY._top || 0) + ')').call(this.axisGeneratorY);
           }
 
-          this._graphs.forEach( g => {
+          this._graphs.forEach(g => {
             if (g._isAttached) {
               if (!g.axisX.attr('hidden')) {
                 g.axisX.transition(100).attr('transform', 'translate(' + (g.axisX._left || 0) + ',' + (g.axisX._top || 0) + ')').call(g.axisGeneratorX);
@@ -812,7 +830,7 @@
       _multiAxesChanged(multiAxesX, multiAxesY) {
         if (!this._isAttached) return;
         let hidden;
-        this._graphs.forEach( g => {
+        this._graphs.forEach(g => {
           if (g._isAttached) {
             hidden = multiAxesX ? null : true;
             g.axisX.attr('hidden', hidden);
@@ -838,8 +856,8 @@
       _removeGraph(g) {
         this._graphs.delete(g);
         if (this._graphs.size === 0) {
-          this.set('domainX', [null,null])
-          this.set('domainY', [null,null])
+          this.set('domainX', [null, null])
+          this.set('domainY', [null, null])
         }
         g = null;
         this._fixedValue = null;
@@ -850,10 +868,11 @@
       _getDomain() {
         // console.log('_getDomain');
         return new Promise((resolve, reject) => {
-          const p = [], q = [];
-          this._graphs.forEach( g => {
-            p.push( g._getDomain('x', this.multiAxesX) )
-            q.push( g._getDomain('y', this.multiAxesY) )
+          const p = [],
+            q = [];
+          this._graphs.forEach(g => {
+            p.push(g._getDomain('x', this.multiAxesX))
+            q.push(g._getDomain('y', this.multiAxesY))
           })
           Promise.all(p)
             .then(res => {
@@ -869,7 +888,7 @@
               this.set('domainX', domain);
               this.scaleX.domain(domain);
               if (this.multiAxesX === false) {
-                this._graphs.forEach( g => {
+                this._graphs.forEach(g => {
                   g.axisX._isBrushed = false;
                   g.set('domainX', domain);
                   g.scaleX.domain(domain);
@@ -888,7 +907,7 @@
                   domain = [min, max];
                   this.set('domainY', domain);
                   if (this.multiAxesY === false) {
-                    this._graphs.forEach( g => {
+                    this._graphs.forEach(g => {
                       g.axisY._isBrushed = false;
                       g.set('domainY', domain);
                     })
@@ -898,22 +917,22 @@
                 .catch(error => {
                   reject(error);
                 })
-              })
-              .catch(error => {
-                reject(error);
-              });
+            })
+            .catch(error => {
+              reject(error);
+            });
         });
       }
 
       insertValues(data) {
-        this._graphs.forEach( g => {
+        this._graphs.forEach(g => {
           if (g && g._isAttached && g.item && g.item.mount && data[g.item.mount])
             g.insertValues(data[g.item.mount]);
         })
       }
 
       clearValues() {
-        this._graphs.forEach( g => {
+        this._graphs.forEach(g => {
           if (g && g._isAttached)
             g.clearValues();
         })
@@ -1033,17 +1052,22 @@
           limitBottom = marginBottom;
         switch (anchor) { // list is not complete!
           case 'middle':
-            limitLeft += (bbox.width / 2); break;
+            limitLeft += (bbox.width / 2);
+            break;
           case 'end ':
-            limitLeft += bbox.width; break;
+            limitLeft += bbox.width;
+            break;
         }
         switch (alignment) { // list is not complete!
           case 'ideographic':
-            limitBottom += bbox.height; break;
+            limitBottom += bbox.height;
+            break;
           case 'middle':
-            limitBottom += (bbox.height / 2); break;
+            limitBottom += (bbox.height / 2);
+            break;
           case 'hanging':
-            limitBottom -= bbox.height; break;
+            limitBottom -= bbox.height;
+            break;
         }
 
         if (y - limitBottom <= 0) { // above top
@@ -1087,8 +1111,8 @@
         let x, y, scale;
         switch (this.modus) {
           case 'zoom':
-            x = d.g.scaleX(+d.x) - this._width/6;
-            y = (d.g.scaleY(+d.y) || 0) - this._height/6;
+            x = d.g.scaleX(+d.x) - this._width / 6;
+            y = (d.g.scaleY(+d.y) || 0) - this._height / 6;
             scale = oldzoom.k * 3;
             y = (oldzoom.y - y) / oldzoom.k;
             x = (oldzoom.x - x) / oldzoom.k;
@@ -1124,7 +1148,7 @@
       }
 
       changeInterpolation(interpolation) {
-        this._graphs.forEach( g => {
+        this._graphs.forEach(g => {
           if (g && g._isAttached)
             g.set('interpolation', interpolation);
         })
@@ -1143,7 +1167,9 @@
         const vertical = (key === 'y');
         let domain, oldzoom, scale, y, x;
         if (vertical) {
-          domain = s.map(this.scaleY.invert, this.scaleY).sort((a, b) => { return a > b});
+          domain = s.map(this.scaleY.invert, this.scaleY).sort((a, b) => {
+            return a > b
+          });
           this._graphs.forEach(g => {
             g.scaleY.domain(domain).nice();
             g.axisGeneratorY.scale(g.scaleY);
@@ -1154,13 +1180,15 @@
           this.axisY.select(".brush").call(this.axisBrushGeneratorY.move, null);
           oldzoom = this._zoom.node().__zoom;
           scale = oldzoom.k * this._height / (s[1] - s[0]);
-          y = (oldzoom.y - s[0])/ oldzoom.k;
+          y = (oldzoom.y - s[0]) / oldzoom.k;
           this._zoom.transition().duration(300).call(this._zoomBehavior.transform, d3.zoomIdentity
             .scale(scale)
             .translate(0, y));
         }
         if (!vertical) {
-          domain = s.map(this.scaleX.invert, this.scaleX).sort((a, b) => { return a > b});
+          domain = s.map(this.scaleX.invert, this.scaleX).sort((a, b) => {
+            return a > b
+          });
           this._graphs.forEach(g => {
             g.scaleX.domain(domain);
             g.axisGeneratorX.scale(g.scaleX);
@@ -1171,7 +1199,7 @@
           this.axisX.select(".brush").call(this.axisBrushGeneratorX.move, null);
           oldzoom = this._zoom.node().__zoom;
           scale = oldzoom.k * this._width / (s[1] - s[0]);
-          x = (oldzoom.x - s[0])/ oldzoom.k;
+          x = (oldzoom.x - s[0]) / oldzoom.k;
           this._zoom.transition().duration(300).call(this._zoomBehavior.transform, d3.zoomIdentity
             .scale(scale)
             .translate(x, 0));
@@ -1261,6 +1289,81 @@
         })
         this._hideInfo();
         this._redomain();
+      }
+
+      _save() {
+        // https://stackoverflow.com/questions/28226677/save-inline-svg-as-jpeg-png-svg
+        // https://stackoverflow.com/questions/15181452/how-to-save-export-inline-svg-styled-with-css-from-browser-to-image-file
+        const ContainerElements = ['svg', 'g'];
+        const RelevantStyles = {
+          'rect': ['fill', 'stroke', 'stroke-width'],
+          'path': ['fill', 'stroke', 'stroke-width'],
+          'circle': ['fill', 'stroke', 'stroke-width'],
+          'line': ['stroke', 'stroke-width'],
+          'text': ['fill', 'font-size', 'text-anchor', 'alignment-baseline']
+        };
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const svg = this.$.svg.cloneNode(true);
+        svg.setAttribute('height', this._height);
+        svg.setAttribute('width', this._width);
+        applyStyleToElement(svg, this.$.svg);
+
+        const data = (new XMLSerializer()).serializeToString(svg);
+        console.log(data);
+        const DOMURL = window.URL || window.webkitURL || window;
+        const img = new Image();
+        const svgBlob = new Blob([data], {
+          type: 'image/svg+xml;charset=utf-8'
+        });
+        const url = DOMURL.createObjectURL(svgBlob);
+
+        function applyStyleToElement(parent, orig) {
+          const children = parent.childNodes;
+          const origChildren = orig.childNodes;
+
+          for (let i = 0; i < children.length; i++) {
+            const child = children[i];
+            const tag = child.tagName;
+            if (ContainerElements.indexOf(tag) != -1) {
+              applyStyleToElement(child, origChildren[i])
+            } else if (tag in RelevantStyles) {
+              const StyleDef = window.getComputedStyle(origChildren[i]);
+
+              let StyleString = "";
+              for (let j = 0; j < RelevantStyles[tag].length; j++) {
+                StyleString += RelevantStyles[tag][j] + ":" + StyleDef.getPropertyValue(RelevantStyles[tag][j]) + "; ";
+              }
+              child.setAttribute("style", StyleString);
+            }
+          }
+        }
+        img.onload = () => {
+          ctx.drawImage(img, 0, 0, this._width, this._height);
+          DOMURL.revokeObjectURL(url);
+
+          const imgURI = canvas
+            .toDataURL('image/svg');
+
+          this._triggerDownload(imgURI);
+        };
+
+        img.src = url;
+      }
+
+      _triggerDownload(imgURI) {
+        const evt = new MouseEvent('click', {
+          view: window,
+          bubbles: false,
+          cancelable: true
+        });
+
+        const a = document.createElement('a');
+        a.setAttribute('download', (location.href).replace(/ids|room|:\/\/|https|http/gi, '').replace(/[$-/:-?{-~!"^=&\\_`\[\]]/gi, '+').replace(/\+\+/gi, '+') + '.png');
+        a.setAttribute('href', imgURI);
+        a.setAttribute('target', '_blank');
+
+        a.dispatchEvent(evt);
       }
       // _refresh() {
       //   this._buildLayout();
