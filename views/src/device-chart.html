@@ -61,13 +61,14 @@
         stroke: #000;
         stroke-width: 0.2;
         stroke-opacity: 0.2;
-        font-size: 1em;
+        font-size: 1.2em !important;
         letter-spacing: -0.0125em;
         font-family: inherit !important;
         -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
       }
       text.info {
         fill: var(--primary-text-color);
+        pointer-events: none;
       }
       rect#plot {
         fill: var(--chart-plot-background-color, #fff);
@@ -78,8 +79,9 @@
         isolation: isolate;
       }
       .grid .tick line {
-        stroke: currentColor;
-        stroke-opacity: 0.15;
+        color: var(--grid-color, currentColor);
+        stroke-opacity: 0.1;
+        stroke-width: 0.75px;
         mix-blend-mode: exclusion;
       }
       .grid path {
@@ -180,10 +182,6 @@
       .selectbox {
         padding: 0;
       }
-      .info {
-        font-size: 12px;
-        pointer-events: none;
-      }
       #control {
         position: absolute;
         bottom: var(--control-bottom, 0px);
@@ -214,6 +212,7 @@
         right: var(--control-right, 0px);
         display: flex;
         flex-direction: column;
+        pointer-events: all;
       }
       .selectbox > select {
         opacity: 1;
@@ -224,7 +223,7 @@
     </style>
 
     <div id="svgContainer">
-      <svg id="svg" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="xMinYMin meet" on-click="_closeControl">
+      <svg id="svg" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="xMidYMid meet">
         <defs>
           <marker id="arrowToLeft" viewBox="0 0 20 10" refX="0" refY="5" markerWidth="8" markerHeight="8" orient="auto">
             <path d="M 20,0 L 0,5 L 20,10 Z" />
@@ -242,13 +241,15 @@
               operator="over" />
           </filter>
         </defs>
-        <g id="chart">
+        <g id="chart" on-click="_closeControl">
           <clipPath id="clip">
             <rect x="0" y="0"></rect>
           </clipPath>
           <rect id="plot" clip-path="url(#clip)"></rect>
-          <!-- <g id="xGrid" class="grid" clip-path="url(#clip)"></g> -->
-          <!-- <g id="yGrid" class="grid" clip-path="url(#clip)"></g> -->
+          <g class="grid" clip-path="url(#clip)">
+            <g id="gridX"></g>
+            <g id="gridY"></g>
+          </g>
           <g id="graphs" clip-path="url(#clip)">
             <g id="area"></g>
             <g id="line"></g>
@@ -266,9 +267,11 @@
             <circle id="focusDot" class="dot"></circle>
           </g>
           <g id="axis"></g>
-          <text id="info" class="focus info" x="0" y="0" filter="url(#solid)" hidden></text>
-          <text id="infoDeltaX" class="delta info" x="0" y="0" filter="url(#solid)" hidden></text>
-          <text id="infoDeltaY" class="delta info" x="0" y="0" filter="url(#solid)" hidden></text>
+          <g font-size="10">
+            <text id="info" class="focus info" x="0" y="0" filter="url(#solid)" hidden></text>
+            <text id="infoDeltaX" class="delta info" x="0" y="0" filter="url(#solid)" hidden></text>
+            <text id="infoDeltaY" class="delta info" x="0" y="0" filter="url(#solid)" hidden></text>
+          </g>
         </g>
       </svg>
 
@@ -306,7 +309,9 @@
         <div class="checkbox">
           <input type="checkbox" name="multiY" checked="{{multiAxesY::change}}">mehrere y-Achsen
         </div>
-        <button type="button" name="button" on-click="_save">speichern</button>
+        <div class="button" on-click="_save">
+          <iron-icon style="margin-right:0.5em;" icon="file-download"></iron-icon>Download
+        </div>
       </iron-collapse>
       <section id="control">
         <icon-button title="settings" icon="tune" checked="{{showControl}}"></icon-button>
@@ -318,11 +323,11 @@
       <template is="dom-repeat" items="[[items]]">
         <device-graph item="[[item]]" interpolation="[[interpolation]]" locale-date="[[localeDate]]" locale-number=[[localeNumber]] range-x=[[rangeX]] range-y=[[rangeY]] no-link="[[!opened]]" scaling-y="[[scalingY]]" scaling-x="[[scalingX]]"></device-graph>
       </template>
-  </template>
-  <template is="dom-if" if="[[!multi]]" restamp>
-      <device-graph item="[[item]]" interpolation="[[interpolation]]" locale-date="[[localeDate]]" locale-number=[[localeNumber]] range-x=[[rangeX]] range-y=[[rangeY]] no-link="[[!opened]]" scaling-y="[[scalingY]]" scaling-x="[[scalingX]]"></device-graph>
     </template>
-  </template>
+    <template is="dom-if" if="[[!multi]]" restamp>
+        <device-graph item="[[item]]" interpolation="[[interpolation]]" locale-date="[[localeDate]]" locale-number=[[localeNumber]] range-x=[[rangeX]] range-y=[[rangeY]] no-link="[[!opened]]" scaling-y="[[scalingY]]" scaling-x="[[scalingX]]"></device-graph>
+      </template>
+    </template>
   <script>
     class DeviceChart extends Polymer.mixinBehaviors(
       [Polymer.IronResizableBehavior], WebvisualMixins.AxesMixin(WebvisualMixins.FullscreenMixin(WebvisualMixins.LocalizeMixin(Polymer.Element)))) {
@@ -338,9 +343,9 @@
             type: Boolean
           },
 
-          gridMult: {
-            type: Number,
-            value: 2
+          hasGrid: {
+            type: Boolean,
+            value: true
           },
 
           multiAxesX: {
@@ -410,8 +415,8 @@
 
       static get observers() {
         return [
-          "_localizeChanged(localize)",
-          "_multiAxesChanged(multiAxesX, multiAxesY)",
+          '_localizeChanged(localize)',
+          '_multiAxesChanged(multiAxesX, multiAxesY)',
         ]
       }
 
@@ -449,10 +454,15 @@
         this._line = d3.select(this.$.line);
         this._boundery = d3.select(this.$.boundery);
 
+        this.gridX = d3.select(this.$.gridX);
+        this.gridY = d3.select(this.$.gridY);
+
         this.axisX = this._computeAxisNode(this._axisInsertionPoint, this.axisOrientX, '', this.axisX)
-          .attr('hidden', (this.multiAxesX) ? true : null);
+          .classed('main', true)
+          .attr('hidden', this.multiAxesX ? true : null);
         this.axisY = this._computeAxisNode(this._axisInsertionPoint, this.axisOrientY, '', this.axisY)
-          .attr('hidden', (this.multiAxesY) ? true : null);
+          .classed('main', true)
+          .attr('hidden', this.multiAxesY ? true : null);
         this.axisGeneratorX = this._computeAxisGenerator(this.axisOrientX, this.scaleX, this.scalingX, this.scaleBaseX);
         this.axisGeneratorY = this._computeAxisGenerator(this.axisOrientY, this.scaleY, this.scalingY, this.scaleBaseY);
 
@@ -544,8 +554,7 @@
           });
 
         this._svg.selectAll('g,line,text,path,rect')
-          .classed('style-scope', true)
-          .classed('device-chart', true);
+          .classed('style-scope', true).classed('device-chart', true);
 
         this._isAttached = true;
 
@@ -570,7 +579,7 @@
         if (this._activeSizeJob) {
           cancelAnimationFrame(this._activeSizeJob);
         }
-        this._activeSizeJob = requestAnimationFrame(() => {
+        this._activeSizeJob = setTimeout(() => {
           this.sizeLayout();
         }, 0);
       }
@@ -580,7 +589,8 @@
         const bRect = this.$.svg.getBoundingClientRect();
 
         if (this._activeSizeJob) {
-          cancelAnimationFrame(this._activeSizeJob);
+          clearTimeout(this._activeSizeJob);
+          this._activeSizeJob = null;
         }
 
         if (bRect.height === 0 || bRect.width === 0) {
@@ -592,10 +602,10 @@
 
         this._debouncedHideInfo();
 
-        this._chart._top = -2;
-        this._chart._right = 1;
-        this._chart._bottom = 1;
-        this._chart._left = -2;
+        this._chart._top = 0;
+        this._chart._right = 0;
+        this._chart._bottom = 0;
+        this._chart._left = 0;
         let size;
         const q = [],
           p = [];
@@ -660,9 +670,6 @@
           }
 
           Promise.all(p).then(() => {
-            this._control.transition(100).style('transform', 'translate(' + (-this._chart._right) + 'px,' + (-this._chart._bottom) + 'px)');
-            this._controlcontent.transition(100).style('transform', 'translate(' + (-this._chart._right) + 'px,' + (-this._chart._top) + 'px)');
-
             // Limiting Projection to Margin
             this._chart.select('clipPath#clip rect').transition(100)
               .attr('width', this._width)
@@ -710,8 +717,10 @@
             }
 
             this._svg.selectAll('g,line,text,path,rect')
-              .classed('style-scope device-chart', true)
-              .classed('device-chart', true);
+              .classed('style-scope', true).classed('device-chart', true);
+
+            this._control.transition(100).style('transform', 'translate(' + (-this._chart._right) + 'px,' + (-this._chart._bottom) + 'px)');
+            this._controlcontent.transition(100).style('transform', 'translate(' + (-this._chart._right) + 'px,' + (-this._chart._top) + 'px)');
 
             if (!this.domainX || !this.domainY || this.domainX.some(e => {
                 return e === undefined || e === null;
@@ -767,6 +776,42 @@
         return true;
       }
 
+      _generateGrid() {
+        if (this._gridBuildJob) {
+          clearTimeout(this._gridBuildJob);
+        }
+        this._gridBuildJob = setTimeout(() => {
+          if (this.hasGrid && (!this.multiAxesY || this._graphs.size <= 1)) {
+            this.gridGeneratorY = d3.axisLeft(this.scaleY)
+                    .ticks((this.ticksY * 2) || 10)
+                    .tickSize(-this._width)
+                    .tickFormat('');
+            this.gridY.call(this.gridGeneratorY)
+                    .attr('font-family', null)
+                    .attr('font-size', null)
+                    .attr('text-anchor', null)
+            this.gridY.attr('hidden', null);
+          } else {
+            this.gridY.attr('hidden', true);
+          }
+          if (this.hasGrid && (!this.multiAxesX || this._graphs.size <= 1)) {
+            this.gridGeneratorX = d3.axisBottom(this.scaleX)
+                    .ticks((this.ticksX * 2) || 10)
+                    .tickSize(this._height)
+                    .tickFormat('');
+            this.gridX.call(this.gridGeneratorX)
+                    .attr('font-family', null)
+                    .attr('font-size', null)
+                    .attr('text-anchor', null);
+            this.gridX.attr('hidden', null);
+            this.gridX.call(this.gridGeneratorX.scale(this.scaleX));
+          } else {
+            this.gridX.attr('hidden', true);
+          }
+          this._gridBuildJob = null;
+        }, 0)
+      }
+
       _redomain() {
         if (!this._isAttached) return;
         if (this._activeRedrawJob) {
@@ -820,9 +865,9 @@
             }
           })
 
+          if (this.hasGrid) this._generateGrid();
           this._svg.selectAll('g,line,text,path,rect')
-            .classed('style-scope device-chart', true)
-            .classed('device-chart', true);
+            .classed('style-scope', true).classed('device-chart', true);
 
           this._updateInfo();
         }, 0);
@@ -846,6 +891,7 @@
         hidden = (!multiAxesY && !multiAxesX) ? true : null;
         this.axisX.select('.brush').attr('hidden', hidden);
         this.axisY.select('.brush').attr('hidden', hidden);
+        this._generateGrid();
         this._redomain();
         this.sizeChanged();
       }
@@ -944,7 +990,7 @@
           const formatX = this._computeFormatFn.call(d.g, d.g.scalingX, d.g.scaleBaseX),
             formatY = this._computeFormatFn.call(d.g, d.g.scalingY, d.g.scaleBaseY),
             fixP = this._fixedValue;
-          this._info.text(formatX(d.x) + ' ' + formatY(d.y) + ' ' + (d.g.item.unit || ''));
+          this._info.text(formatX(d.x) + ' ' + formatY(d.y) + ' ' + (d.g.item.unit || ''));
           if (fixP) {
             const diffX = Math.abs(fixP.x - d.x),
               diffY = Math.abs(fixP.y - d.y);
@@ -987,8 +1033,7 @@
         this._focus.attr('hidden', '');
         this._hideDelta();
         this._svg.selectAll('g,line,text,path,rect')
-          .classed('style-scope', true)
-          .classed('device-chart', true);
+          .classed('style-scope', true).classed('device-chart', true);
       }
 
       _hideDelta() {
@@ -1037,8 +1082,7 @@
         this._focusY.attr('y1', focP._top).attr('y2', y).attr('x2', x).attr('x1', x);
         this._focusDot.attr('cy', y).attr('cx', x);
         this._svg.selectAll('g,line,text,path,rect')
-          .classed('style-scope', true)
-          .classed('device-chart', true);
+          .classed('style-scope', true).classed('device-chart', true);
       }
 
       _alignText(node, x, y, marginLeft, marginBottom, textAnchor, alignmentBaseline) {
@@ -1126,10 +1170,10 @@
               this._fixedValue = d;
               this._deltaDot.datum(d)
                 .attr('cx', d => {
-                  return d.g.scaleX(d.x)
+                  return d.g.scaleX(d.x);
                 })
                 .attr('cy', d => {
-                  return d.g.scaleY(d.y)
+                  return d.g.scaleY(d.y);
                 })
                 .attr('r', this._focusDot.attr('r'))
                 .attr('fill', this._focusDot.attr('fill'));
@@ -1161,8 +1205,8 @@
           return;
         }
         if (!this.multiAxesY && !this.multiAxesX) {
-          if (key === 'x') this.axisX.select(".brush").call(this.axisBrushGeneratorX.move, null);
-          if (key === 'y') this.axisY.select(".brush").call(this.axisBrushGeneratorY.move, null);
+          if (key === 'x') this.axisX.select('.brush').call(this.axisBrushGeneratorX.move, null);
+          if (key === 'y') this.axisY.select('.brush').call(this.axisBrushGeneratorY.move, null);
           return; // TODO: zoomm does not work correctly if brushing on all combined axes
         }
         const vertical = (key === 'y');
@@ -1178,7 +1222,7 @@
           this.axisY._isBrushed = true;
           this.scaleY.domain(domain).nice();
           this.axisY.call(this.axisGeneratorY.scale(this.scaleY));
-          this.axisY.select(".brush").call(this.axisBrushGeneratorY.move, null);
+          this.axisY.select('.brush').call(this.axisBrushGeneratorY.move, null);
           oldzoom = this._zoom.node().__zoom;
           scale = oldzoom.k * this._height / (s[1] - s[0]);
           y = (oldzoom.y - s[0]) / oldzoom.k;
@@ -1197,7 +1241,7 @@
           this.axisX._isBrushed = true;
           this.scaleX.domain(domain);
           this.axisX.call(this.axisGeneratorX.scale(this.scaleX));
-          this.axisX.select(".brush").call(this.axisBrushGeneratorX.move, null);
+          this.axisX.select('.brush').call(this.axisBrushGeneratorX.move, null);
           oldzoom = this._zoom.node().__zoom;
           scale = oldzoom.k * this._width / (s[1] - s[0]);
           x = (oldzoom.x - s[0]) / oldzoom.k;
@@ -1211,7 +1255,7 @@
         this._updateInfo();
       }
       _onZoomed() {
-        if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") return; // ignore zoom-by-brush
+        if (d3.event.sourceEvent && d3.event.sourceEvent.type === 'brush') return; // ignore zoom-by-brush
         const t = d3.event.transform;
         if (!this.domainX || !this.domainY) {
           return;
@@ -1227,6 +1271,7 @@
           })
           this.scaleX.domain(domain);
           this.axisX.call(this.axisGeneratorX.scale(this.scaleX));
+          if (this.hasGrid) this.gridX.call(this.gridGeneratorX.scale(this.scaleX));
         }
         if (!this.multiAxesY) {
           domain = y.domain();
@@ -1235,7 +1280,8 @@
             g.axisGeneratorY.scale(g.scaleY);
           })
           this.scaleY.domain(domain);
-          this.axisY.call(this.axisGeneratorY.scale(y));
+          this.axisY.call(this.axisGeneratorY.scale(this.scaleY));
+          if (this.hasGrid) this.gridY.call(this.gridGeneratorY.scale(this.scaleY));
         }
         this._graphs.forEach(g => {
           g.redraw();
@@ -1292,31 +1338,43 @@
         this._redomain();
       }
 
-      _save() {
+      _save(format) {
+        // TODO: add a dialog with options: height, width, format, legend, legend-keys, areas
+        // format = 'png';
         // https://stackoverflow.com/questions/28226677/save-inline-svg-as-jpeg-png-svg
         // https://stackoverflow.com/questions/15181452/how-to-save-export-inline-svg-styled-with-css-from-browser-to-image-file
         const ContainerElements = ['svg', 'g'];
         const RelevantStyles = {
-          'rect': ['fill', 'stroke', 'strokeWidth', 'fillOpacity', 'display'],
-          'path': ['fill', 'stroke', 'strokeWidth', 'display'],
-          'circle': ['fill', 'stroke', 'fillOpacity', 'strokeWidth'],
+          'rect': ['fill', 'stroke', 'stroke-width', 'fill-opacity', 'display'],
+          'path': ['fill', 'stroke', 'stroke-width', 'display'],
+          'circle': ['fill', 'stroke', 'fill-opacity', 'stroke-width'],
           'line': ['stroke', 'stroke-width'],
-          'text': ['fill', 'font-size', 'textAnchor', 'alignmentBaseline', 'display']
+          'text': ['fill', 'font-size', 'text-anchor', 'alignment-baseline', 'display']
         };
 
         const svg = this.$.svg.cloneNode(true);
         applyStyleToElement(svg, this.$.svg);
-        let notneeded = svg.querySelectorAll('[hidden],.brush,#zoom,#focus');
-        Array.prototype.forEach.call(notneeded, el => {
+        Array.prototype.forEach.call(svg.querySelectorAll('[hidden],.brush,#zoom,#focus,.info'), el => {
           if (el && el.parentElement)
             el.parentElement.removeChild(el);
         })
-        svg.setAttribute('height', this._height);
-        svg.setAttribute('width', this._width);
+        svg.setAttribute('height', window.getComputedStyle(this.$.svg).getPropertyValue('height'));
+        svg.setAttribute('width', window.getComputedStyle(this.$.svg).getPropertyValue('width'));
+        svg.style.margin = '0px';
+        svg.style.padding = '8px';
+        svg.style.overflow = 'visible';
 
-        const data = (new XMLSerializer()).serializeToString(svg);
-        const blob = new Blob([data], {type:"image/svg+xml;charset=utf-8"});
-        const url = URL.createObjectURL(blob);
+        Array.prototype.forEach.call(svg.querySelectorAll('.axis.main text'), el => {
+          el.style.fill = '#111';
+        });
+        Array.prototype.forEach.call(svg.querySelectorAll('.domain'), el => {
+          el.style['fill-opacity'] = '0';
+        });
+        Array.prototype.forEach.call(svg.querySelectorAll('.grid line'), el => {
+          el.setAttribute('stroke-width', '0.5');
+          el.setAttribute('stroke-opacity', '0.15');
+          el.setAttribute('stroke', '#111');
+        });
 
         function applyStyleToElement(parent, orig) {
           const children = parent.childNodes;
@@ -1335,18 +1393,42 @@
             }
           }
         }
-        const evt = new MouseEvent('click', {
-          view: window,
-          bubbles: false,
-          cancelable: true
-        });
 
-        const a = document.createElement('a');
-        a.setAttribute('download', (location.href).replace(/ids|room|:\/\/|https|http/gi, '').replace(/[$-/:-?{-~!"^=&\\_`\[\]]/gi, '+').replace(/\+\+/gi, '+') + '.svg');
-        a.setAttribute('href', url);
-        a.setAttribute('target', '_blank');
+        const data = (new XMLSerializer()).serializeToString(svg);
+        const uri = (decodeURIComponent(location.href)).replace(/ids|room|:\/\/|https|http/gi, '').replace(/[$-/:-?{-~!"^=&_`]/gi, '+').replace(/\+\+/gi, '+');
 
-        a.dispatchEvent(evt);
+        if (format === 'png') {
+          const image = new Image();
+          image.src = 'data:image/svg+xml;base64,' + window.btoa(unescape(encodeURIComponent(data)));
+          image.onload = function() {
+            const canvas = document.createElement('canvas');
+            canvas.width = image.width + 16;
+            canvas.height = image.height + 16;
+            const context = canvas.getContext('2d');
+            context.drawImage(image, 0, 0);
+
+            const li = document.createElement('a');
+            li.download = uri + '.png';
+            li.href = canvas.toDataURL('image/png');
+            li.dispatchEvent(new MouseEvent('click', {
+              view: window,
+              bubbles: false,
+              cancelable: true
+            }));
+          }
+        } else { // save as svg
+          const blob = new Blob([data], {type:'image/svg+xml;charset=utf-8}'});
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.setAttribute('download', uri + '.svg');
+          a.setAttribute('href', url);
+          a.setAttribute('target', '_blank');
+          a.dispatchEvent(new MouseEvent('click', {
+            view: window,
+            bubbles: false,
+            cancelable: true
+          }));
+        }
       }
 
 

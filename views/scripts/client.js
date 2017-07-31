@@ -146,18 +146,21 @@ WebvisualClient.prototype = {
 	updateNodes: function(values, splices) {
 
 		// requestAnimationFrame( function() {
-		for (const mount in values) {
+		setTimeout(() => {
+      for (const mount in values) {
 
-			if (this.nodes.has(mount)) {
-				this.nodes.get(mount).forEach(function(node) {
-					node.spliceValues(splices[mount]);
-					node.insertValues(values[mount]);
-				});
-			}
+        if (this.nodes.has(mount)) {
+          this.nodes.get(mount).forEach(function(node) {
+            node.spliceValues(splices[mount]);
+            node.insertValues(values[mount]);
+          });
+        }
 
-			delete values[mount];
-			delete splices[mount];
-		}
+        delete values[mount];
+        delete splices[mount];
+      }
+		}, 0);
+
 		// }.bind(this));
 
 		// const nodes = this.nodes;

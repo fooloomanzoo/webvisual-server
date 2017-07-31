@@ -167,7 +167,7 @@ Modification from Polymer Shop Demo App
           if (durations[i] === 0 && delays[i] === 0) continue;
           this._transitionsInFlight.push(names[i]);
         }
-        requestAnimationFrame(() => {
+        setTimeout(() => {
           this.style.transitionDuration = durations.map((x) => {
             return x + 's';
           }).join(', ');
@@ -179,7 +179,7 @@ Modification from Polymer Shop Demo App
           this.style.bottom = bottom + 'px';
           this.style.left = left + 'px';
           this.style.opacity = String(toOpacity);
-        });
+        }, 0);
       }
 
     }

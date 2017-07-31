@@ -81,8 +81,10 @@
 
       disconnectedCallback() {
         super.disconnectedCallback();
-        this._unlinkElement();
-        this.clearValues();
+        setTimeout(() => {
+          this.clearValues();
+          this._unlinkElement();
+        }, 0)
       }
 
       _linkElement(item, noLink) {

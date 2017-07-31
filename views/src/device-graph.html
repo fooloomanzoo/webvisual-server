@@ -25,7 +25,7 @@
 
           hasArea: {
             type: Boolean,
-            value: true
+            value: false
           },
 
           interpolation: {
@@ -54,16 +54,8 @@
             type: Boolean,
             value: true,
             readOnly: true
-          },
-
-          /**
-           * folder for date/time-format file
-           */
-          languageResourcePrefix: {
-            type: String,
-            value: undefined,
-            readOnly: true
           }
+
         }
       }
 
@@ -106,8 +98,6 @@
       static get observers() {
         return [
           '_itemChanged(item)',
-          '_lineChanged(hasLine)',
-          '_areaChanged(hasArea)',
           '_thresholdChanged(item.threshold)'
         ]
       }
@@ -131,8 +121,8 @@
 
       disconnectedCallback() {
         this._isAttached = false;
-        super.disconnectedCallback();
         this.removeNodes();
+        super.disconnectedCallback();
       }
 
       addNodes() {
@@ -160,8 +150,8 @@
         this.set('rangeX', this._chart.rangeX)
         this.set('rangeY', this._chart.rangeY)
 
-        this._areaChanged(this.hasArea);
-        this._lineChanged(this.hasLine);
+        this._areaChanged();
+        this._lineChanged();
 
         if (!this.axisX ) {
           this.axisX = this._computeAxisNode(this._axisInsertionPoint, this.axisOrientX, this.item.mount, this.axisX)
@@ -193,67 +183,53 @@
           if (node && node.parentElement)
             node.parentElement.removeChild(node);
         }
-        this._areaChanged();
-        this._lineChanged();
+        if (this._area && this._area.node) {
+          node = this._area.node();
+          if (node && node.parentElement)
+            node.parentElement.removeChild(node);
+          this._area = null;
+        }
+        if (this._line && this._line.node) {
+          node = this._line.node();
+          if (node && node.parentElement)
+            node.parentElement.removeChild(node);
+          this._line = null;
+        }
         this._thresholdChanged();
         this._chart._removeGraph(this);
       }
 
-      _areaChanged(hasArea) {
-        // console.log('_areaChanged', this.item.mount, hasArea, type);
+      _areaChanged() {
         if (!(this._chart && this._chart._area)) return;
 
-        if (!hasArea) {
-          // remove fill area
-          if (this._area && this._area.node) {
-            let node = this._area.node();
-            if (node && node.parentElement)
-              node.parentElement.removeChild(node);
-            this._area = null;
-          }
-        } else {
-          if (!(this._area && this._area.node)) { // add fill area
-            this._area = this._chart._area.append('svg:path');
-            this._area.append('svg:title').text(this.item.mount).on('mouseover', this._onAxisMouseover.bind(this))
-          }
-          // update fill area node properties
-          this._area
-            .attr('mount', this.item.mount)
-            .attr('class', 'area')
-            .attr('stroke-width', 0)
-            .attr('fill', this.item.theshold !== undefined ? ('url(#boundery-line-' + this.item.mount + ')') : this.item.color || '#FFF')
-            // .datum([])
-            .attr('d', this._areaGenerator([]));
+        if (!(this._area && this._area.node)) { // add fill area
+          this._area = this._chart._area.append('svg:path');
+          this._area.append('svg:title').text(this.item.mount);
         }
+        // update fill area node properties
+        this._area
+          .attr('mount', this.item.mount)
+          .attr('class', 'area')
+          .attr('stroke-width', 0)
+          .attr('fill', this.item.theshold !== undefined ? ('url(#boundery-line-' + this.item.mount + ')') : this.item.color || '#FFF')
+          .attr('d', this._areaGenerator([]));
       }
 
-      _lineChanged(hasLine) {
-        // console.log('_lineChanged', this.item.mount, hasLine, type);
+      _lineChanged() {
         if (!(this._chart && this._chart._line)) return;
 
-        if (!hasLine) {
-          // remove line
-          if (this._line && this._line.node) {
-            let node = this._line.node();
-            if (node && node.parentElement)
-              node.parentElement.removeChild(node);
-            this._line = null;
-          }
-        } else {
-          if (!(this._line && this._line.node)) { // add line node
-            this._line = this._chart._line.append('svg:path');
-            this._line.append('svg:title').text(this.item.mount).on('mouseover', this._onAxisMouseover.bind(this))
-          }
-          // update line node properties
-          this._line
-            .attr('mount', this.item.mount)
-            .attr('class', 'line')
-            .attr('fill', 'none')
-            .attr('stroke', this.item.theshold !== undefined ? ('url(#boundery-line-' + this.item.mount + ')') : this.item.color || '#000')
-            .attr('stroke-width', this.lineWidth)
-            .attr('d', this._lineGenerator([]));
-
+        if (!(this._line && this._line.node)) { // add line node
+          this._line = this._chart._line.append('svg:path');
+          this._line.append('svg:title').text(this.item.mount);
         }
+        // update line node properties
+        this._line
+          .attr('mount', this.item.mount)
+          .attr('class', 'line')
+          .attr('fill', 'none')
+          .attr('stroke', this.item.theshold !== undefined ? ('url(#boundery-line-' + this.item.mount + ')') : this.item.color || '#000')
+          .attr('stroke-width', this.lineWidth)
+          .attr('d', this._lineGenerator([]));
       }
 
       _thresholdChanged(threshold) {
@@ -280,7 +256,7 @@
             this.boundery = null;
           }
           if (this._area && this._area.attr) this._area.attr('fill', this.item.color || '#FFF');
-          if (this._line && this._line.attr) this._line.attr('stroke', this.item.mount || '#000');
+          if (this._line && this._line.attr) this._line.attr('stroke', this.item.color || '#000');
         }
       }
 
@@ -358,6 +334,11 @@
         this.renderInsertedValues(values);
       }
 
+      renderClearing() {
+        this._area.attr('d', this._areaGenerator([]));
+        this._line.attr('d', this._lineGenerator([]));
+      }
+
       spliceValues(splices) {
         // requestAnimationFrame( () => {
         // var changeRecord = [];
@@ -412,29 +393,14 @@
           this._chart.redraw(true);
           return;
         }
-        // console.log('graph redraw', this.item.mount, this.values.length);
 
         const data = this.values || values || [];
 
         // fill area
-        if (this.hasArea) {
-          this._area
-            // .datum(data)
-            .attr('d', this._areaGenerator(data));
-        }
+        this._area.attr('d', this._areaGenerator(this.hasArea ? data : []));
 
         // line
-        if (this.hasLine) {
-          this._line
-            // .transition()
-            // .duration(2000)
-            // .attrTween('d', function (data) {
-            //   var previous = d3.select(this).attr('d');
-            //   var current = linegenerator(data);
-            //   return d3.interpolatePath(previous, current);
-            // });
-            .attr('d', this._lineGenerator(data));
-        }
+        this._line.attr('d', this._lineGenerator(this.hasLine ? data : []));
 
         // threshold gradients
         if (this.item && this.item.threshold) {
@@ -734,13 +700,25 @@
         }
         super._onAxisClicked(axis);
       }
-      _onAxisMouseover(axis, orient) {
-        super._onAxisMouseover(axis, orient);
+      _onAxisMouseover() {
+        super._onAxisMouseover();
         if (this._area) {
           this._area.raise();
+          // fill area
+          if (this.hasArea === false) {
+            this._area.attr('d', this._areaGenerator(this.values || []));
+          }
         }
         if (this._line) {
           this._line.raise();
+        }
+      }
+      _onAxisMouseleave() {
+        super._onAxisMouseleave();
+        if (this._area) {
+          if (this.hasArea === false) {
+            this._area.attr('d', this._areaGenerator([]));
+          }
         }
       }
     }

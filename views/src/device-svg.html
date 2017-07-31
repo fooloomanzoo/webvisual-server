@@ -510,7 +510,7 @@
       }
 
       _selectSelected() {
-        requestAnimationFrame( () => {
+        setTimeout( () => {
           const sel = this.multi ? (this.items || []) : [];
           if (this.item && Object.keys(this.item).length && sel.indexOf(this.item) === -1)
             sel.push(this.item);
@@ -546,7 +546,7 @@
             this.updateStyles();
             this.select(sel, this.selectedClass);
           }
-        })
+        }, 0)
       }
 
       _selectExceeds() {
@@ -676,7 +676,7 @@
           e.preventDefault();
           e.stopPropagation();
         }
-        requestAnimationFrame( () => {
+        setTimeout( () => {
           if (!(this.opened && this._mainG && this._mainG.node && this.src)) return;
           // reset clicked status
           this._mainG.selectAll('.clicked').classed('clicked', false);
@@ -705,7 +705,7 @@
             // zomm to _mainG
             this._zoomToElement(this._mainG.node());
           }
-        })
+        }, 0)
       }
     }
     customElements.define(DeviceSVG.is, DeviceSVG);
