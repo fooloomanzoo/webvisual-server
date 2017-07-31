@@ -740,7 +740,7 @@
         }
         if (orient === 'top') {
           node._bottom = 0;
-          node._top = top;
+          node._top = this._chart._top;
           this._chart._top -= size;
         } else if (orient === 'bottom') {
           node._bottom = this._chart._bottom;
