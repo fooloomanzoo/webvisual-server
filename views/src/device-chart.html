@@ -206,7 +206,7 @@
         padding: 0.3em;
       }
       #controlcontent {
-        color: var(--primary-text-color, #111);
+        color: var(--primary-text-color, #151515);
         position: absolute;
         top: 0;
         right: var(--control-right, 0px);
@@ -1365,7 +1365,7 @@
         svg.style.overflow = 'visible';
 
         Array.prototype.forEach.call(svg.querySelectorAll('.axis.main text'), el => {
-          el.style.fill = '#111';
+          el.style.fill = '#151515';
         });
         Array.prototype.forEach.call(svg.querySelectorAll('.domain'), el => {
           el.style['fill-opacity'] = '0';
@@ -1373,7 +1373,10 @@
         Array.prototype.forEach.call(svg.querySelectorAll('.grid line'), el => {
           el.setAttribute('stroke-width', '0.5');
           el.setAttribute('stroke-opacity', '0.15');
-          el.setAttribute('stroke', '#111');
+          el.setAttribute('stroke', '#151515');
+        });
+        Array.prototype.forEach.call(svg.querySelectorAll('.axis.main line, .axis.main path'), el => {
+          el.style.stroke = '#151515';
         });
 
         function applyStyleToElement(parent, orig) {
