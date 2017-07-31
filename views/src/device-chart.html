@@ -224,7 +224,7 @@
     </style>
 
     <div id="svgContainer">
-      <svg id="svg" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="xMinYMin meet" on-click="_save">
+      <svg id="svg" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="xMinYMin meet" on-click="_closeControl">
         <defs>
           <marker id="arrowToLeft" viewBox="0 0 20 10" refX="0" refY="5" markerWidth="8" markerHeight="8" orient="auto">
             <path d="M 20,0 L 0,5 L 20,10 Z" />
@@ -306,6 +306,7 @@
         <div class="checkbox">
           <input type="checkbox" name="multiY" checked="{{multiAxesY::change}}">mehrere y-Achsen
         </div>
+        <button type="button" name="button" on-click="_save">speichern</button>
       </iron-collapse>
       <section id="control">
         <icon-button title="settings" icon="tune" checked="{{showControl}}"></icon-button>
@@ -1296,27 +1297,26 @@
         // https://stackoverflow.com/questions/15181452/how-to-save-export-inline-svg-styled-with-css-from-browser-to-image-file
         const ContainerElements = ['svg', 'g'];
         const RelevantStyles = {
-          'rect': ['fill', 'stroke', 'stroke-width'],
-          'path': ['fill', 'stroke', 'stroke-width'],
-          'circle': ['fill', 'stroke', 'stroke-width'],
+          'rect': ['fill', 'stroke', 'strokeWidth', 'fillOpacity', 'display'],
+          'path': ['fill', 'stroke', 'strokeWidth', 'display'],
+          'circle': ['fill', 'stroke', 'fillOpacity', 'strokeWidth'],
           'line': ['stroke', 'stroke-width'],
-          'text': ['fill', 'font-size', 'text-anchor', 'alignment-baseline']
+          'text': ['fill', 'font-size', 'textAnchor', 'alignmentBaseline', 'display']
         };
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
+
         const svg = this.$.svg.cloneNode(true);
+        applyStyleToElement(svg, this.$.svg);
+        let notneeded = svg.querySelectorAll('[hidden],.brush,#zoom,#focus');
+        Array.prototype.forEach.call(notneeded, el => {
+          if (el && el.parentElement)
+            el.parentElement.removeChild(el);
+        })
         svg.setAttribute('height', this._height);
         svg.setAttribute('width', this._width);
-        applyStyleToElement(svg, this.$.svg);
 
         const data = (new XMLSerializer()).serializeToString(svg);
-        console.log(data);
-        const DOMURL = window.URL || window.webkitURL || window;
-        const img = new Image();
-        const svgBlob = new Blob([data], {
-          type: 'image/svg+xml;charset=utf-8'
-        });
-        const url = DOMURL.createObjectURL(svgBlob);
+        const blob = new Blob([data], {type:"image/svg+xml;charset=utf-8"});
+        const url = URL.createObjectURL(blob);
 
         function applyStyleToElement(parent, orig) {
           const children = parent.childNodes;
@@ -1325,33 +1325,16 @@
           for (let i = 0; i < children.length; i++) {
             const child = children[i];
             const tag = child.tagName;
-            if (ContainerElements.indexOf(tag) != -1) {
+            if (ContainerElements.indexOf(tag) !== -1) {
               applyStyleToElement(child, origChildren[i])
             } else if (tag in RelevantStyles) {
               const StyleDef = window.getComputedStyle(origChildren[i]);
-
-              let StyleString = "";
               for (let j = 0; j < RelevantStyles[tag].length; j++) {
-                StyleString += RelevantStyles[tag][j] + ":" + StyleDef.getPropertyValue(RelevantStyles[tag][j]) + "; ";
+                child.style[RelevantStyles[tag][j]] = StyleDef.getPropertyValue(RelevantStyles[tag][j]);
               }
-              child.setAttribute("style", StyleString);
             }
           }
         }
-        img.onload = () => {
-          ctx.drawImage(img, 0, 0, this._width, this._height);
-          DOMURL.revokeObjectURL(url);
-
-          const imgURI = canvas
-            .toDataURL('image/svg');
-
-          this._triggerDownload(imgURI);
-        };
-
-        img.src = url;
-      }
-
-      _triggerDownload(imgURI) {
         const evt = new MouseEvent('click', {
           view: window,
           bubbles: false,
@@ -1359,12 +1342,14 @@
         });
 
         const a = document.createElement('a');
-        a.setAttribute('download', (location.href).replace(/ids|room|:\/\/|https|http/gi, '').replace(/[$-/:-?{-~!"^=&\\_`\[\]]/gi, '+').replace(/\+\+/gi, '+') + '.png');
-        a.setAttribute('href', imgURI);
+        a.setAttribute('download', (location.href).replace(/ids|room|:\/\/|https|http/gi, '').replace(/[$-/:-?{-~!"^=&\\_`\[\]]/gi, '+').replace(/\+\+/gi, '+') + '.svg');
+        a.setAttribute('href', url);
         a.setAttribute('target', '_blank');
 
         a.dispatchEvent(evt);
       }
+
+
       // _refresh() {
       //   this._buildLayout();
       //   this._graphs.forEach( g => {
