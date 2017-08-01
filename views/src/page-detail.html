@@ -45,20 +45,27 @@
         --control-right: 16px;
       }
       #chart {
-        padding: 0.5em 0.75em 0.5em 0.75em;
+        padding-left: 8px;
         --chart-plot-background-color: #fff;
-        --chart-plot-background-opacity: 0.75;
+        --chart-plot-background-opacity: 0.8;
         /*--control-bottom: 20px;*/
       }
-      :host([dark]) #chart {
-        --chart-plot-background-opacity: 0.2;
-      }
       #chart[fullheight] {
+        padding-bottom: 8px;
         max-height: 100%;
         -webkit-flex-basis: 1px;
         flex-basis: 1px;
         flex-grow: 1;
-        --chart-plot-background-opacity: 0.5;
+      }
+      :host([dark]) #chart {
+        --chart-plot-background-opacity: 0.2;
+        --focus-opacity: 1;
+      }
+      :host([dark]) #chart[fullheight] {
+        --chart-plot-background-opacity: 0.4;
+      }
+      :host([dark][plain]) #chart[fullheight] {
+        --focus-color: #000;
       }
       .spacer {
         flex: 0 0 auto;

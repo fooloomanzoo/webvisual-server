@@ -42,10 +42,32 @@
       "true": "Sie sind offline",
       "false": "Sie sind online"
     },
-    "loggedIn":  {
+    "loggedIn": {
       "true": "Sie sind angemeldet",
       "false": "Sie sind nicht angemeldet"
     },
     "loaded": "geladen"
+  },
+  "export": {
+    "title": "",
+    "format": "",
+    "save": ""
+  },
+  "chart": {
+    "height": "",
+    "width": "",
+    "margin": "",
+    "left": "",
+    "top": "",
+    "bottom": "",
+    "right": "",
+    "fontSize": "",
+    "fontColor": "",
+    "backgroundColor": "",
+    "hasArea": "",
+    "hasLine": "",
+    "zoom": "",
+    "delta": "",
+    "autoHideFocus": ""
   }
 }

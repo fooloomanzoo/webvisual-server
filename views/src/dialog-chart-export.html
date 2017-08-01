@@ -1,0 +1,326 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+
+<link rel="import" href="mixins/localize-mixin.html">
+
+<link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../bower_components/iron-media-query/iron-media-query.html">
+
+<link rel="import" href="components/icon-button.html">
+<link rel="import" href="components/dialog-element.html">
+<link rel="import" href="components/drawer-element.html">
+<link rel="import" href="style/input-style.html">
+<link rel="import" href="style/button-style.html">
+<link rel="import" href="style/selectbox-style.html">
+
+<dom-module id="dialog-chart-export">
+  <template strip-whitespace>
+    <style include="input-style button-style selectbox-style">
+      :host {
+        outline: none;
+      }
+      #spacer {
+        padding-right: 12em;
+        flex: 0 0 auto;
+      }
+      #dialog {
+        border-radius: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+      }
+      #chartContainer {
+        display: block;
+        position: relative;
+        box-sizing: border-box;
+        padding: 8px;
+        flex: 1 1 auto;
+        overflow: auto;
+      }
+      #chartContainer > * {
+        color: inherit;
+      }
+      #options {
+        position: absolute;
+        --drawer-width: 12em;
+        --drawer-background: rgba(0,0,0,0.25);
+        --drawer-content: {
+          padding: 0;
+        };
+      }
+      [hidden] {
+        display: none !important;
+      }
+    </style>
+
+    <iron-media-query query="(max-width: 600px)" query-matches="{{narrowLayout}}"></iron-media-query>
+
+    <dialog-element id="dialog">
+      <div dialog-title>
+        <div>{{localize('export', 'title')}}</div>
+      </div>
+      <div dialog-content horizontal>
+        <div id="chartContainer"></div>
+        <div id="spacer" hidden$="[[narrowLayout]]"></div>
+        <drawer-element id="options" opened$="[[optionsOpened]]" scrim stretch persistent$="[[!narrowLayout]]" align="right"></drawer-element>
+      </div>
+      <div dialog-bottom class="buttons">
+        <div class="button" on-tap="toggleOptions" hidden$="[[!narrowLayout]]">
+          <paper-ripple></paper-ripple>
+          <iron-icon class="left" icon="settings"></iron-icon>
+          {{localize('export', 'options')}}
+        </div>
+        <div class="button" on-tap="save">
+          <paper-ripple></paper-ripple>
+          <iron-icon class="left" icon="file-save"></iron-icon>
+          {{localize('export', 'save')}}
+        </div>
+      </div>
+    </dialog-element>
+  </template>
+
+  <script>
+    class DialogChartExport extends WebvisualMixins.LocalizeMixin(Polymer.Element) {
+
+      static get is() {
+        return 'dialog-chart-export'
+      }
+
+      static get properties() {
+        return {
+          opened: {
+            type: Boolean,
+            reflectToAttribute: true,
+            notify: true,
+            observer: '_openedChanged'
+          },
+
+          narrowLayout: {
+            type: Boolean,
+            reflectToAttribute: true
+          },
+
+          optionsOpened: {
+            type: Boolean,
+            value: true
+          },
+
+          format: {
+            type: String,
+            value: 'svg'
+          },
+
+          resolution: {
+            type: String,
+            value: 'medium'
+          },
+
+          fontSize: {
+            type: String,
+            value: 'svg'
+          },
+
+          languageResourcePrefix: {
+            type: String,
+            value: '/locales/ui/'
+          }
+        }
+      }
+
+      constructor() {
+        super();
+        this.setChartElement(...arguments);
+      }
+
+      connectedCallback() {
+        super.connectedCallback();
+        this._isAttached = true;
+        this._attachChartElement();
+        this._getDpi();
+      }
+
+      setChartElement(chartElement) {
+        if (chartElement) {
+          if (this._chart) {
+            this._detachChartElement();
+          }
+          this._chart = chartElement.cloneNode(true);
+          this._chart.fullscreenDisabled = true;
+          this._chart.exportDisabled = true;
+          this._chart.setAttribute('without-mixmode', '');
+          this._chart.items = chartElement.items;
+          if (this._isAttached === true) {
+            this._attachChartElement();
+          }
+        }
+      }
+
+      _detachChartElement() {
+        if (this._isAttached === true) {
+          if (this._chart && this._chart.parentElement)
+            this._chart.parentElement.removeChild(this._chart);
+        }
+      }
+
+      _getDpi() {
+        let testDiv = document.createElement('div');
+        testDiv.style.cssText = 'height: 1in; left: -100%; position: absolute; top: -100%; width: 1in;';
+        document.body.insertBefore(testDiv, document.body.children[0]);
+        this._dpiX = testDiv.offsetWidth;
+        this._dpiY = testDiv.offsetHeight;
+        console.log(this.dpiX, this.dpiY);
+        testDiv.parentElement.removeChild(testDiv);
+      }
+
+      _attachChartElement() {
+        if (!this._chart) {
+          return;
+        }
+        Array.prototype.forEach.call(this.$.chartContainer.children, el => {
+          this.$.chartContainer.removeChild(el);
+        })
+        this.$.chartContainer.appendChild(this._chart);
+      }
+
+      toggleOptions() {
+        this.optionsOpened = !this.optionsOpened;
+      }
+
+      _openedChanged(opened) {
+        if (opened === true) {
+          this.open();
+        } else {
+          this.close();
+        }
+      }
+
+      open() {
+        this.$.dialog.open();
+        this.opened = true;
+      }
+      close() {
+        this.$.dialog.close();
+        this.opened = false;
+      }
+
+      save(format) {
+        // TODO: add a dialog with options: height, width, format, legend, legend-keys, areas
+        format = format || this.format;
+        // https://stackoverflow.com/questions/28226677/save-inline-svg-as-jpeg-png-svg
+        // https://stackoverflow.com/questions/15181452/how-to-save-export-inline-svg-styled-with-css-from-browser-to-image-file
+        const ContainerElements = ['svg', 'g'];
+        const RelevantStyles = {
+          'rect': ['fill', 'stroke', 'stroke-width'],
+          'path': ['fill', 'stroke', 'stroke-width'],
+          'circle': ['fill', 'stroke', 'fill-opacity', 'stroke-width'],
+          'line': ['stroke', 'stroke-width'],
+          'text': ['fill', 'font-size', 'text-anchor', 'alignment-baseline']
+        };
+
+        const svg = this._chart._svg.node().cloneNode(true);
+        applyStyleToElement(svg, this._chart._svg.node());
+        Array.prototype.forEach.call(svg.querySelectorAll('[hidden],.brush,#zoom,#focus,.info'), el => {
+          if (el && el.parentElement)
+            el.parentElement.removeChild(el);
+        })
+
+        const bbox = this._chart._svg.node().getBoundingClientRect(),
+          height = bbox.height,
+          width = bbox.width;
+
+        svg.setAttribute('height', height);
+        svg.setAttribute('width', width);
+        svg.style.margin = '0px';
+        svg.style.padding = '0px';
+
+        Array.prototype.forEach.call(svg.querySelectorAll('.axis.main text'), el => {
+          el.style.fill = '#151515';
+        });
+        Array.prototype.forEach.call(svg.querySelectorAll('.domain'), el => {
+          el.style['fill-opacity'] = '0';
+        });
+        Array.prototype.forEach.call(svg.querySelectorAll('.grid line'), el => {
+          el.style['stroke-width'] = 0.5;
+          el.style['stroke-opacity'] = 0.2;
+          el.style['stroke'] = '#151515';
+        });
+        Array.prototype.forEach.call(svg.querySelectorAll('.axis.main line,.axis.main path'), el => {
+          el.style.stroke = '#151515';
+        });
+
+        function applyStyleToElement(parent, orig) {
+          const children = parent.childNodes;
+          const origChildren = orig.childNodes;
+
+          for (let i = 0; i < children.length; i++) {
+            const child = children[i];
+            const tag = child.tagName;
+            if (ContainerElements.indexOf(tag) !== -1) {
+              applyStyleToElement(child, origChildren[i])
+            } else if (tag in RelevantStyles) {
+              const StyleDef = window.getComputedStyle(origChildren[i]);
+              for (let j = 0; j < RelevantStyles[tag].length; j++) {
+                child.style[RelevantStyles[tag][j]] = StyleDef.getPropertyValue(RelevantStyles[tag][j]);
+              }
+            }
+          }
+        }
+
+        const data = (new XMLSerializer()).serializeToString(svg);
+        const uri = (decodeURIComponent(location.href)).replace(/ids|room|:\/\/|https|http/gi, '').replace(/[$-/:-?{-~!"^=&_`]/gi, '+').replace(/\+\+/gi, '+');
+
+        if (format === 'png') {
+          const image = new Image();
+          let dpi;
+          switch (this.resolution) {
+            case 'high':
+              dpi = 600;
+              break;
+            case 'medium':
+              dpi = 300;
+              break;
+            default:
+              dpi = 150;
+          }
+          image.src = 'data:image/svg+xml;base64,' + window.btoa(unescape(encodeURIComponent(data)));
+          image.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.style.width = width + 'px';
+            canvas.style.height = height + 'px';
+            let scaleFactorX = dpi / this._dpiX;
+            let scaleFactorY = dpi / this._dpiY;
+            canvas.width = Math.floor(scaleFactorX * width);
+            canvas.height = Math.floor(scaleFactorY * height);
+            const context = canvas.getContext('2d');
+            context.scale(canvas.width/width, canvas.height/height);
+            context.drawImage(image, 0, 0);
+
+            const li = document.createElement('a');
+            li.download = uri + '.png';
+            li.href = canvas.toDataURL('image/png');
+            li.dispatchEvent(new MouseEvent('click', {
+              view: window,
+              bubbles: false,
+              cancelable: true
+            }));
+          }
+        } else { // save as svg
+          const blob = new Blob([data], {type:'image/svg+xml;charset=utf-8}'});
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.setAttribute('download', uri + '.svg');
+          a.setAttribute('href', url);
+          a.setAttribute('target', '_blank');
+          a.dispatchEvent(new MouseEvent('click', {
+            view: window,
+            bubbles: false,
+            cancelable: true
+          }));
+        }
+        this.close();
+      }
+    }
+    customElements.define(DialogChartExport.is, DialogChartExport);
+  </script>
+
+</dom-module>

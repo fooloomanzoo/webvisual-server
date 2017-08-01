@@ -1,27 +1,31 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
-<link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
 
 <link rel="import" href="mixins/axes-mixin.html">
 <link rel="import" href="mixins/fullscreen-mixin.html">
 
 <link rel="import" href="components/icon-button.html">
+<link rel="import" href="components/drawer-element.html">
 <link rel="import" href="style/selectbox-style.html">
 <link rel="import" href="style/button-style.html">
 
 <link rel="import" href="device-graph.html">
+<link rel="import" href="dialog-chart-export.html">
 
 <dom-module id="device-chart">
   <template strip-whitespace>
     <style include="selectbox-style button-style">
       :host {
+        display: block;
         box-sizing: border-box;
         position: relative;
-        font-family: inherit;
+        font: inherit;
         color: white;
         letter-spacing: normal !important;
         user-select: none !important;
         z-index: auto;
+        width: 100%;
+        height: 100%;
         transition: background 150ms linear;
       }
       :host([fullscreen]) {
@@ -39,14 +43,7 @@
         color: var(--fullscreen-color, white);
         background-color: var(--fullscreen-background-color);
       }
-      #svgContainer {
-        position: relative;
-        box-sizing: border-box;
-        width: 100%;
-        height: 100%;
-        border-radius: inherit;
-      }
-      :host(:-webkit-full-screen) * {
+      :host(:-webkit-full-screen) *, :host([without-mixmode]) * {
         mix-blend-mode: unset !important;
       }
       #svg {
@@ -61,7 +58,7 @@
         stroke: #000;
         stroke-width: 0.2;
         stroke-opacity: 0.2;
-        font-size: 1.2em !important;
+        font-size: 11px !important;
         letter-spacing: -0.0125em;
         font-family: inherit !important;
         -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
@@ -148,7 +145,7 @@
       #focus > *:not(.dot),
       #delta > *:not(.dot) {
         stroke: var(--focus-color, currentColor);
-        stroke-opacity: 0.6;
+        stroke-opacity: var(--focus-opacity, 0.75);
         stroke-dasharray: 1;
         stroke-width: 1.5px;
       }
@@ -201,18 +198,24 @@
         margin-top: 0.25em;
         margin-left: 0.25em;
         margin-right: 0.25em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
       .button {
         padding: 0.3em;
+        flex: initial;
       }
-      #controlcontent {
-        color: var(--primary-text-color, #151515);
+      #options {
         position: absolute;
-        top: 0;
-        right: var(--control-right, 0px);
-        display: flex;
-        flex-direction: column;
-        pointer-events: all;
+        --drawer-color: #151515;
+        --drawer-height: auto;
+        --drawer-background: rgba(255,255,255,0.5);
+        --drawer-content: {
+          padding: 0;
+          position: absolute;
+          flex-wrap: wrap;
+        };
       }
       .selectbox > select {
         opacity: 1;
@@ -222,102 +225,100 @@
       }
     </style>
 
-    <div id="svgContainer">
-      <svg id="svg" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="xMidYMid meet">
-        <defs>
-          <marker id="arrowToLeft" viewBox="0 0 20 10" refX="0" refY="5" markerWidth="8" markerHeight="8" orient="auto">
-            <path d="M 20,0 L 0,5 L 20,10 Z" />
-          </marker>
-          <marker id="arrowToRight" viewBox="0 0 20 10" refX="20" refY="5" markerWidth="8" markerHeight="8" orient="auto">
-            <path d="M 0,0 L 20,5 L 0,10 Z" />
-          </marker>
-          <marker id="stub" markerWidth="8" markerHeight="6" refX="6" refY="5" orient="auto" markerUnits="strokeWidth" viewBox="0 0 6 10">
-            <path d="M 5,10 M 4,0 H 6 V 10 H 4 Z"/>
-            <path d="M 3,5 M 0,4 H 6 V 6 H 0 Z"/>
-          </marker>
-          <filter id="solid">
-            <feFlood flood-color="white" result="out1" />
-            <feComposite in="SourceGraphic" in2="out1"
-              operator="over" />
-          </filter>
-        </defs>
-        <g id="chart" on-click="_closeControl">
-          <clipPath id="clip">
-            <rect x="0" y="0"></rect>
-          </clipPath>
-          <rect id="plot" clip-path="url(#clip)"></rect>
-          <g class="grid" clip-path="url(#clip)">
-            <g id="gridX"></g>
-            <g id="gridY"></g>
-          </g>
-          <g id="graphs" clip-path="url(#clip)">
-            <g id="area"></g>
-            <g id="line"></g>
-            <g id="boundery"></g>
-          </g>
-          <rect id="zoom" x="0" y="0" on-contextmenu="_resetZoom"></rect>
-          <g id="delta" hidden>
-            <line id="deltaX" class="line x" marker-start="url(#arrowToLeft)" marker-end="url(#arrowToRight)"></line>
-            <line id="deltaY" class="line y" marker-start="url(#arrowToLeft)" marker-end="url(#arrowToRight)"></line>
-            <circle id="deltaDot" class="dot"></circle>
-          </g>
-          <g id="focus" hidden>
-            <line id="focusX" class="line x" x1="0" marker-start="url(#stub)" marker-end="url(#arrowToRight)"></line>
-            <line id="focusY" class="line y" marker-start="url(#stub)" marker-end="url(#arrowToRight)"></line>
-            <circle id="focusDot" class="dot"></circle>
-          </g>
-          <g id="axis"></g>
-          <g font-size="10">
-            <text id="info" class="focus info" x="0" y="0" filter="url(#solid)" hidden></text>
-            <text id="infoDeltaX" class="delta info" x="0" y="0" filter="url(#solid)" hidden></text>
-            <text id="infoDeltaY" class="delta info" x="0" y="0" filter="url(#solid)" hidden></text>
-          </g>
+    <svg id="svg" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="xMinYMin meet">
+      <defs>
+        <marker id="arrowToLeft" viewBox="0 0 20 10" refX="0" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+          <path d="M 20,0 L 0,5 L 20,10 Z" />
+        </marker>
+        <marker id="arrowToRight" viewBox="0 0 20 10" refX="20" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+          <path d="M 0,0 L 20,5 L 0,10 Z" />
+        </marker>
+        <marker id="stub" markerWidth="8" markerHeight="6" refX="6" refY="5" orient="auto" markerUnits="strokeWidth" viewBox="0 0 6 10">
+          <path d="M 5,10 M 4,0 H 6 V 10 H 4 Z"/>
+          <path d="M 3,5 M 0,4 H 6 V 6 H 0 Z"/>
+        </marker>
+        <filter id="solid">
+          <feFlood flood-color="white" result="out1" />
+          <feComposite in="SourceGraphic" in2="out1"
+            operator="over" />
+        </filter>
+      </defs>
+      <g id="chart" on-click="_closeControl">
+        <clipPath id="clip">
+          <rect x="0" y="0"></rect>
+        </clipPath>
+        <rect id="plot" clip-path="url(#clip)"></rect>
+        <g class="grid" clip-path="url(#clip)">
+          <g id="gridX"></g>
+          <g id="gridY"></g>
         </g>
-      </svg>
+        <g id="graphs" clip-path="url(#clip)">
+          <g id="area"></g>
+          <g id="line"></g>
+          <g id="boundery"></g>
+        </g>
+        <rect id="zoom" x="0" y="0" on-contextmenu="_resetZoom"></rect>
+        <g id="delta" hidden>
+          <line id="deltaX" class="line x" marker-start="url(#arrowToLeft)" marker-end="url(#arrowToRight)"></line>
+          <line id="deltaY" class="line y" marker-start="url(#arrowToLeft)" marker-end="url(#arrowToRight)"></line>
+          <circle id="deltaDot" class="dot"></circle>
+        </g>
+        <g id="focus" hidden>
+          <line id="focusX" class="line x" x1="0" marker-start="url(#stub)" marker-end="url(#arrowToRight)"></line>
+          <line id="focusY" class="line y" marker-start="url(#stub)" marker-end="url(#arrowToRight)"></line>
+          <circle id="focusDot" class="dot"></circle>
+        </g>
+        <g id="axis"></g>
+        <g>
+          <text id="info" class="focus info" x="0" y="0" filter="url(#solid)" hidden></text>
+          <text id="infoDeltaX" class="delta info" x="0" y="0" filter="url(#solid)" hidden></text>
+          <text id="infoDeltaY" class="delta info" x="0" y="0" filter="url(#solid)" hidden></text>
+        </g>
+      </g>
+    </svg>
 
-      <iron-collapse id="controlcontent" opened="[[showControl]]">
-        <div class="selectbox">
-          <select value="{{interpolation::change}}">
-            <option value="Lineare Verbindung">Lineare Verbindung</option>
-            <option value="Basis Spline">Basis Spline</option>
-            <option value="Kubischer Spline">Kubischer Spline</option>
-            <option value="Cardinaler Spline">Cardinaler Spline</option>
-            <option value="Catmull-Rom-Spline">Catmull-Rom-Spline</option>
-            <option value="Stufe (mitte)">Stufe (mitte)</option>
-            <option value="Stufe (davor)">Stufe (davor)</option>
-            <option value="Stufe (danach)">Stufe (danach)</option>
-          </select>
-        </div>
-        <div class="selectbox">
-          <select value="{{scalingY::change}}">
-            <option value="linear">linear</option>
-            <option value="√">√</option>
-            <option value="ln">ln</option>
-            <option value="log₂">log₂</option>
-            <option value="log₁₀">log₁₀</option>
-          </select>
-        </div>
-        <div class="selectbox">
-          <select value="{{modus::change}}">
-            <option value="zoom">zoom</option>
-            <option value="delta">delta</option>
-          </select>
-        </div>
-        <div class="checkbox">
-          <input type="checkbox" name="multiX" checked="{{multiAxesX::change}}">mehrere x-Achsen
-        </div>
-        <div class="checkbox">
-          <input type="checkbox" name="multiY" checked="{{multiAxesY::change}}">mehrere y-Achsen
-        </div>
-        <div class="button" on-click="_save">
-          <iron-icon style="margin-right:0.5em;" icon="file-download"></iron-icon>Download
-        </div>
-      </iron-collapse>
-      <section id="control">
-        <icon-button title="settings" icon="tune" checked="{{showControl}}"></icon-button>
-        <icon-button icon="[[fullscreenIcon]]" on-tap="toggleFullscreen"></icon-button>
-      </section>
-  	</div>
+    <drawer-element id="options" opened$="[[showControl]]" align="top" stretch>
+      <div class="selectbox">
+        <select value="{{interpolation::change}}">
+          <option value="Lineare Verbindung">Lineare Verbindung</option>
+          <option value="Basis Spline">Basis Spline</option>
+          <option value="Kubischer Spline">Kubischer Spline</option>
+          <option value="Cardinaler Spline">Cardinaler Spline</option>
+          <option value="Catmull-Rom-Spline">Catmull-Rom-Spline</option>
+          <option value="Stufe (mitte)">Stufe (mitte)</option>
+          <option value="Stufe (davor)">Stufe (davor)</option>
+          <option value="Stufe (danach)">Stufe (danach)</option>
+        </select>
+      </div>
+      <div class="selectbox">
+        <select value="{{scalingY::change}}">
+          <option value="linear">linear</option>
+          <option value="√">√</option>
+          <option value="ln">ln</option>
+          <option value="log₂">log₂</option>
+          <option value="log₁₀">log₁₀</option>
+        </select>
+      </div>
+      <div class="selectbox">
+        <select value="{{modus::change}}">
+          <option value="zoom">zoom</option>
+          <option value="delta">delta</option>
+        </select>
+      </div>
+      <div class="checkbox">
+        <input type="checkbox" name="multiX" checked="{{multiAxesX::change}}">mehrere x-Achsen
+      </div>
+      <div class="checkbox">
+        <input type="checkbox" name="multiY" checked="{{multiAxesY::change}}">mehrere y-Achsen
+      </div>
+      <div class="button" on-click="_openExportDialog" hidden$="[[exportDisabled]]">
+        <iron-icon style="margin-right:0.5em;" icon="file-download"></iron-icon>Export
+      </div>
+    </drawer-element>
+    <section id="control">
+      <icon-button title="settings" icon="tune" checked="{{showControl}}"></icon-button>
+      <icon-button icon="[[fullscreenIcon]]" on-tap="toggleFullscreen" hidden$="[[fullscreenDisabled]]"></icon-button>
+    </section>
 
     <template is="dom-if" if="[[multi]]" restamp>
       <template is="dom-repeat" items="[[items]]">
@@ -346,6 +347,13 @@
           hasGrid: {
             type: Boolean,
             value: true
+          },
+
+          margin: {
+            type: Object,
+            value: function() {
+              return {top: 6, right: 6, bottom: 6, left: 6}
+            }
           },
 
           multiAxesX: {
@@ -382,6 +390,16 @@
           },
 
           showControl: {
+            type: Boolean,
+            value: false
+          },
+
+          fullscreenDisabled: {
+            type: Boolean,
+            value: false
+          },
+
+          exportDisabled: {
             type: Boolean,
             value: false
           },
@@ -614,28 +632,28 @@
           if (g._isAttached) {
             let size;
             if (!g.axisX.attr('hidden')) {
-              size = g.axisX.classed('expanded') ? g.axisSizeX : g.tickSize + g.axisMargin;
+              size = g.axisX.classed('expanded') ? g.axisSizeX : g.tickSize + g.collapsedAxisMargin;
               q.push(this._incremAxisPosition(g.axisX, g.axisOrientX, size));
             }
             if (!g.axisY.attr('hidden')) {
-              size = g.axisY.classed('expanded') ? g.axisSizeY : g.tickSize + g.axisMargin;
+              size = g.axisY.classed('expanded') ? g.axisSizeY : g.tickSize + g.collapsedAxisMargin;
               q.push(this._incremAxisPosition(g.axisY, g.axisOrientY, size));
             }
           }
         })
         if (!this.axisX.attr('hidden')) {
-          size = this.axisX.classed('expanded') ? this.axisSizeX : this.tickSize + this.axisMargin;
+          size = this.axisX.classed('expanded') ? this.axisSizeX : this.tickSize + this.collapsedAxisMargin;
           q.push(this._incremAxisPosition(this.axisX, this.axisOrientX, size));
         }
         if (!this.axisY.attr('hidden')) {
-          size = this.axisY.classed('expanded') ? this.axisSizeY : this.tickSize + this.axisMargin;
+          size = this.axisY.classed('expanded') ? this.axisSizeY : this.tickSize + this.collapsedAxisMargin;
           q.push(this._incremAxisPosition(this.axisY, this.axisOrientY, size));
         }
 
         Promise.all(q).then(() => {
           const bRect = this.$.svg.getBoundingClientRect();
-          this._width = Math.abs(bRect.width - Math.abs(this._chart._left || 0) - Math.abs(this._chart._right || 0));
-          this._height = Math.abs(bRect.height - Math.abs(this._chart._bottom || 0) - Math.abs(this._chart._top || 0));
+          this._width = Math.abs(bRect.width - Math.abs(this._chart._left || 0) - Math.abs(this._chart._right || 0) - (this.margin.left || 0) - (this.margin.right || 0));
+          this._height = Math.abs(bRect.height - Math.abs(this._chart._bottom || 0) - Math.abs(this._chart._top || 0) - (this.margin.top || 0) - (this.margin.bottom || 0));
 
           this.set('rangeX', [0, this._width]);
           this.set('rangeY', [this._height, 0]);
@@ -679,7 +697,11 @@
               .attr('width', this._width)
               .attr('height', this._height);
 
-            this._chart.transition(100).attr('transform', 'translate(' + (-this._chart._left || 0) + ',' + (-this._chart._top || 0) + ')');
+            let left = (-this._chart._left || 0) + (this.margin.left || 0),
+              top = (-this._chart._top || 0) + (this.margin.top || 0),
+              right = (-this._chart._right || 0) - (this.margin.right || 0),
+              bottom = (-this._chart._bottom || 0) - (this.margin.bottom || 0);
+            this._chart.transition(100).attr('transform', 'translate(' + left + ',' + top + ')');
             this._focusY.attr('y1', this._height);
 
             this._graphs.forEach(g => {
@@ -719,8 +741,8 @@
             this._svg.selectAll('g,line,text,path,rect')
               .classed('style-scope', true).classed('device-chart', true);
 
-            this._control.transition(100).style('transform', 'translate(' + (-this._chart._right) + 'px,' + (-this._chart._bottom) + 'px)');
-            this._controlcontent.transition(100).style('transform', 'translate(' + (-this._chart._right) + 'px,' + (-this._chart._top) + 'px)');
+            this._control.transition(100).style('transform', 'translate(' + (right) + 'px,' + bottom + 'px)');
+            this._controlcontent.transition(100).style('transform', 'translate(' + (right) + 'px,' + top + 'px)');
 
             if (!this.domainX || !this.domainY || this.domainX.some(e => {
                 return e === undefined || e === null;
@@ -1338,102 +1360,16 @@
         this._redomain();
       }
 
-      _save(format) {
-        // TODO: add a dialog with options: height, width, format, legend, legend-keys, areas
-        // format = 'png';
-        // https://stackoverflow.com/questions/28226677/save-inline-svg-as-jpeg-png-svg
-        // https://stackoverflow.com/questions/15181452/how-to-save-export-inline-svg-styled-with-css-from-browser-to-image-file
-        const ContainerElements = ['svg', 'g'];
-        const RelevantStyles = {
-          'rect': ['fill', 'stroke', 'stroke-width', 'fill-opacity', 'display'],
-          'path': ['fill', 'stroke', 'stroke-width', 'display'],
-          'circle': ['fill', 'stroke', 'fill-opacity', 'stroke-width'],
-          'line': ['stroke', 'stroke-width'],
-          'text': ['fill', 'font-size', 'text-anchor', 'alignment-baseline', 'display']
-        };
-
-        const svg = this.$.svg.cloneNode(true);
-        applyStyleToElement(svg, this.$.svg);
-        Array.prototype.forEach.call(svg.querySelectorAll('[hidden],.brush,#zoom,#focus,.info'), el => {
-          if (el && el.parentElement)
-            el.parentElement.removeChild(el);
-        })
-        svg.setAttribute('height', window.getComputedStyle(this.$.svg).getPropertyValue('height'));
-        svg.setAttribute('width', window.getComputedStyle(this.$.svg).getPropertyValue('width'));
-        svg.style.margin = '0px';
-        svg.style.padding = '8px';
-        svg.style.overflow = 'visible';
-
-        Array.prototype.forEach.call(svg.querySelectorAll('.axis.main text'), el => {
-          el.style.fill = '#151515';
-        });
-        Array.prototype.forEach.call(svg.querySelectorAll('.domain'), el => {
-          el.style['fill-opacity'] = '0';
-        });
-        Array.prototype.forEach.call(svg.querySelectorAll('.grid line'), el => {
-          el.setAttribute('stroke-width', '0.5');
-          el.setAttribute('stroke-opacity', '0.15');
-          el.setAttribute('stroke', '#151515');
-        });
-        Array.prototype.forEach.call(svg.querySelectorAll('.axis.main line, .axis.main path'), el => {
-          el.style.stroke = '#151515';
-        });
-
-        function applyStyleToElement(parent, orig) {
-          const children = parent.childNodes;
-          const origChildren = orig.childNodes;
-
-          for (let i = 0; i < children.length; i++) {
-            const child = children[i];
-            const tag = child.tagName;
-            if (ContainerElements.indexOf(tag) !== -1) {
-              applyStyleToElement(child, origChildren[i])
-            } else if (tag in RelevantStyles) {
-              const StyleDef = window.getComputedStyle(origChildren[i]);
-              for (let j = 0; j < RelevantStyles[tag].length; j++) {
-                child.style[RelevantStyles[tag][j]] = StyleDef.getPropertyValue(RelevantStyles[tag][j]);
-              }
-            }
-          }
+      _openExportDialog() {
+        if (!window._exportChartDialog) {
+          const DialogChartExport = customElements.get('dialog-chart-export');
+          window._exportChartDialog = new DialogChartExport(this);
+          document.body.appendChild(window._exportChartDialog);
+        } else {
+          window._exportChartDialog.setChartElement(this);
         }
-
-        const data = (new XMLSerializer()).serializeToString(svg);
-        const uri = (decodeURIComponent(location.href)).replace(/ids|room|:\/\/|https|http/gi, '').replace(/[$-/:-?{-~!"^=&_`]/gi, '+').replace(/\+\+/gi, '+');
-
-        if (format === 'png') {
-          const image = new Image();
-          image.src = 'data:image/svg+xml;base64,' + window.btoa(unescape(encodeURIComponent(data)));
-          image.onload = function() {
-            const canvas = document.createElement('canvas');
-            canvas.width = image.width + 16;
-            canvas.height = image.height + 16;
-            const context = canvas.getContext('2d');
-            context.drawImage(image, 0, 0);
-
-            const li = document.createElement('a');
-            li.download = uri + '.png';
-            li.href = canvas.toDataURL('image/png');
-            li.dispatchEvent(new MouseEvent('click', {
-              view: window,
-              bubbles: false,
-              cancelable: true
-            }));
-          }
-        } else { // save as svg
-          const blob = new Blob([data], {type:'image/svg+xml;charset=utf-8}'});
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.setAttribute('download', uri + '.svg');
-          a.setAttribute('href', url);
-          a.setAttribute('target', '_blank');
-          a.dispatchEvent(new MouseEvent('click', {
-            view: window,
-            bubbles: false,
-            cancelable: true
-          }));
-        }
+        window._exportChartDialog.open();
       }
-
 
       // _refresh() {
       //   this._buildLayout();

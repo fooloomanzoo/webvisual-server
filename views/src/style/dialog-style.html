@@ -43,6 +43,9 @@
         border-top: thin solid var(--grid-border-color, #aaa);
         border-bottom: thin solid var(--grid-border-color, #aaa);
       }
+      ::slotted([dialog-content][horizontal]) {
+        @apply --layout-horizontal;
+      }
       ::slotted([dialog-bottom]),
       ::slotted(.button) {
         @apply --layout-horizontal;

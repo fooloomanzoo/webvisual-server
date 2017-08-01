@@ -53,7 +53,7 @@
           this.exitFullscreen = document.exitFullscreen.bind(document);
           this.addEventListener('fullscreenchange', this.fullScreenChanged.bind(this));
         } else if (this.webkitRequestFullScreen) {
-          this.requestFullscreen = this.$.svgContainer.webkitRequestFullScreen.bind(this);
+          this.requestFullscreen = this.webkitRequestFullScreen.bind(this);
           this.exitFullscreen = document.webkitCancelFullScreen.bind(document);
           this.addEventListener('webkitfullscreenchange', this.fullScreenChanged.bind(this));
         } else if (this.mozRequestFullScreen) {

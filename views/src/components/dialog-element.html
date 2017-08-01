@@ -7,6 +7,17 @@
 <dom-module id="dialog-element">
   <template strip-whitespace>
     <style include="dialog-style">
+      :host {
+        outline: none;
+        --calculated-icon-size: var(--icon-size, 1.5em);
+        --calculated-icon-padding: var(--icon-padding, 0.5em);
+      }
+      ::slotted([dialog-title]) {
+        line-height: var(--calculated-icon-size);
+        margin-top: calc(var(--calculated-icon-padding) + 4px);
+        margin-bottom: calc(var(--calculated-icon-padding) + 4px);
+        padding-right: calc(var(--calculated-icon-size) + 2*var(--calculated-icon-padding) + 4px);
+      }
       #exitButton {
         position: absolute;
         right: 4px;
@@ -15,7 +26,7 @@
         border-radius: 50%;
       }
       [hidden] {
-        display: none;
+        display: none !important;
       }
     </style>
     <slot></slot>

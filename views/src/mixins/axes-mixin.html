@@ -64,14 +64,14 @@
              value: 8
            },
 
-           axisMargin: {
+           collapsedAxisMargin: {
              type: Number,
              value: 6
            },
 
            axisSizeX: {
              type: Number,
-             value: 24
+             value: 20
            },
 
            axisSizeY: {
@@ -162,7 +162,7 @@
         if (rangeY[0]) {
           if (this.item && this.item.isIndicatorLamp) {
             this.ticksY = 2;
-            this.axisSizeY = 2*(this.tickSize + this.axisMargin);
+            this.axisSizeY = 2*(this.tickSize + this.collapsedAxisMargin);
           } else {
             this.ticksY = Math.ceil(rangeY[0] / 50);
           }
