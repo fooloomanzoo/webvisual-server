@@ -179,7 +179,12 @@
         Array.prototype.forEach.call(this.$.chartContainer.children, el => {
           this.$.chartContainer.removeChild(el);
         })
-        this.$.chartContainer.appendChild(this._chart);
+        requestAnimationFrame(() => {
+          this.$.chartContainer.appendChild(this._chart);
+          setTimeout(() => {
+            this._chart.sizeLayout();
+          }, 100);
+        });
       }
 
       toggleOptions() {
@@ -203,7 +208,7 @@
         this.opened = false;
       }
 
-      save(format) {
+      save() {
         // TODO: add a dialog with options: height, width, format, legend, legend-keys, areas
         // https://stackoverflow.com/questions/28226677/save-inline-svg-as-jpeg-png-svg
         // https://stackoverflow.com/questions/15181452/how-to-save-export-inline-svg-styled-with-css-from-browser-to-image-file
@@ -214,11 +219,11 @@
           'path': ['fill', 'stroke', 'stroke-width'],
           'circle': ['fill', 'stroke', 'fill-opacity', 'stroke-width'],
           'line': ['stroke', 'stroke-width'],
-          'text': ['fill', 'font-size', 'text-anchor', 'alignment-baseline']
+          'text': ['fill', 'font-size', 'font-family', 'letter-spacing', 'text-anchor', 'alignment-baseline']
         };
         requestAnimationFrame(() => {
           this._chart.sizeLayout();
-          requestAnimationFrame(() => {
+          setTimeout(() => {
             const svg = this._chart._svg.node().cloneNode(true);
             applyStyleToElement(svg, this._chart._svg.node());
             Array.prototype.forEach.call(svg.querySelectorAll('[hidden],.brush,#zoom,#focus,.info'), el => {
@@ -236,18 +241,21 @@
             svg.style.padding = '0px';
 
             Array.prototype.forEach.call(svg.querySelectorAll('.axis.main text'), el => {
-              el.style.fill = '#151515';
+              el.setAttribute('fill', '#151515');
             });
             Array.prototype.forEach.call(svg.querySelectorAll('.domain'), el => {
-              el.style['fill-opacity'] = '0';
+              el.setAttribute('fill-opacity', '0');
             });
             Array.prototype.forEach.call(svg.querySelectorAll('.grid line'), el => {
-              el.style['stroke-width'] = 0.5;
-              el.style['stroke-opacity'] = 0.2;
-              el.style['stroke'] = '#151515';
+              el.setAttribute('stroke-width', 0.5);
+              el.setAttribute('stroke-opacity', 0.2);
+              el.setAttribute('stroke', '#151515');
             });
             Array.prototype.forEach.call(svg.querySelectorAll('.axis.main line,.axis.main path'), el => {
-              el.style.stroke = '#151515';
+              el.setAttribute('stroke', '#151515');
+            });
+            Array.prototype.forEach.call(svg.querySelectorAll('*'), el => {
+              el.removeAttribute('class');
             });
 
             function applyStyleToElement(parent, orig) {
@@ -262,7 +270,7 @@
                 } else if (tag in RelevantStyles) {
                   const StyleDef = window.getComputedStyle(origChildren[i]);
                   for (let j = 0; j < RelevantStyles[tag].length; j++) {
-                    child.style[RelevantStyles[tag][j]] = StyleDef.getPropertyValue(RelevantStyles[tag][j]);
+                    child.setAttribute([RelevantStyles[tag][j]], StyleDef.getPropertyValue(RelevantStyles[tag][j]));
                   }
                 }
               }
@@ -320,7 +328,7 @@
               }));
             }
             this.close();
-          });
+          }, 100);
         });
       }
     }
