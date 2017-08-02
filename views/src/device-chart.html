@@ -47,8 +47,6 @@
         mix-blend-mode: unset !important;
       }
       #svg {
-        position: absolute;
-        top: 0; bottom: 0; left: 0; right: 0;
         width: 100%; height: 100%;
         overflow: visible;
         font-family: inherit !important;
@@ -352,7 +350,7 @@
           margin: {
             type: Object,
             value: function() {
-              return {top: 6, right: 6, bottom: 6, left: 6}
+              return {top: 8, right: 6, bottom: 6, left: 6}
             }
           },
 
@@ -465,7 +463,6 @@
 
         this._chart = d3.select(this.$.chart);
         this._control = d3.select(this.$.control);
-        this._controlcontent = d3.select(this.$.controlcontent);
 
         this._axisInsertionPoint = d3.select(this.$.axis);
         this._area = d3.select(this.$.area);
@@ -689,11 +686,11 @@
 
           Promise.all(p).then(() => {
             // Limiting Projection to Margin
-            this._chart.select('clipPath#clip rect').transition(100)
+            this._chart.select('clipPath#clip rect').transition()
               .attr('width', this._width)
               .attr('height', this._height);
 
-            this._chart.select('rect#plot').transition(100)
+            this._chart.select('rect#plot').transition()
               .attr('width', this._width)
               .attr('height', this._height);
 
@@ -701,7 +698,7 @@
               top = (-this._chart._top || 0) + (this.margin.top || 0),
               right = (-this._chart._right || 0) - (this.margin.right || 0),
               bottom = (-this._chart._bottom || 0) - (this.margin.bottom || 0);
-            this._chart.transition(100).attr('transform', 'translate(' + left + ',' + top + ')');
+            this._chart.transition().attr('transform', 'translate(' + left + ',' + top + ')');
             this._focusY.attr('y1', this._height);
 
             this._graphs.forEach(g => {
@@ -741,8 +738,7 @@
             this._svg.selectAll('g,line,text,path,rect')
               .classed('style-scope', true).classed('device-chart', true);
 
-            this._control.transition(100).style('transform', 'translate(' + (right) + 'px,' + bottom + 'px)');
-            this._controlcontent.transition(100).style('transform', 'translate(' + (right) + 'px,' + top + 'px)');
+            this._control.transition().style('transform', 'translate(' + right + 'px,' + bottom + 'px)');
 
             if (!this.domainX || !this.domainY || this.domainX.some(e => {
                 return e === undefined || e === null;
@@ -865,21 +861,21 @@
         this._activeRedrawJob = setTimeout(() => {
 
           if (!this.axisX.attr('hidden')) {
-            this.axisX.transition(100).attr('transform', 'translate(' + (this.axisX._left || 0) + ',' + (this.axisX._top || 0) + ')').call(this.axisGeneratorX);
+            this.axisX.transition().call(this.axisGeneratorX).attr('transform', 'translate(' + (this.axisX._left || 0) + ',' + (this.axisX._top || 0) + ')');
           }
           if (!this.axisY.attr('hidden')) {
-            this.axisY.transition(100).attr('transform', 'translate(' + (this.axisY._left || 0) + ',' + (this.axisY._top || 0) + ')').call(this.axisGeneratorY);
+            this.axisY.transition().call(this.axisGeneratorY).attr('transform', 'translate(' + (this.axisY._left || 0) + ',' + (this.axisY._top || 0) + ')');
           }
 
           this._graphs.forEach(g => {
             if (g._isAttached) {
               if (!g.axisX.attr('hidden')) {
-                g.axisX.transition(100).attr('transform', 'translate(' + (g.axisX._left || 0) + ',' + (g.axisX._top || 0) + ')').call(g.axisGeneratorX);
+                g.axisX.transition().call(g.axisGeneratorX).attr('transform', 'translate(' + (g.axisX._left || 0) + ',' + (g.axisX._top || 0) + ')');
               } else {
                 g.set('domainX', this.domainX);
               }
               if (!g.axisY.attr('hidden')) {
-                g.axisY.transition(100).attr('transform', 'translate(' + (g.axisY._left || 0) + ',' + (g.axisY._top || 0) + ')').call(g.axisGeneratorY);
+                g.axisY.transition().call(g.axisGeneratorY).attr('transform', 'translate(' + (g.axisY._left || 0) + ',' + (g.axisY._top || 0) + ')');
               } else {
                 g.set('domainY', this.domainY);
               }
@@ -922,6 +918,7 @@
         this._graphs.add(g);
         this.sizeChanged();
       }
+
       _removeGraph(g) {
         this._graphs.delete(g);
         if (this._graphs.size === 0) {
@@ -1183,7 +1180,7 @@
             scale = oldzoom.k * 3;
             y = (oldzoom.y - y) / oldzoom.k;
             x = (oldzoom.x - x) / oldzoom.k;
-            this._zoom.transition().duration(300).call(this._zoomBehavior.transform, d3.zoomIdentity
+            this._zoom.transition(300).call(this._zoomBehavior.transform, d3.zoomIdentity
               .scale(scale)
               .translate(x, y));
             break;
@@ -1220,6 +1217,7 @@
             g.set('interpolation', interpolation);
         })
       }
+
       _onAxisBrushEnd(key) {
         if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
         const s = d3.event.selection;
@@ -1248,7 +1246,7 @@
           oldzoom = this._zoom.node().__zoom;
           scale = oldzoom.k * this._height / (s[1] - s[0]);
           y = (oldzoom.y - s[0]) / oldzoom.k;
-          this._zoom.transition().duration(300).call(this._zoomBehavior.transform, d3.zoomIdentity
+          this._zoom.transition(300).call(this._zoomBehavior.transform, d3.zoomIdentity
             .scale(scale)
             .translate(0, y));
         }
@@ -1267,7 +1265,7 @@
           oldzoom = this._zoom.node().__zoom;
           scale = oldzoom.k * this._width / (s[1] - s[0]);
           x = (oldzoom.x - s[0]) / oldzoom.k;
-          this._zoom.transition().duration(300).call(this._zoomBehavior.transform, d3.zoomIdentity
+          this._zoom.transition(300).call(this._zoomBehavior.transform, d3.zoomIdentity
             .scale(scale)
             .translate(x, 0));
         }
@@ -1276,6 +1274,7 @@
         })
         this._updateInfo();
       }
+
       _onZoomed() {
         if (d3.event.sourceEvent && d3.event.sourceEvent.type === 'brush') return; // ignore zoom-by-brush
         const t = d3.event.transform;
@@ -1311,6 +1310,7 @@
         this._isZoomed = !(t.k === 1 && t.x === 0 && t.y === 0);
         this._updateInfo();
       }
+
       _onAxisClicked(axis) {
         if (this._activeToggleAxisJob) {
           clearTimeout(this._activeToggleAxisJob);
@@ -1322,6 +1322,7 @@
         }
         super._onAxisClicked(axis);
       }
+
       _onAxisContextMenu(orient) {
         if (d3.event)
           d3.event.preventDefault();
@@ -1332,9 +1333,11 @@
         }
         this._debouncedHideInfo();
       }
+
       _closeControl() {
         this.showControl = false;
       }
+
       _resetZoom(e) {
         if (d3.event)
           d3.event.preventDefault();
@@ -1347,15 +1350,15 @@
         this._focusedValue = null;
         this.axisX._isBrushed = false;
         this.axisY._isBrushed = false;
-        this._zoom.transition().duration(200).call(this._zoomBehavior.transform, d3.zoomIdentity.scale(1));
         this._graphs.forEach(g => {
           g.axisX._isBrushed = false;
           g.axisY._isBrushed = false;
           g.scaleX.domain(g.domainX);
           g.scaleY.domain(g.domainY);
-          g.axisX.call(g.axisGeneratorX.scale(g.scaleX));
-          g.axisY.call(g.axisGeneratorY.scale(g.scaleY));
+          g.axisX.transition().call(g.axisGeneratorX.scale(g.scaleX));
+          g.axisY.transition().call(g.axisGeneratorY.scale(g.scaleY));
         })
+        this._zoom.transition(300).call(this._zoomBehavior.transform, d3.zoomIdentity.scale(1));
         this._hideInfo();
         this._redomain();
       }
