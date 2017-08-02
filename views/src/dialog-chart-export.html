@@ -107,7 +107,7 @@
 
           format: {
             type: String,
-            value: 'svg'
+            value: 'png'
           },
 
           resolution: {
@@ -116,8 +116,8 @@
           },
 
           fontSize: {
-            type: String,
-            value: 'svg'
+            type: Number,
+            value: 11
           },
 
           languageResourcePrefix: {
@@ -205,9 +205,9 @@
 
       save(format) {
         // TODO: add a dialog with options: height, width, format, legend, legend-keys, areas
-        format = format || this.format;
         // https://stackoverflow.com/questions/28226677/save-inline-svg-as-jpeg-png-svg
         // https://stackoverflow.com/questions/15181452/how-to-save-export-inline-svg-styled-with-css-from-browser-to-image-file
+
         const ContainerElements = ['svg', 'g'];
         const RelevantStyles = {
           'rect': ['fill', 'stroke', 'stroke-width'],
@@ -216,108 +216,112 @@
           'line': ['stroke', 'stroke-width'],
           'text': ['fill', 'font-size', 'text-anchor', 'alignment-baseline']
         };
+        requestAnimationFrame(() => {
+          this._chart.sizeLayout();
+          requestAnimationFrame(() => {
+            const svg = this._chart._svg.node().cloneNode(true);
+            applyStyleToElement(svg, this._chart._svg.node());
+            Array.prototype.forEach.call(svg.querySelectorAll('[hidden],.brush,#zoom,#focus,.info'), el => {
+              if (el && el.parentElement)
+                el.parentElement.removeChild(el);
+            })
 
-        const svg = this._chart._svg.node().cloneNode(true);
-        applyStyleToElement(svg, this._chart._svg.node());
-        Array.prototype.forEach.call(svg.querySelectorAll('[hidden],.brush,#zoom,#focus,.info'), el => {
-          if (el && el.parentElement)
-            el.parentElement.removeChild(el);
-        })
+            const bbox = this._chart._svg.node().getBoundingClientRect(),
+              height = bbox.height,
+              width = bbox.width;
 
-        const bbox = this._chart._svg.node().getBoundingClientRect(),
-          height = bbox.height,
-          width = bbox.width;
+            svg.setAttribute('height', height);
+            svg.setAttribute('width', width);
+            svg.style.margin = '0px';
+            svg.style.padding = '0px';
 
-        svg.setAttribute('height', height);
-        svg.setAttribute('width', width);
-        svg.style.margin = '0px';
-        svg.style.padding = '0px';
+            Array.prototype.forEach.call(svg.querySelectorAll('.axis.main text'), el => {
+              el.style.fill = '#151515';
+            });
+            Array.prototype.forEach.call(svg.querySelectorAll('.domain'), el => {
+              el.style['fill-opacity'] = '0';
+            });
+            Array.prototype.forEach.call(svg.querySelectorAll('.grid line'), el => {
+              el.style['stroke-width'] = 0.5;
+              el.style['stroke-opacity'] = 0.2;
+              el.style['stroke'] = '#151515';
+            });
+            Array.prototype.forEach.call(svg.querySelectorAll('.axis.main line,.axis.main path'), el => {
+              el.style.stroke = '#151515';
+            });
 
-        Array.prototype.forEach.call(svg.querySelectorAll('.axis.main text'), el => {
-          el.style.fill = '#151515';
-        });
-        Array.prototype.forEach.call(svg.querySelectorAll('.domain'), el => {
-          el.style['fill-opacity'] = '0';
-        });
-        Array.prototype.forEach.call(svg.querySelectorAll('.grid line'), el => {
-          el.style['stroke-width'] = 0.5;
-          el.style['stroke-opacity'] = 0.2;
-          el.style['stroke'] = '#151515';
-        });
-        Array.prototype.forEach.call(svg.querySelectorAll('.axis.main line,.axis.main path'), el => {
-          el.style.stroke = '#151515';
-        });
+            function applyStyleToElement(parent, orig) {
+              const children = parent.childNodes;
+              const origChildren = orig.childNodes;
 
-        function applyStyleToElement(parent, orig) {
-          const children = parent.childNodes;
-          const origChildren = orig.childNodes;
-
-          for (let i = 0; i < children.length; i++) {
-            const child = children[i];
-            const tag = child.tagName;
-            if (ContainerElements.indexOf(tag) !== -1) {
-              applyStyleToElement(child, origChildren[i])
-            } else if (tag in RelevantStyles) {
-              const StyleDef = window.getComputedStyle(origChildren[i]);
-              for (let j = 0; j < RelevantStyles[tag].length; j++) {
-                child.style[RelevantStyles[tag][j]] = StyleDef.getPropertyValue(RelevantStyles[tag][j]);
+              for (let i = 0; i < children.length; i++) {
+                const child = children[i];
+                const tag = child.tagName;
+                if (ContainerElements.indexOf(tag) !== -1) {
+                  applyStyleToElement(child, origChildren[i])
+                } else if (tag in RelevantStyles) {
+                  const StyleDef = window.getComputedStyle(origChildren[i]);
+                  for (let j = 0; j < RelevantStyles[tag].length; j++) {
+                    child.style[RelevantStyles[tag][j]] = StyleDef.getPropertyValue(RelevantStyles[tag][j]);
+                  }
+                }
               }
             }
-          }
-        }
 
-        const data = (new XMLSerializer()).serializeToString(svg);
-        const uri = (decodeURIComponent(location.href)).replace(/ids|room|:\/\/|https|http/gi, '').replace(/[$-/:-?{-~!"^=&_`]/gi, '+').replace(/\+\+/gi, '+');
+            const data = (new XMLSerializer()).serializeToString(svg);
+            const uri = (decodeURIComponent(location.href)).replace(/ids|room|:\/\/|https|http/gi, '').replace(/[$-/:-?{-~!"^=&_`]/gi, '+').replace(/\+\+/gi, '+');
 
-        if (format === 'png') {
-          const image = new Image();
-          let dpi;
-          switch (this.resolution) {
-            case 'high':
-              dpi = 600;
-              break;
-            case 'medium':
-              dpi = 300;
-              break;
-            default:
-              dpi = 150;
-          }
-          image.src = 'data:image/svg+xml;base64,' + window.btoa(unescape(encodeURIComponent(data)));
-          image.onload = () => {
-            const canvas = document.createElement('canvas');
-            canvas.style.width = width + 'px';
-            canvas.style.height = height + 'px';
-            let scaleFactorX = dpi / this._dpiX;
-            let scaleFactorY = dpi / this._dpiY;
-            canvas.width = Math.floor(scaleFactorX * width);
-            canvas.height = Math.floor(scaleFactorY * height);
-            const context = canvas.getContext('2d');
-            context.scale(canvas.width/width, canvas.height/height);
-            context.drawImage(image, 0, 0);
+            if (this.format === 'png') {
+              const image = new Image();
+              let dpi;
+              switch (this.resolution) {
+                case 'high':
+                  dpi = 600;
+                  break;
+                case 'medium':
+                  dpi = 300;
+                  break;
+                default:
+                  dpi = 150;
+              }
+              image.src = 'data:image/svg+xml;base64,' + window.btoa(unescape(encodeURIComponent(data)));
+              image.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.style.width = width + 'px';
+                canvas.style.height = height + 'px';
+                let scaleFactorX = dpi / this._dpiX;
+                let scaleFactorY = dpi / this._dpiY;
+                canvas.width = Math.floor(scaleFactorX * width);
+                canvas.height = Math.floor(scaleFactorY * height);
+                const context = canvas.getContext('2d');
+                context.scale(canvas.width/width, canvas.height/height);
+                context.drawImage(image, 0, 0);
 
-            const li = document.createElement('a');
-            li.download = uri + '.png';
-            li.href = canvas.toDataURL('image/png');
-            li.dispatchEvent(new MouseEvent('click', {
-              view: window,
-              bubbles: false,
-              cancelable: true
-            }));
-          }
-        } else { // save as svg
-          const blob = new Blob([data], {type:'image/svg+xml;charset=utf-8}'});
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.setAttribute('download', uri + '.svg');
-          a.setAttribute('href', url);
-          a.setAttribute('target', '_blank');
-          a.dispatchEvent(new MouseEvent('click', {
-            view: window,
-            bubbles: false,
-            cancelable: true
-          }));
-        }
-        this.close();
+                const li = document.createElement('a');
+                li.download = uri + '.png';
+                li.href = canvas.toDataURL('image/png');
+                li.dispatchEvent(new MouseEvent('click', {
+                  view: window,
+                  bubbles: false,
+                  cancelable: true
+                }));
+              }
+            } else { // save as svg
+              const blob = new Blob([data], {type:'image/svg+xml;charset=utf-8}'});
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.setAttribute('download', uri + '.svg');
+              a.setAttribute('href', url);
+              a.setAttribute('target', '_blank');
+              a.dispatchEvent(new MouseEvent('click', {
+                view: window,
+                bubbles: false,
+                cancelable: true
+              }));
+            }
+            this.close();
+          });
+        });
       }
     }
     customElements.define(DialogChartExport.is, DialogChartExport);

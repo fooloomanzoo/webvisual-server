@@ -505,7 +505,7 @@
         const t = d3.zoomIdentity.translate(transform.x, transform.y).scale(transform.k);
         // save last transition
         this._svg.node().__zoom = t;
-        this._mainG.transition(300)
+        this._mainG.transition(500)
           .attr('transform', t);
       }
 

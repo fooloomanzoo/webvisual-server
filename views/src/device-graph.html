@@ -689,6 +689,7 @@
         this._lineGenerator.curve(curve);
         this.redraw();
       }
+
       _onAxisClicked(axis) {
         if (this._activeToggleAxisJob) {
           clearTimeout(this._activeToggleAxisJob);
@@ -700,6 +701,7 @@
         }
         super._onAxisClicked(axis);
       }
+
       _onAxisMouseover() {
         super._onAxisMouseover();
         if (this._area) {
@@ -713,6 +715,7 @@
           this._line.raise();
         }
       }
+      
       _onAxisMouseleave() {
         super._onAxisMouseleave();
         if (this._area) {

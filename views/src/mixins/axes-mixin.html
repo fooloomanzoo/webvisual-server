@@ -37,13 +37,6 @@
             value: 'left'
           },
           /**
-           * transition time in ms when changing position
-           */
-          axisTransitionTime: {
-            type: Number,
-            value: 100
-          },
-          /**
            * title to show, when hovering
            */
           axisTitle: {
@@ -365,13 +358,13 @@
           domain = s.map(this.scaleY.invert, this.scaleY).sort((a, b) => { return a > b});
           this.axisY._isBrushed = true;
           this.scaleY.domain(domain).nice();
-          this.axisY.call(this.axisGeneratorY.scale(this.scaleY));
+          this.axisY.transition().call(this.axisGeneratorY.scale(this.scaleY));
           this.axisY.select(".brush").call(this.axisBrushGeneratorY.move, null);
         } else {
           domain = s.map(this.scaleX.invert, this.scaleX).sort((a, b) => { return a > b});
           this.axisX._isBrushed = true;
           this.scaleX.domain(domain);
-          this.axisX.call(this.axisGeneratorX.scale(this.scaleX));
+          this.axisX.transition().call(this.axisGeneratorX.scale(this.scaleX));
           this.axisX.select(".brush").call(this.axisBrushGeneratorX.move, null);
         }
         this.redraw();
