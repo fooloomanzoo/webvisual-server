@@ -178,7 +178,7 @@
 
       connectedCallback() {
         super.connectedCallback();
-        this.autoSignIn(false);
+        this.autoSignIn('silent');
         requestAnimationFrame(() => {
           window.addEventListener('online', this.autoSignIn.bind(this));
           this.$.dialog.center();
@@ -190,13 +190,14 @@
        * @param  {Boolean} unmediated Determines if user mediation is required.
        * @return {Promise} Resolves if credential info is available.
        */
-      autoSignIn(unmediated) {
+      autoSignIn(mediation) {
         let p;
+        mediation = (['silent', 'optional', 'required'].indexOf(mediation) === -1) ? 'optional' : mediation;
         if (navigator.credentials) {
           // Actual Credential Management API call to get credential object
           p = navigator.credentials.get({
               password: true,
-              unmediated: unmediated
+              mediation : mediation
             }).then(cred => {
               if (cred) {
                 // console.log('auto sign-in performed');
@@ -359,7 +360,7 @@
         return this._fetch(this.signOutUrl, 'POST', 'include', 'json', null, false, false, JSON.stringify(this.userProfile))
           .then(() => {
             if (navigator.credentials) {
-              navigator.credentials.requireUserMediation();
+              navigator.credentials.preventSilentAccess();
             }
             this.loggedIn = false;
             this.userProfile = null;

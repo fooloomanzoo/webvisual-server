@@ -63,7 +63,7 @@
         super();
 
         this._isAttached = false;
-        this._chart = null;
+        this._chart = this._containerRoot;
 
         this._areaGenerator = d3.area()
           .defined(this._defined.bind(this))
@@ -715,7 +715,7 @@
           this._line.raise();
         }
       }
-      
+
       _onAxisMouseleave() {
         super._onAxisMouseleave();
         if (this._area) {

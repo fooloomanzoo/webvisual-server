@@ -469,7 +469,7 @@
       }
 
       _setDateNumberFormat(localeNumber, localeDate) {
-        if (localeDate === undefined || localeNumber === undefined) return;
+        if (typeof localeDate !== 'object' || typeof localeNumber !== 'object') return;
 
         if (localeDate) {
           this.localeDate = localeDate;
