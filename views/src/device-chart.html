@@ -236,7 +236,7 @@
           <path d="M 3,5 M 0,4 H 6 V 6 H 0 Z"/>
         </marker>
         <filter id="solid">
-          <feFlood flood-color="white" result="out1" />
+          <feFlood flood-color="#fff" result="out1" />
           <feComposite in="SourceGraphic" in2="out1"
             operator="over" />
         </filter>
@@ -370,10 +370,6 @@
             observer: 'changeInterpolation'
           },
 
-          noLink: {
-            type: Boolean
-          },
-
           item: {
             type: Object
           },
@@ -400,6 +396,10 @@
           exportDisabled: {
             type: Boolean,
             value: false
+          },
+
+          autoHideFocusDisabled: {
+            type: Boolean
           },
 
           modus: {

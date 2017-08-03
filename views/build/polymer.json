@@ -40,7 +40,9 @@
       "html": {
         "minify": true
       },
-      "addServiceWorker": true
+      "addServiceWorker": true,
+      "addPushManifest": true,
+      "insertPrefetchLinks": true
     },
     {
       "name": "compiled",
@@ -55,7 +57,9 @@
       "html": {
         "minify": true
       },
-      "addServiceWorker": true
+      "addServiceWorker": true,
+      "addPushManifest": true,
+      "insertPrefetchLinks": true
     }
   ],
   "lint": {

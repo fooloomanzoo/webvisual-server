@@ -1,0 +1,13 @@
+{
+  "/": {
+    "fonts/FiraSans-Regular.woff2": {
+      "type": "font",
+      "root": true,
+      "weight": 1
+    },
+    "src/webvisual-app.html": {
+      "type": "document",
+      "weight": 1
+    }
+  }
+}

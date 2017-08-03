@@ -334,8 +334,8 @@
       }
 
       onReset() {
-        this.$$('#username').value = '';
-        this.$$('#password').value = '';
+        Polymer.dom(this.root).querySelector('#username').value = '';
+        Polymer.dom(this.root).querySelector('#password').value = '';
       }
 
       /*
@@ -405,8 +405,8 @@
           bubbles: true,
           composed: true
         }));
-        this.$$('#username').value = '';
-        this.$$('#password').value = '';
+        Polymer.dom(this.root).querySelector('#username').value = '';
+        Polymer.dom(this.root).querySelector('#password').value = '';
         if (!this.offline) {
           this.open();
         }

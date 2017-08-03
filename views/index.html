@@ -37,6 +37,8 @@
   <meta name="msapplication-TileColor" content="#345475">
   <meta name="msapplication-tap-highlight" content="no">
 
+  <script src="/scripts/polyfills.js" async></script>
+  <script src="/scripts/client.js" async></script>
   <link rel="import" href="/src/webvisual-app.html" async>
 
   <style>
@@ -177,7 +179,7 @@
   <script>
    // Load Promise Polyfill
    if (!(window.Promise && window.Promise.all)) {
-     var scr = document.createElement('script');
+     const scr = document.createElement('script');
      scr.async = true;
      scr.src = '/bower_components/es6-promise/es6-promise.auto.min.js';
      document.head.appendChild(scr);

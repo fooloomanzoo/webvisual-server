@@ -10,8 +10,8 @@ const express = require('express')
     , processEmiter = require('./lib/process-emiter')
 
     // Processing Modules
-    , DataModule = require('./lib/data_module')
-    , ConfigFileProcessor = require('./lib/config_file_processor')
+    , DataModule = require('./lib/data-module')
+    , ConfigFileProcessor = require('./lib/config-file-processor')
     , Router = require('./router');
 
 const PATH_DEFAULT = path.resolve(__dirname, 'defaults/config.json')

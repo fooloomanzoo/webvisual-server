@@ -4,7 +4,6 @@
 
 <link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
 <link rel="import" href="../bower_components/iron-icon/iron-icon.html">
-<link rel="import" href="../bower_components/iron-media-query/iron-media-query.html">
 
 <link rel="import" href="components/icon-button.html">
 <link rel="import" href="components/dialog-element.html">
@@ -19,10 +18,6 @@
       :host {
         outline: none;
       }
-      #spacer {
-        padding-right: 12em;
-        flex: 0 0 auto;
-      }
       #dialog {
         border-radius: 0;
         padding: 0;
@@ -34,6 +29,7 @@
         position: relative;
         box-sizing: border-box;
         padding: 8px;
+        margin: 0;
         flex: 1 1 auto;
         overflow: auto;
       }
@@ -53,26 +49,28 @@
       }
     </style>
 
-    <iron-media-query query="(max-width: 600px)" query-matches="{{narrowLayout}}"></iron-media-query>
-
-    <dialog-element id="dialog">
+    <dialog-element id="dialog" on-iron-overlay-opened="_setDimensions">
       <div dialog-title>
         <div>{{localize('export', 'title')}}</div>
       </div>
       <div dialog-content horizontal>
         <div id="chartContainer"></div>
-        <div id="spacer" hidden$="[[narrowLayout]]"></div>
-        <drawer-element id="options" opened$="[[optionsOpened]]" scrim stretch persistent$="[[!narrowLayout]]" align="right"></drawer-element>
+        <drawer-element id="options" opened$="[[optionsOpened]]" scrim stretch align="right"></drawer-element>
       </div>
       <div dialog-bottom class="buttons">
         <div class="button" on-tap="toggleOptions" hidden$="[[!narrowLayout]]">
           <paper-ripple></paper-ripple>
-          <iron-icon class="left" icon="settings"></iron-icon>
+          <iron-icon class="left" icon="style"></iron-icon>
           {{localize('export', 'options')}}
+        </div>
+        <div class="button" on-tap="fitInContainer">
+          <paper-ripple></paper-ripple>
+          <iron-icon class="left" icon="aspect-ratio"></iron-icon>
+          fit
         </div>
         <div class="button" on-tap="save">
           <paper-ripple></paper-ripple>
-          <iron-icon class="left" icon="file-save"></iron-icon>
+          <iron-icon class="left" icon="camera-alt"></iron-icon>
           {{localize('export', 'save')}}
         </div>
       </div>
@@ -80,7 +78,8 @@
   </template>
 
   <script>
-    class DialogChartExport extends WebvisualMixins.LocalizeMixin(Polymer.Element) {
+    class DialogChartExport extends WebvisualMixins.LocalizeMixin(Polymer.mixinBehaviors(
+      [Polymer.IronResizableBehavior], Polymer.Element)) {
 
       static get is() {
         return 'dialog-chart-export'
@@ -112,12 +111,40 @@
 
           resolution: {
             type: String,
-            value: 'medium'
+            value: 'high'
           },
 
-          fontSize: {
+          quality: {
             type: Number,
-            value: 11
+            value: 0.5
+          },
+
+          height: {
+            type: Number
+          },
+
+          width: {
+            type: Number
+          },
+
+          showPoint: {
+            type: Boolean,
+            value: true
+          },
+
+          backgroundColor: {
+            type: String,
+            value: '#fff'
+          },
+
+          textColor: {
+            type: String,
+            value: '#151515'
+          },
+
+          lineColor: {
+            type: String,
+            value: '#151515'
           },
 
           languageResourcePrefix: {
@@ -125,6 +152,19 @@
             value: '/locales/ui/'
           }
         }
+      }
+
+      static get observers() {
+        return [
+          '_setDimensions(height, width)',
+          '_optionsChanged(showPoint, backgroundColor, textColor, lineColor)'
+        ]
+      }
+
+      static get listeners() {
+        return {
+          'iron-resize': '_setDimensions'
+        };
       }
 
       constructor() {
@@ -136,7 +176,7 @@
         super.connectedCallback();
         this._isAttached = true;
         this._attachChartElement();
-        this._getDpi();
+        this._getPPI();
       }
 
       setChartElement(chartElement) {
@@ -155,6 +195,57 @@
         }
       }
 
+      _optionsChanged() {
+        if (!this._chart || this._isAttached !== true) {
+          return;
+        }
+        const svg = this._chart._svg.node();
+      }
+
+      _setDimensions(height, width) {
+        console.log('_setDimensions', height, width, this._chart, this._isAttached)
+        if (!this._chart || this._isAttached !== true) {
+          return;
+        }
+        if (typeof height !== 'number' || typeof width !== 'number') {
+          const bbox = this._chart.getBoundingClientRect();
+          height = bbox.height;
+          width = bbox.width;
+        }
+        if (height <= 0 || width <= 0) {
+          return;
+        }
+        console.log(height, width)
+
+        this._chart.style.height = height + 'px';
+        this._chart.style.width = width + 'px';
+        this._chart.sizeLayout();
+      }
+
+      fitInContainer() {
+        if (!this._chart || this._isAttached !== true) {
+          return;
+        }
+        const bbox = this.$.chartContainer.getBoundingClientRect(),
+          pt = parseFloat(window.getComputedStyle(this.$.chartContainer).getPropertyValue('padding-top')),
+          pr = parseFloat(window.getComputedStyle(this.$.chartContainer).getPropertyValue('padding-right')),
+          pb = parseFloat(window.getComputedStyle(this.$.chartContainer).getPropertyValue('padding-bottom')),
+          pl = parseFloat(window.getComputedStyle(this.$.chartContainer).getPropertyValue('padding-left')),
+          mt = parseFloat(window.getComputedStyle(this.$.chartContainer).getPropertyValue('margin-top')),
+          mr = parseFloat(window.getComputedStyle(this.$.chartContainer).getPropertyValue('margin-right')),
+          mb = parseFloat(window.getComputedStyle(this.$.chartContainer).getPropertyValue('margin-bottom')),
+          ml = parseFloat(window.getComputedStyle(this.$.chartContainer).getPropertyValue('margin-left')),
+          height = bbox.height - mt - mb - pt - pb,
+          width = bbox.width - mr - ml - pr - pl;
+        console.log(pt, pr, mt, ml, height, width, bbox);
+        if (height <= 0 || width <= 0) {
+          return;
+        }
+        this._chart.style.height = height + 'px';
+        this._chart.style.width = width + 'px';
+        this._chart.sizeLayout();
+      }
+
       _detachChartElement() {
         if (this._isAttached === true) {
           if (this._chart && this._chart.parentElement)
@@ -162,13 +253,12 @@
         }
       }
 
-      _getDpi() {
+      _getPPI() {
         let testDiv = document.createElement('div');
         testDiv.style.cssText = 'height: 1in; left: -100%; position: absolute; top: -100%; width: 1in;';
         document.body.insertBefore(testDiv, document.body.children[0]);
-        this._dpiX = testDiv.offsetWidth;
-        this._dpiY = testDiv.offsetHeight;
-        console.log(this.dpiX, this.dpiY);
+        this._ppiX = testDiv.offsetWidth;
+        this._ppiY = testDiv.offsetHeight;
         testDiv.parentElement.removeChild(testDiv);
       }
 
@@ -199,10 +289,15 @@
         }
       }
 
+      _equals(a, b) {
+        return a === b;
+      }
+
       open() {
         this.$.dialog.open();
         this.opened = true;
       }
+
       close() {
         this.$.dialog.close();
         this.opened = false;
@@ -213,6 +308,8 @@
         // https://stackoverflow.com/questions/28226677/save-inline-svg-as-jpeg-png-svg
         // https://stackoverflow.com/questions/15181452/how-to-save-export-inline-svg-styled-with-css-from-browser-to-image-file
 
+        this._optionsChanged();
+        this._setDimensions(this.height, this.width);
         const ContainerElements = ['svg', 'g'];
         const RelevantStyles = {
           'rect': ['fill', 'stroke', 'stroke-width'],
@@ -222,26 +319,22 @@
           'text': ['fill', 'font-size', 'font-family', 'letter-spacing', 'text-anchor', 'alignment-baseline']
         };
         requestAnimationFrame(() => {
-          this._chart.sizeLayout();
-          setTimeout(() => {
+          // setTimeout(() => {
             const svg = this._chart._svg.node().cloneNode(true);
+            // window.getComputedStyle(this._chart._svg.node()).getPropertyValue('height')
             applyStyleToElement(svg, this._chart._svg.node());
             Array.prototype.forEach.call(svg.querySelectorAll('[hidden],.brush,#zoom,#focus,.info'), el => {
               if (el && el.parentElement)
                 el.parentElement.removeChild(el);
             })
-
-            const bbox = this._chart._svg.node().getBoundingClientRect(),
-              height = bbox.height,
-              width = bbox.width;
-
-            svg.setAttribute('height', height);
-            svg.setAttribute('width', width);
+            svg.setAttribute('filter', 'url(#solid)');
             svg.style.margin = '0px';
             svg.style.padding = '0px';
 
-            Array.prototype.forEach.call(svg.querySelectorAll('.axis.main text'), el => {
-              el.setAttribute('fill', '#151515');
+            svg.querySelector('filter#solid feFlood').setAttribute('flood-color', this.backgroundColor);
+
+            Array.prototype.forEach.call(svg.querySelectorAll('text'), el => {
+              el.setAttribute('fill', this.textColor);
             });
             Array.prototype.forEach.call(svg.querySelectorAll('.domain'), el => {
               el.setAttribute('fill-opacity', '0');
@@ -249,10 +342,10 @@
             Array.prototype.forEach.call(svg.querySelectorAll('.grid line'), el => {
               el.setAttribute('stroke-width', 0.5);
               el.setAttribute('stroke-opacity', 0.2);
-              el.setAttribute('stroke', '#151515');
+              el.setAttribute('stroke', this.lineColor);
             });
             Array.prototype.forEach.call(svg.querySelectorAll('.axis.main line,.axis.main path'), el => {
-              el.setAttribute('stroke', '#151515');
+              el.setAttribute('stroke', this.lineColor);
             });
             Array.prototype.forEach.call(svg.querySelectorAll('*'), el => {
               el.removeAttribute('class');
@@ -278,57 +371,48 @@
 
             const data = (new XMLSerializer()).serializeToString(svg);
             const uri = (decodeURIComponent(location.href)).replace(/ids|room|:\/\/|https|http/gi, '').replace(/[$-/:-?{-~!"^=&_`]/gi, '+').replace(/\+\+/gi, '+');
+            let a = document.createElement('a');
+            a.setAttribute('download', uri + '.' + this.format);
+            const event = new MouseEvent('click', { view: window, bubbles: false, cancelable: true });
 
-            if (this.format === 'png') {
+            if (this.format === 'svg') {
+              const blob = new Blob([data], {type:'image/svg+xml;charset=utf-8}'});
+              a.setAttribute('href', URL.createObjectURL(blob));
+              a.dispatchEvent(event);
+            } else { // save as compressed image file
               const image = new Image();
-              let dpi;
+              let ppi;
               switch (this.resolution) {
                 case 'high':
-                  dpi = 600;
+                  ppi = 300;
                   break;
                 case 'medium':
-                  dpi = 300;
+                  ppi = 300;
                   break;
                 default:
-                  dpi = 150;
+                  ppi = 150;
               }
               image.src = 'data:image/svg+xml;base64,' + window.btoa(unescape(encodeURIComponent(data)));
               image.onload = () => {
-                const canvas = document.createElement('canvas');
+                const canvas = document.createElement('canvas'),
+                  bbox = this._chart._svg.node().getBoundingClientRect(),
+                  height = bbox.height,
+                  width = bbox.width;
                 canvas.style.width = width + 'px';
                 canvas.style.height = height + 'px';
-                let scaleFactorX = dpi / this._dpiX;
-                let scaleFactorY = dpi / this._dpiY;
-                canvas.width = Math.floor(scaleFactorX * width);
-                canvas.height = Math.floor(scaleFactorY * height);
+                let scaleFactorX = ppi / this._ppiX;
+                let scaleFactorY = ppi / this._ppiY;
+                canvas.setAttribute('width', scaleFactorX * width);
+                canvas.setAttribute('height', scaleFactorY * height);
                 const context = canvas.getContext('2d');
                 context.scale(canvas.width/width, canvas.height/height);
                 context.drawImage(image, 0, 0);
-
-                const li = document.createElement('a');
-                li.download = uri + '.png';
-                li.href = canvas.toDataURL('image/png');
-                li.dispatchEvent(new MouseEvent('click', {
-                  view: window,
-                  bubbles: false,
-                  cancelable: true
-                }));
+                a.setAttribute('href', canvas.toDataURL('image/' + this.format, this.quality));
+                a.dispatchEvent(event);
               }
-            } else { // save as svg
-              const blob = new Blob([data], {type:'image/svg+xml;charset=utf-8}'});
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement('a');
-              a.setAttribute('download', uri + '.svg');
-              a.setAttribute('href', url);
-              a.setAttribute('target', '_blank');
-              a.dispatchEvent(new MouseEvent('click', {
-                view: window,
-                bubbles: false,
-                cancelable: true
-              }));
             }
             this.close();
-          }, 100);
+          // }, 100);
         });
       }
     }

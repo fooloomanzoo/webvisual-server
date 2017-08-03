@@ -180,7 +180,7 @@
           </div>
         </div>
         <tabs-container id="tabs" multi vertical items="{{checkboxes}}" attr-for-selected="id" activate-event="item-select">
-          <template id="tablist" is="dom-repeat" items="[[_shownElements]]">
+          <template id="tablist" is="dom-repeat" items="[[_shownElements]]" restamp restamp-key="mount">
             <device-checkbox class="checkbox"
               id="[[item.id]]"
               item="[[item]]"

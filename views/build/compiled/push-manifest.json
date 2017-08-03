@@ -1,0 +1,13 @@
+{
+  "src/webvisual-app.html": {
+    "src/page-home.html": {
+      "type": "document",
+      "weight": 1
+    }
+  },
+  "src/page-home.html": {},
+  "src/page-list.html": {},
+  "src/page-groups.html": {},
+  "src/page-detail.html": {},
+  "src/lazy-resources.html": {}
+}

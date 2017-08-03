@@ -1,55 +1,41 @@
 {
   "entrypoint": "index.html",
   "shell": "src/webvisual-app.html",
-  "fragments": [
-    "src/page-home.html",
-    "src/page-list.html",
-    "src/page-groups.html",
-    "src/page-detail.html",
-    "src/lazy-resources.html"
-  ],
-  "sources": [
-    "src/**/*",
-    "scripts/**/*",
-    "polyfills/**/*"
-  ],
-  "extraDependencies": [
-    "bower_components/webcomponentsjs/*",
-    "bower_components/es6-promise/*",
-    "manifest.json",
-    "app.yaml"
-  ],
-  "builds": [
-    {
-      "name": "bundled",
-      "bundle": true,
-      "js": {
-        "minify": true
-      },
-      "css": {
-        "minify": true
-      },
-      "html": {
-        "minify": true
-      },
-      "addServiceWorker": true
+  "fragments": [ "src/page-home.html", "src/page-list.html", "src/page-groups.html", "src/page-detail.html", "src/lazy-resources.html" ],
+  "sources": [ "src/**/*", "scripts/**/*", "polyfills/**/*" ],
+  "extraDependencies": [ "bower_components/webcomponentsjs/*", "bower_components/es6-promise/*", "manifest.json", "app.yaml" ],
+  "builds": [ {
+    "name": "bundled",
+    "bundle": true,
+    "js": {
+      "minify": true
     },
-    {
-      "name": "compiled",
-      "bundle": true,
-      "js": {
-        "minify": true,
-        "compile": true
-      },
-      "css": {
-        "minify": true
-      },
-      "html": {
-        "minify": true
-      },
-      "addServiceWorker": true
-    }
-  ],
+    "css": {
+      "minify": true
+    },
+    "html": {
+      "minify": true
+    },
+    "addServiceWorker": true,
+    "addPushManifest": true,
+    "insertPrefetchLinks": true
+  }, {
+    "name": "compiled",
+    "bundle": true,
+    "js": {
+      "minify": true,
+      "compile": true
+    },
+    "css": {
+      "minify": true
+    },
+    "html": {
+      "minify": true
+    },
+    "addServiceWorker": true,
+    "addPushManifest": true,
+    "insertPrefetchLinks": true
+  } ],
   "lint": {
     "rules": [ "polymer-2-hybrid" ]
   }

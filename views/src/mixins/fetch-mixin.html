@@ -69,10 +69,11 @@
               }
             }
             if (saveInLocalStorage && url !== undefined && data !== undefined) {
-              if (type === 'json') {
-                data = JSON.stringify(data);
+              if (type === 'json' && typeof data !== 'string') {
+                localStorage.setItem(url, JSON.stringify(data));
+              } else {
+                localStorage.setItem(url, data);
               }
-              localStorage.setItem(url, data);
             }
             if (type === 'xml' && data !== undefined) {
               return new window.DOMParser().parseFromString(data, "text/xml")
