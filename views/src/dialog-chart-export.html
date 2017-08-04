@@ -28,10 +28,14 @@
         display: block;
         position: relative;
         box-sizing: border-box;
-        padding: 8px;
         margin: 0;
+        padding: 8px;
         flex: 1 1 auto;
         overflow: auto;
+      }
+      #chartContainer > device-chart {
+        margin: 0;
+        padding: 0;
       }
       #chartContainer > * {
         color: inherit;
@@ -39,7 +43,8 @@
       #options {
         position: absolute;
         --drawer-width: 12em;
-        --drawer-background: rgba(0,0,0,0.25);
+        --drawer-background: rgba(255,255,255,0.5);
+        --drawer-scrim-background: rgba(255,255,255,0.25);
         --drawer-content: {
           padding: 0;
         };
@@ -203,7 +208,6 @@
       }
 
       _setDimensions(height, width) {
-        console.log('_setDimensions', height, width, this._chart, this._isAttached)
         if (!this._chart || this._isAttached !== true) {
           return;
         }
@@ -215,7 +219,6 @@
         if (height <= 0 || width <= 0) {
           return;
         }
-        console.log(height, width)
 
         this._chart.style.height = height + 'px';
         this._chart.style.width = width + 'px';
@@ -235,9 +238,9 @@
           mr = parseFloat(window.getComputedStyle(this.$.chartContainer).getPropertyValue('margin-right')),
           mb = parseFloat(window.getComputedStyle(this.$.chartContainer).getPropertyValue('margin-bottom')),
           ml = parseFloat(window.getComputedStyle(this.$.chartContainer).getPropertyValue('margin-left')),
-          height = bbox.height - mt - mb - pt - pb,
-          width = bbox.width - mr - ml - pr - pl;
-        console.log(pt, pr, mt, ml, height, width, bbox);
+          height = Math.floor(bbox.height - mt - mb - pt - pb),
+          width = Math.floor(bbox.width - mr - ml - pr - pl);
+
         if (height <= 0 || width <= 0) {
           return;
         }
@@ -268,7 +271,12 @@
         }
         Array.prototype.forEach.call(this.$.chartContainer.children, el => {
           this.$.chartContainer.removeChild(el);
-        })
+        });
+        let control = this._chart.querySelector('#control');
+        console.log(control);
+        if (control) {
+          control.parentElement.removeChild(control);
+        }
         requestAnimationFrame(() => {
           this.$.chartContainer.appendChild(this._chart);
           setTimeout(() => {

@@ -192,28 +192,45 @@
        */
       autoSignIn(mediation) {
         let p;
-        mediation = (['silent', 'optional', 'required'].indexOf(mediation) === -1) ? 'optional' : mediation;
+        mediation = (['silent', 'optional', 'required'].indexOf(mediation) === -1) ? 'silent' : mediation;
         if (navigator.credentials) {
           // Actual Credential Management API call to get credential object
-          p = navigator.credentials.get({
+          if (navigator.credentials && navigator.credentials.preventSilentAccess) {
+            p = navigator.credentials.get({
+                  password: true,
+                  mediation : mediation
+                });
+          } else {
+            p = navigator.credentials.get({
               password: true,
-              mediation : mediation
-            }).then(cred => {
-              if (cred) {
-                // console.log('auto sign-in performed');
-                if (cred.type === 'password') {
-                  cred.idName = 'username';
-                  //Return Promise from `signIn`
-                  return this.signIn.call(this, this.signInUrl, cred);
-                }
-              } else {
-                // console.log('auto sign-in not performed');
-                // Reject if credential object is not available
-                return Promise.reject();
-                // return this.signIn.call(this, '/auth');
-              }
+              unmediated: mediation !== 'optional'
             })
-            .catch(this.notSignedIn.bind(this));
+          }
+          p.then(cred => {
+            if (cred && cred.type === 'password') {
+              // console.log('auto sign-in performed');
+              // If `password` is `undefined`, this API is older version
+              // which means this is Chrome 51 - 59
+              if (cred.password === undefined) {
+                // cred.idName = 'username';
+                return this.signIn.call(this, this.signInUrl, cred);
+              // If `password` is not `undefined`, this API is new version
+              // which means this is Chrome 60 or later
+              } else {
+                let form = new FormData();
+                form.append('username', cred.id);
+                form.append('password', cred.password);
+
+                return this.signIn.call(this, this.signInUrl, 'include', form);
+              }
+            } else {
+              // console.log('auto sign-in not performed');
+              // Reject if credential object is not available
+              return Promise.reject();
+              // return this.signIn.call(this, '/auth');
+            }
+          })
+          .catch(this.notSignedIn.bind(this));
         } else {
           // Resolve if Credential Management API is not available
           // Fallback to server to check, if session-cookies are valid
@@ -285,53 +302,30 @@
           return;
         }
 
-        if (navigator.credentials) {
-          // Construct `FormData` object from actual `form`
-          const cred = new PasswordCredential(signinForm);
-          // Sign-In with our own server
-          this.signIn(this.signInUrl, cred)
-            .then(() => {
+        // Sign-In with our own server
+        this.signIn(this.signInUrl, 'include', new     FormData(signinForm))
+          .then(() => {
+            if (navigator.credentials) {
+              const cred = new PasswordCredential(signinForm);
               navigator.credentials.store(cred);
-              this.dispatchEvent(new CustomEvent('announce', {
-                detail: this.localize ? this.localize('notification', 'loggedIn', true) : 'You are signed in',
-                bubbles: true,
-                composed: true
-              }));
-            }, () => {
-              // Polymer event to notice user that 'Authentication failed'.
-              this.loggedIn = false;
-              this.dispatchEvent(new CustomEvent('announce', {
-                detail: this.localize ? this.localize('notification', 'loggedIn', false) : 'You are not signed in',
-                bubbles: true,
-                composed: true
-              }));
-              if (!this.offline) {
-                this.open();
-              }
-            });
-        } else {
-          this.noCredApiSignIn(this.signInUrl, new FormData(signinForm))
-            .then(() => {
-              console.log('logged in');
-              this.dispatchEvent(new CustomEvent('announce', {
-                detail: this.localize ? this.localize('notification', 'loggedIn', true) : 'You are signed in',
-                bubbles: true,
-                composed: true
-              }));
-            }, () => {
-              // Polymer event to notice user that 'Authentication failed'.
-              console.log('not logged in');
-              this.loggedIn = false;
-              this.dispatchEvent(new CustomEvent('announce', {
-                detail: this.localize ? this.localize('notification', 'loggedIn', false) : 'You are not signed in',
-                bubbles: true,
-                composed: true
-              }));
-              if (!this.offline) {
-                this.open();
-              }
-            });
-        }
+            }
+            this.dispatchEvent(new CustomEvent('announce', {
+              detail: this.localize ? this.localize('notification', 'loggedIn', true) : 'You are signed in',
+              bubbles: true,
+              composed: true
+            }));
+          }, () => {
+            // Polymer event to notice user that 'Authentication failed'.
+            this.loggedIn = false;
+            this.dispatchEvent(new CustomEvent('announce', {
+              detail: this.localize ? this.localize('notification', 'loggedIn', false) : 'You are not signed in',
+              bubbles: true,
+              composed: true
+            }));
+            if (!this.offline) {
+              this.open();
+            }
+          });
       }
 
       onReset() {
@@ -344,8 +338,8 @@
        * @param  {CredentialObject} cred FormData or CredentialObject
        * @return {Promise} Returns result of `noCredApiSignIn()`
        */
-      signIn(url, cred) {
-        return this._fetch(url, 'POST', cred || 'include', 'json')
+      signIn(url, cred, formData) {
+        return this._fetch(url, 'POST', cred || 'include', 'json', null, null, false, formData)
           .then(this.signedIn.bind(this))
           .catch(this.notSignedIn.bind(this));
       }
@@ -360,7 +354,8 @@
         return this._fetch(this.signOutUrl, 'POST', 'include', 'json', null, false, false, JSON.stringify(this.userProfile))
           .then(() => {
             if (navigator.credentials) {
-              navigator.credentials.preventSilentAccess();
+              navigator.credentials.requireUserMediation && navigator.credentials.requireUserMediation();
+              navigator.credentials.preventSilentAccess && navigator.credentials.preventSilentAccess();
             }
             this.loggedIn = false;
             this.userProfile = null;
@@ -411,18 +406,6 @@
         if (!this.offline) {
           this.open();
         }
-      }
-
-      /*
-       * Authentication flow with our own server
-       * @param  {String} url Credential type string.
-       * @param  {FormData} loginData loginData to POST to the server
-       * @return {Promise} Resolves when successfully authenticated
-       */
-      noCredApiSignIn(url, signinForm) {
-        return this._fetch(url, 'POST', 'include', 'json', null, null, false, signinForm)
-          .then(this.signedIn.bind(this))
-          .catch(this.notSignedIn.bind(this));
       }
 
       _openedChanged(opened) {

@@ -181,7 +181,9 @@
         position: absolute;
         bottom: var(--control-bottom, 0px);
         right: var(--control-right, 0px);
-        mix-blend-mode: exclusion;
+        top: var(--control-top, auto);
+        left: var(--control-left, auto);
+        mix-blend-mode: var(--control-mix-blend-mode, exclusion);
       }
       #control > *:not(:first-of-type) {
         margin-left: var(--control-button-distance, 0px);
@@ -462,7 +464,7 @@
           .attr('width', null);
 
         this._chart = d3.select(this.$.chart);
-        this._control = d3.select(this.$.control);
+        // this._control = d3.select(this.$.control);
 
         this._axisInsertionPoint = d3.select(this.$.axis);
         this._area = d3.select(this.$.area);
@@ -738,7 +740,7 @@
             this._svg.selectAll('g,line,text,path,rect')
               .classed('style-scope', true).classed('device-chart', true);
 
-            this._control.transition().style('transform', 'translate(' + right + 'px,' + bottom + 'px)');
+            // this._control.transition().style('transform', 'translate(' + right + 'px,' + bottom + 'px)');
 
             if (!this.domainX || !this.domainY || this.domainX.some(e => {
                 return e === undefined || e === null;

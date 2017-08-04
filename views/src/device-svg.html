@@ -87,7 +87,9 @@
       position: absolute;
       bottom: var(--control-bottom, 0px);
       right: var(--control-right, 0px);
-      mix-blend-mode: exclusion;
+      top: var(--control-top, auto);
+      left: var(--control-left, auto);
+      mix-blend-mode: var(--control-mix-blend-mode, exclusion);
     }
     #control > *:not(:first-of-type) {
       margin-left: var(--control-button-distance, 0px);
