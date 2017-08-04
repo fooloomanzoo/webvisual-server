@@ -43,12 +43,11 @@
         color: var(--fullscreen-color, white);
         background-color: var(--fullscreen-background-color);
       }
-      :host(:-webkit-full-screen) *, :host([without-mixmode]) * {
-        mix-blend-mode: unset !important;
+      :host(:-webkit-full-screen) * {
+        mix-blend-mode: normal !important;
       }
       #svg {
         width: 100%; height: 100%;
-        overflow: visible;
         font-family: inherit !important;
       }
       text {
@@ -71,13 +70,12 @@
         fill-opacity: var(--chart-plot-background-opacity, 0.2);
         stroke-opacity: 0.5;
         stroke-width: 1px;
-        isolation: isolate;
+        /*isolation: isolate;*/
       }
       .grid .tick line {
         color: var(--grid-color, currentColor);
         stroke-opacity: 0.1;
         stroke-width: 0.75px;
-        mix-blend-mode: exclusion;
       }
       .grid path {
         stroke-width: 0;
@@ -94,7 +92,7 @@
       }
       .axis path, .axis line {
         fill: currentColor;
-        fill-opacity: 0.01;
+        fill-opacity: 0.001;
         stroke: currentColor;
         stroke-opacity: 0.75;
         transition: fill-opacity 200ms linear;
@@ -126,7 +124,6 @@
       }
       #graphs .area:last-of-type {
         fill-opacity: 0.5;
-        mix-blend-mode: hard-light;
       }
       #graphs .line {
         cursor: pointer;
@@ -140,8 +137,8 @@
       .delta {
         color: var(--focus-color, currentColor);
       }
-      #focus > *:not(.dot),
-      #delta > *:not(.dot) {
+      #focus *:not(.dot),
+      #delta *:not(.dot) {
         stroke: var(--focus-color, currentColor);
         stroke-opacity: var(--focus-opacity, 0.75);
         stroke-dasharray: 1;
@@ -150,14 +147,10 @@
       marker {
         fill: var(--focus-color, currentColor);
       }
-      #delta .line,
-      #focus .line {
-        mix-blend-mode: exclusion;
-        pointer-events: none;
-      }
       #zoom {
         cursor: default;
-        fill: none;
+        fill: currentColor;
+        fill-opacity: 0.001;
         stroke: none;
         pointer-events: all;
       }
@@ -176,17 +169,6 @@
       }
       .selectbox {
         padding: 0;
-      }
-      #control {
-        position: absolute;
-        bottom: var(--control-bottom, 0px);
-        right: var(--control-right, 0px);
-        top: var(--control-top, auto);
-        left: var(--control-left, auto);
-        mix-blend-mode: var(--control-mix-blend-mode, exclusion);
-      }
-      #control > *:not(:first-of-type) {
-        margin-left: var(--control-button-distance, 0px);
       }
       icon-button {
         background: rgba(255,255,255,0.0625);
@@ -220,6 +202,24 @@
       .selectbox > select {
         opacity: 1;
       }
+      :host(:not([without-mixmode])) #delta .line,
+      :host(:not([without-mixmode])) #focus .line,
+      :host(:not([without-mixmode])) marker > path,
+      :host(:not([without-mixmode])) .grid .tick line {
+        mix-blend-mode: exclusion;
+        pointer-events: none;
+      }
+      #control {
+        position: absolute;
+        bottom: var(--control-bottom, 0px);
+        right: var(--control-right, 0px);
+        top: var(--control-top, auto);
+        left: var(--control-left, auto);
+        mix-blend-mode: var(--control-mix-blend-mode, exclusion);
+      }
+      #control > *:not(:first-of-type) {
+        margin-left: var(--control-button-distance, 0px);
+      }
       [hidden] {
         display: none !important;
       }
@@ -239,14 +239,13 @@
         </marker>
         <filter id="solid">
           <feFlood flood-color="#fff" result="out1" />
-          <feComposite in="SourceGraphic" in2="out1"
-            operator="over" />
+          <feComposite in="SourceGraphic" in2="out1" operator="over" />
         </filter>
-      </defs>
-      <g id="chart" on-click="_closeControl">
         <clipPath id="clip">
           <rect x="0" y="0"></rect>
         </clipPath>
+      </defs>
+      <g id="chart" on-click="closeControl">
         <rect id="plot" clip-path="url(#clip)"></rect>
         <g class="grid" clip-path="url(#clip)">
           <g id="gridX"></g>
@@ -257,7 +256,8 @@
           <g id="line"></g>
           <g id="boundery"></g>
         </g>
-        <rect id="zoom" x="0" y="0" on-contextmenu="_resetZoom"></rect>
+        <rect id="zoom" x="0" y="0" on-contextmenu="_resetZoom" clip-path="url(#clip)"></rect>
+        <g id="axis"></g>
         <g id="delta" hidden>
           <line id="deltaX" class="line x" marker-start="url(#arrowToLeft)" marker-end="url(#arrowToRight)"></line>
           <line id="deltaY" class="line y" marker-start="url(#arrowToLeft)" marker-end="url(#arrowToRight)"></line>
@@ -268,7 +268,6 @@
           <line id="focusY" class="line y" marker-start="url(#stub)" marker-end="url(#arrowToRight)"></line>
           <circle id="focusDot" class="dot"></circle>
         </g>
-        <g id="axis"></g>
         <g>
           <text id="info" class="focus info" x="0" y="0" filter="url(#solid)" hidden></text>
           <text id="infoDeltaX" class="delta info" x="0" y="0" filter="url(#solid)" hidden></text>
@@ -311,13 +310,13 @@
       <div class="checkbox">
         <input type="checkbox" name="multiY" checked="{{multiAxesY::change}}">mehrere y-Achsen
       </div>
-      <div class="button" on-click="_openExportDialog" hidden$="[[exportDisabled]]">
+      <div class="button" on-click="_openExportDialog" hidden$="[[exportButtonHidden]]">
         <iron-icon style="margin-right:0.5em;" icon="file-download"></iron-icon>Export
       </div>
     </drawer-element>
-    <section id="control">
-      <icon-button title="settings" icon="tune" checked="{{showControl}}"></icon-button>
-      <icon-button icon="[[fullscreenIcon]]" on-tap="toggleFullscreen" hidden$="[[fullscreenDisabled]]"></icon-button>
+    <section id="control" hidden$="[[controlButtonsHidden]]">
+      <icon-button title="settings" icon="tune" on-tap="toggleControl"></icon-button>
+      <icon-button icon="[[fullscreenIcon]]" on-tap="toggleFullscreen"></icon-button>
     </section>
 
     <template is="dom-if" if="[[multi]]" restamp>
@@ -390,12 +389,12 @@
             value: false
           },
 
-          fullscreenDisabled: {
+          exportButtonHidden: {
             type: Boolean,
             value: false
           },
 
-          exportDisabled: {
+          controlButtonsHidden: {
             type: Boolean,
             value: false
           },
@@ -457,22 +456,39 @@
         this._buildLayout();
       }
 
-      _buildLayout() {
-        // console.log('_buildLayout');
-        this._svg = d3.select(this.$.svg)
-          .attr('height', null)
-          .attr('width', null);
-
+      _assignNodes() {
+        this._svg = d3.select(this.$.svg);
         this._chart = d3.select(this.$.chart);
-        // this._control = d3.select(this.$.control);
-
         this._axisInsertionPoint = d3.select(this.$.axis);
         this._area = d3.select(this.$.area);
         this._line = d3.select(this.$.line);
         this._boundery = d3.select(this.$.boundery);
-
         this.gridX = d3.select(this.$.gridX);
         this.gridY = d3.select(this.$.gridY);
+        this._info = d3.select(this.$.info);
+        this._focus = d3.select(this.$.focus);
+        this._focusX = d3.select(this.$.focusX);
+        this._focusY = d3.select(this.$.focusY);
+        this._focusDot = d3.select(this.$.focusDot);
+        this._infoDeltaX = d3.select(this.$.infoDeltaX);
+        this._infoDeltaY = d3.select(this.$.infoDeltaY);
+        this._delta = d3.select(this.$.delta);
+        this._deltaX = d3.select(this.$.deltaX);
+        this._deltaY = d3.select(this.$.deltaY);
+        this._deltaDot = d3.select(this.$.deltaDot);
+        this._zoom = d3.select(this.$.zoom);
+        this._graphs.forEach(g => {
+          g._assignNodes();
+        });
+      }
+
+      _buildLayout() {
+        // console.log('_buildLayout');
+        this._assignNodes();
+        this._svg.attr('height', null)
+          .attr('width', null);
+
+        // this._control = d3.select(this.$.control);
 
         this.axisX = this._computeAxisNode(this._axisInsertionPoint, this.axisOrientX, '', this.axisX)
           .classed('main', true)
@@ -483,11 +499,6 @@
         this.axisGeneratorX = this._computeAxisGenerator(this.axisOrientX, this.scaleX, this.scalingX, this.scaleBaseX);
         this.axisGeneratorY = this._computeAxisGenerator(this.axisOrientY, this.scaleY, this.scalingY, this.scaleBaseY);
 
-        this._info = d3.select(this.$.info);
-        this._focus = d3.select(this.$.focus);
-        this._focusX = d3.select(this.$.focusX);
-        this._focusY = d3.select(this.$.focusY);
-        this._focusDot = d3.select(this.$.focusDot);
         this._focusDot
           .on('mouseenter', () => {
             if (this._activeHideInfoJob) {
@@ -503,21 +514,13 @@
             passive: true
           });
 
-        this._infoDeltaX = d3.select(this.$.infoDeltaX);
-        this._infoDeltaY = d3.select(this.$.infoDeltaY);
-        this._delta = d3.select(this.$.delta);
-        this._deltaX = d3.select(this.$.deltaX);
-        this._deltaY = d3.select(this.$.deltaY);
-        this._deltaDot = d3.select(this.$.deltaDot);
-
         this._zoomBehavior = d3.zoom()
           .scaleExtent([0.95, Infinity])
           .on("zoom", this._onZoomed.bind(this));
 
-        this._zoom = d3.select(this.$.zoom)
-          .call(this._zoomBehavior);
+        this._zoom.call(this._zoomBehavior);
 
-        this._zoom
+        this._chart
           .on('mouseenter touchstart', this._showInfo.bind(this), {
             passive: true
           })
@@ -581,10 +584,11 @@
       }
 
       reset() {
-        this.opened = false;
+        // this.opened = false;
         this.set('item', {});
         this.set('items', []);
         this.set('exceeding', []);
+        this._graphs.clear();
         this._debouncedHideInfo();
         this._fixedValue = null;
         this._focusedValue = null;
@@ -650,7 +654,7 @@
         }
 
         Promise.all(q).then(() => {
-          const bRect = this.$.svg.getBoundingClientRect();
+
           this._width = Math.abs(bRect.width - Math.abs(this._chart._left || 0) - Math.abs(this._chart._right || 0) - (this.margin.left || 0) - (this.margin.right || 0));
           this._height = Math.abs(bRect.height - Math.abs(this._chart._bottom || 0) - Math.abs(this._chart._top || 0) - (this.margin.top || 0) - (this.margin.bottom || 0));
 
@@ -688,7 +692,7 @@
 
           Promise.all(p).then(() => {
             // Limiting Projection to Margin
-            this._chart.select('clipPath#clip rect').transition()
+            this._svg.select('clipPath rect').transition()
               .attr('width', this._width)
               .attr('height', this._height);
 
@@ -696,10 +700,10 @@
               .attr('width', this._width)
               .attr('height', this._height);
 
-            let left = (-this._chart._left || 0) + (this.margin.left || 0),
-              top = (-this._chart._top || 0) + (this.margin.top || 0),
-              right = (-this._chart._right || 0) - (this.margin.right || 0),
-              bottom = (-this._chart._bottom || 0) - (this.margin.bottom || 0);
+            const left = (-this._chart._left || 0) + (this.margin.left || 0),
+              top = (-this._chart._top || 0) + (this.margin.top || 0);
+            // const right = (-this._chart._right || 0) - (this.margin.right || 0),
+            //   bottom = (-this._chart._bottom || 0) - (this.margin.bottom || 0);
             this._chart.transition().attr('transform', 'translate(' + left + ',' + top + ')');
             this._focusY.attr('y1', this._height);
 
@@ -1138,14 +1142,17 @@
 
         if (y - limitBottom <= 0) { // above top
           alignment = 'hanging';
+          y = limitBottom;
         } else if (y + limitBottom > height) {
           y = height - limitBottom;
         }
 
         if (x + limitLeft >= width) { // beyond right
           anchor = 'end';
+          x = width - limitLeft;
         } else if (x - limitLeft <= 0) { // beyond left
           anchor = 'start';
+          x = limitLeft;
         }
         node.setAttribute('x', x + marginLeft);
         node.setAttribute('y', y - marginBottom);
@@ -1336,7 +1343,15 @@
         this._debouncedHideInfo();
       }
 
-      _closeControl() {
+      toggleControl() {
+        this.showControl = !this.showControl;
+      }
+
+      openControl() {
+        this.showControl = true;
+      }
+
+      closeControl() {
         this.showControl = false;
       }
 

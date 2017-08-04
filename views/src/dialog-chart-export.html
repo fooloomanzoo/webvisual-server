@@ -33,18 +33,19 @@
         flex: 1 1 auto;
         overflow: auto;
       }
+      #chartContainer > * {
+        color: inherit;
+      }
       #chartContainer > device-chart {
         margin: 0;
         padding: 0;
-      }
-      #chartContainer > * {
-        color: inherit;
+        --focus-color: inherit;
       }
       #options {
         position: absolute;
         --drawer-width: 12em;
-        --drawer-background: rgba(255,255,255,0.5);
-        --drawer-scrim-background: rgba(255,255,255,0.25);
+        --drawer-background: rgba(255,255,255,0.75);
+        --drawer-scrim-background: rgba(255,255,255,0.5);
         --drawer-content: {
           padding: 0;
         };
@@ -63,10 +64,15 @@
         <drawer-element id="options" opened$="[[optionsOpened]]" scrim stretch align="right"></drawer-element>
       </div>
       <div dialog-bottom class="buttons">
-        <div class="button" on-tap="toggleOptions" hidden$="[[!narrowLayout]]">
+        <div class="button" on-tap="toggleControl">
+          <paper-ripple></paper-ripple>
+          <iron-icon class="left" icon="tune"></iron-icon>
+          {{localize('export', 'options')}}
+        </div>
+        <div class="button" on-tap="toggleStyleOptions">
           <paper-ripple></paper-ripple>
           <iron-icon class="left" icon="style"></iron-icon>
-          {{localize('export', 'options')}}
+          {{localize('export', 'style')}}
         </div>
         <div class="button" on-tap="fitInContainer">
           <paper-ripple></paper-ripple>
@@ -190,13 +196,41 @@
             this._detachChartElement();
           }
           this._chart = chartElement.cloneNode(true);
-          this._chart.fullscreenDisabled = true;
-          this._chart.exportDisabled = true;
-          this._chart.setAttribute('without-mixmode', '');
-          this._chart.items = chartElement.items;
+          this._chart.controlButtonsHidden = true;
+          this._chart.exportButtonDisabled = true;
+          this._chart.setAttribute('without-mixmode', true);
+          this._chart.set('items', chartElement.items);
           if (this._isAttached === true) {
             this._attachChartElement();
           }
+        }
+      }
+
+      _attachChartElement() {
+        if (!this._chart) {
+          return;
+        }
+        Array.prototype.forEach.call(this.$.chartContainer.children, el => {
+          this.$.chartContainer.removeChild(el);
+        });
+        requestAnimationFrame(() => {
+          this.$.chartContainer.appendChild(this._chart);
+          this._chart._assignNodes();
+          const clip = this._chart._svg.node().querySelector('clipPath');
+          clip.setAttribute('id', 'clip-export'); // firefox brushing
+          Array.prototype.forEach.call(this._chart._svg.node().querySelectorAll('[clip-path]'), el => {
+            el.setAttribute('clip-path', 'url(#clip-export)');
+          })
+          setTimeout(() => {
+            this._chart.sizeLayout();
+          }, 100);
+        });
+      }
+
+      _detachChartElement() {
+        if (this._isAttached === true) {
+          if (this._chart && this._chart.parentElement)
+            this._chart.parentElement.removeChild(this._chart);
         }
       }
 
@@ -249,13 +283,6 @@
         this._chart.sizeLayout();
       }
 
-      _detachChartElement() {
-        if (this._isAttached === true) {
-          if (this._chart && this._chart.parentElement)
-            this._chart.parentElement.removeChild(this._chart);
-        }
-      }
-
       _getPPI() {
         let testDiv = document.createElement('div');
         testDiv.style.cssText = 'height: 1in; left: -100%; position: absolute; top: -100%; width: 1in;';
@@ -265,27 +292,11 @@
         testDiv.parentElement.removeChild(testDiv);
       }
 
-      _attachChartElement() {
-        if (!this._chart) {
-          return;
-        }
-        Array.prototype.forEach.call(this.$.chartContainer.children, el => {
-          this.$.chartContainer.removeChild(el);
-        });
-        let control = this._chart.querySelector('#control');
-        console.log(control);
-        if (control) {
-          control.parentElement.removeChild(control);
-        }
-        requestAnimationFrame(() => {
-          this.$.chartContainer.appendChild(this._chart);
-          setTimeout(() => {
-            this._chart.sizeLayout();
-          }, 100);
-        });
+      toggleControl() {
+        this._chart.toggleControl();
       }
 
-      toggleOptions() {
+      toggleStyleOptions() {
         this.optionsOpened = !this.optionsOpened;
       }
 

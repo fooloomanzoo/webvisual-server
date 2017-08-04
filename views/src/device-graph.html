@@ -125,11 +125,7 @@
         super.disconnectedCallback();
       }
 
-      addNodes() {
-        // console.log('addNotes', this.item.mount);
-        if (this._isAttached) {
-          this.clearValues(true);
-        }
+      _assignNodes() {
         const containerRoot = this._containerRoot;
         if (!containerRoot || containerRoot.nodeName !== 'DEVICE-CHART') {
           console.warn('No parentElement (chart) for graph found. Registration of Graph Element failed', containerRoot);
@@ -139,7 +135,15 @@
           return;
         }
         this._chart = containerRoot;
-        this._axisInsertionPoint = containerRoot._axisInsertionPoint;
+        this._axisInsertionPoint = this._chart._axisInsertionPoint;
+      }
+      
+      addNodes() {
+        // console.log('addNotes', this.item.mount);
+        if (this._isAttached) {
+          this.clearValues(true);
+        }
+        this._assignNodes();
 
         if (!this._chart.multiAxesX) {
           this.set('domainX', this._chart.domainX);
@@ -153,11 +157,11 @@
         this._areaChanged();
         this._lineChanged();
 
-        if (!this.axisX ) {
+        if (!this.axisX) {
           this.axisX = this._computeAxisNode(this._axisInsertionPoint, this.axisOrientX, this.item.mount, this.axisX)
             .attr('hidden', (this._chart.multiAxesX) ? null : true)
         }
-        if (!this.axisY ) {
+        if (!this.axisY) {
           this.axisY = this._computeAxisNode(this._axisInsertionPoint, this.axisOrientY, this.item.mount, this.axisY)
             .attr('hidden', (this._chart.multiAxesY) ? null : true)
             .classed('vertical', true)

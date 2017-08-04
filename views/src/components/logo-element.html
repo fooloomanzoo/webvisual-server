@@ -26,7 +26,7 @@
       animation: none;
       /* firefox positioning */
       transform-origin: 9px center;
-      stroke-width: 0.5px;
+      stroke-width: 1px;
       transform: scale(0);
       fill-opacity: 0;
       stroke-opacity: 0.5;
@@ -56,6 +56,9 @@
     }
     .circle.animated:nth-of-type(6) {
       transition-delay: 750ms;
+    }
+    .circle.animated:nth-of-type(2n) {
+      stroke: currentColor !important;
     }
     svg path {
       fill: currentColor;

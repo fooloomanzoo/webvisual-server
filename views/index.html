@@ -76,19 +76,16 @@
       align-items: center;
       align-self: stretch;
     }
-    .circle {
-      display: none;
-      transform-origin: center center;
-      transform: scale(0);
-      stroke: #1ED146;
-      fill: #1ED146;
-      stroke-width: 0.5px;
-    }
     .unresolved-placeholder {
       margin-bottom: 32px;
     }
     webvisual-app .circle {
       display: inherit;
+      transform-origin: center center;
+      transform: scale(0);
+      stroke: #1ED146;
+      fill: #1ED146;
+      stroke-width: 2px;
       will-change: transform, fill-opacity, stroke-opacity;
       animation-name: drop, color;
       animation-duration: 4s, 16s;
@@ -101,6 +98,7 @@
     webvisual-app .circle:nth-of-type(4) { animation-delay: 2600ms; }
     webvisual-app .circle:nth-of-type(5) { animation-delay: 2700ms; }
     webvisual-app .circle:nth-of-type(6) { animation-delay: 2750ms; }
+    webvisual-app .circle:nth-of-type(2n) { stroke: #fff !important; }
     /*webvisual-app:not([unresolved]) .unresolved-placeholder {
       display: none;
     }*/
