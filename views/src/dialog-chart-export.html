@@ -39,16 +39,24 @@
       #chartContainer > device-chart {
         margin: 0;
         padding: 0;
-        --focus-color: inherit;
+        --focus-color: blue;
       }
       #options {
         position: absolute;
         --drawer-width: 12em;
         --drawer-background: rgba(255,255,255,0.75);
-        --drawer-scrim-background: rgba(255,255,255,0.5);
+        --drawer-scrim-background: rgba(0,0,0,0.25);
         --drawer-content: {
           padding: 0;
         };
+      }
+      .drawer-content {
+        display: block;
+        height: 100%;
+        padding: 0 1em;
+        overflow-x: hidden;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
       }
       [hidden] {
         display: none !important;
@@ -61,7 +69,95 @@
       </div>
       <div dialog-content horizontal>
         <div id="chartContainer"></div>
-        <drawer-element id="options" opened$="[[optionsOpened]]" scrim stretch align="right"></drawer-element>
+        <drawer-element id="options" opened$="[[optionsOpened]]" scrim stretch align="right">
+        <div class="drawer-content">
+            <div class="selectbox">
+              <iron-icon icon="language"></iron-icon>
+              <span>{{localize('chart', 'format')}}</span>
+              <select value="{{format::change}}">
+                <option value="svg">.svg</option>
+                <option value="png">.png</option>
+                <option value="jpg">.jpg</option>
+              </select>
+            </div>
+            <div class="input">
+              <iron-icon class="left" icon="tune"></iron-icon>
+              <input type="range" min="0" max="1" step="0.01" value="{{quality::input}}">
+              <div class="decorator" error-message$=">= 0">
+                <label>{{localize('chart', 'quality')}}</label>
+              </div>
+            </div>
+            <div class="input">
+              <iron-icon icon="language"></iron-icon>
+              <span>{{localize('chart', 'resolution')}}</span>
+              <input type="number" min="96" step="1" value="{{resolution::input}}">
+              <div class="decorator" error-message$=">= 0">
+                <label>{{localize('chart', 'resolution')}}</label>
+                <div class="underline"></div>
+              </div>
+            </div>
+            <div class="input">
+              <iron-icon class="left" icon="tune"></iron-icon>
+              <input type="number" min="0" step="10" value="{{height::input}}">
+              <div class="decorator" error-message$=">= 0">
+                <label>{{localize('chart', 'height')}}</label>
+                <div class="underline"></div>
+              </div>
+            </div>
+            <div class="input">
+              <iron-icon class="left" icon="tune"></iron-icon>
+              <input type="number" min="0" step="10" value="{{width::input}}">
+              <div class="decorator" error-message$=">= 0">
+                <label>{{localize('chart', 'width')}}</label>
+                <div class="underline"></div>
+              </div>
+            </div>
+            <div class="input">
+              <iron-icon class="left" icon="tune"></iron-icon>
+              <input type="number" min="1" step="1" value="{{textSize::input}}">
+              <div class="decorator" error-message$=">= 0">
+                <label>{{localize('chart', 'text-size')}}</label>
+                <div class="underline"></div>
+              </div>
+            </div>
+            <div class="input">
+              <iron-icon class="left" icon="tune"></iron-icon>
+              <input type="color" value="{{textColor::input}}">
+              <div class="decorator">
+                <label>{{localize('chart', 'text-color')}}</label>
+              </div>
+            </div>
+            <div class="input">
+              <iron-icon class="left" icon="tune"></iron-icon>
+              <input type="color" value="{{backgroundColor::input}}">
+              <div class="decorator">
+                <label>{{localize('chart', 'background-color')}}</label>
+              </div>
+            </div>
+            <div class="input">
+              <iron-icon class="left" icon="tune"></iron-icon>
+              <input type="color" value="{{lineColor::input}}">
+              <div class="decorator">
+                <label>{{localize('chart', 'line-color')}}</label>
+              </div>
+            </div>
+            <div class="input">
+              <iron-icon class="left" icon="tune"></iron-icon>
+              <input type="radio" value="{{showLegend::input}}">
+              <div class="decorator">
+                <label>{{localize('chart', 'show-legend')}}</label>
+              </div>
+            </div>
+            <div class="input">
+              <iron-icon class="left" icon="tune"></iron-icon>
+              <input type="radio" value="{{showFocus::input}}">
+              <div class="decorator">
+                <label>{{localize('chart', 'show-focus')}}</label>
+              </div>
+            </div>
+        </div>
+
+        </drawer-element>
       </div>
       <div dialog-bottom class="buttons">
         <div class="button" on-tap="toggleControl">
@@ -105,14 +201,9 @@
             observer: '_openedChanged'
           },
 
-          narrowLayout: {
-            type: Boolean,
-            reflectToAttribute: true
-          },
-
           optionsOpened: {
             type: Boolean,
-            value: true
+            value: false
           },
 
           format: {
@@ -145,7 +236,7 @@
 
           backgroundColor: {
             type: String,
-            value: '#fff'
+            value: '#ffffff'
           },
 
           textColor: {
@@ -168,7 +259,7 @@
       static get observers() {
         return [
           '_setDimensions(height, width)',
-          '_optionsChanged(showPoint, backgroundColor, textColor, lineColor)'
+          '_styleChanged(showPoint, backgroundColor, textColor, lineColor)'
         ]
       }
 
@@ -223,6 +314,7 @@
           })
           setTimeout(() => {
             this._chart.sizeLayout();
+            this._chart.updateStyles({ '--focus-color': 'red' });
           }, 100);
         });
       }
@@ -234,7 +326,7 @@
         }
       }
 
-      _optionsChanged() {
+      _styleChanged() {
         if (!this._chart || this._isAttached !== true) {
           return;
         }
@@ -327,7 +419,7 @@
         // https://stackoverflow.com/questions/28226677/save-inline-svg-as-jpeg-png-svg
         // https://stackoverflow.com/questions/15181452/how-to-save-export-inline-svg-styled-with-css-from-browser-to-image-file
 
-        this._optionsChanged();
+        this._styleChanged();
         this._setDimensions(this.height, this.width);
         const ContainerElements = ['svg', 'g'];
         const RelevantStyles = {
@@ -352,7 +444,7 @@
 
             svg.querySelector('filter#solid feFlood').setAttribute('flood-color', this.backgroundColor);
 
-            Array.prototype.forEach.call(svg.querySelectorAll('text'), el => {
+            Array.prototype.forEach.call(svg.querySelectorAll('.axis.main text'), el => {
               el.setAttribute('fill', this.textColor);
             });
             Array.prototype.forEach.call(svg.querySelectorAll('.domain'), el => {
@@ -392,12 +484,15 @@
             const uri = (decodeURIComponent(location.href)).replace(/ids|room|:\/\/|https|http/gi, '').replace(/[$-/:-?{-~!"^=&_`]/gi, '+').replace(/\+\+/gi, '+');
             let a = document.createElement('a');
             a.setAttribute('download', uri + '.' + this.format);
-            const event = new MouseEvent('click', { view: window, bubbles: false, cancelable: true });
+            const event = new MouseEvent('click', { view: window, bubbles: true, cancelable: true });
 
             if (this.format === 'svg') {
               const blob = new Blob([data], {type:'image/svg+xml;charset=utf-8}'});
               a.setAttribute('href', URL.createObjectURL(blob));
-              a.dispatchEvent(event);
+              const cancelled = !a.dispatchEvent(event);
+              if (!cancelled) {
+                this.close();
+              }
             } else { // save as compressed image file
               const image = new Image();
               let ppi;
@@ -427,10 +522,12 @@
                 context.scale(canvas.width/width, canvas.height/height);
                 context.drawImage(image, 0, 0);
                 a.setAttribute('href', canvas.toDataURL('image/' + this.format, this.quality));
-                a.dispatchEvent(event);
+                const cancelled = !a.dispatchEvent(event);
+                if (!cancelled) {
+                  this.close();
+                }
               }
             }
-            this.close();
           // }, 100);
         });
       }

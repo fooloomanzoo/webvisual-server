@@ -22,14 +22,7 @@
         color: transparent;
       }
 
-      .button > input[type="text"],
-      .button > input[type="password"],
-      .button > input[type="reset" i],
-      .button > input[type="submit" i],
-      .input > input[type="text"],
-      .input > input[type="password"],
-      .input > input[type="reset" i],
-      .input > input[type="submit" i],
+      .button > input[type],
       .input > input {
         font-size: 1em;
         font-weight: 300;
@@ -37,8 +30,19 @@
         color: var(--input-color, currentColor);
         background-color: var(--input-background, transparent);
         border: none;
-        padding: 0.5em 0.25em;
         outline: none;
+      }
+      .button > input[type="text"],
+      .button > input[type="password"],
+      .button > input[type="number"],
+      .button > input[type="reset" i],
+      .button > input[type="submit" i],
+      .input > input[type="text"],
+      .input > input[type="password"],
+      .input > input[type="number"],
+      .input > input[type="reset" i],
+      .input > input[type="submit" i] {
+        padding: 0.5em 0.25em;
       }
       .input > input:invalid {
         /* reset the default style in FF */
@@ -86,6 +90,18 @@
         will-change: transform;
         -webkit-transform: translate3d(0px, -1.9em, 0px);
         transform: translate3d(0px, -1.9em, 0px);
+      }
+      .input > [icon] {
+        margin-left: 0.25em;
+        margin-right: 0.25em;
+      }
+      .input > [icon]:first-child {
+        margin-left: 0;
+        margin-right: 0.25em;
+      }
+      .input > [icon]:last-child {
+        margin-left: 0.25em;
+        margin-right: 0;
       }
       /* Error message */
       .input > .decorator::after {
