@@ -37,7 +37,7 @@
 /* eslint-disable indent, no-unused-vars, no-multiple-empty-lines, max-nested-callbacks, space-before-function-paren, quotes, comma-spacing */
 'use strict';
 
-var precacheConfig = [["bower_components/es6-promise/es6-promise.auto.min.js","f29fa5cd80b4139300dcf5ccb89b4d7d"],["bower_components/webcomponentsjs/webcomponents-loader.js","f13bbbbf647b7922575a7894367ddaaf"],["index.html","afeced69d2dfb45871830af93f49a644"],["manifest.json","f028bfe7972802dddf7933e2ab74aae2"],["scripts/cache.js","0cd4553b413d4ca2a0e6472599932577"],["scripts/client.js","d6d5a044f3138d0a1f153ae09078253f"],["scripts/database.js","89ef3fbd0873fb69facd0417ebf50d60"],["scripts/idb.js","9ccd5b915695f72abd06cf2294277cd3"],["scripts/polyfills.js","3c34bcd2dcc284e319355a174ce6013c"],["scripts/store.js","b36335aa516a6d49b193125f7a9d208d"],["scripts/worker.js","6a9f851a445c5f8e80e84bb8cd0c863d"],["src/lazy-resources.html","7dbd8e624032cbe319735ebd8e11bd71"],["src/page-detail.html","c07871f728f3d1a3ac8d53d476a11450"],["src/page-groups.html","3db571691468d4e76b7d4446e00aefbc"],["src/page-home.html","e1acf42dab94b795876c9c04d50e4df4"],["src/page-list.html","02d67965c4c4bdba55678bcd72e23e6d"],["src/webvisual-app.html","8ec502f0b4473f90ae70036b6caa8951"]];
+var precacheConfig = [["bower_components/es6-promise/es6-promise.auto.min.js","f29fa5cd80b4139300dcf5ccb89b4d7d"],["bower_components/webcomponentsjs/webcomponents-loader.js","f13bbbbf647b7922575a7894367ddaaf"],["index.html","44c4a531f07c5d3903e280c9d55cf28e"],["manifest.json","f028bfe7972802dddf7933e2ab74aae2"],["scripts/cache.js","0cd4553b413d4ca2a0e6472599932577"],["scripts/client.js","d6d5a044f3138d0a1f153ae09078253f"],["scripts/database.js","89ef3fbd0873fb69facd0417ebf50d60"],["scripts/idb.js","9ccd5b915695f72abd06cf2294277cd3"],["scripts/polyfills.js","3c34bcd2dcc284e319355a174ce6013c"],["scripts/store.js","b36335aa516a6d49b193125f7a9d208d"],["scripts/worker.js","6a9f851a445c5f8e80e84bb8cd0c863d"],["src/lazy-resources.html","dd84943583b8f608820f7ba6edcda5ed"],["src/page-detail.html","c07871f728f3d1a3ac8d53d476a11450"],["src/page-groups.html","7f059a93ad9c21371f4c6786a1ac8ac4"],["src/page-home.html","e2321b869d4cd490bc26c5aa914c95e1"],["src/page-list.html","02d67965c4c4bdba55678bcd72e23e6d"],["src/webvisual-app.html","017d9bac75ee5f16dbc374f72ee7f9da"]];
 var cacheName = 'sw-precache-v3--' + (self.registration ? self.registration.scope : '');
 
 
@@ -289,7 +289,7 @@ toolbox.router.get(/\/bower_components\/es6-promise\/.*.js/, toolbox.fastest, {"
 toolbox.router.get(/\/bower_components\/webcomponentsjs\/.*.js/, toolbox.fastest, {"cache":{"name":"webcomponentsjs-polyfills-cache"}});
 toolbox.router.get(/images\/.*/, toolbox.cacheFirst, {"cache":{"name":"image-cache"}});
 toolbox.router.get(/data\/.*/, toolbox.fastest, {"cache":{"name":"data-cache"}});
-toolbox.router.get(/fonts\/.*/, toolbox.cacheFirst, {"cache":{"name":"font-cache"}});
+toolbox.router.get(/.*\/fonts\.*/, toolbox.cacheFirst, {"cache":{"name":"font-cache"}});
 toolbox.router.get(/locales\/.*/, toolbox.cacheFirst, {"cache":{"name":"locales-cache"}});
 toolbox.router.get(/icons\/.*/, toolbox.cacheFirst, {"cache":{"name":"icons-cache"}});
 toolbox.router.get(/scripts\/.*/, toolbox.fastest, {"cache":{"name":"scripts-cache"}});

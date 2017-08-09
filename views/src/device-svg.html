@@ -38,7 +38,7 @@
       -webkit-overflow-scrolling: touch;
       -webkit-tap-highlight-color:rgba(0,0,0,0);
       box-sizing: border-box;
-      font-family: 'FiraSans-Regular';
+      font-family: inherit;
       letter-spacing: normal;
       user-select: none !important;
       background-color: transparent;
@@ -99,12 +99,12 @@
     }
     text {
       pointer-events: none !important;
-      cursor: default !important;
       letter-spacing: normal !important;
       stroke: none !important;
+      cursor: default !important;
       -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
-      @apply --svg-text;
       mix-blend-mode: exclusion;
+      @apply --svg-text;
     }
     svg * {
       pointer-events: none;

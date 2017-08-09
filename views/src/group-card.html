@@ -90,6 +90,8 @@
       }
       #addons {
         @apply --layout-fit;
+        transform-style: preserve-3d;
+        -webkit-transform-style: preserve-3d;
         transform-origin: top center;
         transform: rotateX(90deg) scale(0.5);
         transition-property: transform;
@@ -107,8 +109,11 @@
       #headerContent {
         @apply --layout-fit;
         isolation: isolate;
-        perspective: calc(15vh + 120px);
+        perspective: 50vmin;
+        -webkit-perspective: 50vmin;
         perspective-origin: center top;
+        -webkit-perspective-origin: center top;
+        -moz-perspective-origin: center top;
       }
       :host(.fullscreen) #headerContent {
         /* blink mistake */

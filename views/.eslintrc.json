@@ -6,9 +6,11 @@
   },
   "rules": {
     "no-var": "error",
-    "no-undef": ["error", { "typeof": true }],
+    "no-undef": [ "error", {
+      "typeof": true
+    } ],
     "no-console": "off",
-    "valid-jsdoc": ["error", {
+    "valid-jsdoc": [ "error", {
       "requireReturn": false,
       "prefer": {
         "arg": "param",
@@ -21,15 +23,13 @@
         "String": "string",
         "object": "Object"
       }
-    }]
+    } ]
   },
   "env": {
     "browser": true,
     "es6": true
   },
-  "plugins": [
-    "html"
-  ],
+  "plugins": [ "html" ],
   "globals": {
     "customElements": true,
     "HTMLImports": true,
@@ -46,6 +46,7 @@
     "io": true,
     "idb": true,
     "Webvisual": true,
-    "WebvisualMixins": true
+    "WebvisualMixins": true,
+    "module": true
   }
 }

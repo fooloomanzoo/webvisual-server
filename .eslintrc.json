@@ -6,6 +6,7 @@
   },
   "rules": {
     "no-var": "error",
+    "no-useless-escape": "off",
     "no-undef": [ "error", {
       "typeof": true
     } ],

@@ -6,7 +6,6 @@ const EventEmitter = require('events').EventEmitter,
   jsonfile = require('jsonfile'),
   // Routing
   xFrameOptions = require('x-frame-options'),
-  cookieSession = require('cookie-session'),
   bodyParser = require('body-parser'),
   cookieParser = require('cookie-parser'),
   compression = require('compression'),
@@ -20,6 +19,7 @@ const EventEmitter = require('events').EventEmitter,
   spdy = require('spdy'),
   // Session Store
   RedisStore = require('connect-redis')(session),
+  // FileStore = require('session-file-store')(session),
   // Development (Reload on change)
   chokidar = require('chokidar');
 
@@ -41,8 +41,7 @@ class Router extends EventEmitter {
     this.dirProduction = path.join(__dirname, 'views/build')
     this.dir = {
       locale: path.join(__dirname, 'views/locales'),
-      icons: path.join(__dirname, 'views/icons'),
-      fonts: path.join(__dirname, 'views/fonts')
+      icons: path.join(__dirname, 'views/icons')
     }
 
     this.passport = passport
@@ -90,9 +89,10 @@ class Router extends EventEmitter {
             host: options.sessionStore.host || 'localhost',
             port: options.sessionStore.port || 6379,
             db: options.sessionStore.db || 1
-          })
-          break
-        default:
+          });
+          break;
+        // default:
+        //   this.sessionStore = new FileStore()
       }
       // session cookie with saving in redis db
       this.sessionMiddleWare = session({
@@ -155,8 +155,7 @@ class Router extends EventEmitter {
     require('./lib/auth/dummy.js')(this.passport) // register dummy-stategy
 
     // watch for changes, if in development mode, for auto-reloading
-    switch (this.mode) {
-      case 'development':
+    if (this.mode === 'development') {
         let srcpath = resolvePath(this.dirDevelopment)
         this.watcher = chokidar.watch(srcpath, {
           ignored: /(^|[\/\\])\../,
@@ -176,7 +175,6 @@ class Router extends EventEmitter {
           })
 
         console.info(`Watch for changes in ${srcpath}. Clients reload on change.`)
-        break
     }
 
     // Signin
@@ -218,10 +216,6 @@ class Router extends EventEmitter {
 
     // Secured Data
     this.app.use('/locale', serveStatic(this.dir.locale, {
-      index: false,
-      fallthrough: false
-    }))
-    this.app.use('/fonts', serveStatic(this.dir.fonts, {
       index: false,
       fallthrough: false
     }))
@@ -391,11 +385,11 @@ class Router extends EventEmitter {
           })
         }))
 
-        opt[system].itemMap.forEach( (item, id) => {
+        opt[system].itemMap.forEach( (item) => {
           if (item.hasOwnProperty('svg')) {
             if (item.svg.path && item.svg.dir) {
-              var origin = path.resolve(item.svg.dir, item.svg.path)
-              var dest = path.resolve(svgDest, item.svg.path)
+              const origin = path.resolve(item.svg.dir, item.svg.path)
+              const dest = path.resolve(svgDest, item.svg.path)
               if (origin && dest && !toCopy.has(dest)) {
                 toCopy.add(dest)
                 delete item.svg.dir
@@ -408,12 +402,12 @@ class Router extends EventEmitter {
         })
 
         // create required static settings
-        for (var key in opt[system]) {
+        for (const key in opt[system]) {
           if (requiredStaticSettings.indexOf(key) === -1)
             continue
-          var room = facility + '+' + system
-          var pth = path.resolve(this.dirData, room + '+' + key + '.json')
-          var data = opt[system][key]
+          const room = facility + '+' + system
+          const pth = path.resolve(this.dirData, room + '+' + key + '.json')
+          const data = opt[system][key]
           promises.push( jsonfile.writeFileSync(pth, data) )
         }
       }
@@ -432,7 +426,7 @@ class Router extends EventEmitter {
 
     // write all files
     Promise.all(promises)
-      .then(res => {
+      .then(() => {
         // for (var i = 0; i < res.length; i++) {
         //   if (res[i])
         //     console.info(res[i]);

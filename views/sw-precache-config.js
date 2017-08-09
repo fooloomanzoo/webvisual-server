@@ -6,7 +6,7 @@ module.exports = {
     '/bower_components/es6-promise/es6-promise.auto.min.js',
 		'/src/**/*',
 		'/scripts/**/*',
-		'/fonts/**/*',
+		'*/fonts/**/*',
 		'/icons/**/*',
 		'/images/**/*',
 		'/data/**/*'
@@ -45,7 +45,7 @@ module.exports = {
 				}
 			}
 		}, {
-			urlPattern: /fonts\/.*/,
+			urlPattern: /.*\/fonts\.*/,
 			handler: 'cacheFirst',
 			options: {
 				cache: {

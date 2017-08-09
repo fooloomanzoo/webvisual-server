@@ -11,7 +11,7 @@ handlers:
   static_dir: data
   secure: always
 
-- url: /fonts
+- url: */fonts
   static_dir: fonts
   secure: always
 
