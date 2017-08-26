@@ -3,14 +3,14 @@
 
 <script>
   window.WebvisualMixins = window.WebvisualMixins || {};
-
+  /**
+   * Mixin that adds a multiple axis with scaling brushes to an svg using d3
+   *
+   * @mixinFunction
+   * @polymer
+   */
   WebvisualMixins.AxesMixin = function(superClass) {
-    /**
-     * Mixin that adds a multiple axis with scaling brushes to an svg using d3
-     *
-     * @mixinClass
-     * @polymer
-     */
+    
     return class extends WebvisualMixins.ScaleMixin(superClass) {
 
       constructor() {

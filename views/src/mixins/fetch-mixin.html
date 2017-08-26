@@ -2,14 +2,14 @@
 
 <script>
   window.WebvisualMixins = window.WebvisualMixins || {};
-
+  /**
+   * Mixin that fetches data from server and saves them optionally
+   *
+   * @mixinFunction
+   * @polymer
+   */
   WebvisualMixins.FetchMixin = function(superClass) {
-    /**
-     * Mixin that fetches data from server and saves them optionally
-     *
-     * @mixinClass
-     * @polymer
-     */
+
     return class extends superClass {
 
       constructor() {

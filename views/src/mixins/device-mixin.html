@@ -1,13 +1,13 @@
 <script>
   window.WebvisualMixins = window.WebvisualMixins || {};
-
+  /**
+   * Mixin that adds functionality to assign to socket and adds exceed events
+   *
+   * @mixinFunction
+   * @polymer
+   */
   WebvisualMixins.DeviceMixin = function(superClass) {
-    /**
-     * Mixin that adds functionality to assign to socket and adds exceed events
-     *
-     * @mixinClass
-     * @polymer
-     */
+
     return class extends superClass {
 
       constructor() {

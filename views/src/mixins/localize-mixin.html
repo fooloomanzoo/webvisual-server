@@ -1,15 +1,15 @@
 <link rel="import" href="fetch-mixin.html">
 <script>
   window.WebvisualMixins = window.WebvisualMixins || {};
-
+  /**
+   *  Mixin that adds localization to page
+   *  modification of PolymerElements/app-localize-mixin for simplification reasons
+   *
+   * @mixinFunction
+   * @polymer
+   */
   WebvisualMixins.LocalizeMixin = function(superClass) {
-    /**
-     *  Mixin that adds localization to page
-     *  modification of PolymerElements/app-localize-mixin for simplification reasons
-     *
-     * @mixinClass
-     * @polymer
-     */
+
     return class extends WebvisualMixins.FetchMixin(superClass) {
 
       constructor() {
