@@ -557,7 +557,7 @@
               if (closestPoint) {
                 fill = '#fff';
                 if (closestGraph.item.threshold) {
-                  switch (closestPoint.state) {
+                  switch (closestGraph.checkExceedingState(closestPoint)) {
                     case 1:
                       fill = closestGraph.getComputedStyleValue('--device-state-exceeds-color') || '#F20C0C';
                       break;

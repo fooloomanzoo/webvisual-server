@@ -154,8 +154,8 @@
         return x ? (Math.abs(Date.now() - x) < 864E5 ? new Date(x).toLocaleTimeString() : new Date(x).toLocaleString()) : '';
       }
 
-      computeValue(y, state) {
-        return (this.item && this.item.isIndicatorLamp) ? (state ? '✗' : '✓') : y;
+      computeValue(y) {
+        return (this.item && this.item.isIndicatorLamp) ? (this.checkExceedingState(y) ? '✗' : '✓') : y;
       }
 
       insertValues(values, len) {
