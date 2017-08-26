@@ -46,6 +46,7 @@
     "serve-static": "*",
     "socket.io": "^1.7.4",
     "spdy": "*",
+    "tiny-msgpack": "^1.0.2",
     "webvisual-schemas": "github:fooloomanzoo/webvisual-schemas",
     "x-frame-options": "*"
   },

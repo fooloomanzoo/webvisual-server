@@ -1375,6 +1375,7 @@
         this._isZoomed = false;
         this._fixedValue = null;
         this._focusedValue = null;
+        this._zoom.transition(300).call(this._zoomBehavior.transform, d3.zoomIdentity.scale(1));
         this.axisX._isBrushed = false;
         this.axisY._isBrushed = false;
         this._graphs.forEach(g => {
@@ -1385,7 +1386,6 @@
           g.axisX.transition().call(g.axisGeneratorX.scale(g.scaleX));
           g.axisY.transition().call(g.axisGeneratorY.scale(g.scaleY));
         })
-        this._zoom.transition(300).call(this._zoomBehavior.transform, d3.zoomIdentity.scale(1));
         this._hideInfo();
         this._redomain();
       }

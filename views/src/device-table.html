@@ -94,7 +94,7 @@
 
   	<iron-list id="list" items="[[values]]" as="value">
   		<template>
-        <div class="tr" state$="[[value.state]]" onlyfirstrow$="[[onlyFirstRow]]">
+        <div class="tr" state$="[[checkExceedingState(value)]]" onlyfirstrow$="[[onlyFirstRow]]">
           <span>[[computeDate(value.x)]]</span>
           <span>[[computeValue(value.y, value.state)]]</span>
         </div>

@@ -205,9 +205,9 @@
           const value = values[values.length - 1];
 
           if (this.item.exceedable) {
-            this.checkExceedingState(value);
-            if (!this.hasAttribute('state') || this.state !== value.state) {
-              this.setAttribute('state', value.state);
+            const state = this.checkExceedingState(value);
+            if (!this.hasAttribute('state') || this.state !== state) {
+              this.setAttribute('state', state);
             }
           }
         } else {

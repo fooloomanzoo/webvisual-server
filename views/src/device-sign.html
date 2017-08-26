@@ -216,9 +216,9 @@
               this.$.dateSection.textContent = this.computeDate(value.x);
 
             if (this.item.exceedable) {
-              this.checkExceedingState(value);
-              if (!this.hasAttribute('state') || this.state !== value.state) {
-                this.setAttribute('state', value.state);
+              const state = this.checkExceedingState(value);
+              if (!this.hasAttribute('state') || this.state !== state) {
+                this.setAttribute('state', state);
               }
             }
 

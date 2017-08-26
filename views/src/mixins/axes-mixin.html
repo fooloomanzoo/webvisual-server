@@ -292,7 +292,8 @@
       }
       _onAxisMouseleave() {
       }
-      _onAxisDragStart() {
+      _onAxisDragStart(e) {
+        console.log(e);
         d3.select(this).raise().classed('dragged', true);
         const vertical = d3.select(this).classed('vertical');
         if (vertical) {

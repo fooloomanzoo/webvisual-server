@@ -137,7 +137,7 @@
         this._chart = containerRoot;
         this._axisInsertionPoint = this._chart._axisInsertionPoint;
       }
-      
+
       addNodes() {
         // console.log('addNotes', this.item.mount);
         if (this._isAttached) {
@@ -295,8 +295,7 @@
         values.map(function(v) {
           return {
             x: +v.x,
-            y: +v.y,
-            state: +v.state
+            y: +v.y
           };
         });
         if (this.storeInside) {
@@ -638,18 +637,6 @@
 
       clearValues(force) {
         super.clearValues.call(this, force);
-      }
-
-      _getStrokeColor(d) {
-        if (this.item.threshold) {
-          switch (d.state) {
-            case 1:
-              return this.getComputedStyleValue('device-state-exceeds-color') || '#F20C0C';
-            case -1:
-              return this.getComputedStyleValue('device-state-deceeds-color') || '#F20C0C';
-          }
-        }
-        return this.item.color || '#fff';
       }
 
       _lineWidthChanged(lineWidth) {
