@@ -529,26 +529,25 @@
         // find good prediction
         const _x = this.scaleX,
           _y = this.scaleY,
-          values = this.values,
+          valuesLength = this.values.length,
           x_0 = _x.invert(m[0]),
-          precision = Math.ceil(this._chart._width / values.length),
-          variance = Math.pow(Math.ceil(values.length / this._chart._width), 2);
-        let mid = this.bisectDate.left(values, x_0, 0, values.length - 1),
-          r2 = pixdistance2(values[mid]),
-          searchRadius = Math.sqrt(r2) / variance,
-          x_lo = _x.invert(m[0] - searchRadius),
-          lo = this.bisectDate.left(values, x_lo, 0, mid),
+          precision = Math.ceil(this._chart._width / valuesLength),
+          variance = Math.pow(Math.ceil(valuesLength / this._chart._width), 2);
+        let mid = this.bisectDate.left(this.values, x_0, 0, valuesLength - 1),
+          minDist = pixdistance2(this.values[mid]);
+        const searchRadius = Math.sqrt(minDist) / variance,
+          x_lo = _x.invert(m[0] - searchRadius);
+        let lo = this.bisectDate.left(this.values, x_lo, 0, mid),
           hi = 2 * mid - lo;
 
         if (lo < 0) lo = 0;
-        if (hi > values.length) hi = values.length;
+        if (hi > valuesLength) hi = valuesLength;
 
-        let minDist = r2,
-          currentDist,
+        let currentDist,
           pos = mid;
         // linear scan for coarse approximation
         for (let i = lo; i < hi; i += precision) {
-          if ((currentDist = pixdistance2(values[i])) <= minDist) {
+          if ((currentDist = pixdistance2(this.values[i])) <= minDist) {
             mid = i, minDist = currentDist;
           }
         }
@@ -556,7 +555,7 @@
 
         // linear search in positive prediction radius
         for (let i = mid + 1; i < hi && i < mid + precision - 1; i++) {
-          if ((currentDist = pixdistance2(values[i])) <= minDist) {
+          if ((currentDist = pixdistance2(this.values[i])) <= minDist) {
             minDist = currentDist;
             pos = i;
           }
@@ -564,16 +563,16 @@
 
         // linear search in negative prediction radius
         for (let i = mid - 1; i > lo && i > mid - precision + 1; i--) {
-          if ((currentDist = pixdistance2(values[i])) <= minDist) {
+          if ((currentDist = pixdistance2(this.values[i])) <= minDist) {
             minDist = currentDist;
             pos = i;
           }
         }
 
-        return values[pos];
+        return this.values[pos];
 
         function pixdistance2(p) {
-          const dx = _x(new Date(p.x)) - m[0],
+          const dx = _x(p.x) - m[0],
             dy = _y(p.y) - m[1];
           return dx * dx + dy * dy;
         }
