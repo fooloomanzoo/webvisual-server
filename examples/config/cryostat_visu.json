@@ -20,9 +20,9 @@
           "./examples/datafile/cryostat_visu.txt"
         ],
         "format": {
-          "dateFormat": "DD.MM.YYYY hh:mm:ss",
-          "decimalSeparator": ",",
-          "valueSeparator": ";"
+          "dateFormat": "YYYY-MM-DD hh:mm:ss",
+          "decimalSeparator": ".",
+          "valueSeparator": " "
         },
         "ignoredFirstLines": 0
       }
