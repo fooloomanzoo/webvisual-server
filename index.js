@@ -1,8 +1,7 @@
 'use strict'
 
 // System Modules
-const express = require('express')
-    , fs = require('fs')
+const fs = require('fs')
     , path = require('path')
     , jsonfile = require('jsonfile')
 
@@ -27,7 +26,7 @@ jsonfile.readFile(PATH_DEFAULT, function(err, obj) {
     console.error('Error in Default Config', err.stack || err)
   } else {
     defaults = obj
-    var config
+    let config
     if (!process.send) {
       config = JSON.parse(JSON.stringify(defaults))
     }
@@ -52,6 +51,14 @@ class WebvisualServer extends processEmiter {
   }
 
   setConfig(config) {
+    if (this.isRunning === false) {
+      this.config = config;
+    } else {
+      this.reconnect(config);
+    }
+  }
+
+  validateConfig(config) {
     this.config = config = config || this.config
     return new Promise((resolve, reject) => {
       if (!defaults) {
@@ -97,7 +104,7 @@ class WebvisualServer extends processEmiter {
           rej( 'Given Filepaths to certificate-files incomplete' )
         }
         for (let kind in filepaths) {
-          fs.open(filepaths[kind], 'r', (err, fd) => {
+          fs.open(filepaths[kind], 'r', (err) => {
             if (err) {
               if (err.code === 'ENOENT') {
                 rej( `${filepaths[kind]} does not exist` )
@@ -124,11 +131,11 @@ class WebvisualServer extends processEmiter {
                sslSettings.agent = false
 
                if (ca) {
-                 fs.stat(ca, function(err, stats) {
+                 fs.stat(ca, function(err) {
                    if (!err) {
                      try {
                        // Read files for the certification path
-                       var cert_chain = []
+                       const cert_chain = []
                        fs.readdirSync(ca).forEach( (filename) => {
                          cert_chain.push( fs.readFileSync( path.resolve(ca, filename), 'utf-8') )
                        })
@@ -171,7 +178,7 @@ class WebvisualServer extends processEmiter {
     // connect the DATA-Module
     if (this.isRunning === false) {
       process.send( { info: 'WEBVISUAL SERVER is starting' } )
-      this.setConfig(config)
+      this.validateConfig(config)
         .then(sslSettings => {
 
           this.dataHandler = new DataModule()
@@ -207,8 +214,8 @@ class WebvisualServer extends processEmiter {
 
           this.configfilesHandler = new ConfigFileProcessor()
           this.configfilesHandler.on('change', (con, facility) => {
-            this.dataHandler.setConfiguration(con, facility)
-            this.router.setConfiguration(con, facility)
+            this.dataHandler.validateConfiguration(con, facility)
+            this.router.validateConfiguration(con, facility)
           })
           this.configfilesHandler.watch(this.config.configfiles, this.config.database)
 

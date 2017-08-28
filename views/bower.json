@@ -7,7 +7,7 @@
     "fooloomanzoo <hannes-b@web.de>"
   ],
   "dependencies": {
-    "polymer": "polymer/polymer#2.0.2",
+    "polymer": "polymer/polymer",
     "iron-location": "polymerelements/iron-location",
     "app-layout": "polymerelements/app-layout",
     "iron-flex-layout": "polymerelements/iron-flex-layout",
@@ -26,10 +26,9 @@
     "datetime-picker": "fooloomanzoo/datetime-picker",
     "fetch": "*",
     "es6-promise": "*",
-    "webcomponentsjs": "webcomponentsjs#1.0.4"
+    "webcomponentsjs": "webcomponentsjs"
   },
   "resolutions": {
-    "polymer": "1.9 - 2",
-    "webcomponentsjs": "^v1.0.4"
+    "polymer": "1.9 - 2"
   }
 }
