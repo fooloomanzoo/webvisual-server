@@ -168,7 +168,7 @@
           opened$="[[visible]]"
           url-prefix="/images"
           src="[[_svgSrcPath]]"
-          selectable-items="[[_getSvgSelectable(item.svg.path, svgData)]]"
+          selectable="[[_getSvgSelectable(item.svg.path, svgData)]]"
           items="[[items]]"
           multi
           exceeding="[[exceeding]]"></device-svg>
@@ -273,7 +273,7 @@
 
           _svgSrcPath: {
             type: Boolean,
-            computed: '_computeSvgSrcPat(room, item, svgData)'
+            computed: '_computeSvgSrcPath(room, item, svgData)'
           },
 
           selectNotify: {
@@ -419,7 +419,7 @@
         return _withSvg;
       }
 
-      _computeSvgSrcPat(room, item, svgPaths) {
+      _computeSvgSrcPath(room, item, svgPaths) {
         // console.log(room, item, svgPaths);
         let path;
         if (room && this.item && this.item.svg && this.item.svg.path && svgPaths && svgPaths[this.item.svg.path])

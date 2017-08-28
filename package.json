@@ -44,7 +44,7 @@
     "passport-local": "*",
     "passport-socketio-redis": "*",
     "redis": "*",
-    "redis-messagepack": "github:fooloomanzoo/node-redis-messagepack",
+    "redis-messagepack": "*",
     "serve-static": "*",
     "socket.io": "^1.7.4",
     "spdy": "*",

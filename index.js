@@ -214,8 +214,8 @@ class WebvisualServer extends processEmiter {
 
           this.configfilesHandler = new ConfigFileProcessor()
           this.configfilesHandler.on('change', (con, facility) => {
-            this.dataHandler.validateConfiguration(con, facility)
-            this.router.validateConfiguration(con, facility)
+            this.dataHandler.setConfiguration(con, facility)
+            this.router.setConfiguration(con, facility)
           })
           this.configfilesHandler.watch(this.config.configfiles, this.config.database)
 

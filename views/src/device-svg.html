@@ -200,16 +200,24 @@
           },
 
           /**
+           * class-attribute to add a clicked Node
+           */
+          classForClicked: {
+            type: String,
+            value: 'clicked'
+          },
+
+          /**
            * class-attribute to add a selected Node
            */
-          selectedClass: {
+          classForSelected: {
             type: String,
             value: 'selected'
           },
           /**
            * class-attribute to add a exceeding Node
            */
-          exceedingClass: {
+          classForExceeding: {
             type: String,
             value: 'exceeding'
           },
@@ -257,9 +265,10 @@
           },
 
           /**
-           * selectable css-selectors (key as id, value as selector), so that an eventlistener can be attached
+           * selectable css-selectors (in selectable.items is every key the items's id and the according value is the css-selector), so that an eventlistener can be attached
+           * if selectable.items is empty, all are selectable
            */
-          selectableItems: {
+          selectable: {
             type: Object,
             value: function() {
               return {};
@@ -267,21 +276,60 @@
           },
 
           /**
-           * multi selectable
+           * currently or selected selected css-selector
            */
+          currentSelectedCssSelector: {
+            type: String,
+            reflectToAttribute: true,
+            notify: true
+          },
+          /**
+           * currently or selected selected css-selector
+           */
+          selectableFallback: {
+            type: String,
+            value: 'rect,circle,path,polygon,ellipse'
+          },
 
-          multi: Boolean,
+          /**
+           * true, if multiple elements can be selected
+           */
+          multi: {
+            type: Boolean,
+            value: false
+          },
 
+          /**
+           * selected item
+           * @type {Object}
+           */
           item: {
             type: Object
           },
 
+          /**
+           * selected items
+           * @type {array}
+           */
           items: {
             type: Array
           },
 
+          /**
+           * exceeding items
+           * @type {array}
+           */
           exceeding: {
             type: Array
+          },
+
+          /**
+           * event to be dispatched when an element is clicked on
+           * @type {Object}
+           */
+          clickEvent: {
+            type: String,
+            value: 'item-select'
           },
 
           /**
@@ -322,7 +370,7 @@
       static get observers() {
         return [
           '_srcChanged(src)',
-          '_selectableItemsChanged(selectableItems)',
+          '_selectableChanged(selectable)',
           '_selectedItemsChanged(item)',
           '_selectedItemsChanged(items.length)',
           '_exceedingChanged(exceeding.length)'
@@ -400,7 +448,7 @@
 
       _initialize() {
         setTimeout(() => {
-          this._selectableItemsChanged();
+          this._selectableChanged();
           this._selectedItemsChanged();
           this._exceedingChanged();
         }, 0)
@@ -430,8 +478,8 @@
           this.opened = this.src && (this.opened || this.forceOpened || this.openOnSelect);
           this._selectSelected();
         } else if (this._mainG && this._mainG.selectAll) {
-          this._mainG.selectAll('.' + this.selectedClass)
-            .classed(this.selectedClass, false);
+          this._mainG.selectAll('.' + this.classForSelected)
+            .classed(this.classForSelected, false);
         }
       }
 
@@ -445,8 +493,8 @@
           this.opened = this.src && (this.opened || this.forceOpened || this.openOnExceed);
           this._selectExceeds();
         } else if (this._mainG && this._mainG.selectAll) {
-          this._mainG.selectAll('.' + this.exceedingClass)
-            .classed(this.exceedingClass, false);
+          this._mainG.selectAll('.' + this.classForExceeding)
+            .classed(this.classForExceeding, false);
         }
       }
 
@@ -462,36 +510,123 @@
         this._resetZoom();
       }
 
-      _selectableItemsChanged() {
+      _selectableChanged() {
         if (!(this._mainG && this._mainG.node && this.src)) return;
 
-        if (this.selectableItems && this.selectableItems.items) {
-          const self = this;
-          for (let key in this.selectableItems.items) {
-            this._mainG.selectAll(this.selectableItems.items[key])
-              .classed('selectable', true) // for styling selectable
-              .classed('style-scope', true).classed('device-svg', true) // for style-scoping in polymer
+        const self = this;
+        if (this.selectable && this.selectable.items && Object.keys(this.selectable.items).length) {
+          for (let key in this.selectable.items) {
+            this._mainG.selectAll(this.selectable.items[key])
+              .classed('selectable style-scope device-svg', true) // for styling selectable and style-scoping in polymer
               .attr('title', key)
-              .on('click',
-                function() {
-                  // d3.event.stopPropagation();
+              .on('click', function() {
+                self._mainG.selectAll('.' + self.classForClicked)
+                  .classed(self.classForClicked, false);
+                if (self.multi) {
+                  const selected = (self.currentSelectedCssSelector || '').split(',');
+                  const pos = selected.indexOf(self.selectable.items[key]);
+                  if (pos === -1) {
+                    selected.push(self.selectable.items[key]);
+                  } else {
+                    selected.splice(pos, 1);
+                  }
+                  self.currentSelectedCssSelector = selected.filter(el => { return el !== ''; }).join(',');
+                } else {
+                  if (self.currentSelectedCssSelector === self.selectable.items[key]) {
+                    self.currentSelectedCssSelector = '';
+                  } else {
+                    self.currentSelectedCssSelector = self.selectable.items[key];
+                  }
+                }
+                if (self.currentSelectedCssSelector) {
+                  self._mainG.selectAll(self.currentSelectedCssSelector).classed(self.classForClicked, true);
                   self._zoomToElement(this);
-                  self._mainG.selectAll('.clicked')
-                    .classed('clicked', false);
-                  d3.select(this).classed('clicked', true);
-                });
+                } else {
+                  self._resetZoom();
+                }
+              });
           }
-          if (this.selectableItems.minZoom !== undefined) {
-            this.minZoom = this.selectableItems.minZoom;
+        } else {
+          this._mainG.selectAll('rect,circle,path')
+            .classed('selectable style-scope device-svg', true) // for styling selectable and style-scoping in polymer
+            .on('click', function() {
+              self._mainG.selectAll('.' + self.classForClicked)
+                .classed(self.classForClicked, false);
+              const selector = self._cssPath(this);
+              if (self.multi) {
+                const selected = (self.currentSelectedCssSelector || '').split(',');
+                const pos = selected.indexOf(selector);
+                if (pos === -1) {
+                  selected.push(selector);
+                } else {
+                  selected.splice(pos, 1);
+                }
+                self.currentSelectedCssSelector = selected.filter(el => { return el !== ''; }).join(',');
+              } else {
+                if (self.currentSelectedCssSelector === selector) {
+                  self.currentSelectedCssSelector = '';
+                } else {
+                  self.currentSelectedCssSelector = selector;
+                }
+              }
+              if (self.currentSelectedCssSelector) {
+                self._mainG.selectAll(self.currentSelectedCssSelector).classed(self.classForClicked, true);
+                self._zoomToElement(this);
+              } else {
+                self._resetZoom();
+              }
+            });
+        }
+        if (this.selectable.minZoom !== undefined) {
+          this.minZoom = this.selectable.minZoom;
+        }
+        if (this.selectable.maxZoom !== undefined) {
+          this.maxZoom = this.selectable.maxZoom;
+        }
+        if (this.selectable.zoomPartition !== undefined) {
+          this.zoomPartition = this.selectable.zoomPartition;
+        }
+        this._initZoom();
+        this._inialized = true;
+      }
+
+      _cssPath(element) {
+        const path = [];
+        while (element.nodeType === Node.ELEMENT_NODE) {
+          let selector = element.nodeName;
+          if (element.id) {
+            selector += ('#' + element.id);
+          } else {
+            // Walk backwards until there is no previous sibling
+            let sibling = element;
+            // Will hold nodeName to join for adjacent selection
+            const siblingSelectors = [];
+            while (sibling !== null && sibling.nodeType === Node.ELEMENT_NODE) {
+              siblingSelectors.unshift(sibling.nodeName);
+              sibling = this._previousElementSibling(sibling);
+            }
+            // :first-child does not apply to HTML
+            if (siblingSelectors[0] !== 'HTML') {
+              siblingSelectors[0] = siblingSelectors[0] + ':first-child';
+            }
+            selector = siblingSelectors.join(' + ');
           }
-          if (this.selectableItems.maxZoom !== undefined) {
-            this.maxZoom = this.selectableItems.maxZoom;
+          path.unshift(selector);
+          element = element.parentNode;
+        }
+        return path.join(' > ');
+      }
+
+      _previousElementSibling(element) {
+        if (element.previousElementSibling !== 'undefined') {
+          return element.previousElementSibling;
+        } else {
+          // Loop through ignoring anything not an element
+          while (element = element.previousSibling) { // eslint-disable-line no-cond-assign
+            if (element.nodeType === 1) {
+              return element;
+            }
           }
-          if (this.selectableItems.zoomPartition !== undefined) {
-            this.zoomPartition = this.selectableItems.zoomPartition;
-          }
-          this._initZoom();
-          this._inialized = true;
         }
       }
 
@@ -511,8 +646,35 @@
           .attr('transform', t);
       }
 
+      _zoomToElements(elems, classToSet) {
+        if (elems && typeof elems === 'string') {
+          elems = this._mainG.selectAll(elems).classed(classToSet, true)
+        }
+        if (!elems.empty || elems.empty()) {
+          this._resetZoom();
+          return;
+        }
+
+        const bounds = [];
+        elems.each(
+          function() {
+            let boundE = this.getBoundingClientRect();
+            bounds[0] = (bounds[0] > boundE.left ? boundE.left : bounds[0]) || boundE.left;
+            bounds[1] = (bounds[1] > boundE.top ? boundE.top : bounds[1]) || boundE.top;
+            bounds[2] = (bounds[2] < boundE.right ? boundE.right : bounds[2]) || boundE.right;
+            bounds[3] = (bounds[3] < boundE.bottom ? boundE.bottom : bounds[3]) || boundE.bottom;
+          });
+
+        this._zoomToElement({
+          left: bounds[0],
+          top: bounds[1],
+          height: bounds[3] - bounds[1],
+          width: bounds[2] - bounds[0]
+        });
+      }
+
       _selectSelected() {
-        setTimeout( () => {
+        setTimeout(() => {
           const sel = this.multi ? (this.items || []) : [];
           if (this.item && Object.keys(this.item).length && sel.indexOf(this.item) === -1)
             sel.push(this.item);
@@ -531,7 +693,7 @@
                 if (style && style.sheet && style.sheet.cssRules && style.sheet.insertRule) {
                   selector = sel[i].svg.selector.split(',');
                   for (let j = 0; j < selector.length; j++) {
-                    selectorText = selector[j] + '.' + this.selectedClass;
+                    selectorText = selector[j] + '.' + this.classForSelected;
                     hasRule = false;
                     for (let k = 0; k < style.sheet.cssRules.length; k++) {
                       if (style.sheet.cssRules[i].selectorText === selectorText) {
@@ -546,23 +708,23 @@
               }
             }
             this.updateStyles();
-            this.select(sel, this.selectedClass);
+            this.select(sel, this.classForSelected);
           }
         }, 0)
       }
 
       _selectExceeds() {
         if (this.exceeding && this.exceeding.length)
-          this.select(this.exceeding, this.exceedingClass);
+          this.select(this.exceeding, this.classForExceeding);
       }
 
-      select(selected, selectedClass) {
+      select(selected, classForSelected) {
         if (!(this._mainG && this._mainG.node && this.src)) return;
         // previous selected elements: remove class for selected elements
         this._mainG = this._svg.select('g');
-        this._mainG.selectAll('.' + selectedClass)
-          .classed(selectedClass, false);
-        let elems, s;
+        this._mainG.selectAll('.' + classForSelected)
+          .classed(classForSelected, false);
+        let s;
         const sel = [];
         if (Array.isArray(selected)) {
           for (let i = 0; i < selected.length; i++) {
@@ -576,39 +738,13 @@
           else
             s = '';
         }
-        if (s === '' ||
-          (elems = this._mainG.selectAll(s)).classed(selectedClass, true).empty()) {
-          if (this.opened) {
-            this._resetZoom();
-          }
-          return;
-        }
-
-        let boundE;
-        const bounds = [];
-        elems.each(
-          function() {
-            boundE = this.getBoundingClientRect();
-            bounds[0] = (bounds[0] > boundE.left ? boundE.left : bounds[0]) || boundE.left;
-            bounds[1] = (bounds[1] > boundE.top ? boundE.top : bounds[1]) || boundE.top;
-            bounds[2] = (bounds[2] < boundE.right ? boundE.right : bounds[2]) || boundE.right;
-            bounds[3] = (bounds[3] < boundE.bottom ? boundE.bottom : bounds[3]) || boundE.bottom;
-          });
-
-        boundE = {
-          left: bounds[0],
-          top: bounds[1],
-          height: bounds[3] - bounds[1],
-          width: bounds[2] - bounds[0]
-        };
-
         if (this.opened)
-          this._zoomToElement(boundE);
+          this._zoomToElements(s, classForSelected);
       }
 
       _calcCenterZoom(elem) {
         // get view height and width
-         const view = this.getBoundingClientRect();
+        const view = this.getBoundingClientRect();
         if (view === undefined || elem === undefined || view.height === 0 || view.width === 0)
           return {
             x: 0,
@@ -678,7 +814,7 @@
           e.preventDefault();
           e.stopPropagation();
         }
-        setTimeout( () => {
+        setTimeout(() => {
           if (!(this.opened && this._mainG && this._mainG.node && this.src)) return;
           // reset clicked status
           this._mainG.selectAll('.clicked').classed('clicked', false);

@@ -25,8 +25,7 @@
     "paper-dialog-behavior": "polymerelements/paper-dialog-behavior",
     "datetime-picker": "fooloomanzoo/datetime-picker",
     "fetch": "*",
-    "es6-promise": "*",
-    "webcomponentsjs": "webcomponentsjs"
+    "es6-promise": "*"
   },
   "resolutions": {
     "polymer": "1.9 - 2"
