@@ -87,7 +87,7 @@
       },
       "unit": "K"
     } ],
-    "unnamedItem": {
+    "defaultItem": {
       "id": "id",
       "keys": {
         "Bezeichner": "Bezeichner"
@@ -230,7 +230,7 @@
       },
       "unit": ""
     } ],
-    "unnamedItem": {
+    "defaultItem": {
       "id": "id",
       "keys": {
         "Bezeichner": "Messreihe"
@@ -303,7 +303,7 @@
       "unit": "K",
       "color": "#B6144E"
     } ],
-    "unnamedItem": {
+    "defaultItem": {
       "id": "id",
       "keys": {
         "Sensorname": "Sensor",

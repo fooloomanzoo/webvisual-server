@@ -20,7 +20,7 @@
         // random color if color is not set
         if (color) {
           this.updateStyles({ '--device-color': color || null });
-          if (!this.item.isIndicatorLamp) {
+          if (!this.item.isSignal) {
             this.updateStyles({ '--device-state-inrange-color': color || null });
           } else {
             this.updateStyles({ '--device-state-inrange-color': null });

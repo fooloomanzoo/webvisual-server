@@ -1,0 +1,34 @@
+{
+  "extends": "eslint:recommended",
+  "root": true,
+  "parserOptions": {
+    "ecmaVersion": 6
+  },
+  "rules": {
+    "no-var": "error",
+    "no-useless-escape": "off",
+    "no-undef": [ "error", {
+      "typeof": true
+    } ],
+    "no-console": "off",
+    "valid-jsdoc": [ "error", {
+      "requireReturn": true,
+      "prefer": {
+        "arg": "param",
+        "argument": "param",
+        "returns": "return"
+      },
+      "preferType": {
+        "Boolean": "boolean",
+        "Number": "number",
+        "String": "string",
+        "object": "Object"
+      }
+    } ]
+  },
+  "env": {
+    "node": true,
+    "es6": true
+  },
+  "globals": {}
+}

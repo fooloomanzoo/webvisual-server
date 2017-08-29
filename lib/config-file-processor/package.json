@@ -1,0 +1,21 @@
+{
+  "name": "config-file-processor",
+  "version": "0.0.1",
+  "author": "Johannes Brautzsch",
+  "license": "MIT",
+  "scripts": {
+    "build": "gulp build",
+    "test": "gulp test"
+  },
+  "devDependencies": {
+    "chai": "*",
+    "gulp": "^3.9.1",
+    "gulp-help": "^1.6.1",
+    "gulp-mocha": "^4.3.1"
+  },
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "description": ""
+}
