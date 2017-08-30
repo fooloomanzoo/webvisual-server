@@ -130,7 +130,7 @@
       },
       "unit": ""
     } ],
-    "defaultItem": {
+    "unnamedItem": {
       "id": "id",
       "keys": {
         "Bezeichner": "Messreihe"

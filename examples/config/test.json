@@ -198,7 +198,7 @@
       },
       "color": "#2F43FC"
     } ],
-    "defaultItem": {
+    "unnamedItem": {
       "id": "id",
       "unit": "Ew."
     },
@@ -407,7 +407,7 @@
         "path": "./examples/svg/bor-atom-modell.svg"
       }
     } ],
-    "defaultItem": {
+    "unnamedItem": {
       "id": "id",
       "unit": "MeV"
     },
@@ -775,7 +775,7 @@
         "to": 18
       }
     } ],
-    "defaultItem": {
+    "unnamedItem": {
       "id": "id",
       "unit": "cm"
     },

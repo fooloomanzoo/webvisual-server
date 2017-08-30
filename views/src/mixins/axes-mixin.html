@@ -153,7 +153,7 @@
       _rangeYChanged(rangeY) {
         super._rangeYChanged(rangeY);
         if (rangeY[0]) {
-          if (this.item && this.item.isSignal) {
+          if (this.item && this.item.isIndicatorLamp) {
             this.ticksY = 2;
             this.axisSizeY = 2*(this.tickSize + this.collapsedAxisMargin);
           } else {
@@ -387,7 +387,7 @@
       _computeFormatFn() {
         if (arguments[0] === 'time') {
           return this.formatTime.bind(this);
-        } else if (this.item && this.item.isSignal) {
+        } else if (this.item && this.item.isIndicatorLamp) {
           return this.formatIndicator.bind(this, this.item.threshold);
         } else {
           return this.formatNumber.bind(this);

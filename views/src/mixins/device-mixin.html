@@ -155,7 +155,7 @@
       }
 
       computeValue(y) {
-        return (this.item && this.item.isSignal) ? (this.checkExceedingState(y) ? '✗' : '✓') : y;
+        return (this.item && this.item.isIndicatorLamp) ? (this.checkExceedingState(y) ? '✗' : '✓') : y;
       }
 
       insertValues(values, len) {
