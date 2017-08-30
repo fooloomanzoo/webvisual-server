@@ -10,7 +10,7 @@
    * @polymer
    */
   WebvisualMixins.AxesMixin = function(superClass) {
-    
+
     return class extends WebvisualMixins.ScaleMixin(superClass) {
 
       constructor() {
@@ -70,6 +70,16 @@
            axisSizeY: {
              type: Number,
              value: 60
+           },
+
+           draggable: {
+             type: Boolean,
+             observer: '_draggableChanged'
+           },
+
+           brushToZoom: {
+             type: Boolean,
+             observer: '_brushToZoomChanged'
            },
 
           /**
@@ -135,6 +145,16 @@
           localeDate: {
             type: Object
           }
+          // ,
+          //
+          // /**
+          //  * filter to garuantee pointer events
+          //  * @type {string}
+          //  */
+          // filter: {
+          //   type: String,
+          //   value: 'url(#minimal)'
+          // }
         }
       }
 
@@ -150,6 +170,7 @@
           this.ticksX = Math.ceil(rangeX[1] / 70);
         }
       }
+
       _rangeYChanged(rangeY) {
         super._rangeYChanged(rangeY);
         if (rangeY[0]) {
@@ -187,15 +208,24 @@
         axis.on('mouseover', this._onAxisMouseover.bind(this))
             .on('mouseleave', this._onAxisMouseleave.bind(this))
             .on('click', this._onAxisClicked.bind(this, axis))
-          .call(d3.drag()
-            .on('start', this._onAxisDragStart)
-            .on('drag', this._onAxisDragged)
-            .on('end', this._onAxisDragEnd));
+
+        if (this.draggable) {
+          axis.classed('draggable', true)
+              .call(d3.drag()
+                .on('start', this._onAxisDragStart)
+                .on('drag', this._onAxisDragged)
+                .on('end', this._onAxisDragEnd));
+        }
+
+        // if (this.filter) {
+        //   axis.attr('filter', this.filter);
+        // }
+
         // add title
         axis.append('svg:title').text(title);
         axis.append('svg:g')
           .classed('brush', true)
-          .on('contextmenu', this._onAxisContextMenu.bind(this, orient))
+          .on('contextmenu', this._onAxisContextMenu.bind(this, orient));
         axis.node()._genitor = this;
         axis.node()._axis = axis;
         axis._left = 0;
@@ -255,11 +285,13 @@
         delete this.axisBrushGeneratorY;
         delete this.axisBrushGeneratorX;
       }
+
       _toggleAxis(axis) {
         const expanded = axis.classed('expanded');
         axis.classed('expanded', !expanded);
         this.sizeChanged();
       }
+
       _onAxisClicked(axis) {
         if (this._activeToggleAxisJob) {
           clearTimeout(this._axisToggleAxisJob);
@@ -269,31 +301,70 @@
           this._activeToggleAxisJob = null;
         }, 300)
       }
+
       _onAxisContextMenu(orient) {
         if (d3.event)
           d3.event.preventDefault();
         const vertical = (orient === 'left' || orient === 'right');
         if (vertical) {
           this.axisY._isBrushed = false;
-          this.scaleY.domain(this.domainY).nice();
+          if (this.domainY && this.domainY.some(e => { return e === undefined || e === null; })) {
+            this.scaleY.domain(this.domainY).nice();
+          }
           this.axisY.call(this.axisGeneratorY.scale(this.scaleY));
         } else {
           this.axisX._isBrushed = false;
-          this.scaleX.domain(this.domainX);
+          if (this.domainX && this.domainX.some(e => { return e === undefined || e === null; })) {
+            this.scaleX.domain(this.domainX).nice();
+          }
           this.axisX.call(this.axisGeneratorX.scale(this.scaleX));
         }
         this.redraw();
       }
+
       _onAxisMouseover() {
         this.axisX.select('.brush').raise();
         this.axisY.select('.brush').raise();
         this.axisX.raise();
         this.axisY.raise();
       }
+
       _onAxisMouseleave() {
       }
-      _onAxisDragStart(e) {
-        console.log(e);
+
+      _draggableChanged(draggable) {
+        if (draggable === true) {
+          this.axisX.call(d3.drag()
+            .on('start', this._onAxisDragStart)
+            .on('drag', this._onAxisDragged)
+            .on('end', this._onAxisDragEnd));
+          this.axisY.call(d3.drag()
+            .on('start', this._onAxisDragStart)
+            .on('drag', this._onAxisDragged)
+            .on('end', this._onAxisDragEnd));
+          this.brushToZoom = false;
+        } else {
+          this.axisX.on(".drag", null);
+          this.axisY.on(".drag", null);
+        }
+        this.axisX.classed("draggable", draggable);
+        this.axisY.classed("draggable", draggable);
+      }
+
+      _brushToZoomChanged(brushToZoom) {
+        if (brushToZoom === true) {
+          this._updateAxisBrushGenerator.call(this.axisBrushGeneratorX, this.rangeX, this.axisOrientX);
+          this._updateAxisBrushGenerator.call(this.axisBrushGeneratorY, this.rangeY, this.axisOrientY);
+          this.axisX.select('.brush').call(this.axisBrushGeneratorX);
+          this.axisY.select('.brush').call(this.axisBrushGeneratorX);
+          this.draggable = false;
+        } else {
+          this.axisX.select('.brush').on(".brush", null);
+          this.axisY.select('.brush').on(".brush", null);
+        }
+      }
+
+      _onAxisDragStart() {
         d3.select(this).raise().classed('dragged', true);
         const vertical = d3.select(this).classed('vertical');
         if (vertical) {
@@ -304,6 +375,7 @@
           this._starttop = d3.event.y;
         }
       }
+
       _onAxisDragged() {
         const vertical = d3.select(this).classed('vertical');
         let left = 0, top = 0;
@@ -314,6 +386,7 @@
         }
         d3.select(this).attr('transform', 'translate(' + left + ',' + top + ')');
       }
+
       _onAxisDragEnd() {
         d3.select(this).classed('dragged', false);
         const vertical = d3.select(this).classed('vertical'), g = this._genitor;
@@ -347,6 +420,7 @@
         this._startleft = 0;
         this._starttop = 0;
       }
+
       _onAxisBrushEnd(key) {
         if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
         const s = d3.event.selection;
@@ -396,6 +470,7 @@
 
       sizeChanged() {
       }
+
       redraw() {
       }
 
@@ -409,6 +484,7 @@
           d3.timeYear(date) < date ? this.timeFormat('%d. %b') :
           this.timeFormat('%Y'))(date);
       }
+
       /*
        * format date according to a time-range and pixel-range
        */
@@ -425,6 +501,7 @@
           rangeRatio < 24192E5 ? this.timeFormat('%d. %b') :
           this.timeFormat('%Y'))(date);
       }
+
       /*
        * format absolute time (like differences)
        * e.g. 3600001 => 1h 1ms

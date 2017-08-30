@@ -16,9 +16,7 @@
     "connections": {
       "file": {
         "mode": "once",
-        "path": [
-          "./examples/datafile/cryostat_visu.txt"
-        ],
+        "path": "./examples/datafile/cryostat_visu.txt",
         "format": {
           "dateFormat": "DD.MM.YYYY hh:mm:ss",
           "decimalSeparator": ",",
@@ -116,9 +114,7 @@
     "connections": {
       "file": {
         "mode": "once",
-        "path": [
-          "./examples/datafile/cryostat_visu2.txt"
-        ],
+        "path": "./examples/datafile/cryostat_visu2.txt",
         "format": {
           "dateFormat": "DD.MM.YYYY hh:mm:ss",
           "decimalSeparator": ".",
@@ -261,10 +257,7 @@
     "connections": {
       "file": {
         "mode": "once",
-        "path": [
-          "./examples/datafile/cryostat_visu3.txt",
-          "./examples/datafile/cryostat_visu4.txt"
-        ],
+        "path": "./examples/datafile/cryostat_visu3.txt",
         "format": {
           "dateFormat": "iso",
           "decimalSeparator": ".",

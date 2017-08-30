@@ -300,6 +300,14 @@
           },
 
           /**
+           * true, if multiple elements can be clicked
+           */
+          multiClickable: {
+            type: Boolean,
+            value: false
+          },
+
+          /**
            * selected item
            * @type {Object}
            */
@@ -522,7 +530,7 @@
               .on('click', function() {
                 self._mainG.selectAll('.' + self.classForClicked)
                   .classed(self.classForClicked, false);
-                if (self.multi) {
+                if (self.multiClickable) {
                   const selected = (self.currentSelectedCssSelector || '').split(',');
                   const pos = selected.indexOf(self.selectable.items[key]);
                   if (pos === -1) {
@@ -547,13 +555,13 @@
               });
           }
         } else {
-          this._mainG.selectAll('rect,circle,path')
+          this._mainG.selectAll('rect,circle,path,polygon,eclipse')
             .classed('selectable style-scope device-svg', true) // for styling selectable and style-scoping in polymer
             .on('click', function() {
               self._mainG.selectAll('.' + self.classForClicked)
                 .classed(self.classForClicked, false);
               const selector = self._cssPath(this);
-              if (self.multi) {
+              if (self.multiClickable) {
                 const selected = (self.currentSelectedCssSelector || '').split(',');
                 const pos = selected.indexOf(selector);
                 if (pos === -1) {
@@ -738,8 +746,7 @@
           else
             s = '';
         }
-        if (this.opened)
-          this._zoomToElements(s, classForSelected);
+        this._zoomToElements(s, classForSelected);
       }
 
       _calcCenterZoom(elem) {
@@ -817,7 +824,7 @@
         setTimeout(() => {
           if (!(this.opened && this._mainG && this._mainG.node && this.src)) return;
           // reset clicked status
-          this._mainG.selectAll('.clicked').classed('clicked', false);
+          this._mainG.selectAll('.' + this.classForClicked).classed(this.classForClicked, false);
           // zoom to selectedItems
           if (!this.initiallyZoomToAll) {
             if (this.item && Object.keys(this.item).length || (this.items && this.items.length)) {
@@ -840,9 +847,9 @@
                 return;
               }
             }
-            // zomm to _mainG
-            this._zoomToElement(this._mainG.node());
           }
+          // zomm to _mainG
+          this._zoomToElement(this._mainG.node());
         }, 0)
       }
     }
