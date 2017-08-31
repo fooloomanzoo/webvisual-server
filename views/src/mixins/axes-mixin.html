@@ -333,6 +333,9 @@
       }
 
       _draggableChanged(draggable) {
+        if (this.axisX === undefined || this.axisY === undefined) {
+          return;
+        }
         if (draggable === true) {
           this.axisX.call(d3.drag()
             .on('start', this._onAxisDragStart)
@@ -352,6 +355,9 @@
       }
 
       _brushToZoomChanged(brushToZoom) {
+        if (this.axisX === undefined || this.axisY === undefined) {
+          return;
+        }
         if (brushToZoom === true) {
           this._updateAxisBrushGenerator.call(this.axisBrushGeneratorX, this.rangeX, this.axisOrientX);
           this._updateAxisBrushGenerator.call(this.axisBrushGeneratorY, this.rangeY, this.axisOrientY);

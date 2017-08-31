@@ -39,24 +39,31 @@
       #chartContainer > device-chart {
         margin: 0;
         padding: 0;
-        --focus-color: blue;
+        --svg-text-color: #000;
+        height: 100%;
+        width: 100%;
       }
       #options {
         position: absolute;
         --drawer-width: 12em;
-        --drawer-background: rgba(255,255,255,0.75);
+        --drawer-background: rgba(255,255,255,0.5);
         --drawer-scrim-background: rgba(0,0,0,0.25);
         --drawer-content: {
           padding: 0;
+          color: var(--primary-text-color);
         };
       }
-      .drawer-content {
+      #options > .options-content  {
         display: block;
         height: 100%;
         padding: 0 1em;
         overflow-x: hidden;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
+      }
+      #options > .options-content > * {
+        display: inline-flex;
+        padding-bottom: 0.5em;
       }
       [hidden] {
         display: none !important;
@@ -69,8 +76,8 @@
       </div>
       <div dialog-content horizontal>
         <div id="chartContainer"></div>
-        <drawer-element id="options" opened$="[[optionsOpened]]" scrim stretch align="right">
-        <div class="drawer-content">
+        <drawer-element id="options" opened$="{{optionsOpened}}" scrim stretch align="right">
+          <div class="options-content">
             <div class="selectbox">
               <iron-icon icon="language"></iron-icon>
               <span>{{localize('chart', 'format')}}</span>
@@ -427,7 +434,7 @@
           'path': ['fill', 'stroke', 'stroke-width'],
           'circle': ['fill', 'stroke', 'fill-opacity', 'stroke-width'],
           'line': ['stroke', 'stroke-width'],
-          'text': ['fill', 'font-size', 'font-family', 'letter-spacing', 'text-anchor', 'alignment-baseline']
+          'text': ['fill', 'font-size', 'font-family', 'letter-spacing', 'text-anchor', 'alignment-baseline', "stroke", "stroke-width", "stroke-opacity"]
         };
         requestAnimationFrame(() => {
           // setTimeout(() => {

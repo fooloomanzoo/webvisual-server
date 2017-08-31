@@ -103,7 +103,6 @@
       }
       #addons > * {
         @apply --layout-fit;
-        overflow: hidden;
         background: transparent;
       }
       #headerContent {
@@ -154,9 +153,11 @@
       device-table-group[opened] {
         margin: 3em 0 2.5em 0;
       }
-
+      device-chart {
+        --options-scrim-background: transparent;
+      }
       device-chart[opened] {
-        padding-top: 3em;
+        margin-top: 3em;
         padding-bottom: calc(var(--icon-size, 1.5em) + 2*var(--icon-padding, 0.5em));
       }
       [hidden] {
