@@ -10,10 +10,6 @@
       "stationary": 1000
     }
   },
-  "database": {
-    "type": "redis",
-    "maxCount": 30
-  },
   "locals": [ {
     "connections": {
       "file": {
@@ -220,11 +216,6 @@
     }
   },
 
-  "database": {
-    "type": "redis",
-    "maxCount": 30
-  },
-
   "locals": [ {
     "connections": {
       "file": {
@@ -428,12 +419,7 @@
       "stationary": 1000
     }
   },
-  "database": {
-    "type": "redis",
-    "host": "localhost",
-    "port": 6379,
-    "maxCount": 1000
-  },
+
   "locals": [ {
     "connections": {
       "file": {

@@ -1,9 +1,10 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../mixins/data-mixin.html">
 <link rel="import" href="../mixins/fetch-mixin.html">
 
 <dom-module id="facility-data">
   <script>
-    class FacilityData extends WebvisualMixins.FetchMixin(Polymer.Element) {
+    class FacilityData extends WebvisualMixins.DataMixin(WebvisualMixins.FetchMixin(Polymer.Element)) {
 
       static get is() {
         return 'facility-data'
@@ -22,12 +23,14 @@
 
           facilityName: {
             type: String,
-            notify: true
+            notify: true,
+            computed: '_computeFaciltyName(room)'
           },
 
           systemName: {
             type: String,
-            notify: true
+            notify: true,
+            computed: '_computeSystemName(room)'
           },
 
           facilities: {
@@ -48,53 +51,50 @@
           items: {
             type: Array,
             notify: true
-          },
-
-          loggedIn: {
-            type: Boolean,
-            notify: true
-          },
-
-          offline: {
-            type: Boolean,
-            value: true
           }
         }
       }
 
       static get observers() {
         return [
-          '_computeFacilityList(loggedIn, offline)',
-          '_computeNames(room)',
           '_computeFacility(facilities, facilityName)',
           '_computeSystem(facility, systemName)',
           '_computeItems(facilityName, systemName)'
         ]
       }
 
-      _computeFacilityList(loggedIn, offline) {
-        if (loggedIn || offline) {
-          this._fetch('facilities.json', 'GET', 'include', 'json', 'facilities')
-            .catch(err => {
-              console.warn(err);
-            });
-        }
+      _load() {
+        super._load();
+        if (this.offline || !this.loggedIn) return;
+
+        this._fetch('facilities.json', 'GET', 'include', 'json', 'facilities')
+          .catch(err => {
+            console.warn(err);
+          });
       }
 
-      _computeNames(room) {
+      _computeFaciltyName(room) {
         if (room) {
           const names = room.split('/').filter(function(str) {
             return str !== '';
           });
           if (names.length === 2) {
-            setTimeout(() => {
-              this.setProperties({
-                facilityName: names[0],
-                systemName: names[1]
-              });
-            }, 0)
+            return names[0];
           }
         }
+        return '';
+      }
+
+      _computeSystemName(room) {
+        if (room) {
+          const names = room.split('/').filter(function(str) {
+            return str !== '';
+          });
+          if (names.length === 2) {
+            return names[1];
+          }
+        }
+        return '';
       }
 
       _computeFacility(facilities, facilityName) {
@@ -133,7 +133,7 @@
 
       _computeItems(facilityName, systemName) {
         // console.log(facilityName, systemName);
-        if (facilityName === undefined || systemName === undefined) return;
+        if (!(facilityName && systemName)) return;
 
         this._fetch(facilityName + '+' + systemName + '+items.json', 'GET', 'include', 'json')
           .then(items => {

@@ -3,6 +3,7 @@
 <link rel="import" href="style/shared-style.html">
 <link rel="import" href="style/app-style.html">
 <link rel="import" href="group-card.html">
+<link rel="import" href="data/group-data.html">
 
 <dom-module id="page-groups">
   <template strip-whitespace>
@@ -115,9 +116,17 @@
       }
     </style>
 
+    <iron-location query="{{query}}"></iron-location>
+    <iron-query-params params-string="{{query}}" params-object="{{queryParams}}"></iron-query-params>
+
+    <group-data
+      room="[[queryParams.room]]"
+      subgroups="{{subgroups}}"
+      grouped-key="{{groupedKey}}"
+      grouping-keys="{{groupingKeys}}"></group-data>
+
     <svg-data
-      room="[[room]]"
-      logged-in="[[loggedIn]]"
+      room="[[queryParams.room]]"
       data="{{svgData}}"></svg-data>
 
     <template is="dom-if" if="[[visible]]">
@@ -129,7 +138,7 @@
               open-on-select
               open-on-exceed
               multi
-              svg-url-prefix="/images/[[room]]/"
+              svg-url-prefix="/images/[[queryParams.room]]/"
               svg-src-path="[[group.svg]]"
               svg-selectable="[[_getSvgSelectable(group.svg, svgData)]]">
 
@@ -164,12 +173,13 @@
 
       static get properties() {
         return {
-          room: {
-            type: String,
+
+          elements: {
+            type: Array,
             notify: true
           },
 
-          elements: {
+          groupingKeys: {
             type: Array,
             notify: true
           },
@@ -185,16 +195,7 @@
             observer: '_groupedKeyChanged'
           },
 
-          groupingKeys: {
-            type: Array,
-            notify: true
-          },
-
           visible: {
-            type: Boolean
-          },
-
-          loggedIn: {
             type: Boolean
           },
 

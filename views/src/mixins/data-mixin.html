@@ -1,0 +1,50 @@
+<script>
+  window.WebvisualMixins = window.WebvisualMixins || {};
+  /**
+   * Mixin adds retry strategies for offline and login changes for reloading data
+   *
+   * @mixinFunction
+   * @polymer
+   */
+  WebvisualMixins.DataMixin = function(superClass) {
+
+    return class extends superClass {
+
+      constructor() {
+        super();
+      }
+
+      static get properties() {
+        return {
+          loggedIn: {
+            type: Boolean
+          },
+
+          offline: {
+            type: Boolean
+          }
+        }
+      }
+
+      connectedCallback() {
+        super.connectedCallback();
+        window.addEventListener('online', this._load.bind(this));
+        window.addEventListener('offline', this._load.bind(this));
+        window.addEventListener('loggedin', this._load.bind(this));
+        this._load();
+      }
+
+      disconnectedCallback() {
+        super.connectedCallback();
+        window.removeEventListener('online', this._load.bind(this));
+        window.removeEventListener('offline', this._load.bind(this));
+        window.removeEventListener('loggedin', this._load.bind(this));
+      }
+
+      _load() {
+        this.offline = !window.navigator.onLine;
+        this.loggedIn = window._loggedIn;
+      }
+    }
+  }
+</script>

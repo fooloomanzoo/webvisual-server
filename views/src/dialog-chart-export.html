@@ -39,7 +39,8 @@
       #chartContainer > device-chart {
         margin: 0;
         padding: 0;
-        --svg-text-color: #000;
+        --chart-text-color: #000;
+        --chart-plot-background-opacity: 1;
         height: 100%;
         width: 100%;
       }
@@ -50,20 +51,29 @@
         --drawer-scrim-background: rgba(0,0,0,0.25);
         --drawer-content: {
           padding: 0;
-          color: var(--primary-text-color);
         };
       }
-      #options > .options-content  {
-        display: block;
+      .options-content  {
+        color: var(--primary-text-color);
+        display: flex;
+        flex-direction: column;
         height: 100%;
-        padding: 0 1em;
+        padding: 0.75em;
         overflow-x: hidden;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
       }
-      #options > .options-content > * {
-        display: inline-flex;
-        padding-bottom: 0.5em;
+      .options-content > * {
+        padding: 0;
+        margin-top: 0;
+        margin-bottom: 0.4em;
+        text-align: left;
+        word-break: break-all;
+        flex-shrink: 0;
+        position: relative;
+      }
+      .input {
+        background: rgba(255,255,255,0.5);
       }
       [hidden] {
         display: none !important;
@@ -72,120 +82,91 @@
 
     <dialog-element id="dialog" on-iron-overlay-opened="_setDimensions">
       <div dialog-title>
-        <div>{{localize('export', 'title')}}</div>
+        <div>[[localize('chart', 'export')]]</div>
       </div>
       <div dialog-content horizontal>
         <div id="chartContainer"></div>
-        <drawer-element id="options" opened$="{{optionsOpened}}" scrim stretch align="right">
+        <drawer-element id="options" opened$="{{styleOptionsOpened}}" scrim stretch align="right">
           <div class="options-content">
             <div class="selectbox">
-              <iron-icon icon="language"></iron-icon>
-              <span>{{localize('chart', 'format')}}</span>
-              <select value="{{format::change}}">
+              <select value="{{exportFormat::change}}">
                 <option value="svg">.svg</option>
                 <option value="png">.png</option>
                 <option value="jpg">.jpg</option>
               </select>
+              <span>[[localize('chart', 'export-format')]]</span>
             </div>
-            <div class="input">
-              <iron-icon class="left" icon="tune"></iron-icon>
-              <input type="range" min="0" max="1" step="0.01" value="{{quality::input}}">
-              <div class="decorator" error-message$=">= 0">
-                <label>{{localize('chart', 'quality')}}</label>
+            <template is="dom-if" if="[[_nequals(exportFormat, 'svg')]]">
+              <div class="input">
+                <input type="range" min="0" max="1" step="0.01" value="{{quality::input}}">
+                <div class="decorator" error-message$=">= 0">
+                  <label>[[localize('chart', 'quality')]]</label>
+                </div>
               </div>
-            </div>
+              <div class="input">
+                <input type="number" min="72" step="1" value="{{resolution::input}}">
+                <div class="decorator" error-message$=">= 0">
+                  <label>[[localize('chart', 'resolution')]]</label>
+                  <div class="underline"></div>
+                </div>
+              </div>
+            </template>
             <div class="input">
-              <iron-icon icon="language"></iron-icon>
-              <span>{{localize('chart', 'resolution')}}</span>
-              <input type="number" min="96" step="1" value="{{resolution::input}}">
+              <input type="number" min="0" step="1" value="{{height::input}}">
               <div class="decorator" error-message$=">= 0">
-                <label>{{localize('chart', 'resolution')}}</label>
+                <label>[[localize('chart', 'height')]]</label>
                 <div class="underline"></div>
               </div>
             </div>
             <div class="input">
-              <iron-icon class="left" icon="tune"></iron-icon>
-              <input type="number" min="0" step="10" value="{{height::input}}">
+              <input type="number" min="0" step="1" value="{{width::input}}">
               <div class="decorator" error-message$=">= 0">
-                <label>{{localize('chart', 'height')}}</label>
+                <label>[[localize('chart', 'width')]]</label>
                 <div class="underline"></div>
               </div>
             </div>
             <div class="input">
-              <iron-icon class="left" icon="tune"></iron-icon>
-              <input type="number" min="0" step="10" value="{{width::input}}">
+              <input type="number" min="1" step="1" value="{{fontSize::input}}">
               <div class="decorator" error-message$=">= 0">
-                <label>{{localize('chart', 'width')}}</label>
+                <label>[[localize('chart', 'font-size')]]</label>
                 <div class="underline"></div>
               </div>
             </div>
             <div class="input">
-              <iron-icon class="left" icon="tune"></iron-icon>
-              <input type="number" min="1" step="1" value="{{textSize::input}}">
-              <div class="decorator" error-message$=">= 0">
-                <label>{{localize('chart', 'text-size')}}</label>
-                <div class="underline"></div>
-              </div>
+              <input type="color" value="{{fontColor::input}}">
+              <label>[[localize('chart', 'font-color')]]</label>
             </div>
             <div class="input">
-              <iron-icon class="left" icon="tune"></iron-icon>
-              <input type="color" value="{{textColor::input}}">
-              <div class="decorator">
-                <label>{{localize('chart', 'text-color')}}</label>
-              </div>
-            </div>
-            <div class="input">
-              <iron-icon class="left" icon="tune"></iron-icon>
               <input type="color" value="{{backgroundColor::input}}">
-              <div class="decorator">
-                <label>{{localize('chart', 'background-color')}}</label>
-              </div>
+              <label>[[localize('chart', 'background-color')]]</label>
             </div>
             <div class="input">
-              <iron-icon class="left" icon="tune"></iron-icon>
               <input type="color" value="{{lineColor::input}}">
-              <div class="decorator">
-                <label>{{localize('chart', 'line-color')}}</label>
-              </div>
+              <label>[[localize('chart', 'line-color')]]</label>
             </div>
-            <div class="input">
-              <iron-icon class="left" icon="tune"></iron-icon>
-              <input type="radio" value="{{showLegend::input}}">
-              <div class="decorator">
-                <label>{{localize('chart', 'show-legend')}}</label>
-              </div>
-            </div>
-            <div class="input">
-              <iron-icon class="left" icon="tune"></iron-icon>
-              <input type="radio" value="{{showFocus::input}}">
-              <div class="decorator">
-                <label>{{localize('chart', 'show-focus')}}</label>
-              </div>
-            </div>
-        </div>
-
+          </div>
         </drawer-element>
       </div>
       <div dialog-bottom class="buttons">
-        <div class="button" on-tap="toggleControl">
+        <div class="button" on-tap="toggleOptions">
           <paper-ripple></paper-ripple>
           <iron-icon class="left" icon="tune"></iron-icon>
-          {{localize('export', 'options')}}
+          [[localize('options')]]
         </div>
         <div class="button" on-tap="toggleStyleOptions">
           <paper-ripple></paper-ripple>
           <iron-icon class="left" icon="style"></iron-icon>
-          {{localize('export', 'style')}}
+          [[localize('style')]]
         </div>
         <div class="button" on-tap="fitInContainer">
           <paper-ripple></paper-ripple>
           <iron-icon class="left" icon="aspect-ratio"></iron-icon>
-          fit
+          [[localize('fit')]]
         </div>
         <div class="button" on-tap="save">
           <paper-ripple></paper-ripple>
           <iron-icon class="left" icon="camera-alt"></iron-icon>
-          {{localize('export', 'save')}}
+          [[localize('save')]]
         </div>
       </div>
     </dialog-element>
@@ -208,19 +189,19 @@
             observer: '_openedChanged'
           },
 
-          optionsOpened: {
+          styleOptionsOpened: {
             type: Boolean,
             value: false
           },
 
-          format: {
+          exportFormat: {
             type: String,
-            value: 'png'
+            value: 'svg'
           },
 
           resolution: {
-            type: String,
-            value: 'high'
+            type: Number,
+            value: 150
           },
 
           quality: {
@@ -236,19 +217,19 @@
             type: Number
           },
 
-          showPoint: {
-            type: Boolean,
-            value: true
-          },
-
           backgroundColor: {
             type: String,
             value: '#ffffff'
           },
 
-          textColor: {
+          fontColor: {
             type: String,
             value: '#151515'
+          },
+
+          fontSize: {
+            type: Number,
+            value: 11
           },
 
           lineColor: {
@@ -256,7 +237,7 @@
             value: '#151515'
           },
 
-          languageResourcePrefix: {
+          localesUrlPrefix: {
             type: String,
             value: '/locales/ui/'
           }
@@ -266,7 +247,7 @@
       static get observers() {
         return [
           '_setDimensions(height, width)',
-          '_styleChanged(showPoint, backgroundColor, textColor, lineColor)'
+          '_styleChanged(backgroundColor, fontColor, lineColor, fontSize, showInfo, showLegend)'
         ]
       }
 
@@ -296,6 +277,8 @@
           this._chart = chartElement.cloneNode(true);
           this._chart.controlButtonsHidden = true;
           this._chart.exportButtonDisabled = true;
+          this._chart.autoHideInfoDisabled = true;
+          this._chart.modus = 'hold';
           this._chart.setAttribute('without-mixmode', true);
           this._chart.set('items', chartElement.items);
           if (this._isAttached === true) {
@@ -313,15 +296,15 @@
         });
         requestAnimationFrame(() => {
           this.$.chartContainer.appendChild(this._chart);
-          this._chart._assignNodes();
+          this._chart._buildLayout();
           const clip = this._chart._svg.node().querySelector('clipPath');
           clip.setAttribute('id', 'clip-export'); // firefox brushing
           Array.prototype.forEach.call(this._chart._svg.node().querySelectorAll('[clip-path]'), el => {
             el.setAttribute('clip-path', 'url(#clip-export)');
           })
           setTimeout(() => {
-            this._chart.sizeLayout();
-            this._chart.updateStyles({ '--focus-color': 'red' });
+            this._styleChanged(this.backgroundColor, this.fontColor, this.lineColor, this.fontSize);
+            this.fitInContainer();
           }, 100);
         });
       }
@@ -333,26 +316,20 @@
         }
       }
 
-      _styleChanged() {
-        if (!this._chart || this._isAttached !== true) {
-          return;
-        }
-        const svg = this._chart._svg.node();
-      }
-
       _setDimensions(height, width) {
         if (!this._chart || this._isAttached !== true) {
           return;
         }
-        if (typeof height !== 'number' || typeof width !== 'number') {
-          const bbox = this._chart.getBoundingClientRect();
+        const bbox = this._chart.getBoundingClientRect();
+        if (typeof height !== 'number') {
           height = bbox.height;
+        }
+        if (typeof width !== 'number') {
           width = bbox.width;
         }
         if (height <= 0 || width <= 0) {
           return;
         }
-
         this._chart.style.height = height + 'px';
         this._chart.style.width = width + 'px';
         this._chart.sizeLayout();
@@ -377,9 +354,8 @@
         if (height <= 0 || width <= 0) {
           return;
         }
-        this._chart.style.height = height + 'px';
-        this._chart.style.width = width + 'px';
-        this._chart.sizeLayout();
+        this.height = height;
+        this.width = width;
       }
 
       _getPPI() {
@@ -391,12 +367,12 @@
         testDiv.parentElement.removeChild(testDiv);
       }
 
-      toggleControl() {
-        this._chart.toggleControl();
+      toggleOptions() {
+        this._chart.toggleOptions();
       }
 
       toggleStyleOptions() {
-        this.optionsOpened = !this.optionsOpened;
+        this.styleOptionsOpened = !this.styleOptionsOpened;
       }
 
       _openedChanged(opened) {
@@ -407,8 +383,8 @@
         }
       }
 
-      _equals(a, b) {
-        return a === b;
+      _nequals(a, b) {
+        return a != b;
       }
 
       open() {
@@ -421,13 +397,17 @@
         this.opened = false;
       }
 
-      save() {
-        // TODO: add a dialog with options: height, width, format, legend, legend-keys, areas
-        // https://stackoverflow.com/questions/28226677/save-inline-svg-as-jpeg-png-svg
-        // https://stackoverflow.com/questions/15181452/how-to-save-export-inline-svg-styled-with-css-from-browser-to-image-file
+      _styleChanged(backgroundColor, fontColor, lineColor, fontSize) {
+        this._chart.updateStyles({ '--chart-plot-background-color': backgroundColor });
+        this._chart.updateStyles({ '--chart-line-color': lineColor });
+        this._chart.updateStyles({ '--chart-text-color': fontColor });
+        this._chart.updateStyles({ '--chart-text-size': fontSize + 'px' });
+      }
 
-        this._styleChanged();
-        this._setDimensions(this.height, this.width);
+      _applyStyleToElement(parent, orig) {
+        const children = parent.childNodes;
+        const origChildren = orig.childNodes;
+
         const ContainerElements = ['svg', 'g'];
         const RelevantStyles = {
           'rect': ['fill', 'stroke', 'stroke-width'],
@@ -436,106 +416,97 @@
           'line': ['stroke', 'stroke-width'],
           'text': ['fill', 'font-size', 'font-family', 'letter-spacing', 'text-anchor', 'alignment-baseline', "stroke", "stroke-width", "stroke-opacity"]
         };
-        requestAnimationFrame(() => {
-          // setTimeout(() => {
-            const svg = this._chart._svg.node().cloneNode(true);
-            // window.getComputedStyle(this._chart._svg.node()).getPropertyValue('height')
-            applyStyleToElement(svg, this._chart._svg.node());
-            Array.prototype.forEach.call(svg.querySelectorAll('[hidden],.brush,#zoom,#focus,.info'), el => {
-              if (el && el.parentElement)
-                el.parentElement.removeChild(el);
-            })
-            svg.setAttribute('filter', 'url(#solid)');
-            svg.style.margin = '0px';
-            svg.style.padding = '0px';
 
-            svg.querySelector('filter#solid feFlood').setAttribute('flood-color', this.backgroundColor);
-
-            Array.prototype.forEach.call(svg.querySelectorAll('.axis.main text'), el => {
-              el.setAttribute('fill', this.textColor);
-            });
-            Array.prototype.forEach.call(svg.querySelectorAll('.domain'), el => {
-              el.setAttribute('fill-opacity', '0');
-            });
-            Array.prototype.forEach.call(svg.querySelectorAll('.grid line'), el => {
-              el.setAttribute('stroke-width', 0.5);
-              el.setAttribute('stroke-opacity', 0.2);
-              el.setAttribute('stroke', this.lineColor);
-            });
-            Array.prototype.forEach.call(svg.querySelectorAll('.axis.main line,.axis.main path'), el => {
-              el.setAttribute('stroke', this.lineColor);
-            });
-            Array.prototype.forEach.call(svg.querySelectorAll('*'), el => {
-              el.removeAttribute('class');
-            });
-
-            function applyStyleToElement(parent, orig) {
-              const children = parent.childNodes;
-              const origChildren = orig.childNodes;
-
-              for (let i = 0; i < children.length; i++) {
-                const child = children[i];
-                const tag = child.tagName;
-                if (ContainerElements.indexOf(tag) !== -1) {
-                  applyStyleToElement(child, origChildren[i])
-                } else if (tag in RelevantStyles) {
-                  const StyleDef = window.getComputedStyle(origChildren[i]);
-                  for (let j = 0; j < RelevantStyles[tag].length; j++) {
-                    child.setAttribute([RelevantStyles[tag][j]], StyleDef.getPropertyValue(RelevantStyles[tag][j]));
-                  }
-                }
-              }
+        for (let i = 0; i < children.length; i++) {
+          const child = children[i];
+          const tag = child.tagName;
+          if (ContainerElements.indexOf(tag) !== -1) {
+            this._applyStyleToElement(child, origChildren[i])
+          } else if (tag in RelevantStyles) {
+            const StyleDef = window.getComputedStyle(origChildren[i]);
+            for (let j = 0; j < RelevantStyles[tag].length; j++) {
+              child.setAttribute([RelevantStyles[tag][j]], StyleDef.getPropertyValue(RelevantStyles[tag][j]));
             }
+          }
+        }
+      }
 
-            const data = (new XMLSerializer()).serializeToString(svg);
-            const uri = (decodeURIComponent(location.href)).replace(/ids|room|:\/\/|https|http/gi, '').replace(/[$-/:-?{-~!"^=&_`]/gi, '+').replace(/\+\+/gi, '+');
-            let a = document.createElement('a');
-            a.setAttribute('download', uri + '.' + this.format);
-            const event = new MouseEvent('click', { view: window, bubbles: true, cancelable: true });
+      save() {
+        // https://stackoverflow.com/questions/28226677/save-inline-svg-as-jpeg-png-svg
+        // https://stackoverflow.com/questions/15181452/how-to-save-export-inline-svg-styled-with-css-from-browser-to-image-file
+        this._styleChanged();
+        this._setDimensions(this.height, this.width);
 
-            if (this.format === 'svg') {
-              const blob = new Blob([data], {type:'image/svg+xml;charset=utf-8}'});
-              a.setAttribute('href', URL.createObjectURL(blob));
+        requestAnimationFrame(() => {
+          const svg = this._chart._svg.node().cloneNode(true);
+
+          this._applyStyleToElement(svg, this._chart._svg.node());
+          Array.prototype.forEach.call(svg.querySelectorAll('[hidden],.brush,#zoom'), el => {
+            if (el && el.parentElement)
+              el.parentElement.removeChild(el);
+          })
+          svg.setAttribute('filter', 'url(#solid)');
+          svg.style.margin = '0px';
+          svg.style.padding = '0px';
+
+          svg.querySelector('filter#solid feFlood').setAttribute('flood-color', this.backgroundColor);
+
+          Array.prototype.forEach.call(svg.querySelectorAll('.axis.main text'), el => {
+            el.setAttribute('fill', this.textColor);
+          });
+          Array.prototype.forEach.call(svg.querySelectorAll('.domain'), el => {
+            el.setAttribute('fill-opacity', '0');
+          });
+          Array.prototype.forEach.call(svg.querySelectorAll('.grid line'), el => {
+            el.setAttribute('stroke-width', 0.5);
+            el.setAttribute('stroke-opacity', 0.2);
+            el.setAttribute('stroke', this.lineColor);
+          });
+          Array.prototype.forEach.call(svg.querySelectorAll('.axis.main line,.axis.main path'), el => {
+            el.setAttribute('stroke', this.lineColor);
+          });
+          Array.prototype.forEach.call(svg.querySelectorAll('*'), el => {
+            el.removeAttribute('class');
+          });
+
+          const data = (new XMLSerializer()).serializeToString(svg);
+          const uri = (decodeURIComponent(location.href)).replace(/ids|room|:\/\/|https|http/gi, '').replace(/[$-/:-?{-~!"^=&_`]/gi, '+').replace(/\+\+/gi, '+');
+          let a = document.createElement('a');
+          a.setAttribute('download', uri + '.' + this.exportFormat);
+          const event = new MouseEvent('click', { view: window, bubbles: true, cancelable: true });
+
+          if (this.exportFormat === 'svg') {
+            const blob = new Blob([data], {type:'image/svg+xml;charset=utf-8}'});
+            a.setAttribute('href', URL.createObjectURL(blob));
+            const cancelled = !a.dispatchEvent(event);
+            if (!cancelled) {
+              this.close();
+            }
+          } else { // save as compressed image file
+            const image = new Image();
+            const ppi = this.resolution;
+            image.src = 'data:image/svg+xml;base64,' + window.btoa(unescape(encodeURIComponent(data)));
+            image.onload = () => {
+              const canvas = document.createElement('canvas'),
+                bbox = this._chart._svg.node().getBoundingClientRect(),
+                height = bbox.height,
+                width = bbox.width;
+              canvas.style.width = width + 'px';
+              canvas.style.height = height + 'px';
+              let scaleFactorX = ppi / this._ppiX;
+              let scaleFactorY = ppi / this._ppiY;
+              canvas.setAttribute('width', scaleFactorX * width);
+              canvas.setAttribute('height', scaleFactorY * height);
+              const context = canvas.getContext('2d');
+              context.scale(canvas.width/width, canvas.height/height);
+              context.drawImage(image, 0, 0);
+              a.setAttribute('href', canvas.toDataURL('image/' + this.exportFormat, this.quality));
               const cancelled = !a.dispatchEvent(event);
               if (!cancelled) {
                 this.close();
               }
-            } else { // save as compressed image file
-              const image = new Image();
-              let ppi;
-              switch (this.resolution) {
-                case 'high':
-                  ppi = 300;
-                  break;
-                case 'medium':
-                  ppi = 300;
-                  break;
-                default:
-                  ppi = 150;
-              }
-              image.src = 'data:image/svg+xml;base64,' + window.btoa(unescape(encodeURIComponent(data)));
-              image.onload = () => {
-                const canvas = document.createElement('canvas'),
-                  bbox = this._chart._svg.node().getBoundingClientRect(),
-                  height = bbox.height,
-                  width = bbox.width;
-                canvas.style.width = width + 'px';
-                canvas.style.height = height + 'px';
-                let scaleFactorX = ppi / this._ppiX;
-                let scaleFactorY = ppi / this._ppiY;
-                canvas.setAttribute('width', scaleFactorX * width);
-                canvas.setAttribute('height', scaleFactorY * height);
-                const context = canvas.getContext('2d');
-                context.scale(canvas.width/width, canvas.height/height);
-                context.drawImage(image, 0, 0);
-                a.setAttribute('href', canvas.toDataURL('image/' + this.format, this.quality));
-                const cancelled = !a.dispatchEvent(event);
-                if (!cancelled) {
-                  this.close();
-                }
-              }
             }
-          // }, 100);
+          }
         });
       }
     }

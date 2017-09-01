@@ -24,6 +24,7 @@
     "name": "Details",
     "query": "Interrogation"
   },
+  "menu": "Menu",
   "settings": "Paramètres",
   "view": "Affichage",
   "layout": "Mise en Page",

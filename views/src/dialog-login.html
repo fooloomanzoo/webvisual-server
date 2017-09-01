@@ -1,5 +1,6 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
 
+<link rel="import" href="mixins/data-mixin.html">
 <link rel="import" href="mixins/localize-mixin.html">
 
 <link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
@@ -135,7 +136,7 @@
   </template>
 
   <script>
-    class DialogLogin extends WebvisualMixins.LocalizeMixin(Polymer.Element) {
+    class DialogLogin extends WebvisualMixins.DataMixin(WebvisualMixins.LocalizeMixin(Polymer.Element)) {
 
       static get is() {
         return 'dialog-login'
@@ -170,7 +171,7 @@
             value: '/logout'
           },
 
-          languageResourcePrefix: {
+          localesUrlPrefix: {
             type: String,
             value: '/locales/ui/'
           }
@@ -179,6 +180,13 @@
 
       connectedCallback() {
         super.connectedCallback();
+      }
+
+      _load() {
+        super._load();
+        if (this.offline || this.loggedIn) {
+          return;
+        }
         this.autoSignIn('silent');
         requestAnimationFrame(() => {
           window.addEventListener('online', this.autoSignIn.bind(this));
@@ -290,8 +298,7 @@
         if (signinForm.validate && !signinForm.validate()) return;
 
         if (!signinForm.elements.username.value || !signinForm.elements.password.value) {
-          this.notSignedIn.call(this, 401, 'password or username are empty')
-            .catch(console.warn);
+          this.notSignedIn.call(this, 401, 'password or username are empty');
           return;
         }
 
@@ -300,7 +307,7 @@
           .then(() => {
             if (navigator.credentials) {
               const cred = new PasswordCredential(signinForm);
-              navigator.credentials.store(cred).then(r => {
+              navigator.credentials.store(cred).then(() => {
                 console.info('credentials are stored');
               });
             }
@@ -368,10 +375,15 @@
        */
       signedIn(profile) {
         if (profile && profile.username) {
-          this.loggedIn = true;
+          window._loggedIn = this.loggedIn = true;
           this.userProfile = {
             username: profile.username
           };
+          window.dispatchEvent(new CustomEvent('loggedin', {
+            detail: this.loggedIn,
+            bubbles: true,
+            composed: true
+          }));
           return Promise.resolve(profile);
         } else {
           return Promise.reject();
@@ -381,7 +393,7 @@
       notSignedIn(err) {
         console.warn('not signed in', err);
         let status = '';
-        this.loggedIn = false;
+        window._loggedIn = this.loggedIn = false;
         if (err && err.statusCode) {
           if (err.statusCode >= 400 && err.statusCode < 500) {
             status = 'Login with Server failed';
@@ -393,6 +405,11 @@
         }
         this.dispatchEvent(new CustomEvent('announce', {
           detail: status ? status : '',
+          bubbles: true,
+          composed: true
+        }));
+        window.dispatchEvent(new CustomEvent('loggedin', {
+          detail: this.loggedIn,
           bubbles: true,
           composed: true
         }));

@@ -3,6 +3,7 @@
 <link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
 <link rel="import" href="mixins/container-mixin.html">
 <link rel="import" href="components/drawer-element.html">
+<link rel="import" href="data/group-data.html">
 
 <link rel="import" href="style/shared-style.html">
 <link rel="import" href="style/selectbox-style.html">
@@ -151,11 +152,20 @@
       }
     </style>
 
+    <!-- Routing-->
+    <iron-location query="{{query}}"></iron-location>
+    <iron-query-params params-string="{{query}}" params-object="{{queryParams}}"></iron-query-params>
+
     <iron-media-query query="(max-width: 600px)" query-matches="{{narrowLayout}}"></iron-media-query>
 
+    <group-data
+      room="[[queryParams.room]]"
+      subgroups="{{subgroups}}"
+      grouped-key="{{groupedKey}}"
+      grouping-keys="{{groupingKeys}}"></group-data>
+
     <svg-data hidden
-      room="[[room]]"
-      logged-in="[[loggedIn]]"
+      room="[[queryParams.room]]"
       data="{{svgData}}"></svg-data>
 
     <div id="content">
@@ -208,12 +218,12 @@
       static get properties() {
         return {
 
-          selectedIds: {
-            type: String,
+          checkboxes: {
+            type: Array,
             notify: true
           },
 
-          checkboxes: {
+          groupingKeys: {
             type: Array,
             notify: true
           },
@@ -223,13 +233,14 @@
             notify: true
           },
 
+          groupedKey: {
+            type: String,
+            notify: true
+          },
+
           selectedSubgroup: {
             type: String,
             value: ''
-          },
-
-          loggedIn: {
-            type: Boolean
           },
 
           _shownElements: {
@@ -244,11 +255,6 @@
             value: function() {
               return [];
             }
-          },
-
-          room: {
-            type: String,
-            notify: true
           },
 
           multi: {
@@ -273,7 +279,7 @@
 
           _svgSrcPath: {
             type: Boolean,
-            computed: '_computeSvgSrcPath(room, item, svgData)'
+            computed: '_computeSvgSrcPath(queryParams.room, item, svgData)'
           },
 
           selectNotify: {
@@ -308,7 +314,7 @@
 
       static get observers() {
         return [
-          '_selectedIdsChanged(selectedIds, checkboxes, visible)',
+          '_selectedIdsChanged(queryParams.ids, checkboxes, visible)',
           '_subgroupsChanged(subgroups)',
           '_selectedSubgroupChanged(selectedSubgroup, subgroups, elements)'
         ]
@@ -341,25 +347,25 @@
 
       select(item) {
         super.select(item);
-        const ids = (this.selectedIds || '').split('/').filter(id => {
+        const ids = ((this.queryParams && this.queryParams.ids) || '').split('/').filter(id => {
           return id !== '';
         });
         if (ids.indexOf(item.id) === -1) {
           ids.push(item.id);
-          this.set('selectedIds', ids.join('/'));
+          this.set('queryParams.ids', ids.join('/'));
         }
         // console.log('after select', ids, this.items);
       }
 
       deselect(item) {
         super.deselect(item);
-        const ids = (this.selectedIds || '').split('/').filter(id => {
+        const ids = ((this.queryParams && this.queryParams.ids) || '').split('/').filter(id => {
           return id !== '';
         });
         let pos;
         if ((pos = ids.indexOf(item.id)) !== -1) {
           ids.splice(pos, 1);
-          this.set('selectedIds', ids.join('/'));
+          this.set('queryParams.ids', ids.join('/'));
         }
         // console.log('after deselect', ids, this.items);
       }
@@ -479,7 +485,6 @@
         } else if (visible === false && this._initialized) {
           this.clearExceedings();
           this.clearItems();
-          this.room = undefined;
           this.set('_shownElements', []);
           const el = Polymer.dom(this.root).querySelector('.selectbox.subgroup');
           const sel = el.querySelector('select');

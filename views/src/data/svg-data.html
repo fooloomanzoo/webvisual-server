@@ -1,10 +1,11 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../mixins/data-mixin.html" />
 <link rel="import" href="../mixins/fetch-mixin.html" />
 
 <dom-module id="svg-data">
 
   <script>
-    class SVGData extends WebvisualMixins.FetchMixin(Polymer.Element) {
+    class SVGData extends WebvisualMixins.DataMixin(WebvisualMixins.FetchMixin(Polymer.Element)) {
 
       static get is() {
         return 'svg-data'
@@ -17,12 +18,9 @@
             value: '/data/'
           },
 
-          loggedIn: {
-            type: Boolean
-          },
-
           room: {
-            type: String
+            type: String,
+            observer: '_load'
           },
 
           data: {
@@ -35,16 +33,12 @@
         }
       }
 
-      static get observers() {
-        return [
-          '_fetchSvgSource(room, loggedIn)'
-        ]
-      }
-
-      _fetchSvgSource(room) {
-        if (!room) return;
-
-        const names = room.split('/')
+      _load() {
+        super._load();
+        if (!this.room || this.offline || !this.loggedIn) {
+          return;
+        }
+        const names = this.room.split('/')
           .filter(function(str) {
             return str !== '';
           });

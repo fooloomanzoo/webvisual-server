@@ -1,50 +1,48 @@
 <!--
 work-around until problems are fixed with iron-query-location
 -->
-<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
 
 <script>
-  'use strict';
+  class IronQueryParams extends Polymer.Element {
 
-  Polymer({
-    is: 'iron-query-params',
+    static get is() {
+      return 'iron-query-params';
+    }
 
-    properties: {
-      paramsString: {
-        type: String,
-        notify: true,
-        observer: 'paramsStringChanged',
-      },
+    static get properties() {
+      return {
+        paramsString: {
+          type: String,
+          notify: true,
+          observer: 'paramsStringChanged',
+        },
 
-      paramsObject: {
-        type: Object,
-        notify: true,
-        value: function() {
-          return {};
+        paramsObject: {
+          type: Object,
+          notify: true
+        },
+
+        _dontReact: {
+          type: Boolean,
+          value: false
         }
-      },
-
-      _dontReact: {
-        type: Boolean,
-        value: false
       }
-    },
+    }
 
-    hostAttributes: {
-      hidden: true
-    },
+    static get  observers() {
+      return [
+          'paramsObjectChanged(paramsObject.*)'
+        ];
+    }
 
-    observers: [
-      'paramsObjectChanged(paramsObject.*)'
-    ],
-
-    paramsStringChanged: function() {
+    paramsStringChanged(paramsString) {
       this._dontReact = true;
-      this.paramsObject = this._decodeParams(this.paramsString);
+      this.paramsObject = this._decodeParams(paramsString);
       this._dontReact = false;
-    },
+    }
 
-    paramsObjectChanged: function() {
+    paramsObjectChanged() {
       // console.log(this.paramsObject);
       if (this._dontReact) {
         return;
@@ -55,13 +53,13 @@ work-around until problems are fixed with iron-query-location
       if (_encParams) {
           this.paramsString = _encParams;
       }
-    },
+    }
 
-    _encodeParams: function(params) {
-      var encodedParams = [];
+    _encodeParams(params) {
+      const encodedParams = [];
 
-      for (var key in params) {
-        var value = params[key];
+      for (let key in params) {
+        const value = params[key];
 
         if (value === '') {
           encodedParams.push(encodeURIComponent(key));
@@ -75,16 +73,16 @@ work-around until problems are fixed with iron-query-location
         }
       }
       return encodedParams.join('&');
-    },
+    }
 
-    _decodeParams: function(paramString) {
-      var params = {};
+    _decodeParams(paramString) {
+      const params = {};
       // Work around a bug in decodeURIComponent where + is not
       // converted to spaces:
       paramString = (paramString || '').replace(/\+/g, '%20');
-      var paramList = paramString.split('&');
-      for (var i = 0; i < paramList.length; i++) {
-        var param = paramList[i].split('=');
+      const paramList = paramString.split('&');
+      for (let i = 0; i < paramList.length; i++) {
+        const param = paramList[i].split('=');
         if (param[0]) {
           params[decodeURIComponent(param[0])] =
               decodeURIComponent(param[1] || '');
@@ -92,5 +90,7 @@ work-around until problems are fixed with iron-query-location
       }
       return params;
     }
-  });
+  }
+
+  customElements.define(IronQueryParams.is, IronQueryParams);
 </script>

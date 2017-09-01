@@ -1,11 +1,12 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../mixins/data-mixin.html">
 
-<dom-module id="device-socket-data">
+<dom-module id="socket-connnector">
   <script>
-    class DeviceSocketData extends Polymer.Element {
+    class SocketConnector extends WebvisualMixins.DataMixin(Polymer.Element) {
 
       static get is() {
-        return 'device-socket-data'
+        return 'socket-connector'
       }
 
       static get properties() {
@@ -26,51 +27,37 @@
 
           socketStatus: {
             type: String,
-            value: 'connect',
             notify: true
-          },
-
-          lazyConnect: {
-            type: Boolean
-          },
-
-          loggedIn: {
-            type: Boolean
           }
         }
       }
 
-      static get observers() {
-        return [
-          '_connect(loggedIn, lazyConnect)'
-        ]
-      }
-
-      _connect(loggedIn, lazyConnect) {
-        if (loggedIn && lazyConnect) {
+      _load() {
+        super._load();
+        if (this.offline || !this.loggedIn) {
+          return;
+        }
+        console.log('socket-connector load');
+        if (this.socketStatus !== 'sync-disabled') {
           this._createSocketConnection(this.locationHost, this.nameSpace);
-        } else {
-          this.socketStatus = 'sync-problem';
-          Webvisual.disconnect();
         }
       }
 
       _createSocketConnection(locationHost, nameSpace) {
         if (!locationHost || this.socketStatus === 'sync-disabled' || !Webvisual) return;
 
-        setTimeout(() => {
-          Webvisual.assignStatusNotifications(this);
-          Webvisual.createSocketConnection(locationHost, nameSpace);
+        console.log('_createSocketConnection');
 
-          if (this.socketRoom) {
-            this.connect(this.socketRoom);
-          }
-        }, 0)
+        Webvisual.assignConnector(this);
+        Webvisual.createSocketConnection(locationHost, nameSpace);
+
+        if (this.socketRoom) {
+          this.connect(this.socketRoom);
+        }
       }
 
-      connect(socketRoom) {
-        socketRoom = socketRoom || this.socketRoom;
-
+      connect(socketRoom, old) {
+        console.log(socketRoom, old);
         if (!socketRoom) {
           this.socketStatus = 'sync-problem';
           return;
@@ -78,10 +65,11 @@
         if (socketRoom.substring(0, 1) === '/') {
           socketRoom = socketRoom.slice(1, socketRoom.length);
         }
-        Webvisual.setupConnection(socketRoom);
-        if (this.socketStatus !== 'connected') {
+        // if (this.socketStatus !== 'connect') {
+          console.log('connect', this.socketStatus);
           this.socketStatus = 'connect';
-        }
+          Webvisual.setupConnection(socketRoom);
+        // }
       }
 
       disconnect() {
@@ -90,6 +78,6 @@
       }
 
     }
-    customElements.define(DeviceSocketData.is, DeviceSocketData);
+    customElements.define(SocketConnector.is, SocketConnector);
   </script>
 </dom-module>

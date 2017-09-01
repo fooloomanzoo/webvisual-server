@@ -24,6 +24,7 @@
     "name": "Detalle",
     "query": "Consulta"
   },
+  "menu": "Menú",
   "settings": "Configuración",
   "view": "Punto de Vista",
   "layout": "Diseño",

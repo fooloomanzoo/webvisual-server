@@ -13,9 +13,9 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
+    "start:development": "node index.js development",
     "debug": "node debug.js redis",
     "stop": "taskkill /IM node.exe /F",
-    "prebuildtest": "node index.js development",
     "prebuild": "cd views && bower install",
     "build": "cd views && rollup -c && uglifyjs scripts/d3.bundle.js -c -m -o scripts/d3.bundle.js && polymer build"
   },

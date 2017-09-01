@@ -1,14 +1,15 @@
 <link rel="import" href="fetch-mixin.html">
 <script>
+  const _languageMixinElements = /** @type {Set}*/ new Set();
+
   window.WebvisualMixins = window.WebvisualMixins || {};
   /**
-   *  Mixin that adds localization to page
-   *  modification of PolymerElements/app-localize-mixin for simplification reasons
+   *  Mixin that adds localization to an element
    *
    * @mixinFunction
    * @polymer
    */
-  WebvisualMixins.LocalizeMixin = function(superClass) {
+  WebvisualMixins.LocalizeMixin = function(superClass) { // eslint-disable-line no-unused-vars no-undef
 
     return class extends WebvisualMixins.FetchMixin(superClass) {
 
@@ -19,88 +20,104 @@
       static get properties() {
         return {
 
-          useWindowLanguage: {
-            type: Boolean,
-            value: true,
-            observer: '_windowLanguageListener'
-          },
-
+          /**
+           * language specifier
+           * e.g. 'de' for German
+           * @type {string}
+           */
           language: {
             type: String,
-            notify: true
+            value: window.navigator.language,
+            notify: true,
+            observer: '_languageChanged'
           },
 
+          /**
+           * defines, wheather to have an own language attribute or to get and set it according to all other elements, that implement this mixin
+           * @type {boolean}
+           */
+          customLanguage: {
+            type: Boolean,
+            value: false
+          },
+
+          /**
+           * fallback language specifier, if ressource is not found
+           * @type {string}
+           */
           fallbackLanguage: {
             type: String,
             value: 'en'
           },
 
           /**
+           * dictonary of entries to set
            * For example, a valid dictionary would be:
-           * this.languageResource = {
-           *  'en': { 'greeting': 'Hello!' }, 'fr' : { 'greeting': 'Bonjour!' }
-           * }
+           * this.localesDictionary = { 'greeting': 'Bonjour!', 'bye': 'Au revoir!' }
            */
-
-          languageResource: {
+          localesDictionary: {
             type: Object,
-            notify: true
+            notify: true,
+            value: function() {
+              return {};
+            }
           },
 
-          languageResourcePrefix: {
+          /**
+           * url prefix for language resources, the dictionaries
+           * e.g. '/locales/user-interface/'
+           * @type {string}
+           */
+          localesUrlPrefix: {
             type: String
           },
 
           /**
-           * Translates a string to the current 'language'. Any parameters to the
+           * function that translates a string to the current 'language'. Any parameters to the
            * string should be passed in order, as follows:
            * 'localize(stringKey, param1Name, param1Value, param2Name, param2Value)'
+           * @type {Function}
            */
           localize: {
             type: Function,
-            computed: '__computeLocalize(languageResource, language)'
+            computed: '__computeLocalize(localesDictionary, language)'
           }
         }
       }
 
       static get observers() {
         return [
-          '_loadLanguageResources(languageResourcePrefix, language)'
+          '_loadLocalesDictionary(localesUrlPrefix, language)',
+          '_customLanguageChanged(customLanguage)'
         ]
       }
 
-      _loadLanguageResources(languageResourcePrefix, language, attempts) {
-        if (languageResourcePrefix === undefined || !language || this._recentLanguage === language) return;
+      _loadLocalesDictionary(localesUrlPrefix, language, attempts) {
+        if (localesUrlPrefix === undefined || !language || this._recentLanguage === language) return;
         language = language.toLowerCase();
 
-        if (typeof languageResourcePrefix === 'string') {
-          languageResourcePrefix = [languageResourcePrefix];
+        if (typeof localesUrlPrefix === 'string') {
+          localesUrlPrefix = [ localesUrlPrefix ];
         }
+        const localesDictionary = (this._recentLanguage === language) ? (this.localesDictionary || {}) : {};
 
-        for (let i = 0; i < languageResourcePrefix.length; i++) {
-          this._fetch(languageResourcePrefix[i] + language + '.json', 'GET', 'include', 'json', null, true, true)
+        for (let i = 0; i < localesUrlPrefix.length; i++) {
+          this._fetch(localesUrlPrefix[i] + language + '.json', 'GET', 'include', 'json', null, true, true)
             .then(obj => {
-              let languageResource = (this._recentLanguage === language) ? (this.languageResource || {}) : {};
               for (let prop in obj) {
-                languageResource[prop] = obj[prop];
+                localesDictionary[prop] = obj[prop];
               }
-              this.set('languageResource', languageResource);
+              this.set('localesDictionary', localesDictionary);
               this._recentLanguage = language;
-              this.dispatchEvent(new CustomEvent('languagechange', {
-                bubbles: true,
-                composed: true,
-                detail: language,
-                node: this
-              }));
             })
             .catch(err => {
               attempts = attempts || 0;
               if (language.split('-').length > 1) {
-                this._loadLanguageResources(languageResourcePrefix, language.split('-')[0], ++attempts);
+                this._loadlocalesDictionary(localesUrlPrefix, language.split('-')[0], ++attempts);
               } else if (attempts === undefined || attempts < 3){
-                this._loadLanguageResources(languageResourcePrefix, this.fallbackLanguage, ++attempts);
+                this._loadlocalesDictionary(localesUrlPrefix, this.fallbackLanguage, ++attempts);
               } else {
-                console.log(languageResourcePrefix, language, err);
+                console.log(localesUrlPrefix, language, err);
               }
             });
         }
@@ -109,50 +126,39 @@
       /*
        * Returns a computed 'localize' method, based on the current 'language'.
        */
-      __computeLocalize(languageResource, language) {
+      __computeLocalize(localesDictionary, language) { // eslint-disable-line no-unused-vars
         return function() {
-          if (!arguments[0])
+          if (!(localesDictionary && arguments[0] && typeof arguments[0] === 'string'))
             return '';
 
-          if (!languageResource) {
-            return arguments[arguments.length - 1];
-          }
-
-          let translatedValue = languageResource[arguments[0]];
+          let translatedValue = localesDictionary[arguments[0]];
 
           for (let i = 1; i < arguments.length; i++) {
-            if (!translatedValue)
-              break;
+            if ((translatedValue && translatedValue[arguments[i]]) === undefined) {
+              return arguments[arguments.length - 1];
+            }
             translatedValue = translatedValue[arguments[i]];
-          }
-
-          // if not present in resources, then return the (requested) key
-          if (!translatedValue) {
-            translatedValue = arguments[arguments.length - 1];
           }
           return translatedValue;
         };
       }
 
-      _windowLanguageListener(useWindowLanguage) {
-        if (useWindowLanguage === true) {
-          this.set('language', window.navigator.language);
-          window.addEventListener('languagechange', this._setLanguage.bind(this));
-        } else {
-          window.removeEventListener('languagechange', this._setLanguage.bind(this));
+      _languageChanged(language) {
+        if (!this.customLanguage) {
+          _languageMixinElements.forEach(el => {
+            if (el.language !== language) {
+              el.language = language;
+            }
+          })
         }
       }
 
-      _setLanguage(e) {
-        if (e === undefined) return;
-        const type = Object.prototype.toString.call(e);
-        if (type === '[object CustomEvent]') {
-          if (e.detail) {
-            e = e.detail;
-          }
+      _customLanguageChanged(customLanguage) {
+        if (customLanguage === true) {
+          _languageMixinElements.delete(this);
+        } else {
+          _languageMixinElements.add(this);
         }
-        e = e || window.navigator.language;
-        this.set('language', e);
       }
 
     }

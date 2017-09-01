@@ -30,12 +30,10 @@
       :host([fullscreen]) {
         color: var(--fullscreen-color, white);
         background-color: var(--fullscreen-background-color);
-        min-height: 100vh;
-        min-width: 100vw;
         padding-top: 1em !important;
         padding-left: 1em !important;
         padding-right: 1em !important;
-        padding-bottom: calc(4px + var(--icon-size, 1.5em) + 2*var(--icon-padding, 0.5em)) !important;
+        padding-bottom: calc(8px + var(--icon-size, 1.5em) + 2*var(--icon-padding, 0.5em)) !important;
         margin: 0 !important;
         --control-button-distance: 8px !important;
       }
@@ -49,6 +47,10 @@
       :host(:-webkit-full-screen) {
         color: var(--fullscreen-color, white);
         background-color: var(--fullscreen-background-color);
+        height: unset;
+        width: unset;
+        max-height: unset !important;
+        flex-basis: unset;
       }
       :host(:-webkit-full-screen) * {
         /*mix-blend-mode: normal !important;*/
@@ -65,15 +67,6 @@
         fill-opacity: var(--chart-plot-background-opacity, 0.2);
         stroke-opacity: 0.5;
         stroke-width: 1px;
-        /*isolation: isolate;*/
-      }
-      .grid .tick line {
-        color: var(--grid-color, currentColor);
-        stroke-opacity: 0.1;
-        stroke-width: 0.75px;
-      }
-      .grid path {
-        stroke-width: 0;
       }
       .axis {
         cursor: default;
@@ -88,11 +81,22 @@
         transition: fill-opacity 200ms linear;
       }
       .axis line {
-        stroke-width: 1.5px;
+        stroke-width: 1.25px;
+      }
+      .axis.main line {
+        stroke: var(--chart-line-color, currentColor);
       }
       .axis:hover path,
       .axis.dragged path {
         fill-opacity: 0.25;
+      }
+      .grid .tick line {
+        stroke: var(--chart-line-color, var(--grid-color, currentColor));
+        stroke-opacity: 0.1;
+        stroke-width: 0.75px;
+      }
+      .grid path {
+        stroke-width: 0;
       }
       .brush .selection {
         fill: currentColor;
@@ -120,17 +124,17 @@
       }
       .focus,
       .delta {
-        color: var(--focus-color, currentColor);
+        color: var(--chart-line-color, var(--focus-color, currentColor));
       }
       #focus *:not(.dot),
       #delta *:not(.dot) {
-        stroke: var(--focus-color, currentColor);
+        stroke: var(--chart-line-color, var(--focus-color, currentColor));
         stroke-opacity: var(--focus-opacity, 0.75);
         stroke-dasharray: 1;
         stroke-width: 1.5px;
       }
       marker path {
-        fill: var(--focus-color, currentColor);
+        fill: var(--chart-line-color, var(--focus-color, currentColor));
       }
       #zoom {
         cursor: default;
@@ -161,18 +165,9 @@
       .checkbox,
       .selectbox,
       .button {
-        display: inline-flex;
-        font-size: 0.8em;
-        margin-top: 0.25em;
-        margin-left: 0.25em;
-        margin-right: 0.25em;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .button {
-        padding: 0.3em;
-        flex: initial;
+        text-align: left;
+        flex-shrink: 0;
+        position: relative;
       }
       #options {
         position: absolute;
@@ -184,16 +179,18 @@
           color: var(--primary-text-color);
         };
       }
-      #options > .options-content  {
-        display: block;
+      .options-content  {
+        display: flex;
+        flex-direction: column;
         height: 100%;
-        padding: 0 1em;
+        font-size: 0.8em;
+        padding: 0.75em;
         overflow-x: hidden;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
       }
-      #options > .options-content > * {
-        padding-bottom: 0.5em
+      .options-content > * {
+        margin-bottom: 0.4em
       }
       .selectbox > select {
         opacity: 1;
@@ -217,11 +214,11 @@
         margin-left: var(--control-button-distance, 0px);
       }
       svg text {
-        fill: var(--svg-text-color, var(--bright-text-color));
+        fill: var(--chart-text-color, var(--bright-text-color));
         stroke: currentColor;
-        stroke-width: 0.5;
-        stroke-opacity: 0.2;
-        font-size: 11px !important;
+        stroke-width: 0.5px;
+        stroke-opacity: 0.1;
+        font-size: var(--chart-text-size, 11px) !important;
         letter-spacing: -0.025em;
         font-family: inherit !important;
         cursor: inherit;
@@ -263,10 +260,6 @@
           <feFlood flood-color="#fff" result="out1" />
           <feComposite in="SourceGraphic" in2="out1" operator="over" />
         </filter>
-        <filter id="minmal">
-          <feFlood flood-color="#fff" flood-opacity="0.01" result="out2" />
-          <feComposite in="SourceGraphic" in2="out2" operator="over" />
-        </filter>
         <clipPath id="clip">
           <rect x="0" y="0"></rect>
         </clipPath>
@@ -284,27 +277,29 @@
         </g>
         <rect id="zoom" x="0" y="0" clip-path="url(#clip)"></rect>
         <g id="axis"></g>
-        <g id="delta" hidden>
-          <line id="deltaX" class="line x" marker-start="url(#arrowToLeft)" marker-end="url(#arrowToRight)"></line>
-          <line id="deltaY" class="line y" marker-start="url(#arrowToLeft)" marker-end="url(#arrowToRight)"></line>
-          <circle id="deltaDot" class="dot"></circle>
-        </g>
-        <g id="focus" hidden>
-          <line id="focusX" class="line x" x1="0" marker-start="url(#stub)" marker-end="url(#arrowToRight)"></line>
-          <line id="focusY" class="line y" marker-start="url(#stub)" marker-end="url(#arrowToRight)"></line>
-          <circle id="focusDot" class="dot"></circle>
-        </g>
-        <g id="info">
-          <text class="focus info" x="0" y="0" filter="url(#solid)" hidden></text>
-          <text class="delta info x" x="0" y="0" filter="url(#solid)" hidden></text>
-          <text class="delta info y" x="0" y="0" filter="url(#solid)" hidden></text>
+        <g hidden$="[[hideInfo]]">
+          <g id="delta" hidden>
+            <line id="deltaX" class="line x" marker-start="url(#arrowToLeft)" marker-end="url(#arrowToRight)"></line>
+            <line id="deltaY" class="line y" marker-start="url(#arrowToLeft)" marker-end="url(#arrowToRight)"></line>
+            <circle id="deltaDot" class="dot"></circle>
+          </g>
+          <g id="focus" hidden>
+            <line id="focusX" class="line x" x1="0" marker-start="url(#stub)" marker-end="url(#arrowToRight)"></line>
+            <line id="focusY" class="line y" marker-start="url(#stub)" marker-end="url(#arrowToRight)"></line>
+            <circle id="focusDot" class="dot"></circle>
+          </g>
+          <g id="info">
+            <text class="focus info" x="0" y="0" filter="url(#solid)" font-size="10" hidden></text>
+            <text class="delta info x" x="0" y="0" filter="url(#solid)" font-size="10" hidden></text>
+            <text class="delta info y" x="0" y="0" filter="url(#solid)" font-size="10" hidden></text>
+          </g>
         </g>
       </g>
     </svg>
 
     <drawer-element id="options" opened="{{showControl}}" align="right" stretch scrim>
       <div class="options-content">
-        <div class="selectbox">
+        <div class="selectbox" title$="[[localize('chart', 'interpolation')]]">
           <select value="{{interpolation::change}}">
             <option value="Lineare Verbindung">Lineare Verbindung</option>
             <option value="Basis Spline">Basis Spline</option>
@@ -316,7 +311,7 @@
             <option value="Stufe (danach)">Stufe (danach)</option>
           </select>
         </div>
-        <div class="selectbox">
+        <div class="selectbox" title$="[[localize('chart', 'scaling', 'y')]]">
           <select value="{{scalingY::change}}">
             <option value="linear">linear</option>
             <option value="√">√</option>
@@ -325,34 +320,44 @@
             <option value="log₁₀">log₁₀</option>
           </select>
         </div>
-        <div class="selectbox">
+        <div class="selectbox" title$="[[localize('chart', 'modus', 'description')]]">
           <select value="{{modus::change}}">
-            <option value="zoom">zoom</option>
-            <option value="delta">delta</option>
+            <option value="zoom">[[localize('chart', 'modus', 'hold')]]</option>
+            <option value="zoom">[[localize('chart', 'modus', 'zoom')]]</option>
+            <option value="delta">[[localize('chart', 'modus', 'delta')]]</option>
           </select>
         </div>
         <div class="checkbox">
-          <input type="checkbox" name="multiX" checked="{{multiAxesX::change}}">mehrere x-Achsen
+          <input type="checkbox" checked="{{multiAxesX::change}}">
+          [[localize('chart', 'multi-axes', 'x')]]
         </div>
         <div class="checkbox">
-          <input type="checkbox" name="multiY" checked="{{multiAxesY::change}}">mehrere y-Achsen
+          <input type="checkbox" checked="{{multiAxesY::change}}">
+          [[localize('chart', 'multi-axes', 'y')]]
         </div>
         <div class="checkbox">
-          <input type="checkbox" name="draggable" checked="{{draggable::change}}">Achsen sind verschiebbar
+          <input type="checkbox" checked="{{draggable::change}}">
+          [[localize('chart', 'draggable')]]
         </div>
         <div class="checkbox">
-          <input type="checkbox" name="brushToZoom" checked="{{brushToZoom::change}}">Zoom auf den Achsen
+          <input type="checkbox" checked="{{brushToZoom::change}}">
+          [[localize('chart', 'brush-to-zoom')]]
+        </div>
+        <div class="checkbox">
+          <input type="checkbox" checked="{{!hideInfo::change}}">
+          [[localize('chart', 'show-info')]]
         </div>
         <div class="button" on-click="_openExportDialog" hidden$="[[exportButtonHidden]]">
-          <iron-icon style="margin-right:0.5em;" icon="file-download"></iron-icon>Export
+          <iron-icon icon="file-download"></iron-icon>
+          [[localize('chart', 'export')]]
         </div>
       </div>
     </drawer-element>
 
-    <section id="control" hidden$="[[controlButtonsHidden]]" on-mouseenter="_hideInfo">
-      <icon-button title="settings" icon="tune" on-tap="toggleControl"></icon-button>
-      <icon-button title="reset zoom" icon="filter-center-focus" on-tap="_resetZoom"></icon-button>
-      <icon-button icon="[[fullscreenIcon]]" on-tap="toggleFullscreen"></icon-button>
+    <section id="control" hidden$="[[controlButtonsHidden]]" on-mouseenter="_debouncedHideInfo">
+      <icon-button title="settings" icon="tune" on-tap="toggleOptions" title$="[[localize('options')]]"></icon-button>
+      <icon-button title="reset zoom" icon="filter-center-focus" on-tap="_resetZoom" title$="[[localize('reset-zoom')]]"></icon-button>
+      <icon-button icon="[[fullscreenIcon]]" on-tap="toggleFullscreen" title$="[[localize('fullscreen', fullscreen)]]"></icon-button>
     </section>
 
     <template is="dom-if" if="[[multi]]" restamp>
@@ -425,6 +430,11 @@
             value: false
           },
 
+          hideInfo: {
+            type: Boolean,
+            value: false
+          },
+
           exportButtonHidden: {
             type: Boolean,
             value: false
@@ -435,8 +445,9 @@
             value: false
           },
 
-          autoHideFocusDisabled: {
-            type: Boolean
+          autoHideInfoDisabled: {
+            type: Boolean,
+            value: false
           },
 
           modus: {
@@ -448,9 +459,14 @@
           /**
            * folder for date/time-format file
            */
-          languageResourcePrefix: {
-            type: String,
-            value: '/locales/format/'
+          localesUrlPrefix: {
+            type: Array,
+            value: function() {
+              return [
+                '/locales/ui/',
+                '/locales/format/'
+              ]
+            }
           }
         }
       }
@@ -537,7 +553,7 @@
 
         this._focusDot
           .on('mouseenter', () => {
-            if (this._activeHideInfoJob) {
+            if (!this.autoHideInfoDisabled && this._activeHideInfoJob) {
               clearTimeout(this._activeHideInfoJob);
             }
           }, {
@@ -566,7 +582,9 @@
             passive: true
           })
           .on('mousemove', () => {
+            if (this.hideInfo || this.modus === 'hold') return;
             const m = d3.mouse(this._chart.node());
+
             requestAnimationFrame(() => {
               let closestGraph, closestPoint, closestDistance, fill;
               this._graphs.forEach(g => {
@@ -1078,7 +1096,9 @@
       }
 
       _showInfo() {
-        if (this._activeHideInfoJob) {
+        if (this.hideInfo) return;
+
+        if (!this.autoHideInfoDisabled && this._activeHideInfoJob) {
           clearTimeout(this._activeHideInfoJob);
         }
         this._info.attr('hidden', null);
@@ -1095,6 +1115,8 @@
       }
 
       _debouncedHideInfo() {
+        if (this.autoHideInfoDisabled) return;
+
         if (this._activeHideInfoJob) {
           clearTimeout(this._activeHideInfoJob);
         }
@@ -1234,6 +1256,14 @@
           fP = this._fixedValue;
         let x, y, scale;
         switch (this.modus) {
+          case 'hold':
+            if (!(fP && fP.x !== undefined && fP.y !== undefined && fP.x === d.x && fP.y === d.y)) {
+              this._fixedValue = d;
+            } else {
+              this._fixedValue = null;
+              this._hideInfo();
+            }
+            break;
           case 'zoom':
             x = d.g.scaleX(+d.x) - this._width / 6;
             y = (d.g.scaleY(+d.y) || 0) - this._height / 6;
@@ -1260,8 +1290,6 @@
               this._fixedValue = null;
               this._hideDelta();
             }
-            break;
-          case 'integral':
             break;
         }
         this._updateInfo();
@@ -1394,7 +1422,7 @@
         this._debouncedHideInfo();
       }
 
-      toggleControl() {
+      toggleOptions() {
         this.showControl = !this.showControl;
       }
 
@@ -1423,7 +1451,9 @@
           g.axisX.transition().call(g.axisGeneratorX.scale(g.scaleX));
           g.axisY.transition().call(g.axisGeneratorY.scale(g.scaleY));
         })
-        this._hideInfo();
+        if (!this.autoHideInfoDisabled) {
+          this._hideInfo();
+        }
         this._redomain();
       }
 

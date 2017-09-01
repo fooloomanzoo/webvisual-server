@@ -9,13 +9,13 @@ function WebvisualClient() {
 	this.messageId = 0;
 	this.messageMap = {};
 
-	this.requests = [];
+	this.forcedRequests = [];
 }
 
 WebvisualClient.prototype = {
 
 	createSocketConnection: function(locationHost, nameSpace) {
-		if (locationHost) {
+		if (locationHost && (this.locationHost !== locationHost || this.nameSpace !== nameSpace)) {
 
 			this.locationHost = locationHost;
 			this.nameSpace = nameSpace;
@@ -37,10 +37,10 @@ WebvisualClient.prototype = {
 							case 'initial':
 								this.resetNodes();
 								this.updateNodes(e.data.values, e.data.splices);
-								for (let i = 0; i < this.requests.length; i++) {
-									this.webworker.postMessage(this.requests[i]);
+								for (let i = 0; i < this.forcedRequests.length; i++) {
+									this.webworker.postMessage(this.forcedRequests[i]);
 								}
-								this.requests.length = 0;
+								this.forcedRequests.length = 0;
 								break;
 							case 'update':
 								this.updateNodes(e.data.values, e.data.splices);
@@ -96,8 +96,8 @@ WebvisualClient.prototype = {
 		}
 	},
 
-	assignStatusNotifications: function(connector) {
-		this.statusHandler = connector;
+	assignConnector: function(connector) {
+		this.connector = connector;
 	},
 
 	request: function(req, resolve) {
@@ -108,19 +108,18 @@ WebvisualClient.prototype = {
 		if (this.webworker) {
 			this.webworker.postMessage(req);
 		} else if (req.forced) {
-			this.requests.push(req);
+			this.forcedRequests.push(req);
 		}
 	},
 
 	updateStatus: function(status) {
-		if (this.statusHandler && this.statusHandler.socketStatus !== 'sync-disabled') {
-			this.statusHandler.set('socketStatus', status);
+		if (this.connector && this.connector.socketStatus !== 'sync-disabled') {
+			this.connector.set('socketStatus', status);
 		}
 	},
 
 	assignElement: function(node) {
 		const mount = node.item.mount;
-
 		if (!mount)
 			return;
 
@@ -144,11 +143,9 @@ WebvisualClient.prototype = {
 	},
 
 	updateNodes: function(values, splices) {
-
 		// requestAnimationFrame( function() {
 		setTimeout(() => {
       for (const mount in values) {
-
         if (this.nodes.has(mount)) {
           this.nodes.get(mount).forEach(function(node) {
             node.spliceValues(splices[mount]);
@@ -156,7 +153,7 @@ WebvisualClient.prototype = {
           });
         }
 
-        delete values[mount];
+        // delete values[mount];
         delete splices[mount];
       }
 		}, 0);

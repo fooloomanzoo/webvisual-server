@@ -1,4 +1,5 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="style/shared-style.html">
 <link rel="import" href="style/grid-layout.html">
 
 <dom-module id="page-list">
@@ -45,11 +46,14 @@
       }
     </style>
 
+    <iron-location query="{{query}}"></iron-location>
+    <iron-query-params params-string="{{query}}" params-object="{{queryParams}}"></iron-query-params>
+
     <template is="dom-if" if="[[visible]]">
       <ul class="grid">
         <template is="dom-repeat" items="[[_getListItems(items)]]">
           <li>
-            <a href$="/detail?room=[[room]]&ids=[[item.id]]">
+            <a href$="/detail?room=[[queryParams.room]]&ids=[[item.id]]">
               <device-sign
                 item="[[item]]"
                 no-link="[[!visible]]"
@@ -74,9 +78,6 @@
 
       static get properties() {
         return {
-          room: {
-            type: String
-          },
 
           elements: {
             type: Array,

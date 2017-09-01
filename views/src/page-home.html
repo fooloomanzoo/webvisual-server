@@ -127,18 +127,17 @@
     </template>
 
     <div class="box">
+      <header>{{localize('home', 'title')}}</header>
       <template is="dom-if" if="[[!_hasFacilityItems]]">
-        <slot></slot>
+        <div>{{localize('home', 'empty configuration')}}</div>
       </template>
       <template is="dom-if" if="[[_hasFacilityItems]]">
-        <header>{{localize('home', 'title')}}</header>
         <iron-selector id="selector" selected="{{currentFacility}}" attr-for-selected="item-name" selectable=".facility">
           <template is="dom-repeat" items="[[facilities]]">
             <div raised class="button item facility" item-name="[[item.name]]" title$="[[item.title]]" tabindex="1">
               <paper-ripple id="ripple" recenters></paper-ripple>
               <div>[[item.title]]</div>
             </div>
-
             <iron-collapse opened="{{_computeOpened(item.name, currentFacility)}}">
               <div class="collapse-content">
                 <template is="dom-repeat" items="[[item.systems]]" as="system">
@@ -168,7 +167,10 @@
       static get properties() {
         return {
           facilities: {
-            type: Array
+            type: Array,
+            value: function() {
+              return [];
+            }
           },
 
           currentFacility: {
@@ -184,7 +186,7 @@
             type: Boolean
           },
 
-          languageResourcePrefix: {
+          localesUrlPrefix: {
             type: String,
             value: '/locales/ui/'
           },
@@ -205,7 +207,7 @@
       }
 
       _computeHasFacilityItems(facilities) {
-        return facilities && facilities.length > 0;
+        return Boolean(facilities && facilities.length > 0);
       }
 
       _requestLogin() {

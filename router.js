@@ -84,12 +84,12 @@ class Router extends EventEmitter {
     if (options.sessionStore) {
       switch (options.sessionStore.type) {
         case 'redis':
+          // node_redis fix
+          if (options.sessionStore.hasOwnProperty('password') && !options.sessionStore.password) {
+            delete options.sessionStore.password;
+          }
           // session-cookie-db
-          this.sessionStore = new RedisStore({
-            host: options.sessionStore.host || 'localhost',
-            port: options.sessionStore.port || 6379,
-            db: options.sessionStore.db || 1
-          });
+          this.sessionStore = new RedisStore(options.sessionStore);
           break;
         // default:
         //   this.sessionStore = new FileStore()
@@ -156,11 +156,13 @@ class Router extends EventEmitter {
 
     // watch for changes, if in development mode, for auto-reloading
     if (this.mode === 'development') {
-        let srcpath = resolvePath(this.dirDevelopment)
+        const srcpath = resolvePath(this.dirDevelopment)
         this.watcher = chokidar.watch(srcpath, {
-          ignored: /(^|[\/\\])\../,
+          ignored: ['**/build/**', '**/bower_components/**', '**/node_modules/**', '**bundle**'],
+          ignoreInitial: true,
           persistent: true
         })
+        // ignored regex: /(^|[\/\\])\..|^(\/?build.+|\/?bower_components.+|\/?node_modules.+)|^((?!.+\/).*)/g
         // Add event listeners.
         this.watcher
           .on('change', path => {
@@ -352,23 +354,23 @@ class Router extends EventEmitter {
     mkdirp(this.dirData, err => {
       if (err) {
         console.error(`Failed to create ${this.dirData}\n ${err.stack}`)
-        return
+        return;
       }
       this.createStaticContent()
     })
   }
 
   createStaticContent() {
-    let facilities = [], toCopy = new Set(), promises = []
+    const facilities = [], toCopy = new Set(), promises = [];
 
     // write json
-    for (let facility in this.configurations) {
+    for (const facility in this.configurations) {
 
-      let opt = this.configurations[facility], tmp = []
+      const opt = this.configurations[facility], tmp = [];
 
-      for (let system in opt) {
+      for (const system in opt) {
         if (system === '_name' || system === '_title')
-          continue
+          continue;
 
         tmp.push({
           name:  opt[system]._name,
@@ -376,7 +378,7 @@ class Router extends EventEmitter {
           view:  opt[system]._view,
         })
         // copy svgContent in staticContentFolder
-        let svgDest = resolvePath(this.dirImage, facility, system)
+        const svgDest = resolvePath(this.dirImage, facility, system)
 
         promises.push( new Promise( (resolve, reject) => {
           mkdirp(svgDest, error => {
@@ -465,7 +467,7 @@ function copy(origin, dest) {
 }
 
 function resolvePath() {
-  let p = path.resolve(...arguments)
+  const p = path.resolve(...arguments)
   mkdirp(path.dirname(p), err => {
     if (err) console.error(err)
   })
@@ -498,7 +500,7 @@ function conditional(condition, middleware, negate) {
 }
 
 function useragent_supports_es6(req) {
-  let ua = req.useragent,
+  const ua = req.useragent,
     browser = ua.browser,
     versionSplit = (ua.version || '').split('.'),
     [majorVersion, minorVersion] = versionSplit.map(v => { return v ? parseInt(v, 10) : -1});

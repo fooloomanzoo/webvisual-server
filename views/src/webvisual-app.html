@@ -4,7 +4,6 @@
 <link rel="import" href="mixins/fetch-mixin.html">
 
 <link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
-<link rel="import" href="../bower_components/iron-a11y-keys-behavior/iron-a11y-keys-behavior.html">
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
 
 <link rel="import" href="style/shared-style.html">
@@ -14,6 +13,7 @@
 <link rel="import" href="style/input-style.html">
 
 <link rel="import" href="../bower_components/iron-location/iron-location.html">
+<!-- TEMPORARY: polymers's 'iron-query-params' has problems keeping query-strings on reload -->
 <link rel="import" href="iron-query-params.html">
 
 <link rel="import" href="../bower_components/app-layout/app-header-layout/app-header-layout.html">
@@ -25,7 +25,7 @@
 <link rel="import" href="dialog-login.html">
 <link rel="import" href="page-home.html">
 <link rel="import" href="data/facility-data.html">
-<link rel="import" href="data/group-data.html">
+<link rel="import" href="data/socket-connector.html">
 
 <dom-module id="webvisual-app">
 
@@ -198,37 +198,24 @@
       }
     </style>
 
+    <!-- login dialog-->
+    <dialog-login id="loginDialog" icon="{{loginIcon}}" logged-in="{{loggedIn}}"></dialog-login>
+
     <!-- Routing-->
     <iron-location path="{{path}}" query="{{query}}"></iron-location>
-    <iron-query-params params-string="{{query}}" params-object="{{queryParams}}" ></iron-query-params>
-
-    <!-- login dialog-->
-    <dialog-login id="loginDialog"
-      icon="{{loginIcon}}"
-      logged-in="{{loggedIn}}">
-    </dialog-login>
+    <iron-query-params params-string="{{query}}" params-object="{{queryParams}}"></iron-query-params>
 
     <!-- Data -->
     <facility-data
       facilities="{{facilities}}"
       room="[[queryParams.room]]"
-      items="{{elements}}"
-      logged-in="[[loggedIn]]"
-      offline="[[offline]]"></facility-data>
+      items="{{elements}}"></facility-data>
 
-    <group-data
-      room="[[queryParams.room]]"
-      logged-in="[[loggedIn]]"
-      subgroups="{{subgroups}}"
-      grouped-key="{{groupedKey}}"
-      grouping-keys="{{groupingKeys}}"></group-data>
-
-    <device-socket-data id="socketHandler"
-      name-space=""
-      socket-room="[[queryParams.room]]"
-      socket-status="{{socketStatus}}"
-      logged-in="[[loggedIn]]"
-      lazy-connect="[[loadComplete]]"></device-socket-data>
+    <template is="dom-if" if="[[loadComplete]]">
+      <socket-connector id="socketHandler"
+        socket-room="[[queryParams.room]]"
+        socket-status="{{socketStatus}}"></socket-connector>
+    </template>
 
     <iron-media-query query="(min-width: 768px)" query-matches="{{wideLayout}}"></iron-media-query>
 
@@ -236,7 +223,7 @@
       <!-- Toolbar -->
       <app-header slot="header" id="header" hidden$="[[!_isContentPage]]" reveals fixed="[[_isFullbleedPage]]" threshold="64" threshold-triggered="{{thresholdTriggered}}" shadow$="[[thresholdTriggered]]">
         <app-toolbar>
-          <icon-button icon="menu" class="menu-icon" title="menu" on-tap="_toggleDrawer"></icon-button>
+          <icon-button icon="menu" class="menu-icon" title$="[[localize('menu')]]" on-tap="_toggleDrawer"></icon-button>
 
           <logo-element id="logo" href="/home" title$="[[localize('home', 'name')]]"></logo-element>
 
@@ -251,19 +238,19 @@
                 selected="{{page}}"
                 attr-for-selected="name">
                 <tab-element name="list">
-                  <a href$="/list?room=[[queryParams.room]]" class="tab">
+                  <a href="/list" class="tab">
                     <iron-icon icon="list" class="left"></iron-icon>
                     {{localize('list', 'name')}}
                   </a>
                 </tab-element>
                 <tab-element name="groups">
-                  <a href$="/groups?room=[[queryParams.room]]" class="tab">
+                  <a href="/groups" class="tab">
                     <iron-icon icon="grid-on" class="left"></iron-icon>
                     {{localize('groups', 'name')}}
                   </a>
                 </tab-element>
                 <tab-element name="detail">
-                  <a href$="/detail?room=[[queryParams.room]]" class="tab">
+                  <a href="/detail" class="tab">
                     <iron-icon icon="chrome-reader-mode" class="left"></iron-icon>
                     {{localize('detail', 'name')}}
                   </a>
@@ -289,18 +276,18 @@
       <!-- Pages-->
       <iron-pages id="pages" role="main" selected="{{page}}" attr-for-selected="name" selected-attribute="visible" fallback-selection="home">
         <!-- home view for selecting the facility -->
-        <page-home name="home" dark$="[[dark]]" plain$="[[plain]]" class="fullbleed" facilities="[[facilities]]" logged-in="[[loggedIn]]" on-login-request="_openLoginDialog">
+        <page-home name="home" dark$="[[dark]]" plain$="[[plain]]" class="fullbleed" facilities="[[facilities]]" on-login-request="_openLoginDialog">
           <slot></slot>
         </page-home>
         <!-- list view of items in a facility -->
-        <page-list name="list" dark$="[[dark]]" plain$="[[plain]]" room="[[queryParams.room]]" elements="[[elements]]">
+        <page-list name="list" dark$="[[dark]]" plain$="[[plain]]" elements="[[elements]]">
         </page-list>
         <!-- group view of items -->
-        <page-groups name="groups" dark$="[[dark]]" plain$="[[plain]]" room="[[queryParams.room]]" logged-in="[[loggedIn]]" elements="[[elements]]" grouped-key="[[groupedKey]]" grouping-keys="[[groupingKeys]]" subgroups="[[subgroups]]">
+        <page-groups name="groups" dark$="[[dark]]" plain$="[[plain]]" elements="[[elements]]" grouped-key="[[groupedKey]]" grouping-keys="{{groupingKeys}}">
         </page-groups>
         <!-- detail view of one item -->
-        <page-detail id="detailpage" name="detail" dark$="[[dark]]" plain$="[[plain]]" class="fullbleed" room="[[queryParams.room]]" selected-ids="{{queryParams.ids}}" logged-in="[[loggedIn]]" elements="[[elements]]" show-toggle-icon="{{detailHasDrawer}}" subgroups="[[subgroups]]">
-          <div slot="groupby" class="selectbox grouping" title="{{localize('groupedKey')}}" hidden$="[[hideGroupSelect]]">
+        <page-detail id="detailpage" name="detail" dark$="[[dark]]" plain$="[[plain]]" class="fullbleed" elements="[[elements]]" show-toggle-icon="{{detailHasDrawer}}" grouped-key="{{groupedKey}}" grouping-keys="{{groupingKeys}}">
+          <div slot="groupby" class="selectbox grouping" title="{{localize('groupedKey')}}">
             <select value="{{groupedKey::change}}"></select>
           </div>
         </page-detail>
@@ -316,33 +303,33 @@
       <span class="message"></span>
     </drawer-element>
 
-  <drawer-element opened="{{showTabsOnBottom}}" id="toolbarBottom" swipe-open auto-close-period="8000" shadow auto-close="[[!thresholdTriggered]]">
-    <div class="tab-drawer">
-      <tabs-container class="tabs" role="tablist" selected="{{page}}" attr-for-selected="name">
-        <tab-element name="list">
-          <a href$="/list?room=[[queryParams.room]]" class="tab">
-            <iron-icon icon="list" class="left"></iron-icon>
-            {{localize('list', 'name')}}
-          </a>
-        </tab-element>
-        <tab-element name="groups">
-          <a href$="/groups?room=[[queryParams.room]]" class="tab">
-            <iron-icon icon="grid-on" class="left"></iron-icon>
-            {{localize('groups', 'name')}}
-          </a>
-        </tab-element>
-        <tab-element name="detail">
-          <a href$="/detail?room=[[queryParams.room]]" class="tab">
-            <iron-icon icon="chrome-reader-mode" class="left"></iron-icon>
-            {{localize('detail', 'name')}}
-          </a>
-        </tab-element>
-      </tabs-container>
-    </div>
-  </drawer-element>
+    <drawer-element opened="{{showTabsOnBottom}}" id="toolbarBottom" swipe-open auto-close-period="8000" shadow auto-close="[[!thresholdTriggered]]">
+      <div class="tab-drawer">
+        <tabs-container class="tabs" role="tablist" selected="{{page}}" attr-for-selected="name">
+          <tab-element name="list">
+            <a href="/list[[query]]" class="tab">
+              <iron-icon icon="list" class="left"></iron-icon>
+              {{localize('list', 'name')}}
+            </a>
+          </tab-element>
+          <tab-element name="groups">
+            <a href="/groups[[query]]" class="tab">
+              <iron-icon icon="grid-on" class="left"></iron-icon>
+              {{localize('groups', 'name')}}
+            </a>
+          </tab-element>
+          <tab-element name="detail">
+            <a href="/detail[[query]]" class="tab">
+              <iron-icon icon="chrome-reader-mode" class="left"></iron-icon>
+              {{localize('detail', 'name')}}
+            </a>
+          </tab-element>
+        </tabs-container>
+      </div>
+    </drawer-element>
 
-  <!-- SIDEMENU -->
-  <template is="dom-if" if="[[_shouldRenderDrawer]]">
+    <!-- SIDEMENU -->
+    <template is="dom-if" if="[[_shouldRenderDrawer]]">
       <drawer-element id="drawer" opened="{{drawerOpened}}" align="left" swipe-open tabindex="0" scrim stretch>
         <app-toolbar class="top">
           <icon-button icon="close" title="close" on-tap="_toggleDrawer"></icon-button>
@@ -364,17 +351,17 @@
                   <iron-icon icon="exit-to-app" class="left"></iron-icon>
                   {{localize('home', 'name')}}
               </a>
-              <a href="/list?room=[[queryParams.room]]" class="button" name="list">
+              <a href="/list[[query]]" class="button" name="list">
                   <paper-ripple id="ripple" recenters></paper-ripple>
                   <iron-icon icon="list" class="left"></iron-icon>
                   {{localize('list', 'name')}}
               </a>
-              <a href="/groups?room=[[queryParams.room]]" class="button" name="groups">
+              <a href="/groups[[query]]" class="button" name="groups">
                   <paper-ripple id="ripple" recenters></paper-ripple>
                   <iron-icon icon="grid-on" class="left"></iron-icon>
                   {{localize('groups', 'name')}}
               </a>
-              <a href="/detail?room=[[queryParams.room]]" class="button" name="detail">
+              <a href="/detail[[query]]" class="button" name="detail">
                   <paper-ripple id="ripple" recenters></paper-ripple>
                   <iron-icon icon="chrome-reader-mode" class="left"></iron-icon>
                   {{localize('detail', 'name')}}
@@ -437,8 +424,7 @@
 
   <script>
     class WebvisualApp extends WebvisualMixins.LocalizeMixin(Polymer.mixinBehaviors(
-      [ Polymer.IronA11yKeysBehavior,
-        Polymer.IronResizableBehavior ], Polymer.Element)) {
+      [ Polymer.IronResizableBehavior ], Polymer.Element)) {
 
       static get is() {
         return 'webvisual-app';
@@ -488,7 +474,7 @@
             notify: true
           },
 
-          languageResourcePrefix: {
+          localesUrlPrefix: {
             type: String,
             value: '/locales/ui/'
           },
@@ -517,18 +503,10 @@
             type: String
           },
 
-          loggedIn: {
-            type: Boolean,
-            notify: true
-          },
 
           loginIcon: {
             type: String,
             computed: '_computeLoginIcon(loggedIn)'
-          },
-
-          offline: {
-            type: Boolean
           },
 
           loadComplete: {
@@ -589,13 +567,6 @@
           _shouldLogin: {
             type: Boolean,
             computed: '_computeShouldLogin(loggedIn, offline)'
-          },
-
-          keyEventTarget: {
-            type: Object,
-            value: function() {
-              return document.body;
-            }
           }
         }
       }
@@ -613,8 +584,7 @@
       static get observers() {
         return [
           '_routePageChanged(path)',
-          '_roomChanged(room)',
-          // '_resetLayout(showTabsOnBottom, wideLayout, thresholdTriggered)',
+          '_roomChanged(queryParams.room)',
           '_setGroupingSelectBoxes(groupedKey, groupingKeys)',
           '_drawerChanged(_shouldRenderDrawer)'
         ]
@@ -622,10 +592,6 @@
 
       constructor() {
         super();
-        this.keyBindings = {
-          'left': '_previousPage',
-          'right': '_nextPage'
-        };
         this._loadPresettings();
       }
 
@@ -636,6 +602,7 @@
           window.addEventListener('offline', this._notifyNetworkStatus.bind(this));
         });
         this.removeAttribute('unresolved');
+        this._addKeyListeners();
       }
 
       _routePageChanged(path) {
@@ -681,6 +648,20 @@
         // });
       // }
 
+      _addKeyListeners() {
+        window.document.body.addEventListener('keydown', this._handleKeypress.bind(this), false);
+      }
+
+      _handleKeypress(e) {
+        if (!(e && e.keyCode)) {
+          return;
+        }
+        if (e.keyCode === 39)
+          this._nextPage()
+        else if (e.keyCode === 37)
+          this._previousPage();
+      }
+
       _nextPage() {
         this._switchPage(1);
       }
@@ -695,7 +676,6 @@
           let pos = order.indexOf(this.page) || 0;
           pos = (pos + num + order.length) % order.length;
           this.setProperties({
-            path: '/' + order[pos],
             page: order[pos],
             showTabs: false
           });
@@ -817,16 +797,16 @@
       }
 
       // detail-requests
-      _openDetailRequestDialog(e, detail) {
-        this.async(function() {
-          if (!this._detailRequestDialog) {
-            this._detailRequestDialog = document.createElement('dialog-detail-request');
-            Polymer.dom(this.root).appendChild(this._detailRequestDialog);
-          }
-          this._detailRequestDialog.set('item', detail.item);
-          this._detailRequestDialog.opened = true;
-        });
-      }
+      // _openDetailRequestDialog(e, detail) {
+      //   this.async(function() {
+      //     if (!this._detailRequestDialog) {
+      //       this._detailRequestDialog = document.createElement('dialog-detail-request');
+      //       Polymer.dom(this.root).appendChild(this._detailRequestDialog);
+      //     }
+      //     this._detailRequestDialog.set('item', detail.item);
+      //     this._detailRequestDialog.opened = true;
+      //   });
+      // }
 
       _loadPresettings() {
         const settings = JSON.parse(localStorage.getItem('settings'));
@@ -865,6 +845,7 @@
       }
 
       _setGroupingSelectBoxes(groupedKey, groupingKeys) {
+        console.log(groupingKeys);
         if (groupedKey === undefined || groupingKeys === undefined) {
           return;
         }
@@ -932,7 +913,7 @@
       }
 
       _computeHideGroupSelect(page, loadComplete, groupingKeys) {
-        return (page !== 'groups' && page !== 'detail') || !loadComplete || !groupingKeys || !groupingKeys.length;
+        return (page !== 'groups' && page !== 'detail') || !loadComplete || !(groupingKeys && groupingKeys.length);
       }
 
       _computeStatusIcon(status) {

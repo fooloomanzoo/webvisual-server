@@ -1,10 +1,11 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../mixins/data-mixin.html" />
 <link rel="import" href="../mixins/fetch-mixin.html" />
 
 <dom-module id="group-data">
 
   <script>
-    class GroupData extends WebvisualMixins.FetchMixin(Polymer.Element) {
+    class GroupData extends WebvisualMixins.DataMixin(WebvisualMixins.FetchMixin(Polymer.Element)) {
 
       static get is() {
         return 'group-data'
@@ -18,12 +19,9 @@
             value: '/data/'
           },
 
-          loggedIn: {
-            type: Boolean
-          },
-
           room: {
-            type: String
+            type: String,
+            observer: '_load'
           },
 
           groupedKey: {
@@ -54,20 +52,14 @@
             computed: '_computeSubGroups(groups, groupedKey)',
             notify: true
           }
-
         }
       }
 
-      static get observers() {
-        return [
-          '_fetchGroups(room, loggedIn)'
-        ]
-      }
+      _load() {
+        super._load();
+        if (!this.room || this.offline || !this.loggedIn) return;
 
-      _fetchGroups(room) {
-        if (!room) return;
-
-        const names = room.split('/')
+        const names = this.room.split('/')
           .filter(function(str) {
             return str !== '';
           });

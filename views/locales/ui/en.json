@@ -24,6 +24,7 @@
     "name": "Details",
     "query": "Query"
   },
+  "menu": "Menu",
   "settings": "Settings",
   "view": "View",
   "layout": "Layout",
