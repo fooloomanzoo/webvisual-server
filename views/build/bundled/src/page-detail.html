@@ -1,4 +1,254 @@
 <html><head></head><body><dom-module id="page-detail"><template strip-whitespace=""><style include="shared-style selectbox-style">:host{--control-button-distance:2px;--drawer-width:16em;--drawer-background:rgba(255,255,255,0.25);--drawer-content:{padding:0;position:absolute;};}#content{display:flex;flex-direction:column;margin:0;box-sizing:border-box;position:relative;height:100%;}#control{display:block;height:100%;box-sizing:border-box;}#chart,
       #svg{max-height:50%;-webkit-flex-basis:50%;flex-basis:50%;color:var(--bright-text-color);}#svg{overflow:hidden;--control-bottom:8px;--control-right:16px;}#chart{padding-left:8px;--chart-plot-background-color:#fff;--chart-plot-background-opacity:0.8;--control-top:14px;--control-bottom:auto;--control-right:16px;}#chart[fullheight]{padding-bottom:8px;max-height:100%;-webkit-flex-basis:1px;flex-basis:1px;flex-grow:1;}:host([dark]) #chart{--chart-plot-background-opacity:0.2;--focus-opacity:1;}:host([dark]) #chart[fullheight]{--chart-plot-background-opacity:0.4;}:host([dark][plain]) #chart[fullheight]{--focus-color:#000;}.spacer{flex:0 0 auto;padding:0.25em;}#table,
       #tabs{flex:1 0 1px;width:100%;position:relative;box-sizing:border-box;}#tabs{padding-bottom:0.1em;--highlight-color:var(--secondary-color, white);}#table{padding-top:0.1em;}#drawer{position:absolute;}:host(.fullscreen) #drawer{display:none;}.checkbox{width:100%;--checkbox-unchecked-color:var(--bright-text-color);--checkbox-checked-color:var(--primary-text-color);--checkbox-checked-background:{background-color:rgba(255, 255, 255, 0.75);border-top:thin solid rgba(0,0,0,0.2);border-left:medium solid rgba(0,0,0,0.5);};--checkbox-unchecked-background:{background-color:transparent;border-left:none;};}.caption{--caption-background:transparent;--caption-color:currentColor;}.groupbox{box-sizing:border-box;flex-shrink:0;display:inline-flex;flex-direction:row;background-color:rgba(0,0,0,0.0625);border-bottom:thin solid rgba(0,0,0,0.5);transition:background-color 150ms linear;}.groupbox:hover{background-color:rgba(0,0,0,0.25);}.subgroup,
-      .groupbox ::slotted(*){flex:1 0 1px;padding:0 !important;margin:0.5em !important;}.groupbox ::slotted(*){margin-right:0.25em !important;}.subgroup{margin-left:0.25em !important;}@media (max-width: 600px){#drawer{--drawer-background:rgba(255,255,255,0.33);}}@media (min-width: 601px){#content{margin-right:16em;}#drawer{right:-16em;--drawer-background:rgba(255,255,255,0.0);}}</style><iron-location query="{{query}}"></iron-location><iron-query-params params-string="{{query}}" params-object="{{queryParams}}"></iron-query-params><iron-media-query query="(max-width: 600px)" query-matches="{{narrowLayout}}"></iron-media-query><group-data room="[[queryParams.room]]" subgroups="{{subgroups}}" grouped-key="{{groupedKey}}" grouping-keys="{{groupingKeys}}"></group-data><svg-data hidden="" room="[[queryParams.room]]" data="{{svgData}}"></svg-data><div id="content"><device-chart id="chart" opened$="[[visible]]" fullheight$="[[!_withSvg]]" items="[[items]]" multi=""></device-chart><template is="dom-if" if="[[_withSvg]]"><device-svg id="svg" opened$="[[visible]]" url-prefix="/images" src="[[_svgSrcPath]]" selectable="[[_getSvgSelectable(item.svg.path, svgData)]]" items="[[items]]" multi="" exceeding="[[exceeding]]"></device-svg></template><drawer-element id="drawer" opened$="[[_ensureOpened(narrowLayout)]]" swipe-open$="[[narrowLayout]]" scrim="" persistent$="[[!narrowLayout]]" align="right" stretch=""><div class="groupbox"><slot name="groupby"></slot><div class="selectbox subgroup" title="[[selectedSubgroup]]"><select value="{{selectedSubgroup::change}}"></select></div></div><tabs-container id="tabs" multi="" vertical="" items="{{checkboxes}}" attr-for-selected="id" activate-event="item-select"><template id="tablist" is="dom-repeat" items="[[_shownElements]]" restamp="" restamp-key="mount"><device-checkbox class="checkbox" id="[[item.id]]" item="[[item]]" selectable=""><device-caption class="caption" keys="[[item.keys]]"></device-caption></device-checkbox></template></tabs-container><device-table-group id="table" items="[[items]]" selected-mount="[[item.mount]]" hidden$="[[nothingSelected]]"></device-table-group></drawer-element></div></template><script>class PageDetail extends Polymer.mixinBehaviors([Polymer.IronResizableBehavior],WebvisualMixins.ContainerMixin(Polymer.Element)){static get is(){return'page-detail'}static get properties(){return{checkboxes:{type:Array,notify:!0},groupingKeys:{type:Array,notify:!0},subgroups:{type:Array,notify:!0},groupedKey:{type:String,notify:!0},selectedSubgroup:{type:String,value:''},_shownElements:{type:Array,value:function(){return[]}},elements:{type:Array,value:function(){return[]}},multi:{type:Boolean,value:!0},svgData:{type:Object},visible:{type:Boolean,notify:!0,observer:'_visibleChanged'},_withSvg:{type:Boolean,computed:'_hasSvg(_svgSrcPath, visible)'},_svgSrcPath:{type:Boolean,computed:'_computeSvgSrcPath(queryParams.room, item, svgData)'},selectNotify:{type:Boolean,value:!0},exceedNotify:{type:Boolean,value:!0},narrowLayout:{type:Boolean,value:!1,notify:!0},showToggleIcon:{type:Boolean,notify:!0,computed:'_computeShowToggleIcon(narrowLayout, visible)'},nothingSelected:{type:Boolean,notify:!0,computed:'_computeNothingSelected(items.length)'}}}static get observers(){return['_selectedIdsChanged(queryParams.ids, checkboxes, visible)','_subgroupsChanged(subgroups)','_selectedSubgroupChanged(selectedSubgroup, subgroups, elements)']}connectedCallback(){super.connectedCallback(),this._debounceResize()}_selectedIdsChanged(a,b,d){void 0!==a&&b&&0!==b.length&&d&&(a=a||'',setTimeout(()=>{const e=a.split('/').filter(f=>{return b.some(g=>{return g.id===f})});b.forEach(f=>{-1===e.indexOf(f.id)||f.checked||(f.checked=!0)}),this._initialized=!0},0))}select(a){super.select(a);const b=(this.queryParams&&this.queryParams.ids||'').split('/').filter(d=>{return''!==d});-1===b.indexOf(a.id)&&(b.push(a.id),this.set('queryParams.ids',b.join('/')))}deselect(a){super.deselect(a);const b=(this.queryParams&&this.queryParams.ids||'').split('/').filter(e=>{return''!==e});let d;-1!==(d=b.indexOf(a.id))&&(b.splice(d,1),this.set('queryParams.ids',b.join('/')))}_subgroupsChanged(a){const b=Polymer.dom(this.root).querySelector('.selectbox.subgroup'),d=a.map(f=>{return f.title}),e=b.querySelector('select');if(e){for(;e.hasChildNodes();)e.removeChild(e.lastChild);d.forEach(function(f){const g=document.createElement('option');g.textContent=f,g.value=f,Polymer.dom(e).appendChild(g)}),e.value=''}this._selectedSubgroupChanged(this.selectedSubgroup,this.subgroups,this.elements)}_selectedSubgroupChanged(a,b,d){if(b&&b.length&&void 0!==d){a=a||'';let e;for(let g=0;g<b.length;g++)if(b[g].title===a){e=b[g];break}const f=[];e=e||b[b.length-1];for(let g=0;g<e.items.length;g++)for(let h=0;h<d.length;h++)if(d[h].id===e.items[g]){f.push(d[h]);break}setTimeout(()=>{this.clearItems(),this.set('_shownElements',f)},0)}}_hasSvg(a,b){const d=!!(a&&b);return d!==this._withSvg&&this._debounceResize(),d}_computeSvgSrcPath(a,b,d){let e;return a&&this.item&&this.item.svg&&this.item.svg.path&&d&&d[this.item.svg.path]&&(e='/'+a+'/'+this.item.svg.path),e}_getSvgSelectable(a,b){return b[a]||{}}_ensureOpened(){return!0}_computeShowToggleIcon(a,b){return a&&b}_computeNothingSelected(a){return!a}toggleControlDrawer(){this._drawer||(this._drawer=this.$$('#drawer')),this._drawer&&this._drawer.toggle()}_fireResize(){this.dispatchEvent(new CustomEvent('iron-resize',{bubbles:!1,composed:!0,node:this}))}_debounceResize(){setTimeout(()=>{this.narrowLayout&&(!this._drawer&&(this._drawer=this.$$('#drawer')),this._drawer&&(this._drawer.opened=!0)),this.notifyResize()},0)}_visibleChanged(a){if(!0===a)this._debounceResize(),this._selectedSubgroupChanged(this.selectedSubgroup,this.subgroups,this.elements);else if(!1===a&&this._initialized){this.clearExceedings(),this.clearItems(),this.set('_shownElements',[]);const b=Polymer.dom(this.root).querySelector('.selectbox.subgroup'),d=b.querySelector('select');if(d)for(;d.hasChildNodes();)d.removeChild(d.lastChild)}}}customElements.define(PageDetail.is,PageDetail);</script></dom-module></body></html>
+      .groupbox ::slotted(*){flex:1 0 1px;padding:0 !important;margin:0.5em !important;}.groupbox ::slotted(*){margin-right:0.25em !important;}.subgroup{margin-left:0.25em !important;}@media (max-width: 600px){#drawer{--drawer-background:rgba(255,255,255,0.33);}}@media (min-width: 601px){#content{margin-right:16em;}#drawer{right:-16em;--drawer-background:rgba(255,255,255,0.0);}}</style><iron-location query="{{query}}"></iron-location><iron-query-params params-string="{{query}}" params-object="{{queryParams}}"></iron-query-params><iron-media-query query="(max-width: 600px)" query-matches="{{narrowLayout}}"></iron-media-query><group-data room="[[queryParams.room]]" subgroups="{{subgroups}}" grouped-key="{{groupedKey}}" grouping-keys="{{groupingKeys}}"></group-data><svg-data hidden="" room="[[queryParams.room]]" data="{{svgData}}"></svg-data><div id="content"><device-chart id="chart" opened$="[[visible]]" fullheight$="[[!_withSvg]]" items="[[items]]" multi=""></device-chart><template is="dom-if" if="[[_withSvg]]"><device-svg id="svg" opened$="[[visible]]" url-prefix="/images" src="[[_svgSrcPath]]" selectable="[[_getSvgSelectable(item.svg.path, svgData)]]" items="[[items]]" multi="" exceeding="[[exceeding]]"></device-svg></template><drawer-element id="drawer" opened$="[[_ensureOpened(narrowLayout)]]" swipe-open$="[[narrowLayout]]" scrim="" persistent$="[[!narrowLayout]]" align="right" stretch=""><div class="groupbox"><div class="selectbox grouping" title="[[groupedKey]]"><select value="{{groupedKey::change}}"><template is="dom-repeat" items="[[groupingKeys]]"><option value="[[item]]">[[item]]</option></template></select></div><div class="selectbox subgroup" title="[[selectedSubgroupTitle]]"><select value="{{selectedSubgroupTitle::change}}"><template is="dom-repeat" items="[[subgroups]]"><option value="[[item.title]]">[[item.title]]</option></template></select></div></div><tabs-container id="tabs" multi="" vertical="" items="{{checkboxes}}" attr-for-selected="id" activate-event="item-select"><template id="tablist" is="dom-repeat" items="[[elements]]" filter="[[_computeFilter(selectedSubgroupTitle, subgroups)]]" restamp="" restamp-key="mount"><device-checkbox class="checkbox" id="[[item.id]]" item="[[item]]" selectable=""><device-caption class="caption" keys="[[item.keys]]"></device-caption></device-checkbox></template></tabs-container><device-table-group id="table" items="[[items]]" selected-mount="[[item.mount]]" hidden$="[[nothingSelected]]"></device-table-group></drawer-element></div></template><script>
+    class PageDetail extends Polymer.mixinBehaviors(
+      [Polymer.IronResizableBehavior], WebvisualMixins.ContainerMixin(Polymer.Element)) {
+
+      static get is() {
+        return 'page-detail';
+      }
+
+      static get properties() {
+        return {
+
+          checkboxes: {
+            type: Array,
+            notify: true
+          },
+
+          groupingKeys: {
+            type: Array,
+            notify: true
+          },
+
+          subgroups: {
+            type: Array,
+            notify: true
+          },
+
+          groupedKey: {
+            type: String,
+            notify: true
+          },
+
+          selectedSubgroupTitle: {
+            type: String,
+            notify: true
+          },
+
+          elements: {
+            type: Array,
+            value: function() {
+              return [];
+            }
+          },
+
+          multi: {
+            type: Boolean,
+            value: true
+          },
+
+          svgData: {
+            type: Object
+          },
+
+          visible: {
+            type: Boolean,
+            notify: true,
+            observer: '_visibleChanged'
+          },
+
+          _withSvg: {
+            type: Boolean,
+            computed: '_hasSvg(_svgSrcPath, visible)'
+          },
+
+          _svgSrcPath: {
+            type: Boolean,
+            computed: '_computeSvgSrcPath(queryParams.room, item, svgData)'
+          },
+
+          selectNotify: {
+            type: Boolean,
+            value: true
+          },
+
+          exceedNotify: {
+            type: Boolean,
+            value: true
+          },
+
+          narrowLayout: {
+            type: Boolean,
+            value: false,
+            notify: true
+          },
+
+          showToggleIcon: {
+            type: Boolean,
+            notify: true,
+            computed: '_computeShowToggleIcon(narrowLayout, visible)'
+          },
+
+          nothingSelected: {
+            type: Boolean,
+            notify: true,
+            computed: '_computeNothingSelected(items.length)'
+          }
+        }
+      }
+
+      static get observers() {
+        return [
+          '_selectedIdsChanged(queryParams.ids, checkboxes, visible)'
+        ]
+      }
+
+      connectedCallback() {
+        super.connectedCallback();
+        this._debounceResize();
+      }
+
+      _selectedIdsChanged(selectedIds, checkboxes, visible) {
+        if (selectedIds === undefined || !(checkboxes && checkboxes.length !== 0) || !visible) return;
+        selectedIds = selectedIds || '';
+
+        setTimeout(() => {
+          const ids = selectedIds.split('/').filter(id => {
+            return checkboxes.some(c => {
+              return c.id === id;
+            })
+          });
+
+          checkboxes.forEach(c => {
+            if (ids.indexOf(c.id) !== -1 && !c.checked) {
+              c.checked = true;
+            }
+          })
+          this._initialized = true;
+        }, 0)
+      }
+
+      select(item) {
+        super.select(item);
+        const ids = ((this.queryParams && this.queryParams.ids) || '').split('/').filter(id => {
+          return id !== '';
+        });
+        if (ids.indexOf(item.id) === -1) {
+          ids.push(item.id);
+          this.set('queryParams.ids', ids.join('/'));
+        }
+        // console.log('after select', ids, this.items);
+      }
+
+      deselect(item) {
+        super.deselect(item);
+        const ids = ((this.queryParams && this.queryParams.ids) || '').split('/').filter(id => {
+          return id !== '';
+        });
+        let pos;
+        if ((pos = ids.indexOf(item.id)) !== -1) {
+          ids.splice(pos, 1);
+          this.set('queryParams.ids', ids.join('/'));
+        }
+        // console.log('after deselect', ids, this.items);
+      }
+
+      _computeFilter(selectedSubgroupTitle, subgroups) {
+        if (selectedSubgroupTitle === undefined || subgroups === undefined) {
+          // set filter to null to disable filtering
+          return null;
+        } else {
+          let i;
+          for (i = 0; i < subgroups.length; i++) {
+            if (subgroups[i].title === selectedSubgroupTitle) {
+              break;
+            }
+          }
+          const subgroup = subgroups[i];
+
+          if (!(subgroup && subgroup.items))
+            return null;
+
+          // return a filter function for the current search string
+          return function(item) {
+            return subgroup.items.indexOf(item.id) !== -1;
+          };
+        }
+      }
+
+      _hasSvg(path, visible) {
+        // notify the chart to resize
+        // console.log('_hasSvg', path, visible);
+        const _withSvg = Boolean(path && visible);
+        if (_withSvg !== this._withSvg) {
+          this._debounceResize();
+        }
+        return _withSvg;
+      }
+
+      _computeSvgSrcPath(room, item, svgPaths) {
+        // console.log(room, item, svgPaths);
+        let path;
+        if (room && this.item && this.item.svg && this.item.svg.path && svgPaths && svgPaths[this.item.svg.path])
+          path = '/' + room + '/' + this.item.svg.path;
+        return path;
+      }
+
+      _getSvgSelectable(src, svgPaths) {
+        return svgPaths[src] || {};
+      }
+
+      _ensureOpened() {
+        return true; // if 'narrowLayout' changes the drawer is opened
+      }
+
+      _computeShowToggleIcon(narrowLayout, visible) {
+        return narrowLayout && visible;
+      }
+
+      _computeNothingSelected(itemsLength) {
+        return !itemsLength;
+      }
+
+      toggleControlDrawer() {
+        if (!this._drawer) {
+          this._drawer = this.$$('#drawer');
+        }
+        if (this._drawer) {
+          this._drawer.toggle();
+        }
+      }
+
+      _fireResize() {
+        this.dispatchEvent(new CustomEvent('iron-resize', {
+          bubbles: false, composed: true, node: this
+        }));
+      }
+
+      _debounceResize() {
+        setTimeout(() => {
+          if (this.narrowLayout) {
+            if (!this._drawer) {
+              this._drawer = this.$$('#drawer');
+            }
+            if (this._drawer) {
+              this._drawer.opened = true;
+            }
+          }
+          this.notifyResize();
+        }, 0);
+      }
+
+      _visibleChanged(visible) {
+        if (visible === true) {
+          this._debounceResize();
+        } else if (visible === false && this._initialized) {
+          this.clearExceedings();
+          this.clearItems();
+        }
+      }
+    }
+    customElements.define(PageDetail.is, PageDetail);
+  </script></dom-module></body></html>
