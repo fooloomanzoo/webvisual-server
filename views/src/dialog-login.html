@@ -33,11 +33,8 @@
       iron-icon {
         margin-right: 0.5em;
       }
-      .input:not(:last-of-type)::after {
-        position: relative;
-        display: block;
-        content: "";
-        height: 1em;
+      .input:not(:last-of-type) {
+        margin-bottom: 1em;
       }
       [hidden] {
         display: none !important;
@@ -227,10 +224,9 @@
                   return this.signIn.call(this, this.signInUrl, 'include', form);
                 }
               } else {
-                // console.log('auto sign-in not performed');
-                // Reject if credential object is not available
-                return Promise.reject();
-                // return this.signIn.call(this, '/auth');
+                console.log('auto sign-in not performed');
+                // Fallback to server to check, if session-cookies are valid
+                return this.signIn.call(this, '/auth');
               }
             })
             .catch(this.notSignedIn.bind(this));
@@ -245,10 +241,15 @@
             // When auto sign-in didn't resolve with a profile
             // it's failed to get credential information.
             if (!profile) {
-              this.loggedIn = false;
-              if (!this.offline) {
-                this.open();
+              if (this.loggedIn || window._loggedIn) {
+                this.dispatchEvent(new CustomEvent('announce', {
+                  detail: this.localize ? this.localize('notification', 'loggedIn', false) : 'You are not signed in',
+                  bubbles: true,
+                  composed: true
+                }));
               }
+              this.loggedIn = false;
+              window._loggedIn = false;
               this.dispatchEvent(new CustomEvent('announce', {
                 detail: this.localize ? this.localize('notification', 'loggedIn', false) : 'You are not signed in',
                 bubbles: true,
@@ -261,17 +262,6 @@
                 composed: true
               }));
             }
-          }, () => {
-            this.loggedIn = false;
-            if (!this.offline) {
-              this.open();
-            }
-            // When rejected, authentication was performed but failed.
-            this.dispatchEvent(new CustomEvent('announce', {
-              detail: this.localize ? this.localize('notification', 'loggedIn', false) : 'You are not signed in',
-              bubbles: true,
-              composed: true
-            }));
           })
           .catch(err => {
             if (err) console.log(err);
@@ -393,28 +383,31 @@
       notSignedIn(err) {
         console.warn('not signed in', err);
         let status = '';
-        window._loggedIn = this.loggedIn = false;
-        if (err && err.statusCode) {
-          if (err.statusCode >= 400 && err.statusCode < 500) {
-            status = 'Login with Server failed';
-          } else if (err.statusCode >= 500 && err.statusCode < 600) {
-            status = 'Server-Error occured';
-          } else {
-            status = 'Unknown Error occured';
+        if (this.loggedIn || window._loggedIn) {
+          window.dispatchEvent(new CustomEvent('loggedin', {
+            detail: this.loggedIn,
+            bubbles: true,
+            composed: true
+          }));
+          this.dispatchEvent(new CustomEvent('announce', {
+            detail: status ? status : '',
+            bubbles: true,
+            composed: true
+          }));
+          this.root.querySelector('#username').value = '';
+          this.root.querySelector('#password').value = '';
+          if (err && err.statusCode) {
+            if (err.statusCode >= 400 && err.statusCode < 500) {
+              status = 'Login with Server failed';
+            } else if (err.statusCode >= 500 && err.statusCode < 600) {
+              status = 'Server-Error occured';
+            } else {
+              status = 'Unknown Error occured';
+            }
           }
+          this.loggedIn = false;
+          window._loggedIn = false;
         }
-        this.dispatchEvent(new CustomEvent('announce', {
-          detail: status ? status : '',
-          bubbles: true,
-          composed: true
-        }));
-        window.dispatchEvent(new CustomEvent('loggedin', {
-          detail: this.loggedIn,
-          bubbles: true,
-          composed: true
-        }));
-        this.root.querySelector('#username').value = '';
-        this.root.querySelector('#password').value = '';
         if (!this.offline) {
           this.open();
         }

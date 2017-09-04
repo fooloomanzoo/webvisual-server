@@ -85,12 +85,14 @@
     },
     "scaling": {
       "x": "x-Achsen-Skalierung",
-      "y": "y-Achsen-Skalierung"
+      "y": "y-Achsen-Skalierung",
+      "linear": "lineare Skalierung"
     },
     "modus": {
       "description": "Punktmodus",
-      "zoom": "Zoom",
-      "delta": "Delta"
+      "hold": "Punkt fixieren",
+      "zoom": "Punkt zoomen",
+      "delta": "Punkt delta"
     }
   }
 }

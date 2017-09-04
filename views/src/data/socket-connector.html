@@ -37,7 +37,7 @@
         if (this.offline || !this.loggedIn) {
           return;
         }
-        console.log('socket-connector load');
+        // console.log('socket-connector load');
         if (this.socketStatus !== 'sync-disabled') {
           this._createSocketConnection(this.locationHost, this.nameSpace);
         }
@@ -46,7 +46,7 @@
       _createSocketConnection(locationHost, nameSpace) {
         if (!locationHost || this.socketStatus === 'sync-disabled' || !Webvisual) return;
 
-        console.log('_createSocketConnection');
+        // console.log('_createSocketConnection');
 
         Webvisual.assignConnector(this);
         Webvisual.createSocketConnection(locationHost, nameSpace);
@@ -56,8 +56,8 @@
         }
       }
 
-      connect(socketRoom, old) {
-        console.log(socketRoom, old);
+      connect(socketRoom) {
+        // console.log(socketRoom, old);
         if (!socketRoom) {
           this.socketStatus = 'sync-problem';
           return;

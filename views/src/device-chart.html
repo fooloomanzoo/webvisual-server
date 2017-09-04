@@ -150,6 +150,10 @@
         stroke-opacity: 0.75;
         stroke-width: 1px;
         pointer-events: all;
+        transition: fill 100ms linear;
+      }
+      .dot:hover {
+        fill-opacity: 1;
       }
       .selectbox > * {
         flex: 1 0 auto;
@@ -284,8 +288,8 @@
             <circle id="deltaDot" class="dot"></circle>
           </g>
           <g id="focus" hidden>
-            <line id="focusX" class="line x" x1="0" marker-start="url(#stub)" marker-end="url(#arrowToRight)"></line>
-            <line id="focusY" class="line y" marker-start="url(#stub)" marker-end="url(#arrowToRight)"></line>
+            <line id="focusLineX" class="line x" x1="0" marker-start="url(#stub)" marker-end="url(#arrowToRight)"></line>
+            <line id="focusLineY" class="line y" marker-start="url(#stub)" marker-end="url(#arrowToRight)"></line>
             <circle id="focusDot" class="dot"></circle>
           </g>
           <g id="info">
@@ -322,7 +326,7 @@
         </div>
         <div class="selectbox" title$="[[localize('chart', 'modus', 'description')]]">
           <select value="{{modus::change}}">
-            <option value="zoom">[[localize('chart', 'modus', 'hold')]]</option>
+            <option value="hold">[[localize('chart', 'modus', 'hold')]]</option>
             <option value="zoom">[[localize('chart', 'modus', 'zoom')]]</option>
             <option value="delta">[[localize('chart', 'modus', 'delta')]]</option>
           </select>
@@ -518,8 +522,8 @@
         this.gridX = d3.select(this.$.gridX);
         this.gridY = d3.select(this.$.gridY);
         this._focus = d3.select(this.$.focus);
-        this._focusX = d3.select(this.$.focusX);
-        this._focusY = d3.select(this.$.focusY);
+        this._focusLineX = d3.select(this.$.focusLineX);
+        this._focusLineY = d3.select(this.$.focusLineY);
         this._focusDot = d3.select(this.$.focusDot);
         this._info = this._chart.select('text.focus.info');
         this._infoDeltaX = this._chart.select('text.delta.info.x');
@@ -576,13 +580,18 @@
           .on('mouseenter touchstart', this._showInfo.bind(this), {
             passive: true
           })
-          .on('mouseleave touchend', () => {
-            this._debouncedHideInfo(this);
-          }, {
+          .on('mouseleave touchend', this._debouncedHideInfo.bind(this), {
             passive: true
           })
           .on('mousemove', () => {
-            if (this.hideInfo || this.modus === 'hold') return;
+            if (this.hideInfo) return;
+
+            this._showInfo();
+            if (this.modus === 'hold' && this._fixedValue) {
+              this._debouncedHideInfo(this);
+              return;
+            }
+
             const m = d3.mouse(this._chart.node());
 
             requestAnimationFrame(() => {
@@ -759,7 +768,7 @@
             // const right = (-this._chart._right || 0) - (this.margin.right || 0),
             //   bottom = (-this._chart._bottom || 0) - (this.margin.bottom || 0);
             this._chart.transition().attr('transform', 'translate(' + left + ',' + top + ')');
-            this._focusY.attr('y1', this._height);
+            this._focusLineY.attr('y1', this._height);
 
             this._graphs.forEach(g => {
               if (g._isAttached) {
@@ -1084,7 +1093,7 @@
             formatY = this._computeFormatFn.call(d.g, d.g.scalingY, d.g.scaleBaseY),
             fixP = this._fixedValue;
           this._info.text(formatX(d.x) + ' ' + formatY(d.y) + ' ' + (d.g.item.unit || ''));
-          if (fixP) {
+          if (this.modus === 'delta' && fixP) {
             const diffX = Math.abs(fixP.x - d.x),
               diffY = Math.abs(fixP.y - d.y),
               sameUnit = (d.g.item.unit === fixP.g.item.unit);
@@ -1103,7 +1112,7 @@
         }
         this._info.attr('hidden', null);
         this._focus.attr('hidden', null);
-        if (this._fixedValue) {
+        if (this.modus === 'delta' && this._fixedValue) {
           this._showDelta();
         }
       }
@@ -1142,16 +1151,31 @@
 
       _updateInfo() {
         if (!this._focusedValue || this._info.attr('hidden') === '') return;
+
         const focP = this._focusedValue;
-        const x = focP.g.scaleX(+focP.x),
+        const fixP = this._fixedValue;
+
+        let x, y, left, top;
+        if (focP) {
+          x = focP.g.scaleX(+focP.x);
           y = focP.g.scaleY(+focP.y);
-        if (!x || !y) {
+          left = focP._left;
+          top = focP._top;
+        } else if (fixP) {
+          x = fixP.g.scaleX(+focP.x);
+          y = fixP.g.scaleY(+focP.y);
+          left = fixP._left;
+          top = fixP._top;
+        } else {
           return;
         }
 
         this._alignText(this._info.node(), x, y, null, 1.5 * this._focusDot.attr('r'));
+        this._focusLineX.attr('x1', left).attr('x2', x).attr('y2', y).attr('y1', y);
+        this._focusLineY.attr('y1', top).attr('y2', y).attr('x2', x).attr('x1', x);
+        this._focusDot.attr('cy', y).attr('cx', x);
+
         if (this.modus === 'delta') {
-          const fixP = this._fixedValue;
           if (fixP && fixP.x !== undefined && fixP.y !== undefined && !(focP.x === fixP.x && focP.y === fixP.y)) {
             const xFix = fixP.g.scaleX(+fixP.x),
               yFix = fixP.g.scaleY(+fixP.y);
@@ -1176,9 +1200,6 @@
             this._hideDelta();
           }
         }
-        this._focusX.attr('x1', focP._left).attr('x2', x).attr('y2', y).attr('y1', y);
-        this._focusY.attr('y1', focP._top).attr('y2', y).attr('x2', x).attr('x1', x);
-        this._focusDot.attr('cy', y).attr('cx', x);
         this._svg.selectAll('g,line,text,path,rect')
           .classed('style-scope', true).classed('device-chart', true);
       }
@@ -1254,13 +1275,27 @@
       _dotClicked(d) {
         const oldzoom = this._zoom.node().__zoom,
           fP = this._fixedValue;
-        let x, y, scale;
+        let x, y, scale, fill;
         switch (this.modus) {
           case 'hold':
             if (!(fP && fP.x !== undefined && fP.y !== undefined && fP.x === d.x && fP.y === d.y)) {
               this._fixedValue = d;
+              fill = (this.modus === 'hold' && d.g.item.color) ? d.g.item.color : '#fff';
+              console.log(fill);
+              if (d.g.item.threshold) {
+                switch (d.g.checkExceedingState(d)) {
+                  case 1:
+                    fill = d.g.getComputedStyleValue('--device-state-exceeds-color') || '#F20C0C';
+                    break;
+                  case -1:
+                    fill = d.g.getComputedStyleValue('--device-state-deceeds-color') || '#F20C0C';
+                    break;
+                }
+              }
+              this._focusDot.attr('fill', fill);
             } else {
               this._fixedValue = null;
+              this._focusDot.attr('fill', '#fff');
               this._hideInfo();
             }
             break;
@@ -1289,6 +1324,7 @@
             } else {
               this._fixedValue = null;
               this._hideDelta();
+              this._deltaDot.attr('fill', '#fff');
             }
             break;
         }

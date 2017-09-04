@@ -37,6 +37,9 @@
         padding: 0 2em;
         @apply --dialog-title;
         flex: 0 0 auto;
+      }
+      ::slotted([dialog-title] > *) {
+        font-size: 1.2em;
         font-weight: 500;
       }
       ::slotted([dialog-content]) {

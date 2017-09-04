@@ -67,19 +67,13 @@
         width: 100%;
         padding: 1em;
       }
-      .drawer-content iron-collapse > .collapse-content {
-        @apply --layout-vertical;
-        padding: 0.5em 1em;
-        width: 100%;
-        box-sizing: border-box;
-        border-left: thin solid rgba(255,255,255,0.1);
-        border-right: thin solid rgba(255,255,255,0.1);
-        box-shadow: 0 5px 15px -10px rgba(0,0,0,0.25) inset;
-      }
-      .drawer-content iron-collapse > .collapse-content > * {
-        box-sizing: border-box;
-        width: 100%;
-        font-size: 0.8em;
+      collapse-button {
+        --collapse-content: {
+          padding: 0.5em 1em;
+          border-left: thin solid rgba(255,255,255,0.1);
+          border-right: thin solid rgba(255,255,255,0.1);
+          box-shadow: 0 5px 15px -10px rgba(0,0,0,0.25) inset;
+        };
       }
       #pages {
         box-sizing: border-box;
@@ -227,28 +221,31 @@
 
           <iron-collapse opened$="[[showTabs]]" hidden$="[[!wideLayout]]" horizontal style="align-self: flex-end;">
             <div class="tab-drawer top">
-
               <div class="selectbox toolbar grouping top" title="[[groupedKey]]" hidden$="[[hideGroupSelect]]">
-                <select value="{{groupedKey::change}}"></select>
+                <select value="{{groupedKey::change}}">
+                  <template is="dom-repeat" items="[[groupingKeys]]">
+                    <option value="[[item]]">[[item]]</option>
+                  </template>
+                </select>
               </div>
               <tabs-container class="tabs"
                 role="tablist"
                 selected="{{page}}"
                 attr-for-selected="name">
                 <tab-element name="list">
-                  <a href="/list" class="tab">
+                  <a href="/list?[[query]]" class="tab">
                     <iron-icon icon="list" class="left"></iron-icon>
                     {{localize('list', 'name')}}
                   </a>
                 </tab-element>
                 <tab-element name="groups">
-                  <a href="/groups" class="tab">
+                  <a href="/groups?[[query]]" class="tab">
                     <iron-icon icon="grid-on" class="left"></iron-icon>
                     {{localize('groups', 'name')}}
                   </a>
                 </tab-element>
                 <tab-element name="detail">
-                  <a href="/detail" class="tab">
+                  <a href="/detail?[[query]]" class="tab">
                     <iron-icon icon="chrome-reader-mode" class="left"></iron-icon>
                     {{localize('detail', 'name')}}
                   </a>
@@ -285,9 +282,6 @@
         </page-groups>
         <!-- detail view of one item -->
         <page-detail id="detailpage" name="detail" dark$="[[dark]]" plain$="[[plain]]" class="fullbleed" elements="[[elements]]" show-toggle-icon="{{detailHasDrawer}}" grouped-key="{{groupedKey}}" grouping-keys="{{groupingKeys}}">
-          <div slot="groupby" class="selectbox grouping" title="{{localize('groupedKey')}}">
-            <select value="{{groupedKey::change}}"></select>
-          </div>
         </page-detail>
       </iron-pages>
     </app-header-layout>
@@ -305,19 +299,19 @@
       <div class="tab-drawer">
         <tabs-container class="tabs" role="tablist" selected="{{page}}" attr-for-selected="name">
           <tab-element name="list">
-            <a href="/list[[query]]" class="tab">
+            <a href="/list?[[query]]" class="tab">
               <iron-icon icon="list" class="left"></iron-icon>
               {{localize('list', 'name')}}
             </a>
           </tab-element>
           <tab-element name="groups">
-            <a href="/groups[[query]]" class="tab">
+            <a href="/groups?[[query]]" class="tab">
               <iron-icon icon="grid-on" class="left"></iron-icon>
               {{localize('groups', 'name')}}
             </a>
           </tab-element>
           <tab-element name="detail">
-            <a href="/detail[[query]]" class="tab">
+            <a href="/detail?[[query]]" class="tab">
               <iron-icon icon="chrome-reader-mode" class="left"></iron-icon>
               {{localize('detail', 'name')}}
             </a>
@@ -335,48 +329,33 @@
         </app-toolbar>
 
         <div class="drawer-content">
-          <div class="button" for="route-collapse" on-tap="_toggleCollapse">
-            <paper-ripple id="ripple" recenters></paper-ripple>
-            <iron-icon icon="more-vert" class="left"></iron-icon>
-            <span>{{localize('view')}}</span>
-            <iron-icon icon="expand-less" class="right"></iron-icon>
-          </div>
 
-          <iron-collapse id="route-collapse" opened>
-            <div class="collapse-content">
-              <a href="/home" class="button" name="home">
-                  <paper-ripple id="ripple" recenters></paper-ripple>
-                  <iron-icon icon="exit-to-app" class="left"></iron-icon>
-                  {{localize('home', 'name')}}
-              </a>
-              <a href="/list[[query]]" class="button" name="list">
-                  <paper-ripple id="ripple" recenters></paper-ripple>
-                  <iron-icon icon="list" class="left"></iron-icon>
-                  {{localize('list', 'name')}}
-              </a>
-              <a href="/groups[[query]]" class="button" name="groups">
-                  <paper-ripple id="ripple" recenters></paper-ripple>
-                  <iron-icon icon="grid-on" class="left"></iron-icon>
-                  {{localize('groups', 'name')}}
-              </a>
-              <a href="/detail[[query]]" class="button" name="detail">
-                  <paper-ripple id="ripple" recenters></paper-ripple>
-                  <iron-icon icon="chrome-reader-mode" class="left"></iron-icon>
-                  {{localize('detail', 'name')}}
-              </a>
-            </div>
-          </iron-collapse>
+          <collapse-button icon="more-vert" title="{{localize('view')}}">
+            <a href="/home" class="button" name="home">
+              <paper-ripple id="ripple" recenters></paper-ripple>
+              <iron-icon icon="exit-to-app" class="left"></iron-icon>
+              {{localize('home', 'name')}}
+            </a>
+            <a href="/list?[[query]]" class="button" name="list">
+              <paper-ripple id="ripple" recenters></paper-ripple>
+              <iron-icon icon="list" class="left"></iron-icon>
+              {{localize('list', 'name')}}
+            </a>
+            <a href="/groups?[[query]]" class="button" name="groups">
+              <paper-ripple id="ripple" recenters></paper-ripple>
+              <iron-icon icon="grid-on" class="left"></iron-icon>
+              {{localize('groups', 'name')}}
+            </a>
+            <a href="/detail?[[query]]" class="button" name="detail">
+              <paper-ripple id="ripple" recenters></paper-ripple>
+              <iron-icon icon="chrome-reader-mode" class="left"></iron-icon>
+              {{localize('detail', 'name')}}
+            </a>
+          </collapse-button>
 
           <div class="spacer"></div>
 
-          <div class="button" for="layout-collapse" on-tap="_toggleCollapse">
-            <paper-ripple id="ripple" recenters></paper-ripple>
-            <iron-icon icon="settings" class="left"></iron-icon>
-            <span>{{localize('layout')}}</span>
-            <iron-icon icon="expand-more" class="right"></iron-icon>
-          </div>
-
-          <iron-collapse id="layout-collapse">
+          <collapse-button icon="settings" title="{{localize('layout')}}">
             <div class="collapse-content">
               <toggle-button checked="{{plain}}">
                 <iron-icon slot="icon" icon="border-style"></iron-icon>
@@ -387,7 +366,7 @@
                 {{localize('dark', dark)}}
               </toggle-button>
             </div>
-          </iron-collapse>
+          </collapse-button>
 
           <div class="spacer"></div>
 
@@ -409,12 +388,16 @@
           <div class="selectbox grouping" title="[[groupedKey]]" hidden$="[[hideGroupSelect]]">
             <iron-icon icon="filter-list"></iron-icon>
             <span>{{localize('groupedKey')}}</span>
-            <select value="{{groupedKey::change}}"></select>
+            <select value="{{groupedKey::change}}">
+              <template is="dom-repeat" items="[[groupingKeys]]">
+                <option value="[[item]]">[[item]]</option>
+              </template>
+            </select>
           </div>
         </div>
 
         <app-toolbar class="bottom">
-          <icon-button icon="[[socketStatusIcon]]" title="[[socketStatus]]" on-tap="_socketConnect"></icon-button>
+          <icon-button icon="[[socketStatusIcon]]" title="[[socketStatus]]" on-tap="_socketConnectionToggle"></icon-button>
         </app-toolbar>
       </drawer-element>
     </template>
@@ -582,9 +565,7 @@
       static get observers() {
         return [
           '_routePageChanged(path)',
-          '_roomChanged(queryParams.room)',
-          '_setGroupingSelectBoxes(groupedKey, groupingKeys)',
-          '_drawerChanged(_shouldRenderDrawer)'
+          '_roomChanged(queryParams.room)'
         ]
       }
 
@@ -699,6 +680,7 @@
       }
 
       _pageChanged(page, oldPage) {
+        console.log(page, oldPage);
         if (page) {
           // home route is eagerly loaded
           if (page === 'home') {
@@ -718,12 +700,16 @@
         }
       }
 
-      _socketConnect() {
+      _socketConnectionToggle() {
+        const socketConnector = this.root.querySelector('#socketHandler');
+        if (!socketConnector) {
+          return;
+        }
         if (this.$.socketHandler.socketStatus === 'sync-disabled') {
-          this.$.socketHandler.connect();
+          socketConnector.connect();
         } else {
           this.$.socketHandler.socketStatus = 'sync-disabled';
-          this.$.socketHandler.disconnect();
+          socketConnector.disconnect();
         }
       }
 
@@ -842,38 +828,38 @@
         }, 0);
       }
 
-      _setGroupingSelectBoxes(groupedKey, groupingKeys) {
-        console.log(groupingKeys);
-        if (groupedKey === undefined || groupingKeys === undefined) {
-          return;
-        }
-        // Hack: initial binding to native select value property is not bound
-        // setTimeout(() => {
-          const groupingSelectors = Polymer.dom(this.root).querySelectorAll('.selectbox.grouping');
-
-          Array.prototype.forEach.call(groupingSelectors, el => {
-            const sel = el.querySelector('select');
-            if (sel) {
-              while (sel.hasChildNodes()) {
-                sel.removeChild(sel.lastChild);
-              }
-              groupingKeys.forEach(function(item) {
-                const option = document.createElement('option');
-                option.textContent = item;
-                option.value = item;
-                Polymer.dom(sel).appendChild(option);
-              });
-              this.groupedKey = sel.value = groupedKey || groupingKeys[0];
-            }
-          })
-        // }, 0);
-      }
-
-      _drawerChanged(_shouldRenderDrawer) {
-        if (_shouldRenderDrawer) {
-          this._setGroupingSelectBoxes(this.groupedKey, this.groupingKeys)
-        }
-      }
+      // _setGroupingSelectBoxes(groupedKey, groupingKeys) {
+      //   // console.log(groupingKeys);
+      //   if (groupedKey === undefined || groupingKeys === undefined) {
+      //     return;
+      //   }
+      //   // Hack: initial binding to native select value property is not bound
+      //   // setTimeout(() => {
+      //     const groupingSelectors = Polymer.dom(this.root).querySelectorAll('.selectbox.grouping');
+      //
+      //     Array.prototype.forEach.call(groupingSelectors, el => {
+      //       const sel = el.querySelector('select');
+      //       if (sel) {
+      //         while (sel.hasChildNodes()) {
+      //           sel.removeChild(sel.lastChild);
+      //         }
+      //         groupingKeys.forEach(function(item) {
+      //           const option = document.createElement('option');
+      //           option.textContent = item;
+      //           option.value = item;
+      //           Polymer.dom(sel).appendChild(option);
+      //         });
+      //         this.groupedKey = sel.value = groupedKey || groupingKeys[0];
+      //       }
+      //     })
+      //   // }, 0);
+      // }
+      //
+      // _drawerChanged(_shouldRenderDrawer) {
+      //   if (_shouldRenderDrawer) {
+      //     this._setGroupingSelectBoxes(this.groupedKey, this.groupingKeys)
+      //   }
+      // }
 
       _debouncedHideTabs(showTabs) {
         if (showTabs) {
@@ -924,27 +910,6 @@
             return 'wifi';
           default:
             return 'sync-disabled';
-        }
-      }
-
-      _toggleCollapse(e) {
-        // TODO: very probable that this will change in Polymer 2.0
-        const button = e.currentTarget;
-        if (!button.hasAttribute('for')) {
-          return;
-        }
-        const id = button.getAttribute('for');
-        const collapse = this.$$('#' + id);
-        const iconbutton = button.querySelector('iron-icon.right');
-
-        if (collapse && collapse.toggle) {
-          collapse.toggle();
-          if (iconbutton) {
-            if (iconbutton.icon === 'expand-more')
-              iconbutton.set('icon', 'expand-less');
-            else
-              iconbutton.set('icon', 'expand-more');
-          }
         }
       }
 

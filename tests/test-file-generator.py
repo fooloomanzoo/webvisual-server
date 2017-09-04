@@ -1,20 +1,41 @@
+############# TEST FILE GENERATOR ##############
+
 import csv
 import random
 import datetime
+import math
 from threading import Event, Thread
 
+# output file path
 outfile = '../examples/datafile/test.txt'
-dateformat = '%d.%m.%Y %H:%M:%S'
-low = -5
-high = 5
-prec = 5
-tension = 1000.0
-rowlenght = 25
-initialLineLength = 500
-valueseperator = ';'
-interval = 1
+
 # mode is "random" or "polynom" or "sinus"
-mode = 'polynom'
+mode = 'sinus'
+
+# numbers in a line
+rowlenght = 25
+
+# length of lines to generate in beginning
+initialLineLength = 500
+
+# minimum threshold
+low = -5
+# maximum threshold
+high = 5
+
+# round precission
+prec = 5
+
+# x-variable tension
+tension = 1000.0
+
+# csv-format
+dateformat = '%d.%m.%Y %H:%M:%S'
+valueseperator = ';'
+
+# interval of new numbers in seconds
+interval = 1
+
 # if mode is "polynom" then this is used
 polynom = [0, 1, 0.5, -1/6, 1/24, -1/120, 1/720]
 

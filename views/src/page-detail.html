@@ -186,13 +186,23 @@
 
       <drawer-element id="drawer" opened$="[[_ensureOpened(narrowLayout)]]" swipe-open$="[[narrowLayout]]" scrim persistent$="[[!narrowLayout]]" align="right" stretch>
         <div class="groupbox">
-          <slot name="groupby"></slot>
-          <div class="selectbox subgroup" title="[[selectedSubgroup]]">
-            <select value="{{selectedSubgroup::change}}"></select>
+          <div class="selectbox grouping" title="[[groupedKey]]">
+            <select value="{{groupedKey::change}}">
+              <template is="dom-repeat" items="[[groupingKeys]]">
+                <option value="[[item]]">[[item]]</option>
+              </template>
+            </select>
+          </div>
+          <div class="selectbox subgroup" title="[[selectedSubgroupTitle]]">
+            <select value="{{selectedSubgroupTitle::change}}">
+              <template is="dom-repeat" items="[[subgroups]]">
+                <option value="[[item.title]]">[[item.title]]</option>
+              </template>
+            </select>
           </div>
         </div>
         <tabs-container id="tabs" multi vertical items="{{checkboxes}}" attr-for-selected="id" activate-event="item-select">
-          <template id="tablist" is="dom-repeat" items="[[_shownElements]]" restamp restamp-key="mount">
+          <template id="tablist" is="dom-repeat" items="[[elements]]" filter="[[_computeFilter(selectedSubgroupTitle, subgroups)]]" restamp restamp-key="mount">
             <device-checkbox class="checkbox"
               id="[[item.id]]"
               item="[[item]]"
@@ -238,16 +248,9 @@
             notify: true
           },
 
-          selectedSubgroup: {
+          selectedSubgroupTitle: {
             type: String,
-            value: ''
-          },
-
-          _shownElements: {
-            type: Array,
-            value: function() {
-              return [];
-            }
+            notify: true
           },
 
           elements: {
@@ -314,9 +317,7 @@
 
       static get observers() {
         return [
-          '_selectedIdsChanged(queryParams.ids, checkboxes, visible)',
-          '_subgroupsChanged(subgroups)',
-          '_selectedSubgroupChanged(selectedSubgroup, subgroups, elements)'
+          '_selectedIdsChanged(queryParams.ids, checkboxes, visible)'
         ]
       }
 
@@ -370,49 +371,27 @@
         // console.log('after deselect', ids, this.items);
       }
 
-      _subgroupsChanged(subgroups) {
-        const el = Polymer.dom(this.root).querySelector('.selectbox.subgroup');
-        const titles = subgroups.map(sg => { return sg.title });
-        const sel = el.querySelector('select');
-        if (sel) {
-          while (sel.hasChildNodes()) {
-            sel.removeChild(sel.lastChild);
-          }
-          titles.forEach(function(item) {
-            const option = document.createElement('option');
-            option.textContent = item;
-            option.value = item;
-            Polymer.dom(sel).appendChild(option);
-          });
-          sel.value = '';
-        }
-        this._selectedSubgroupChanged(this.selectedSubgroup, this.subgroups, this.elements);
-      }
-
-      _selectedSubgroupChanged(selectedSubgroup, subgroups, elements) {
-        if (!(subgroups && subgroups.length) || elements === undefined) return;
-        selectedSubgroup = selectedSubgroup || '';
-        let subgroup;
-        for (let i = 0; i < subgroups.length; i++) {
-          if (subgroups[i].title === selectedSubgroup) {
-            subgroup = subgroups[i];
-            break;
-          }
-        }
-        const shownElements = [];
-        subgroup = subgroup || subgroups[subgroups.length-1];
-        for (let i = 0; i < subgroup.items.length; i++) {
-          for (let j = 0; j < elements.length; j++) {
-            if (elements[j].id === subgroup.items[i]) {
-              shownElements.push(elements[j]);
+      _computeFilter(selectedSubgroupTitle, subgroups) {
+        if (selectedSubgroupTitle === undefined || subgroups === undefined) {
+          // set filter to null to disable filtering
+          return null;
+        } else {
+          let i;
+          for (i = 0; i < subgroups.length; i++) {
+            if (subgroups[i].title === selectedSubgroupTitle) {
               break;
             }
           }
+          const subgroup = subgroups[i];
+
+          if (!(subgroup && subgroup.items))
+            return null;
+
+          // return a filter function for the current search string
+          return function(item) {
+            return subgroup.items.indexOf(item.id) !== -1;
+          };
         }
-        setTimeout(() => {
-          this.clearItems();
-          this.set('_shownElements', shownElements);
-        }, 0)
       }
 
       _hasSvg(path, visible) {
@@ -481,18 +460,9 @@
       _visibleChanged(visible) {
         if (visible === true) {
           this._debounceResize();
-          this._selectedSubgroupChanged(this.selectedSubgroup, this.subgroups, this.elements);
         } else if (visible === false && this._initialized) {
           this.clearExceedings();
           this.clearItems();
-          this.set('_shownElements', []);
-          const el = Polymer.dom(this.root).querySelector('.selectbox.subgroup');
-          const sel = el.querySelector('select');
-          if (sel) {
-            while (sel.hasChildNodes()) {
-              sel.removeChild(sel.lastChild);
-            }
-          }
         }
       }
     }
