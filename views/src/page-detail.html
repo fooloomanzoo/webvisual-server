@@ -202,7 +202,7 @@
           </div>
         </div>
         <tabs-container id="tabs" multi vertical items="{{checkboxes}}" attr-for-selected="id" activate-event="item-select">
-          <template id="tablist" is="dom-repeat" items="[[elements]]" filter="[[_computeFilter(selectedSubgroupTitle, subgroups)]]" restamp restamp-key="mount">
+          <template id="tablist" is="dom-repeat" items="[[elements]]" filter="[[_computeFilter(selectedSubgroupTitle, subgroups)]]" sort="_sort" restamp restamp-key="mount">
             <device-checkbox class="checkbox"
               id="[[item.id]]"
               item="[[item]]"
@@ -392,6 +392,11 @@
             return subgroup.items.indexOf(item.id) !== -1;
           };
         }
+      }
+
+      _sort(a, b) {
+        const key = a.keys.name ? 'name' : (a.keys.title ? 'title' : a.id ? 'id' : Object.keys(a.keys)[0]);
+        return a.keys[key].localeCompare(b.keys[key]);
       }
 
       _hasSvg(path, visible) {
