@@ -17,7 +17,7 @@
     "debug": "node debug.js redis",
     "stop": "taskkill /IM node.exe /F",
     "prebuild": "cd views && bower install",
-    "build": "cd views && rollup -c && uglifyjs scripts/d3.bundle.js -c -m -o scripts/d3.bundle.js && polymer build"
+    "build": "cd views && rollup -c && uglifyjs scripts/d3.bundle.js -c -m -o scripts/d3.bundle.js && polymer build --verbose"
   },
   "dependencies": {
     "activedirectory": "^0.7.1",

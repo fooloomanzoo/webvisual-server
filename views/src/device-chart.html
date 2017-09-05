@@ -359,9 +359,9 @@
     </drawer-element>
 
     <section id="control" hidden$="[[controlButtonsHidden]]" on-mouseenter="_debouncedHideInfo">
-      <icon-button title="settings" icon="tune" on-tap="toggleOptions" title$="[[localize('options')]]"></icon-button>
-      <icon-button title="reset zoom" icon="filter-center-focus" on-tap="_resetZoom" title$="[[localize('reset-zoom')]]"></icon-button>
-      <icon-button icon="[[fullscreenIcon]]" on-tap="toggleFullscreen" title$="[[localize('fullscreen', fullscreen)]]"></icon-button>
+      <icon-button title="settings" icon="tune" on-click="toggleOptions" title$="[[localize('options')]]"></icon-button>
+      <icon-button title="reset zoom" icon="filter-center-focus" on-click="_resetZoom" title$="[[localize('reset-zoom')]]"></icon-button>
+      <icon-button icon="[[fullscreenIcon]]" on-click="toggleFullscreen" title$="[[localize('fullscreen', fullscreen)]]"></icon-button>
     </section>
 
     <template is="dom-if" if="[[multi]]" restamp>
@@ -1494,6 +1494,9 @@
       }
 
       _openExportDialog() {
+        if (this._isFullscreen()) {
+          this.exitFullscreen();
+        }
         if (!window._exportChartDialog) {
           const DialogChartExport = customElements.get('dialog-chart-export');
           window._exportChartDialog = new DialogChartExport(this);

@@ -121,6 +121,11 @@
       .notification > .message {
         padding-left: 3em;
         padding-right: 1em;
+        font-weight: 400;
+      }
+      .notification {
+        --drawer-background: var(--highlight-color, var(--bright-primary-color));
+        color: var(--primary-text-color);
       }
       .tab-drawer {
         @apply --layout-inline;
@@ -204,7 +209,7 @@
       items="{{elements}}"></facility-data>
 
     <template is="dom-if" if="[[loadComplete]]">
-      <socket-connector id="socketHandler"
+      <socket-connector
         socket-room="[[queryParams.room]]"
         socket-status="{{socketStatus}}"></socket-connector>
     </template>
@@ -215,14 +220,14 @@
       <!-- Toolbar -->
       <app-header slot="header" id="header" hidden$="[[!_isContentPage]]" reveals fixed="[[_isFullbleedPage]]" threshold="64" threshold-triggered="{{thresholdTriggered}}" shadow$="[[thresholdTriggered]]">
         <app-toolbar>
-          <icon-button icon="menu" class="menu-icon" title$="[[localize('menu')]]" on-tap="_toggleDrawer"></icon-button>
+          <icon-button icon="menu" class="menu-icon" title$="[[localize('menu')]]" on-click="_toggleDrawer"></icon-button>
 
           <logo-element id="logo" href="/home" title$="[[localize('home', 'name')]]"></logo-element>
 
           <iron-collapse opened$="[[showTabs]]" hidden$="[[!wideLayout]]" horizontal style="align-self: flex-end;">
             <div class="tab-drawer top">
               <div class="selectbox toolbar grouping top" title="[[groupedKey]]" hidden$="[[hideGroupSelect]]">
-                <select value="{{groupedKey::change}}">
+                <select value="{{groupedKey::change}}" sort="_sort">
                   <template is="dom-repeat" items="[[groupingKeys]]">
                     <option value="[[item]]">[[item]]</option>
                   </template>
@@ -259,11 +264,11 @@
           </template>
 
           <template is="dom-if" if="[[detailHasDrawer]]">
-            <icon-button icon="subject" title="items" on-tap="_toggleDetailControlDrawer">
+            <icon-button icon="subject" title="items" on-click="_toggleDetailControlDrawer">
             </icon-button>
           </template>
 
-          <icon-button icon="more-vert" title="{{localize('view')}}" on-tap="toggleShowTabs"></icon-button>
+          <icon-button icon="more-vert" title="{{localize('view')}}" on-click="toggleShowTabs"></icon-button>
         </app-toolbar>
 
       </app-header>
@@ -324,8 +329,8 @@
     <template is="dom-if" if="[[_shouldRenderDrawer]]">
       <drawer-element id="drawer" opened="{{drawerOpened}}" align="left" swipe-open tabindex="0" scrim stretch>
         <app-toolbar class="top">
-          <icon-button icon="close" title="close" on-tap="_toggleDrawer"></icon-button>
-          <icon-button icon="[[loginIcon]]" title="{{localize('notification', 'loggedIn', loggedIn)}}" on-tap="_openLoginDialog"></icon-button>
+          <icon-button icon="close" title="close" on-click="_toggleDrawer"></icon-button>
+          <icon-button icon="[[loginIcon]]" title="{{localize('notification', 'loggedIn', loggedIn)}}" on-click="_openLoginDialog"></icon-button>
         </app-toolbar>
 
         <div class="drawer-content">
@@ -388,7 +393,7 @@
           <div class="selectbox grouping" title="[[groupedKey]]" hidden$="[[hideGroupSelect]]">
             <iron-icon icon="filter-list"></iron-icon>
             <span>{{localize('groupedKey')}}</span>
-            <select value="{{groupedKey::change}}">
+            <select value="{{groupedKey::change}}" sort="_sort">
               <template is="dom-repeat" items="[[groupingKeys]]">
                 <option value="[[item]]">[[item]]</option>
               </template>
@@ -397,15 +402,15 @@
         </div>
 
         <app-toolbar class="bottom">
-          <icon-button icon="[[socketStatusIcon]]" title="[[socketStatus]]" on-tap="_socketConnectionToggle"></icon-button>
+          <icon-button icon="[[socketStatusIcon]]" title="[[socketStatus]]" on-click="_socketConnectionToggle"></icon-button>
         </app-toolbar>
       </drawer-element>
     </template>
   </template>
 
   <script>
-    class WebvisualApp extends WebvisualMixins.LocalizeMixin(Polymer.mixinBehaviors(
-      [ Polymer.IronResizableBehavior ], Polymer.Element)) {
+    class WebvisualApp extends WebvisualMixins.LocalizeMixin(WebvisualMixins.AccessibilityMixin(Polymer.mixinBehaviors(
+      [ Polymer.IronResizableBehavior ], Polymer.Element))) {
 
       static get is() {
         return 'webvisual-app';
@@ -680,7 +685,6 @@
       }
 
       _pageChanged(page, oldPage) {
-        console.log(page, oldPage);
         if (page) {
           // home route is eagerly loaded
           if (page === 'home') {
@@ -701,14 +705,14 @@
       }
 
       _socketConnectionToggle() {
-        const socketConnector = this.root.querySelector('#socketHandler');
+        const socketConnector = this.root.querySelector('socket-connector');
         if (!socketConnector) {
           return;
         }
-        if (this.$.socketHandler.socketStatus === 'sync-disabled') {
-          socketConnector.connect();
+        if (socketConnector.socketStatus === 'sync-disabled') {
+          socketConnector.connect(this.queryParams.room);
         } else {
-          this.$.socketHandler.socketStatus = 'sync-disabled';
+          socketConnector.socketStatus = 'sync-disabled';
           socketConnector.disconnect();
         }
       }
@@ -762,6 +766,10 @@
           this.$.announceNotification.querySelector('.message').innerHTML = message;
           this.$.announceNotification.opened = true;
         }
+      }
+
+      _sort(a, b) {
+        return a.localeCompare(b);
       }
 
       _toggleDrawer() {

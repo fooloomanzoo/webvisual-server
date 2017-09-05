@@ -120,7 +120,7 @@
     </style>
 
     <template is="dom-if" if="[[!loggedIn]]">
-      <div class="login" on-tap="_requestLogin">
+      <div class="login" on-click="_requestLogin">
         <icon-button icon="assignment-ind"></icon-button>
         <span>{{localize('login', 'title')}}</span>
       </div>

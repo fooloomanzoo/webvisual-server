@@ -8,6 +8,7 @@
 			: 30000;
 		this.values = [];
 		this._splices = [];
+		this._heap = [];
 		Object.defineProperty(this, "splices", {
 			get: function() {
 				return this._splices.splice(0, this._splices.length);
@@ -15,7 +16,6 @@
 			enumerable: false,
 			configurable: true
 		});
-		this._heap = [];
 		Object.defineProperty(this, "heap", {
 			get: function() {
 				return this._heap.splice(0, this._heap.length);
@@ -60,6 +60,7 @@
 		},
 
 		set: function(data) {
+			data.sort(this.compareFn(this.indexKey));
 			if (data.length > this.maxCount)
 				data = data.slice(data.length - this.maxCount, data.length);
 			this._heap = this._heap.concat(data);
@@ -69,7 +70,6 @@
 				this.values = this.values.concat(data);
 			if (this.values.length > this.maxCount)
 				this._splices = this._splices.concat(this.values.splice(0, this.values.length - this.maxCount));
-			this.values.sort(this.compareFn(this.indexKey));
 		},
 
 		range: function(key) {

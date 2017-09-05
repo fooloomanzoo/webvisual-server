@@ -1,11 +1,11 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
-<link rel="import" href="../mixins/data-mixin.html" />
+<link rel="import" href="../mixins/accessibility-mixin.html" />
 <link rel="import" href="../mixins/fetch-mixin.html" />
 
 <dom-module id="group-data">
 
   <script>
-    class GroupData extends WebvisualMixins.DataMixin(WebvisualMixins.FetchMixin(Polymer.Element)) {
+    class GroupData extends WebvisualMixins.AccessibilityMixin(WebvisualMixins.FetchMixin(Polymer.Element)) {
 
       static get is() {
         return 'group-data'

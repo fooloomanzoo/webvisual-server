@@ -16,15 +16,18 @@
 
       static get properties() {
         return {
+
           fullscreen: {
             type: Boolean,
             value: false,
             reflectToAttribute: true
           },
+
           fullscreenIcon: {
             type: String,
             computed: 'computeFullscreenIcon(fullscreen)'
           }
+
         }
       }
 
@@ -32,7 +35,7 @@
         return document.fullscreen ||
           document.webkitIsFullScreen ||
           document.mozFullScreen ||
-          document.msFullscreenElement;
+          document.msFullscreenElement || false;
       }
 
       _getParent() {
@@ -95,6 +98,7 @@
       _fullScreenChanged() {
         requestAnimationFrame( () => {
           const isFullscreen = this._isFullscreen();
+          console.log('isFullscreen', isFullscreen);
           const parent = this._getParent();
           if (isFullscreen) {
             this.fullscreen = true;

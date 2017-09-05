@@ -192,7 +192,7 @@
       }
     </style>
 
-    <div id="scrim" on-tap="close"></div>
+    <div id="scrim" on-click="close"></div>
 
     <div id="contentContainer">
       <slot name="icon"></slot>
@@ -407,6 +407,11 @@
           Polymer.Gestures.removeListener( this.$.contentContainer, 'track', e => this._track(e) );
           Polymer.Gestures.addListener( this.$.contentContainer, 'track', e => this._track(e) );
           Polymer.Gestures.setTouchAction( this.$.contentContainer, horizontal ? 'pan-x' : 'pan-y' );
+
+          Polymer.Gestures.removeListener( this.$.scrim, 'track', e => this._track(e) );
+          Polymer.Gestures.addListener( this.$.scrim, 'track', e => this._track(e) );
+          Polymer.Gestures.setTouchAction( this.$.scrim, horizontal ? 'pan-x' : 'pan-y' );
+
           Polymer.Gestures.removeListener( this.$.scrim, 'tap', () => this.close() );
           Polymer.Gestures.addListener( this.$.scrim, 'tap', () => this.close() );
         });
@@ -494,7 +499,7 @@
           }
         }
 
-        // If the drawer is not flinging, toggle the opened state based on the align of
+        // If the drawer is not flying, toggle the opened state based on the align of
         // the drawer.
         const conditionalDragLength = drawerExpandedSide * this._CONDITION_PARTS;
 
@@ -547,6 +552,7 @@
       _flyingDrawer(event, trackDetails) {
         let velocity = this._calculateVelocity(event, trackDetails);
 
+        console.log(velocity);
         // Do not fling if velocity is not above a threshold.
         if (Math.abs(velocity) < this._MIN_FLING_THRESHOLD) {
           return;

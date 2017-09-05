@@ -1,9 +1,10 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
-<!-- <link rel="import" href="../bower_components/polymer/lib/mixins/mutable-data.html"> -->
 <link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
+
 <link rel="import" href="mixins/container-mixin.html">
 <link rel="import" href="components/drawer-element.html">
 <link rel="import" href="data/group-data.html">
+<link rel="import" href="data/svg-data.html">
 
 <link rel="import" href="style/shared-style.html">
 <link rel="import" href="style/selectbox-style.html">
@@ -117,6 +118,7 @@
         flex-shrink: 0;
         display: inline-flex;
         flex-direction: row;
+        align-items: center;
         background-color: rgba(0,0,0,0.0625);
         border-bottom: thin solid rgba(0,0,0,0.5);
         transition: background-color 150ms linear;
@@ -124,17 +126,10 @@
       .groupbox:hover {
         background-color: rgba(0,0,0,0.25);
       }
-      .subgroup,
-      .groupbox ::slotted(*) {
+      .groupbox > .selectbox {
         flex: 1 0 1px;
         padding: 0 !important;
-        margin: 0.5em !important;
-      }
-      .groupbox ::slotted(*) {
-        margin-right: 0.25em !important;
-      }
-      .subgroup {
-        margin-left: 0.25em !important;
+        margin: 0.5em 0 0.5em 0.5em;
       }
       @media (max-width: 600px) {
         #drawer {
@@ -155,7 +150,6 @@
     <!-- Routing-->
     <iron-location query="{{query}}"></iron-location>
     <iron-query-params params-string="{{query}}" params-object="{{queryParams}}"></iron-query-params>
-
     <iron-media-query query="(max-width: 600px)" query-matches="{{narrowLayout}}"></iron-media-query>
 
     <group-data
@@ -164,7 +158,7 @@
       grouped-key="{{groupedKey}}"
       grouping-keys="{{groupingKeys}}"></group-data>
 
-    <svg-data hidden
+    <svg-data
       room="[[queryParams.room]]"
       data="{{svgData}}"></svg-data>
 
@@ -186,23 +180,24 @@
 
       <drawer-element id="drawer" opened$="[[_ensureOpened(narrowLayout)]]" swipe-open$="[[narrowLayout]]" scrim persistent$="[[!narrowLayout]]" align="right" stretch>
         <div class="groupbox">
-          <div class="selectbox grouping" title="[[groupedKey]]">
+          <div class="selectbox" title="[[groupedKey]]">
             <select value="{{groupedKey::change}}">
-              <template is="dom-repeat" items="[[groupingKeys]]">
+              <template is="dom-repeat" items="[[groupingKeys]]" sort="_sort">
                 <option value="[[item]]">[[item]]</option>
               </template>
             </select>
           </div>
-          <div class="selectbox subgroup" title="[[selectedSubgroupTitle]]">
+          <div class="selectbox" title="[[selectedSubgroupTitle]]">
             <select value="{{selectedSubgroupTitle::change}}">
-              <template is="dom-repeat" items="[[subgroups]]">
+              <template is="dom-repeat" items="[[subgroups]]" sort="_sortSubgroupTitles">
                 <option value="[[item.title]]">[[item.title]]</option>
               </template>
             </select>
           </div>
+          <icon-button icon="close" on-click="clearItems"></icon-button>
         </div>
         <tabs-container id="tabs" multi vertical items="{{checkboxes}}" attr-for-selected="id" activate-event="item-select">
-          <template id="tablist" is="dom-repeat" items="[[elements]]" filter="[[_computeFilter(selectedSubgroupTitle, subgroups)]]" sort="_sort" restamp restamp-key="mount">
+          <template id="tablist" is="dom-repeat" items="[[elements]]" filter="[[_computeFilter(selectedSubgroupTitle, subgroups)]]" sort="_sortSubgroupItems" restamp restamp-key="mount">
             <device-checkbox class="checkbox"
               id="[[item.id]]"
               item="[[item]]"
@@ -328,7 +323,6 @@
 
       _selectedIdsChanged(selectedIds, checkboxes, visible) {
         if (selectedIds === undefined || !(checkboxes && checkboxes.length !== 0) || !visible) return;
-        selectedIds = selectedIds || '';
 
         setTimeout(() => {
           const ids = selectedIds.split('/').filter(id => {
@@ -371,13 +365,21 @@
         // console.log('after deselect', ids, this.items);
       }
 
+      clearItems() {
+        super.clearItems();
+        this.set('queryParams.ids', '');
+        Array.prototype.forEach.call(this.root.querySelectorAll('device-checkbox'), c => {
+          c.checked = false;
+        })
+      }
+
       _computeFilter(selectedSubgroupTitle, subgroups) {
         if (selectedSubgroupTitle === undefined || subgroups === undefined) {
           // set filter to null to disable filtering
           return null;
         } else {
-          let i;
-          for (i = 0; i < subgroups.length; i++) {
+          let i = 0;
+          for (; i < subgroups.length; i++) {
             if (subgroups[i].title === selectedSubgroupTitle) {
               break;
             }
@@ -395,6 +397,14 @@
       }
 
       _sort(a, b) {
+        return a.localeCompare(b);
+      }
+
+      _sortSubgroupTitles(a, b) {
+        return a.title.localeCompare(b.title);
+      }
+
+      _sortSubgroupItems(a, b) {
         const key = a.keys.name ? 'name' : (a.keys.title ? 'title' : a.id ? 'id' : Object.keys(a.keys)[0]);
         return a.keys[key].localeCompare(b.keys[key]);
       }

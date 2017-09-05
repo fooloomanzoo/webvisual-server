@@ -125,7 +125,7 @@
         super.disconnectedCallback();
       }
 
-      _assignNodes() {
+      _assignToChart() {
         const containerRoot = this._containerRoot;
         if (!containerRoot || containerRoot.nodeName !== 'DEVICE-CHART') {
           console.warn('No parentElement (chart) for graph found. Registration of Graph Element failed', containerRoot);
@@ -136,15 +136,17 @@
         }
         this._chart = containerRoot;
         this._axisInsertionPoint = this._chart._axisInsertionPoint;
+        this._chart._addGraph(this);
+        return true;
       }
 
       addNodes() {
-        // console.log('addNotes', this.item.mount);
+        if (!this._assignToChart()) {
+          return;
+        }
         if (this._isAttached) {
           this.clearValues(true);
         }
-        this._assignNodes();
-
         if (!this._chart.multiAxesX) {
           this.set('domainX', this._chart.domainX);
         }
@@ -154,6 +156,7 @@
         this.set('rangeX', this._chart.rangeX)
         this.set('rangeY', this._chart.rangeY)
 
+        this._setColorProperties();
         this._areaChanged();
         this._lineChanged();
 
@@ -169,9 +172,7 @@
         this.axisGeneratorX = this._computeAxisGenerator(this.axisOrientX, this.scaleX, this.scalingX, this.scaleBaseX);
         this.axisGeneratorY = this._computeAxisGenerator(this.axisOrientY, this.scaleY, this.scalingY, this.scaleBaseY);
 
-        this._setColorProperties();
         this._isAttached = true;
-        this._chart._addGraph(this);
       }
 
       removeNodes() {
@@ -292,12 +293,7 @@
         if (len) {
           values = values.slice(values.length - len, values.length);
         }
-        values.map(function(v) {
-          return {
-            x: +v.x,
-            y: +v.y
-          };
-        });
+
         if (this.storeInside) {
           this.values = this.values.concat(values);
           let min = this.min(this.values, 'x');
@@ -348,11 +344,11 @@
 
         for (let i = 0; i < splices.length; i++) {
           let j;
-          for (j = this.values.length - 1; j >= 0; j--) {
+          for (j = 0; j < this.values.length; j++) {
             if (this.values[j].x === splices[i].x)
               break;
           }
-          if (j !== -1) {
+          if (j !== this.values.length) {
             this.values.splice(j, 1);
             // changeRecord.push( { index: j, removed: [this.values[j]], addedCount: 0, object: this.values, type: 'splice'} );
           }
@@ -527,27 +523,30 @@
       // if looking just at to path (instabil): https://bl.ocks.org/mbostock/8027637 https://pomax.github.io/bezierinfo/#projections
       _closestPoint(m) {
         // find good prediction
-        const _x = this.scaleX,
-          _y = this.scaleY,
-          valuesLength = this.values.length,
-          x_0 = _x.invert(m[0]),
+        const valuesLength = this.values.length,
+          x_0 = +this.scaleX.invert(m[0]),
           precision = Math.ceil(this._chart._width / valuesLength),
           variance = Math.pow(Math.ceil(valuesLength / this._chart._width), 2);
-        let mid = this.bisectDate.left(this.values, x_0, 0, valuesLength - 1),
-          minDist = pixdistance2(this.values[mid]);
-        const searchRadius = Math.sqrt(minDist) / variance,
-          x_lo = _x.invert(m[0] - searchRadius);
-        let lo = this.bisectDate.left(this.values, x_lo, 0, mid),
-          hi = 2 * mid - lo;
 
-        if (lo < 0) lo = 0;
-        if (hi > valuesLength) hi = valuesLength;
+        let mid = this.bisectDate.left(this.values, x_0, 0, valuesLength - 1);
+
+        let minDist = this._pixdistance2(this.values[mid], m);
+        const searchRadius = Math.sqrt(minDist) / variance,
+          x_lo = +this.scaleX.invert(m[0] - searchRadius);
+
+        let lo = this.bisectDate.left(this.values, x_lo, 0, mid);
+        if (lo < 0 || lo >= valuesLength - 1) lo = 0;
+
+        if (mid === lo) mid++;
+
+        let hi = 2 * mid - lo;
+        if (hi > valuesLength || hi <= 0) hi = valuesLength;
 
         let currentDist,
           pos = mid;
         // linear scan for coarse approximation
         for (let i = lo; i < hi; i += precision) {
-          if ((currentDist = pixdistance2(this.values[i])) <= minDist) {
+          if ((currentDist = this._pixdistance2(this.values[i], m)) <= minDist) {
             mid = i, minDist = currentDist;
           }
         }
@@ -555,7 +554,7 @@
 
         // linear search in positive prediction radius
         for (let i = mid + 1; i < hi && i < mid + precision - 1; i++) {
-          if ((currentDist = pixdistance2(this.values[i])) <= minDist) {
+          if ((currentDist = this._pixdistance2(this.values[i], m)) <= minDist) {
             minDist = currentDist;
             pos = i;
           }
@@ -563,19 +562,24 @@
 
         // linear search in negative prediction radius
         for (let i = mid - 1; i > lo && i > mid - precision + 1; i--) {
-          if ((currentDist = pixdistance2(this.values[i])) <= minDist) {
+          if ((currentDist = this._pixdistance2(this.values[i], m)) <= minDist) {
             minDist = currentDist;
             pos = i;
           }
         }
 
-        return this.values[pos];
+        // console.log(pos);
 
-        function pixdistance2(p) {
-          const dx = _x(p.x) - m[0],
-            dy = _y(p.y) - m[1];
-          return dx * dx + dy * dy;
-        }
+        return {
+          x: this.values[pos].x,
+          y: this.values[pos].y
+        };
+      }
+
+      _pixdistance2(p, m) {
+        const dx = this.scaleX(p.x) - m[0],
+          dy = this.scaleY(p.y) - m[1];
+        return dx*dx + dy*dy;
       }
 
       // finding the closest interpolated Point relativly to a mouse-Coordinate m

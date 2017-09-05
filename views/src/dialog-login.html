@@ -1,6 +1,6 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
 
-<link rel="import" href="mixins/data-mixin.html">
+<link rel="import" href="mixins/accessibility-mixin.html">
 <link rel="import" href="mixins/localize-mixin.html">
 
 <link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
@@ -95,12 +95,12 @@
           </section>
 
           <div class="buttons">
-            <div class="button" on-tap="onReset">
+            <div class="button" on-click="onReset">
               <paper-ripple></paper-ripple>
               <iron-icon class="left" icon="close"></iron-icon>
               <input type="reset" value$="{{localize('login', 'reset')}}"/>
             </div>
-            <div class="button" on-tap="onSubmit">
+            <div class="button" on-click="onSubmit">
               <paper-ripple></paper-ripple>
               <iron-icon class="left" icon="group-add"></iron-icon>
               <input type="submit" value$="{{localize('login', 'confirm')}}"/>
@@ -121,7 +121,7 @@
         </div>
 
         <div dialog-bottom class="buttons">
-          <div class="button" on-tap="signOut">
+          <div class="button" on-click="signOut">
             <paper-ripple></paper-ripple>
             <iron-icon class="left" icon="person-outline"></iron-icon>
             {{localize('login', 'logout')}}
@@ -133,7 +133,7 @@
   </template>
 
   <script>
-    class DialogLogin extends WebvisualMixins.DataMixin(WebvisualMixins.LocalizeMixin(Polymer.Element)) {
+    class DialogLogin extends WebvisualMixins.AccessibilityMixin(WebvisualMixins.LocalizeMixin(Polymer.Element)) {
 
       static get is() {
         return 'dialog-login'
@@ -150,12 +150,6 @@
 
           userProfile: {
             type: Object
-          },
-
-          loggedIn: {
-            type: Boolean,
-            value: false,
-            notify: true
           },
 
           signInUrl: {
