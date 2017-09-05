@@ -35,14 +35,12 @@
       .button > input[type="text"],
       .button > input[type="password"],
       .button > input[type="number"],
-      .button > input[type="reset" i],
-      .button > input[type="submit" i],
       .input > input[type="text"],
       .input > input[type="password"],
-      .input > input[type="number"],
-      .input > input[type="reset" i],
-      .input > input[type="submit" i] {
-        padding: 0.75em 0.25em;
+      .input > input[type="number"] {
+        height: 1px;
+        padding: 1em 0.25em;
+        margin-top: 0.75em;
       }
       .input > input:invalid {
         /* reset the default style in FF */
@@ -89,8 +87,8 @@
         transition-duration: 0.15s;
         transition-timing-function: ease-out;
         will-change: transform;
-        -webkit-transform: translate3d(0px, -2em, 0px);
-        transform: translate3d(0px, -2em, 0px);
+        -webkit-transform: translate3d(0px, -1.75em, 0px);
+        transform: translate3d(0px, -1.75em, 0px);
       }
       .input > [icon] {
         margin-left: 0.25em;
@@ -228,7 +226,11 @@
         width: 100%;
         box-sizing: content-box;
         cursor: pointer;
-        margin-top: 1em;
+        margin-top: 0.75em;
+      }
+      .input > input[type="color"] + .decorator ,
+      .input > input[type="range"] + .decorator {
+        border-top: none;
       }
       .input > input[type="color"]::-webkit-color-swatch-wrapper {
         padding: 0;

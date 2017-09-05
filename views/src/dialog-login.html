@@ -34,6 +34,9 @@
         margin-right: 0.5em;
       }
       .input:not(:last-of-type) {
+        margin-bottom: 1.5em;
+      }
+      .input:last-of-type {
         margin-bottom: 1em;
       }
       [hidden] {
@@ -388,8 +391,14 @@
             bubbles: true,
             composed: true
           }));
-          this.root.querySelector('#username').value = '';
-          this.root.querySelector('#password').value = '';
+          const usernameInput = this.root.querySelector('#username');
+          const passwordInput = this.root.querySelector('#password');
+          if (usernameInput) {
+            usernameInput.value = '';
+          }
+          if (passwordInput) {
+            passwordInput.value = '';
+          }
           if (err && err.statusCode) {
             if (err.statusCode >= 400 && err.statusCode < 500) {
               status = 'Login with Server failed';
