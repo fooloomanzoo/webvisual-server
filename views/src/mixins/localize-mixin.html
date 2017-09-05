@@ -96,7 +96,7 @@
         if (localesUrlPrefix === undefined || !language || this._recentLanguage === language) return;
         language = language.toLowerCase();
 
-        if (typeof localesUrlPrefix === 'string') {
+        if (!Array.isArray(localesUrlPrefix)) {
           localesUrlPrefix = [ localesUrlPrefix ];
         }
         const localesDictionary = (this._recentLanguage === language) ? (this.localesDictionary || {}) : {};

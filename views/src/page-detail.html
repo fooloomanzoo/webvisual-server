@@ -400,7 +400,7 @@
           // set filter to null to disable filtering
           return null;
         }
-        
+
         let i = 0, subgroup;
         while (i < subgroups.length) {
           if (subgroups[i].title === selectedSubgroupTitle) {
@@ -429,7 +429,7 @@
       }
 
       _sortSubgroupItems(a, b) {
-        const key = a.keys.name ? 'name' : (a.keys.title ? 'title' : Object.keys(a.keys)[0]);
+        const key = a.keys.title ? 'title' : (a.keys.name ? 'name' : Object.keys(a.keys)[0]);
         return a.keys[key].localeCompare(b.keys[key]);
       }
 
