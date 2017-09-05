@@ -65,8 +65,6 @@
 
       _load() {
         super._load();
-        if (this.offline || !this.loggedIn) return;
-
         this._fetch('facilities.json', 'GET', 'include', 'json', 'facilities')
           .catch(err => {
             console.warn(err);

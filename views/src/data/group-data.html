@@ -57,7 +57,7 @@
 
       _load() {
         super._load();
-        if (!this.room || this.offline || !this.loggedIn) return;
+        if (!this.room) return;
 
         const names = this.room.split('/')
           .filter(function(str) {
