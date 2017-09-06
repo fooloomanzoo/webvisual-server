@@ -5,31 +5,30 @@
 
 <link rel="import" href="../bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
-
-<link rel="import" href="style/shared-style.html">
-<link rel="import" href="style/selectbox-style.html">
-<link rel="import" href="style/button-style.html">
-<link rel="import" href="style/app-style.html">
-<link rel="import" href="style/input-style.html">
-
 <link rel="import" href="../bower_components/iron-location/iron-location.html">
 <!-- TEMPORARY: polymers's 'iron-query-params' has problems keeping query-strings on reload -->
-<link rel="import" href="iron-query-params.html">
+  <link rel="import" href="iron-query-params.html">
+
+<link rel="import" href="style/app-style.html">
+<link rel="import" href="style/selectbox-style.html">
+<link rel="import" href="style/button-style.html">
 
 <link rel="import" href="../bower_components/app-layout/app-header-layout/app-header-layout.html">
 <link rel="import" href="../bower_components/app-layout/app-header/app-header.html">
 <link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
 
 <link rel="import" href="components/icon-button.html">
-<link rel="import" href="dialog-login.html">
 <link rel="import" href="page-home.html">
+
+<link rel="import" href="logo-element.html"/>
+<link rel="import" href="dialog-login.html">
 <link rel="import" href="data/facility-data.html">
 
 <dom-module id="webvisual-app">
 
   <template strip-whitespace>
 
-    <style include="shared-style selectbox-style button-style app-style">
+    <style include="app-style selectbox-style button-style">
       app-toolbar {
         font-size: 1em;
         height: 4em;
@@ -114,9 +113,15 @@
       .login-icon:hover {
         opacity: 1;
       }
-      logo-element#logo {
+      .logo-link {
         padding-left: 1em;
         margin-right: auto;
+        height: 100%;
+        position: relative;
+        box-sizing: border-box;
+      }
+      logo-element {
+        height: 100%;
       }
       .notification > .message {
         padding-left: 3em;
@@ -222,12 +227,14 @@
         <app-toolbar>
           <icon-button icon="menu" class="menu-icon" title$="[[localize('menu')]]" on-click="_toggleDrawer"></icon-button>
 
-          <logo-element id="logo" href="/home" title$="[[localize('home', 'name')]]"></logo-element>
+          <a href="/home" class="logo-link">
+            <logo-element title$="[[localize('home', 'name')]]"></logo-element>
+          </a>
 
           <iron-collapse opened$="[[showTabs]]" hidden$="[[!wideLayout]]" horizontal style="align-self: flex-end;">
             <div class="tab-drawer top">
-              <div class="selectbox toolbar grouping top" title="[[groupedKey]]" hidden$="[[hideGroupSelect]]">
-                <select value="{{groupedKey::change}}" sort="_sort">
+              <div class="selectbox toolbar grouping top" title="[[groupBy]]" hidden$="[[hideGroupSelect]]">
+                <select value="{{groupBy::change}}" sort="_sort">
                   <template is="dom-repeat" items="[[groupingKeys]]">
                     <option value="[[item]]">[[item]]</option>
                   </template>
@@ -236,20 +243,20 @@
               <tabs-container class="tabs"
                 role="tablist"
                 selected="{{page}}"
-                attr-for-selected="name">
-                <tab-element name="list">
+                attr-for-selected="page">
+                <tab-element page="list">
                   <a href="/list?[[query]]" class="tab">
                     <iron-icon icon="list" class="left"></iron-icon>
                     {{localize('list', 'name')}}
                   </a>
                 </tab-element>
-                <tab-element name="groups">
+                <tab-element page="groups">
                   <a href="/groups?[[query]]" class="tab">
                     <iron-icon icon="grid-on" class="left"></iron-icon>
                     {{localize('groups', 'name')}}
                   </a>
                 </tab-element>
-                <tab-element name="detail">
+                <tab-element page="detail">
                   <a href="/detail?[[query]]" class="tab">
                     <iron-icon icon="chrome-reader-mode" class="left"></iron-icon>
                     {{localize('detail', 'name')}}
@@ -274,19 +281,19 @@
       </app-header>
 
       <!-- Pages-->
-      <iron-pages id="pages" role="main" selected="{{page}}" attr-for-selected="name" selected-attribute="visible" fallback-selection="home">
+      <iron-pages id="pages" role="main" selected="{{page}}" attr-for-selected="page" selected-attribute="visible" fallback-selection="home">
         <!-- home view for selecting the facility -->
-        <page-home name="home" dark$="[[dark]]" plain$="[[plain]]" class="fullbleed" facilities="[[facilities]]" on-login-request="_openLoginDialog">
+        <page-home page="home" dark$="[[dark]]" plain$="[[plain]]" class="fullbleed" facilities="[[facilities]]" on-login-request="_openLoginDialog">
           <slot></slot>
         </page-home>
         <!-- list view of items in a facility -->
-        <page-list name="list" dark$="[[dark]]" plain$="[[plain]]" elements="[[elements]]">
+        <page-list page="list" dark$="[[dark]]" plain$="[[plain]]" elements="[[elements]]">
         </page-list>
         <!-- group view of items -->
-        <page-groups name="groups" dark$="[[dark]]" plain$="[[plain]]" elements="[[elements]]" grouped-key="[[groupedKey]]" grouping-keys="{{groupingKeys}}">
+        <page-groups page="groups" dark$="[[dark]]" plain$="[[plain]]" elements="[[elements]]" group-by="[[groupBy]]" grouping-keys="{{groupingKeys}}">
         </page-groups>
-        <!-- detail view of one item -->
-        <page-detail id="detailpage" name="detail" dark$="[[dark]]" plain$="[[plain]]" class="fullbleed" elements="[[elements]]" show-toggle-icon="{{detailHasDrawer}}" grouped-key="{{groupedKey}}" grouping-keys="{{groupingKeys}}">
+        <!-- detail view of items -->
+        <page-detail page="detail" id="detailpage" dark$="[[dark]]" plain$="[[plain]]" class="fullbleed" elements="[[elements]]" show-toggle-icon="{{detailHasDrawer}}" group-by="{{groupBy}}" grouping-keys="{{groupingKeys}}">
         </page-detail>
       </iron-pages>
     </app-header-layout>
@@ -302,20 +309,20 @@
 
     <drawer-element opened="{{showTabsOnBottom}}" id="toolbarBottom" swipe-open auto-close-period="8000" shadow auto-close="[[!thresholdTriggered]]">
       <div class="tab-drawer">
-        <tabs-container class="tabs" role="tablist" selected="{{page}}" attr-for-selected="name">
-          <tab-element name="list">
+        <tabs-container class="tabs" role="tablist" selected="{{page}}" attr-for-selected="page">
+          <tab-element page="list">
             <a href="/list?[[query]]" class="tab">
               <iron-icon icon="list" class="left"></iron-icon>
               {{localize('list', 'name')}}
             </a>
           </tab-element>
-          <tab-element name="groups">
+          <tab-element page="groups">
             <a href="/groups?[[query]]" class="tab">
               <iron-icon icon="grid-on" class="left"></iron-icon>
               {{localize('groups', 'name')}}
             </a>
           </tab-element>
-          <tab-element name="detail">
+          <tab-element page="detail">
             <a href="/detail?[[query]]" class="tab">
               <iron-icon icon="chrome-reader-mode" class="left"></iron-icon>
               {{localize('detail', 'name')}}
@@ -336,22 +343,22 @@
         <div class="drawer-content">
 
           <collapse-button icon="more-vert" title="{{localize('view')}}">
-            <a href="/home" class="button" name="home">
+            <a href="/home" class="button" page="home">
               <paper-ripple id="ripple" recenters></paper-ripple>
               <iron-icon icon="exit-to-app" class="left"></iron-icon>
               {{localize('home', 'name')}}
             </a>
-            <a href="/list?[[query]]" class="button" name="list">
+            <a href="/list?[[query]]" class="button" page="list">
               <paper-ripple id="ripple" recenters></paper-ripple>
               <iron-icon icon="list" class="left"></iron-icon>
               {{localize('list', 'name')}}
             </a>
-            <a href="/groups?[[query]]" class="button" name="groups">
+            <a href="/groups?[[query]]" class="button" page="groups">
               <paper-ripple id="ripple" recenters></paper-ripple>
               <iron-icon icon="grid-on" class="left"></iron-icon>
               {{localize('groups', 'name')}}
             </a>
-            <a href="/detail?[[query]]" class="button" name="detail">
+            <a href="/detail?[[query]]" class="button" page="detail">
               <paper-ripple id="ripple" recenters></paper-ripple>
               <iron-icon icon="chrome-reader-mode" class="left"></iron-icon>
               {{localize('detail', 'name')}}
@@ -390,10 +397,10 @@
             </select>
           </div>
 
-          <div class="selectbox grouping" title="[[groupedKey]]" hidden$="[[hideGroupSelect]]">
+          <div class="selectbox grouping" title="[[groupBy]]" hidden$="[[hideGroupSelect]]">
             <iron-icon icon="filter-list"></iron-icon>
-            <span>{{localize('groupedKey')}}</span>
-            <select value="{{groupedKey::change}}" sort="_sort">
+            <span>{{localize('group by')}}</span>
+            <select value="{{groupBy::change}}" sort="_sort">
               <template is="dom-repeat" items="[[groupingKeys]]">
                 <option value="[[item]]">[[item]]</option>
               </template>
@@ -450,7 +457,7 @@
             notify: true
           },
 
-          groupedKey: {
+          groupBy: {
             type: String,
             notify: true
           },
@@ -686,6 +693,7 @@
 
       _pageChanged(page, oldPage) {
         if (page) {
+          this._debouncedHideTabs(this.showTabs);
           // home route is eagerly loaded
           if (page === 'home') {
             this._pageLoaded(Boolean(oldPage));
@@ -836,9 +844,9 @@
         }, 0);
       }
 
-      // _setGroupingSelectBoxes(groupedKey, groupingKeys) {
+      // _setGroupingSelectBoxes(groupBy, groupingKeys) {
       //   // console.log(groupingKeys);
-      //   if (groupedKey === undefined || groupingKeys === undefined) {
+      //   if (groupBy === undefined || groupingKeys === undefined) {
       //     return;
       //   }
       //   // Hack: initial binding to native select value property is not bound
@@ -857,7 +865,7 @@
       //           option.value = item;
       //           Polymer.dom(sel).appendChild(option);
       //         });
-      //         this.groupedKey = sel.value = groupedKey || groupingKeys[0];
+      //         this.groupBy = sel.value = groupBy || groupingKeys[0];
       //       }
       //     })
       //   // }, 0);
@@ -865,7 +873,7 @@
       //
       // _drawerChanged(_shouldRenderDrawer) {
       //   if (_shouldRenderDrawer) {
-      //     this._setGroupingSelectBoxes(this.groupedKey, this.groupingKeys)
+      //     this._setGroupingSelectBoxes(this.groupBy, this.groupingKeys)
       //   }
       // }
 
@@ -905,7 +913,7 @@
       }
 
       _computeHideGroupSelect(page, loadComplete, groupingKeys) {
-        return (page !== 'groups' && page !== 'detail') || !loadComplete || !(groupingKeys && groupingKeys.length);
+        return (page !== 'groups') || !loadComplete || !(groupingKeys && groupingKeys.length);
       }
 
       _computeStatusIcon(status) {

@@ -29,7 +29,7 @@
   "view": "Affichage",
   "layout": "Mise en Page",
   "language": "Langue",
-  "groupedKey": "Arrangez",
+  "group by": "Arrangez",
   "dark": {
     "true": "schéma-encreur foncé",
     "false": "schéma-encreur clair"

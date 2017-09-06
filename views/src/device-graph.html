@@ -238,11 +238,11 @@
       }
 
       _thresholdChanged(threshold) {
-        if (!(this._chart && this._chart._boundery)) return;
+        if (!(this._chart && this._chart._defs)) return;
 
         if (threshold) {
           if (!this.boundery) { // add threshold node
-            this.boundery = this._chart._boundery.append('linearGradient');
+            this.boundery = this._chart._defs.append('linearGradient');
           }
           // update threshold node properties
           this.boundery

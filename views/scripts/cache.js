@@ -61,13 +61,15 @@
 
 		set: function(data) {
 			data.sort(this.compareFn(this.indexKey));
-			if (data.length > this.maxCount)
-				data = data.slice(data.length - this.maxCount, data.length);
-			this._heap = this._heap.concat(data);
 			if (this.values.length === 0)
 				this.values = data;
-			else
+			else {
+				data = data.filter(v => {
+					return v[this.indexKey] > this.values[this.values.length - 1][this.indexKey];
+				});
 				this.values = this.values.concat(data);
+			}
+			this._heap = this._heap.concat(data);
 			if (this.values.length > this.maxCount)
 				this._splices = this._splices.concat(this.values.splice(0, this.values.length - this.maxCount));
 		},

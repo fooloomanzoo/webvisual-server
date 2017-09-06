@@ -29,7 +29,7 @@
   "view": "Punto de Vista",
   "layout": "Diseño",
   "language": "Lengua",
-  "groupedKey": "Agrupar",
+  "group by": "Agrupar",
   "dark": {
     "true": "oscuro esquema",
     "false": "claro esquema"

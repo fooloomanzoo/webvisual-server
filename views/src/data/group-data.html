@@ -24,10 +24,10 @@
             observer: '_load'
           },
 
-          groupedKey: {
+          groupBy: {
             type: String,
             notify: true,
-            observer: '_groupedKeyChanged'
+            observer: '_groupByChanged'
           },
 
           groupingKeys: {
@@ -49,7 +49,7 @@
 
           subgroups: {
             type: Array,
-            computed: '_computeSubGroups(groups, groupedKey)',
+            computed: '_computeSubGroups(groups, groupBy)',
             notify: true
           }
         }
@@ -67,6 +67,7 @@
           this.roomUri = names[0] + '+' + names[1];
           Promise.all([
             this._fetch(this.roomUri + '+groups.json', 'GET', 'include', 'json', 'groups'),
+            this._fetch(this.roomUri + '+preferedGroupingKey.json', 'GET', 'include', 'json', 'groupBy'),
             this._fetch(this.roomUri + '+groupingKeys.json', 'GET', 'include', 'json', 'groupingKeys')])
             .catch(err => {
               console.log(err);
@@ -80,11 +81,11 @@
         }
       }
 
-      _computeSubGroups(groups, groupedKey) {
-        if (!(groups === undefined && groupedKey === undefined)) {
+      _computeSubGroups(groups, groupBy) {
+        if (!(groups === undefined && groupBy === undefined)) {
           let group;
           for (let i = 0; (group = groups[i]); ++i) {
-            if (group.key === groupedKey) {
+            if (group.key === groupBy) {
               return group.groups;
             }
           }
@@ -96,12 +97,12 @@
         if (!(groupingKeys && groupingKeys.length)) {
           return;
         }
-        const groupedKey = localStorage.getItem('groupedKey');
+        const groupBy = localStorage.getItem('groupBy');
         setTimeout(() => {
-          if (groupedKey !== undefined && groupingKeys.indexOf(groupedKey) !== -1) {
-            this.set('groupedKey', groupedKey);
+          if (groupBy !== undefined && groupingKeys.indexOf(groupBy) !== -1) {
+            this.set('groupBy', groupBy);
           } else if (this.roomUri) {
-            this._fetch(this.roomUri + '+preferedGroupingKey.json', 'GET', 'include', 'json', 'groupedKey', true)
+            this._fetch(this.roomUri + '+preferedGroupingKey.json', 'GET', 'include', 'json', 'groupBy', true)
               .catch(err => {
                 console.log(err);
               });
@@ -109,10 +110,12 @@
         }, 0);
       }
 
-      _groupedKeyChanged(groupedKey) {
-        if (groupedKey !== undefined) {
-          localStorage.setItem('groupedKey', groupedKey);
+      _groupByChanged(groupBy) {
+        if (groupBy === undefined) return;
+        if (this.groupBy === '' && this.groupingKeys && this.groupingKeys.length) {
+          this.groupBy = this.groupingKeys[0];
         }
+        localStorage.setItem('groupBy', this.groupBy);
       }
     }
     customElements.define(GroupData.is, GroupData);

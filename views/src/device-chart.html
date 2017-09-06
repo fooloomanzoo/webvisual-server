@@ -250,7 +250,7 @@
     </style>
 
     <svg id="svg" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="xMinYMin meet" on-contextmenu="_resetZoom">
-      <defs>
+      <defs id="defs">
         <marker id="arrowToLeft" viewBox="0 0 20 10" refX="0" refY="5" markerWidth="8" markerHeight="8" orient="auto">
           <path d="M 20,0 L 0,5 L 20,10 Z" />
         </marker>
@@ -268,6 +268,9 @@
         <clipPath id="clip">
           <rect x="0" y="0"></rect>
         </clipPath>
+        <pattern id="circle" width="10" height="10" patternUnits="userSpaceOnUse">
+          <circle cx="5" cy="5" r="2"/>
+        </pattern>
       </defs>
       <g id="chart">
         <rect id="plot" clip-path="url(#clip)"></rect>
@@ -278,7 +281,6 @@
         <g id="graphs" clip-path="url(#clip)">
           <g id="area"></g>
           <g id="line"></g>
-          <g id="boundery"></g>
         </g>
         <rect id="zoom" x="0" y="0" clip-path="url(#clip)"></rect>
         <g id="axis"></g>
@@ -519,7 +521,7 @@
         this._axisInsertionPoint = d3.select(this.$.axis);
         this._area = d3.select(this.$.area);
         this._line = d3.select(this.$.line);
-        this._boundery = d3.select(this.$.boundery);
+        this._defs = d3.select(this.$.defs);
         this.gridX = d3.select(this.$.gridX);
         this.gridY = d3.select(this.$.gridY);
         this._focus = d3.select(this.$.focus);
@@ -1111,6 +1113,9 @@
         if (!this.autoHideInfoDisabled && this._activeHideInfoJob) {
           clearTimeout(this._activeHideInfoJob);
         }
+
+        if (this._graphs.size === 0) return;
+
         this._info.attr('hidden', null);
         this._focus.attr('hidden', null);
         if (this.modus === 'delta' && this._fixedValue) {

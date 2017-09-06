@@ -29,7 +29,7 @@
   "view": "图示",
   "layout": "版式",
   "language": "语言",
-  "groupedKey": "分类",
+  "group by": "分类",
   "dark": {
     "true": "黑",
     "false": "亮"

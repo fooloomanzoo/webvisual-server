@@ -29,7 +29,7 @@
   "view": "Veduta",
   "layout": "Menabò",
   "language": "Lingua",
-  "groupedKey": "Ordinare dare",
+  "group by": "Ordinare dare",
   "dark": {
     "true": "cupo scheme a colori",
     "false": "chiaro scheme a colori"

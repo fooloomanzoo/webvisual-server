@@ -1,10 +1,9 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
-<link rel="import" href="style/shared-style.html">
 <link rel="import" href="style/grid-layout.html">
 
 <dom-module id="page-list">
   <template strip-whitespace>
-    <style include="shared-style grid-layout">
+    <style include="grid-layout">
       .grid li {
         @apply --layout-horizontal;
       }
@@ -44,6 +43,9 @@
         color: currentColor;
         opacity: 0.5;
       }
+      [hidden] {
+        display: none !important;
+      }
     </style>
 
     <iron-location query="{{query}}"></iron-location>
@@ -51,7 +53,7 @@
 
     <template is="dom-if" if="[[visible]]">
       <ul class="grid">
-        <template is="dom-repeat" items="[[_getListItems(items)]]">
+        <template is="dom-repeat" items="[[_getListItems(items)]]" sort="_sortItems">
           <li>
             <a href$="/detail?room=[[queryParams.room]]&ids=[[item.id]]">
               <device-sign
@@ -65,7 +67,6 @@
           </li>
         </template>
       </ul>
-
     </template>
   </template>
 
@@ -98,6 +99,11 @@
       _getListItems(items) {
         // Return placeholder items when the items haven't loaded yet.
         return items || [{},{},{},{},{},{},{},{},{},{}];
+      }
+
+      _sortItems(a, b) {
+        const key = a.keys.title ? 'title' : (a.keys.name ? 'name' : Object.keys(a.keys)[0]);
+        return a.keys[key].localeCompare(b.keys[key]);
       }
     }
     customElements.define(PageList.is, PageList);

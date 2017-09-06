@@ -30,7 +30,7 @@
   "view": "Ansicht",
   "layout": "Darstellung",
   "language": "Anzeigesprache",
-  "groupedKey": "Gruppierung",
+  "group by": "Gruppierung",
   "dark": {
     "true": "dunkles Farbschema",
     "false": "helles Farbschema"

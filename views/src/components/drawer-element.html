@@ -552,7 +552,6 @@
       _flyingDrawer(event, trackDetails) {
         let velocity = this._calculateVelocity(event, trackDetails);
 
-        console.log(velocity);
         // Do not fling if velocity is not above a threshold.
         if (Math.abs(velocity) < this._MIN_FLING_THRESHOLD) {
           return;

@@ -29,7 +29,7 @@
   "view": "View",
   "layout": "Layout",
   "language": "Language",
-  "groupedKey": "Grouping",
+  "group by": "Grouping",
   "dark": {
     "true": "dark color scheme",
     "false": "bright color scheme"
