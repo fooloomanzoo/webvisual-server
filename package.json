@@ -1,6 +1,6 @@
 {
   "name": "webvisual-server",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "server for visualization of data changes",
   "homepage": "https://github.com/fooloomanzoo/webvisual",
   "author": "Johannes Brautzsch <hannes-b@web.de>",
@@ -16,6 +16,7 @@
     "start:development": "node index.js development",
     "debug": "node debug.js redis",
     "stop": "taskkill /IM node.exe /F",
+    "prepare": "npm version patch",
     "prebuild": "cd views && bower install",
     "build": "cd views && rollup -c && uglifyjs scripts/d3.bundle.js -c -m -o scripts/d3.bundle.js && polymer build --verbose"
   },
@@ -32,6 +33,7 @@
     "express": "*",
     "express-session": "*",
     "express-useragent": "*",
+    "polyfill-service-express": "*",
     "jsonfile": "*",
     "merge-defaults": "^0.2.1",
     "merge-options": "*",
