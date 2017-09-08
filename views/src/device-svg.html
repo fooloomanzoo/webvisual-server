@@ -2,6 +2,8 @@
 <link rel="import" href="mixins/fullscreen-mixin.html">
 <link rel="import" href="mixins/fetch-mixin.html">
 
+<link rel="import" href="style/control-style.html">
+
 <!--
 'device-svg' provides rendering a svg in a container.
 
@@ -31,7 +33,7 @@
 
 <dom-module id="device-svg">
   <template strip-whitespace>
-  <style>
+  <style include="control-style">
     :host {
       position: relative;
       border-radius: inherit;
@@ -82,20 +84,6 @@
       width: 100%;
       height: 100%;
       font-family: inherit;
-    }
-    #control {
-      position: absolute;
-      bottom: var(--control-bottom, 0px);
-      right: var(--control-right, 0px);
-      top: var(--control-top, auto);
-      left: var(--control-left, auto);
-      mix-blend-mode: var(--control-mix-blend-mode, exclusion);
-    }
-    #control > *:not(:first-of-type) {
-      margin-left: var(--control-button-distance, 0px);
-    }
-    #control > * {
-      background: rgba(255,255,255,0.0625);
     }
     text {
       pointer-events: none !important;
@@ -164,7 +152,7 @@
 
   </style>
   <div id="svgContainer" on-contextmenu="_resetZoom">
-    <div id="control" >
+    <div id="control" class="right bottom">
       <icon-button title="focus" icon="filter-center-focus" on-click="_resetZoom"></icon-button>
       <icon-button title="fullscreen" icon="[[fullscreenIcon]]" on-click="toggleFullscreen"></icon-button>
     </div>

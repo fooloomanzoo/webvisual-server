@@ -11,7 +11,7 @@
   "sources": [
     "src\\**\\*",
     "scripts\\**\\*",
-    "polyfills\\**\\*",
+    "bower_components\\es6-promise\\*",
     "index.html",
     "src\\webvisual-app.html",
     "src\\page-home.html",

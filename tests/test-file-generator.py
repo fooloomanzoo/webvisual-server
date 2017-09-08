@@ -27,7 +27,7 @@ high = 5
 prec = 5
 
 # x-variable tension
-tension = 1000.0
+tension = 100.0
 
 # csv-format
 dateformat = '%d.%m.%Y %H:%M:%S'

@@ -30,7 +30,7 @@
 
           interpolation: {
             type: String,
-            value: 'Lineare Verbindung',
+            value: 'curveLinear',
             observer: '_interpolationChanged'
           },
 
@@ -65,34 +65,8 @@
         this._isAttached = false;
         this._chart = this._containerRoot;
 
-        this._areaGenerator = d3.area()
-          .defined(this._defined.bind(this))
-          .x(d => {
-            return this.scaleX(d.x);
-          })
-          .y0(d => {
-            if (d && this._IS_LOG_SCALE(this.scalingY)) {
-              return this._chart._height;
-            } else {
-              return this.scaleY(0)
-            }
-          })
-          .y1(d => {
-            return this.scaleY(d.y);
-          });
-
-        this._lineGenerator = d3.line()
-          .defined(this._defined.bind(this))
-          .x(d => {
-            return this.scaleX(d.x);
-          })
-          .y(d => {
-            return this.scaleY(d.y);
-          });
-
-        this.bisectDate = d3.bisector((d, x) => {
-          return d.x - x;
-        });
+        this._areaGenerator = d3.area();
+        this._lineGenerator = d3.line();
       }
 
       static get observers() {
@@ -123,6 +97,76 @@
         this._isAttached = false;
         this.removeNodes();
         super.disconnectedCallback();
+      }
+
+      _domainXChanged(domainX) {
+        if (domainX === undefined || this.scaleX === undefined || domainX.some(e => { return e === undefined || e === null; })) return;
+        if (this._IS_LOG_SCALE(this.scalingX) && domainX[0] <= 0) {
+          super._domainXChanged( [ d3.min(this.values.filter(d => { return d.x > 0 }), d => { return d.x }), domainX[1] ] );
+        } else {
+          super._domainXChanged(domainX);
+        }
+      }
+
+      _domainYChanged(domainY) {
+        if (domainY === undefined || this.scaleY === undefined || domainY.some(e => { return e === undefined || e === null; })) return;
+        if (this._IS_LOG_SCALE(this.scalingY) && domainY[0] <= 0) {
+          super._domainYChanged( [ d3.min(this.values.filter(d => { return d.y > 0 }), d => { return d.y }), domainY[1] ] );
+        } else {
+          super._domainYChanged(domainY);
+        }
+      }
+
+      _scaleXChanged(scaleX) {
+        if (scaleX === undefined) {
+          return;
+        }
+        if (this._IS_LOG_SCALE(this.scalingX) && this.domainX[0] <= 0) {
+          this._domainXChanged( [ d3.min(this.values.filter(d => { return d.x > 0 }), d => { return d.x }), this.domainX[1] ] );
+        }
+        this._areaGenerator.x(d => {
+          return scaleX(d.x);
+        });
+        this._lineGenerator.x(d => {
+          return scaleX(d.x);
+        });
+        this._interpolationChanged(this.interpolation);
+        super._scaleXChanged(scaleX);
+      }
+
+      _scaleYChanged(scaleY) {
+        if (scaleY === undefined) {
+          return;
+        }
+        if (this._IS_LOG_SCALE(this.scalingY) ) {
+          if (this.domainY[0] <= 0) {
+            this._domainYChanged( [ d3.min(this.values.filter(d => { return d.y > 0 }), d => { return d.y }), this.domainY[1] ] );
+          }
+          this._areaGenerator
+            .y0(() => {
+              return this._chart._height;
+            })
+            .y1(d => {
+              return d.y > 0 ? scaleY(d.y) : this._chart._height;
+            });
+          this._lineGenerator
+            .y(d => {
+              return d.y > 0 ? scaleY(d.y) : this._chart._height;
+            });
+        } else {
+          this._areaGenerator
+            .y0(() => {
+              return scaleY(0);
+            })
+            .y1(d => {
+              return scaleY(d.y);
+            });
+          this._lineGenerator
+            .y(d => {
+              return scaleY(d.y);
+            });
+        }
+        super._scaleYChanged(scaleY);
       }
 
       _assignToChart() {
@@ -161,17 +205,20 @@
         this._lineChanged();
 
         if (!this.axisX) {
-          this.axisX = this._computeAxisNode(this._axisInsertionPoint, this.axisOrientX, this.item.mount, this.axisX)
+          this.axisX = this._computeAxisNode(this._axisInsertionPoint, this.axisOrientX, this.item.mount)
             .attr('hidden', (this._chart.multiAxesX) ? null : true)
         }
         if (!this.axisY) {
-          this.axisY = this._computeAxisNode(this._axisInsertionPoint, this.axisOrientY, this.item.mount, this.axisY)
+          this.axisY = this._computeAxisNode(this._axisInsertionPoint, this.axisOrientY, this.item.mount)
             .attr('hidden', (this._chart.multiAxesY) ? null : true)
             .classed('vertical', true)
         }
-        this.axisGeneratorX = this._computeAxisGenerator(this.axisOrientX, this.scaleX, this.scalingX, this.scaleBaseX);
-        this.axisGeneratorY = this._computeAxisGenerator(this.axisOrientY, this.scaleY, this.scalingY, this.scaleBaseY);
-
+        if (this.scaleX) {
+          this.axisGeneratorX = this._computeAxisGenerator(this.axisOrientX, this.scaleX, this.scalingX, this.scaleBaseX);
+        }
+        if (this.scaleY) {
+          this.axisGeneratorY = this._computeAxisGenerator(this.axisOrientY, this.scaleY, this.scalingY, this.scaleBaseY);
+        }
         this._isAttached = true;
       }
 
@@ -216,8 +263,10 @@
           .attr('mount', this.item.mount)
           .attr('class', 'area')
           .attr('stroke-width', 0)
-          .attr('fill', this.item.theshold !== undefined ? ('url(#boundery-line-' + this.item.mount + ')') : this.item.color || '#FFF')
-          .attr('d', this._areaGenerator([]));
+          .attr('fill', this.item.theshold !== undefined ? ('url(#boundery-line-' + this.item.mount + ')') : this.item.color || '#FFF');
+
+        if (this._areaGenerator)
+          this._area.attr('d', this._areaGenerator(this.values || []));
       }
 
       _lineChanged() {
@@ -233,8 +282,10 @@
           .attr('class', 'line')
           .attr('fill', 'none')
           .attr('stroke', this.item.theshold !== undefined ? ('url(#boundery-line-' + this.item.mount + ')') : this.item.color || '#000')
-          .attr('stroke-width', this.lineWidth)
-          .attr('d', this._lineGenerator([]));
+          .attr('stroke-width', this.lineWidth);
+
+        if (this._lineGenerator)
+          this._line.attr('d', this._lineGenerator(this.values || []));
       }
 
       _thresholdChanged(threshold) {
@@ -386,7 +437,7 @@
       }
 
       redraw(force, values) {
-        if (!this._isAttached) return;
+        if (!(this._isAttached && this.scaleX && this.scaleY)) return;
 
         if (force) {
           this._chart.redraw(true);
@@ -505,19 +556,19 @@
         });
       }
 
-      _defined(d) {
-        if (!Number.isFinite(d.y))
-          return null;
-        else if (d.y <= 0 && this._IS_LOG_SCALE(this.scalingY))
-          return null; // log- and sqrt-scale require larger than 0-Values
-        // else if ((d.x >= domainX[0] && d.x <= domainX[1]) ||
-        //   (data[i + 1] && data[i + 1].x >= domainX[0] && data[i + 1].x <= domainX[1]) ||
-        //   (data[i - 1] && data[i - 1].x >= domainX[0] && data[i - 1].x <= domainX[1]))
-        //   return true; // only numbers in x-Domain are shown (and their successor and predecessor) (graph is a function by definition, so y-Domain is not relevant)
-        // else
-        //   return false;
-        return true;
-      }
+      // _defined(d) {
+      //   if (!Number.isFinite(d.y))
+      //     return null;
+      //   else if (d.y <= 0 && this._IS_LOG_SCALE(this.scalingY))
+      //     return null; // log- and sqrt-scale require larger than 0-Values
+      //   // else if ((d.x >= domainX[0] && d.x <= domainX[1]) ||
+      //   //   (data[i + 1] && data[i + 1].x >= domainX[0] && data[i + 1].x <= domainX[1]) ||
+      //   //   (data[i - 1] && data[i - 1].x >= domainX[0] && data[i - 1].x <= domainX[1]))
+      //   //   return true; // only numbers in x-Domain are shown (and their successor and predecessor) (graph is a function by definition, so y-Domain is not relevant)
+      //   // else
+      //   //   return false;
+      //   return true;
+      // }
 
       // finding the closest Point relativly to a mouse-Coordinate m (stabil)
       // if looking just at to path (instabil): https://bl.ocks.org/mbostock/8027637 https://pomax.github.io/bezierinfo/#projections
@@ -526,15 +577,16 @@
         const valuesLength = this.values.length,
           x_0 = +this.scaleX.invert(m[0]),
           precision = Math.ceil(this._chart._width / valuesLength),
-          variance = Math.pow(Math.ceil(valuesLength / this._chart._width), 2);
+          variance = Math.pow(Math.ceil(valuesLength / this._chart._width), 2),
+          bisectLeft = this._bisectDate.left;
 
-        let mid = this.bisectDate.left(this.values, x_0, 0, valuesLength - 1);
+        let mid = bisectLeft(this.values, x_0, 0, valuesLength - 1);
 
         let minDist = this._pixdistance2(this.values[mid], m);
         const searchRadius = Math.sqrt(minDist) / variance,
           x_lo = +this.scaleX.invert(m[0] - searchRadius);
 
-        let lo = this.bisectDate.left(this.values, x_lo, 0, mid);
+        let lo = bisectLeft(this.values, x_lo, 0, mid);
         if (lo < 0 || lo >= valuesLength - 1) lo = 0;
 
         if (mid === lo) mid++;
@@ -649,39 +701,12 @@
       }
 
       _interpolationChanged(interpolation) {
-        let curve;
-        switch (interpolation) {
-          case 'Basis Spline':
-            curve = d3.curveBasis;
-            break;
-          case 'Monotoner Spline':
-            curve = d3.curveMonotoneX;
-            break;
-          case 'Kubischer Spline':
-            curve = d3.curveNatural;
-            break;
-          case 'Cardinaler Spline':
-            curve = d3.curveCardinal;
-            break;
-          case 'Catmull-Rom-Spline':
-            curve = d3.curveCatmullRom;
-            break;
-          case 'Stufe (mitte)':
-            curve = d3.curveStep;
-            break;
-          case 'Stufe (davor)':
-            curve = d3.curveStepAfter;
-            break;
-          case 'Stufe (danach)':
-            curve = d3.curveStepBefore;
-            break;
-          default:
-            curve = d3.curveLinear;
-            break;
+        if (!(interpolation && interpolation.match(/curve.*/) && interpolation in d3)) {
+          return;
         }
+        const curve = d3[interpolation];
         this._areaGenerator.curve(curve);
         this._lineGenerator.curve(curve);
-        this.redraw();
       }
 
       _onAxisClicked(axis) {
@@ -702,7 +727,7 @@
           this._area.raise();
           // fill area
           if (this.hasArea === false) {
-            this._area.attr('d', this._areaGenerator(this.values || []));
+            this._area.transition().attr('d', this._areaGenerator(this.values || []));
           }
         }
         if (this._line) {

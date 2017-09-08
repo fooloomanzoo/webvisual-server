@@ -17,6 +17,8 @@ const EventEmitter = require('events').EventEmitter,
   multer = require('multer'),
   // Server
   spdy = require('spdy'),
+  // Polyfills
+  polyfills = require('polyfill-service-express')(),
   // Session Store
   RedisStore = require('connect-redis')(session),
   // FileStore = require('session-file-store')(session),
@@ -140,8 +142,12 @@ class Router extends EventEmitter {
     this.app.use(this.passport.initialize())
     // init session handler
     this.app.use(this.passport.session())
+
     // compress responses
     this.app.use(compression())
+
+    // polyfills
+    this.app.get(/^\/polyfill(\.\w+)(\.\w+)?/, polyfills);
 
     this.passport.serializeUser(function(user, done) {
       done(null, user)

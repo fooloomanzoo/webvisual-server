@@ -37,10 +37,51 @@
   <meta name="msapplication-TileColor" content="#345475">
   <meta name="msapplication-tap-highlight" content="no">
 
-  <script src="/scripts/polyfills.js" async></script>
-  <script src="/scripts/client.js" async></script>
-  <link rel="import" href="/src/webvisual-app.html" async>
-  <link rel="stylesheet" href="https://code.cdn.mozilla.net/fonts/fira.css">
+  <!-- Load Custom Elements es5 adapter -->
+  <!-- <script type="text/javascript">
+  if (window.customElements) {
+     document.write('<scr' + 'ipt type="text/javascript" src="/bower_components/webcomponentsjs/custom-elements-es5-adapter.js"></scr' + 'ipt>');
+  }
+  </script> -->
+
+  <!-- Load Polyfills -->
+  <script src="/polyfill.min.js?features=default,es5,es6&callback=loadPromise&flags=gated" async></script>
+  <!-- <script src="/bower_components/webcomponentsjs/webcomponents-loader.js" async></script> -->
+
+  <script>
+    // document.addEventListener("DOMContentLoaded", function() {
+      // Load webcomponentsjs polyfill if browser does not support native Web Components
+      function loadPromise() { //eslint-disable-line no-unused-vars
+        if ('Promise' in window && 'catch' in window.Promise) {
+          // promise supported
+          loadWebcomponents();
+        } else {
+          // polyfill promise
+          var s = document.createElement('script'); // eslint-disable-line no-var
+          s.src = '/bower_components/es6-promise/es6-promise.js';
+          window.document.body.appendChild(s);
+          s.onload = loadWebcomponents;
+        }
+      }
+      function loadWebcomponents() { //eslint-disable-line no-unused-vars
+        if ('registerElement' in document
+            && 'import' in document.createElement('link')
+            && 'content' in document.createElement('template')) {
+          // webcomponents supported
+        } else {
+          // polyfill webcomponents
+          var s = document.createElement('script'); // eslint-disable-line no-var
+          s.src = '/bower_components/webcomponentsjs/webcomponents-loader.js';
+          s.async = true;
+          window.document.body.appendChild(s);
+        }
+      }
+    //   loadPromise();
+    // });
+
+  </script>
+  <link rel="stylesheet" href="https://code.cdn.mozilla.net/fonts/fira.css" >
+  <link rel="import" href="/src/webvisual-app.html" >
 
   <style>
     body {
@@ -94,9 +135,9 @@
     webvisual-app .circle:nth-of-type(5) { animation-delay: 2700ms; }
     webvisual-app .circle:nth-of-type(6) { animation-delay: 2750ms; }
     webvisual-app .circle:nth-of-type(2n) { stroke: #fff !important; }
-    /*webvisual-app:not([unresolved]) .unresolved-placeholder {
+    webvisual-app:not([unresolved]) .unresolved-placeholder {
       display: none;
-    }*/
+    }
     @keyframes drop {
     	0% {
     		transform: scale(0);
@@ -168,15 +209,6 @@
          d="m 7.921007,9.6185999 c 0.00246,0 0.069517,-0.1271011 0.1238027,-0.2191016 C 8.4858762,8.6535007 11.162847,2.016 11.818367,0.45299994 10.931859,0.16060007 9.9845674,1.3411045e-7 8.9998426,1.3411045e-7 4.0292495,1.3411045e-7 0,4.0296008 0,9.0004025 0,9.8200982 0.11180425,10.613197 0.31703414,11.367597 0.88207947,10.999897 4.326143,8.6165011 4.3313039,8.6333003 4.8828769,10.664597 6.7408919,11.712097 7.9210133,9.6185999 Z M 15.877983,3.1983005 C 15.20168,4.7980011 12.925902,10.164797 12.315732,11.372497 11.113851,13.558698 9.1934612,15.598399 6.5917182,15.715499 3.5379727,15.852899 1.9207658,14.687199 1.0502453,13.219198 2.562154,16.0633 5.5546274,18 8.9998426,18 13.970672,18 18,13.970398 18,9.0004025 18,6.7887033 17.200507,4.7651011 15.877983,3.1983005" style="fill:#fff;"></path>
     </svg>
   </webvisual-app>
-  <script src="/bower_components/webcomponentsjs/webcomponents-loader.js"></script>
-  <script>
-   // Load Promise Polyfill
-   if (!(window.Promise && window.Promise.all)) {
-     const scr = document.createElement('script');
-     scr.async = true;
-     scr.src = '/bower_components/es6-promise/es6-promise.auto.min.js';
-     document.head.appendChild(scr);
-   }
- </script>
+
 </body>
 </html>

@@ -1,6 +1,10 @@
 try {
+	importScripts('/polyfill.min.js?features=default,es5,es6&flags=gated');
+} catch (e) {
+	console.log(e);
+}
+try {
 	importScripts('/socket.io/socket.io.js');
-	importScripts('/scripts/polyfills.js');
 	importScripts('/scripts/store.js');
 	if (self && !(self.Promise && self.Promise.all)) {
 		importScripts('/bower_components/es6-promise/es6-promise.auto.min.js');

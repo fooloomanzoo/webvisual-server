@@ -45,13 +45,18 @@
     <tabs-container id="tabs" selected="{{selectedMount}}" attr-for-selected="title">
       <template is="dom-repeat" items="[[items]]">
         <tab-element class="tab" title$="[[item.mount]]">
-          <device-caption class="caption" keys="[[item.keys]]"></device-caption>
+          <device-caption class="caption"
+            title$="[[item.title]]"
+            keys="[[item.keys]]"></device-caption>
         </tab-element>
       </template>
     </tabs-container>
     <iron-pages id="tables" selected="{{selectedMount}}" attr-for-selected="title">
       <template is="dom-repeat" items="[[items]]">
-        <device-table title$="[[item.mount]]" item="[[item]]" no-link="[[!opened]]"></device-table>
+        <device-table
+          title$="[[item.title]]"
+          item="[[item]]"
+          no-link="[[!opened]]"></device-table>
       </template>
     </iron-pages>
 

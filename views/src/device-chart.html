@@ -9,13 +9,14 @@
 <link rel="import" href="components/drawer-element.html">
 <link rel="import" href="style/selectbox-style.html">
 <link rel="import" href="style/button-style.html">
+<link rel="import" href="style/control-style.html">
 
 <link rel="import" href="device-graph.html">
 <link rel="import" href="dialog-chart-export.html">
 
 <dom-module id="device-chart">
   <template strip-whitespace>
-    <style include="selectbox-style button-style">
+    <style include="control-style selectbox-style button-style">
       :host {
         display: block;
         box-sizing: content-box;
@@ -194,12 +195,15 @@
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
       }
+
       .options-content > * {
         margin-bottom: 0.4em
       }
+
       .selectbox > select {
         opacity: 1;
       }
+
       :host(:not([without-mixmode])) #delta .line,
       :host(:not([without-mixmode])) #focus .line,
       :host(:not([without-mixmode])) marker > path,
@@ -207,17 +211,7 @@
         mix-blend-mode: exclusion;
         pointer-events: none;
       }
-      #control {
-        position: absolute;
-        bottom: var(--control-bottom, 0px);
-        right: var(--control-right, 0px);
-        top: var(--control-top, auto);
-        left: var(--control-left, auto);
-        mix-blend-mode: var(--control-mix-blend-mode, exclusion);
-      }
-      #control > *:not(:first-of-type) {
-        margin-left: var(--control-button-distance, 0px);
-      }
+
       svg text {
         fill: var(--chart-text-color, var(--bright-text-color));
         stroke: currentColor;
@@ -229,21 +223,32 @@
         cursor: inherit;
         -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
       }
+
       svg text.info {
         fill: var(--primary-text-color);
         pointer-events: none;
       }
+
       .draggable {
         cursor: -webkit-grab;
         cursor: grab;
       }
+
       .draggable.dragged {
         cursor: -webkit-grabbing;
         cursor: grabbing;
       }
+
       .draggable * {
         cursor: inherit !important;
       }
+
+      #legend > .entry > rect {
+        stroke: currentColor;
+        stroke-width: 0.5px;
+        stroke-opacity: 0.5;
+      }
+
       [hidden] {
         display: none !important;
       }
@@ -251,6 +256,9 @@
 
     <svg id="svg" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="xMinYMin meet" on-contextmenu="_resetZoom">
       <defs id="defs">
+        <clipPath id="clip">
+          <rect x="0" y="0"></rect>
+        </clipPath>
         <marker id="arrowToLeft" viewBox="0 0 20 10" refX="0" refY="5" markerWidth="8" markerHeight="8" orient="auto">
           <path d="M 20,0 L 0,5 L 20,10 Z" />
         </marker>
@@ -265,9 +273,6 @@
           <feFlood flood-color="#fff" result="out1" />
           <feComposite in="SourceGraphic" in2="out1" operator="over" />
         </filter>
-        <clipPath id="clip">
-          <rect x="0" y="0"></rect>
-        </clipPath>
         <pattern id="circle" width="10" height="10" patternUnits="userSpaceOnUse">
           <circle cx="5" cy="5" r="2"/>
         </pattern>
@@ -301,6 +306,7 @@
             <text class="delta info y" x="0" y="0" filter="url(#solid)" font-size="10" hidden></text>
           </g>
         </g>
+        <g id="legend" hidden$="[[hideLegend]]"></g>
       </g>
     </svg>
 
@@ -308,14 +314,14 @@
       <div class="options-content">
         <div class="selectbox" title$="[[localize('chart', 'interpolation')]]">
           <select value="{{interpolation::change}}">
-            <option value="Lineare Verbindung">Lineare Verbindung</option>
-            <option value="Basis Spline">Basis Spline</option>
-            <option value="Kubischer Spline">Kubischer Spline</option>
-            <option value="Cardinaler Spline">Cardinaler Spline</option>
-            <option value="Catmull-Rom-Spline">Catmull-Rom-Spline</option>
-            <option value="Stufe (mitte)">Stufe (mitte)</option>
-            <option value="Stufe (davor)">Stufe (davor)</option>
-            <option value="Stufe (danach)">Stufe (danach)</option>
+            <option value="curveLinear">curveLinear</option>
+            <option value="curveBasis">curveBasis</option>
+            <option value="curveNatural">curveNatural</option>
+            <option value="curveCardinal">curveCardinal</option>
+            <option value="curveCatmullRom">curveCatmullRom</option>
+            <option value="curveStep">curveStep</option>
+            <option value="curveStepAfter">curveStepAfter</option>
+            <option value="curveStepBefore">curveStepBefore</option>
           </select>
         </div>
         <div class="selectbox" title$="[[localize('chart', 'scaling', 'y')]]">
@@ -361,11 +367,11 @@
       </div>
     </drawer-element>
 
-    <section id="control" hidden$="[[controlButtonsHidden]]" on-mouseenter="_debouncedHideInfo">
-      <icon-button title="settings" icon="tune" on-click="toggleOptions" title$="[[localize('options')]]"></icon-button>
-      <icon-button title="reset zoom" icon="filter-center-focus" on-click="_resetZoom" title$="[[localize('reset-zoom')]]"></icon-button>
+    <div id="control" class="right bottom" hidden$="[[controlButtonsHidden]]" on-mouseenter="_debouncedHideInfo">
+      <icon-button icon="tune" on-click="toggleOptions" title$="[[localize('options')]]"></icon-button>
+      <icon-button icon="filter-center-focus" on-click="_resetZoom" title$="[[localize('reset-zoom')]]"></icon-button>
       <icon-button icon="[[fullscreenIcon]]" on-click="toggleFullscreen" title$="[[localize('fullscreen', fullscreen)]]"></icon-button>
-    </section>
+    </div>
 
     <template is="dom-if" if="[[multi]]" restamp>
       <template is="dom-repeat" items="[[items]]">
@@ -373,9 +379,9 @@
       </template>
     </template>
     <template is="dom-if" if="[[!multi]]" restamp>
-        <device-graph item="[[item]]" interpolation="[[interpolation]]" locale-date="[[localeDate]]" locale-number=[[localeNumber]] range-x=[[rangeX]] range-y=[[rangeY]] no-link="[[!opened]]" scaling-y="[[scalingY]]" scaling-x="[[scalingX]]"></device-graph>
-      </template>
+      <device-graph item="[[item]]" interpolation="[[interpolation]]" locale-date="[[localeDate]]" locale-number=[[localeNumber]] range-x=[[rangeX]] range-y=[[rangeY]] no-link="[[!opened]]" scaling-y="[[scalingY]]" scaling-x="[[scalingX]]"></device-graph>
     </template>
+  </template>
   <script>
     class DeviceChart extends Polymer.mixinBehaviors(
       [Polymer.IronResizableBehavior], WebvisualMixins.AxesMixin(WebvisualMixins.FullscreenMixin(WebvisualMixins.LocalizeMixin(Polymer.Element)))) {
@@ -415,8 +421,8 @@
 
           interpolation: {
             type: String,
-            value: 'Lineare Verbindung',
-            observer: 'changeInterpolation'
+            value: 'curveLinear',
+            observer: '_interpolationChanged'
           },
 
           item: {
@@ -536,6 +542,7 @@
         this._deltaY = d3.select(this.$.deltaY);
         this._deltaDot = d3.select(this.$.deltaDot);
         this._zoom = d3.select(this.$.zoom);
+        this._legend = d3.select(this.$.legend);
         this._graphs.forEach(g => {
           g._assignNodes();
         });
@@ -546,8 +553,6 @@
         this._assignNodes();
         this._svg.attr('height', null)
           .attr('width', null);
-
-        // this._control = d3.select(this.$.control);
 
         this.axisX = this._computeAxisNode(this._axisInsertionPoint, this.axisOrientX, '', this.axisX)
           .classed('main', true)
@@ -639,8 +644,7 @@
             passive: true
           });
 
-        this._svg.selectAll('g,line,text,path,rect')
-          .classed('style-scope', true).classed('device-chart', true);
+        this._updateStyleScope();
 
         this._isAttached = true;
 
@@ -698,7 +702,7 @@
           p = [];
 
         this._graphs.forEach(g => {
-          if (g._isAttached) {
+          if (g._isAttached && g.scaleX && g.scaleY) {
             let size;
             if (!g.axisX.attr('hidden')) {
               size = g.axisX.classed('expanded') ? g.axisSizeX : g.tickSize + g.collapsedAxisMargin;
@@ -740,7 +744,7 @@
           // this._zoom.call(this._zoomBehavior.transform, d3.zoomIdentity);
 
           this._graphs.forEach(g => {
-            if (g._isAttached) {
+            if (g._isAttached && g.scaleX && g.scaleY) {
               if (!g.axisX.attr('hidden')) {
                 p.push(this._finalizeAxisPosition(g.axisX, g.axisOrientX, this._width, this._height));
               }
@@ -774,7 +778,7 @@
             this._focusLineY.attr('y1', this._height);
 
             this._graphs.forEach(g => {
-              if (g._isAttached) {
+              if (g._isAttached && g.scaleX && g.scaleY) {
                 if (!g.axisX.attr('hidden')) {
                   g.axisGeneratorX = g._computeAxisGenerator.call(g, g.axisOrientX, g.scaleX, g.scalingX, g.scaleBaseX).ticks(g.ticksX).tickSize(g.tickSize).tickFormat(g.axisX.classed('expanded') ? g._computeFormatFn(g.scalingX, g.scaleBaseX) :
                     '');
@@ -792,14 +796,14 @@
               }
             })
 
-            if (!this.axisX.attr('hidden')) {
+            if (!this.axisX.attr('hidden') && this.scaleX) {
               this.axisGeneratorX = this._computeAxisGenerator(this.axisOrientX, this.scaleX, this.scalingX, this.scaleBaseX).ticks(this.ticksX).tickSize(this.tickSize).tickFormat(this.axisX.classed('expanded') ? this._computeFormatFn(
                 this.scalingX, this.scaleBaseX) : '');
               this._updateAxisBrushGenerator.call(this.axisBrushGeneratorX, this.rangeX, this.axisOrientX);
               if (this.brushToZoom) this.axisX.select('.brush').raise().call(this.axisBrushGeneratorX);
               this.axisX.attr('transform', 'translate(' + (this.axisX._left || 0) + ',' + (this.axisX._top || 0) + ')');
             }
-            if (!this.axisY.attr('hidden')) {
+            if (!this.axisY.attr('hidden') && this.scaleY) {
               this.axisGeneratorY = this._computeAxisGenerator(this.axisOrientY, this.scaleY, this.scalingY, this.scaleBaseY).ticks(this.ticksY).tickSize(this.tickSize).tickFormat(this.axisY.classed('expanded') ? this._computeFormatFn(
                 this.scalingY, this.scaleBaseY) : '');
               this._updateAxisBrushGenerator.call(this.axisBrushGeneratorY, this.rangeY, this.axisOrientY);
@@ -807,10 +811,7 @@
               this.axisY.attr('transform', 'translate(' + (this.axisY._left || 0) + ',' + (this.axisY._top || 0) + ')');
             }
 
-            this._svg.selectAll('g,line,text,path,rect')
-              .classed('style-scope', true).classed('device-chart', true);
-
-            // this._control.transition().style('transform', 'translate(' + right + 'px,' + bottom + 'px)');
+            this._updateStyleScope();
 
             if (!this.domainX || !this.domainY || this.domainX.some(e => {
                 return e === undefined || e === null;
@@ -867,6 +868,9 @@
       }
 
       _generateGrid() {
+        if (!(this.scaleX && this.scaleY)) {
+          return;
+        }
         if (this._gridBuildJob) {
           clearTimeout(this._gridBuildJob);
         }
@@ -918,7 +922,7 @@
       }
 
       redraw(force) {
-        if (!this._isAttached) return;
+        if (!(this._isAttached && this.scaleX && this.scaleY)) return;
 
         if (force) {
           // console.log('force')
@@ -940,7 +944,7 @@
           }
 
           this._graphs.forEach(g => {
-            if (g._isAttached) {
+            if (g._isAttached && g.scaleX && g.scaleY) {
               if (!g.axisX.attr('hidden')) {
                 g.axisX.transition().call(g.axisGeneratorX).attr('transform', 'translate(' + (g.axisX._left || 0) + ',' + (g.axisX._top || 0) + ')');
               } else {
@@ -956,11 +960,15 @@
           })
 
           if (this.hasGrid) this._generateGrid();
-          this._svg.selectAll('g,line,text,path,rect')
-            .classed('style-scope', true).classed('device-chart', true);
 
+          this._updateStyleScope();
           this._updateInfo();
         }, 0);
+      }
+
+      _updateStyleScope() {
+        this._svg.selectAll('g,line,text,path,rect,circle')
+          .classed('style-scope device-chart', true);
       }
 
       _multiAxesChanged(multiAxesX, multiAxesY) {
@@ -987,12 +995,18 @@
       }
 
       _addGraph(g) {
+        if (this._graphs.has(g)) {
+          return;
+        }
         this._graphs.add(g);
+        console.log('add', g.item.mount, this._graphs.size);
+        this._updateLegendEntries();
         this.sizeChanged();
       }
 
       _removeGraph(g) {
         this._graphs.delete(g);
+        console.log('remove', g.item.mount, this._graphs.size);
         if (this._graphs.size === 0) {
           this.set('domainX', [null, null])
           this.set('domainY', [null, null])
@@ -1000,7 +1014,47 @@
         g = null;
         this._fixedValue = null;
         this._focusedValue = null;
+        this._updateLegendEntries();
         this.sizeChanged();
+      }
+
+      _updateLegendEntries() {
+        const items = [];
+        this._graphs.forEach(g => {
+          items.push(g.item);
+        })
+        console.log(items);
+        items.sort((a, b) => { a.mount.localeCompare(b.mount)});
+
+        const rectSize = 18;
+        const margin = 4;
+        const r = 2;
+        const entries = this._legend.selectAll('.entries')
+                                      .data(items);
+
+        const newEntries = entries.enter()
+                                    .append('g')
+                                      .classed('entry', true)
+                                      .attr('transform', function(d, i) {
+                                        return `translate(0, ${i * (rectSize + margin)})`;
+                                      })
+        newEntries.append('rect')
+                    .attr('height', rectSize)
+                    .attr('width', rectSize)
+                    .attr('rx', r)
+                    .attr('ry', r)
+                    .attr('fill', d => { return d.color || '#fff' });
+        newEntries.append('text')
+                    .attr('x', rectSize + margin)
+                    .attr('y', rectSize - margin)
+                    .text( d => {
+                      return d.mount;
+                    });
+
+        entries.exit()
+                .remove()
+
+        this._updateStyleScope();
       }
 
       _getDomain() {
@@ -1145,8 +1199,7 @@
         this._info.attr('hidden', '');
         this._focus.attr('hidden', '');
         this._hideDelta();
-        this._svg.selectAll('g,line,text,path,rect')
-          .classed('style-scope', true).classed('device-chart', true);
+        this._updateStyleScope();
       }
 
       _hideDelta() {
@@ -1206,8 +1259,18 @@
             this._hideDelta();
           }
         }
-        this._svg.selectAll('g,line,text,path,rect')
-          .classed('style-scope', true).classed('device-chart', true);
+
+        if (y > this._height || x < 0) {
+          this._focus.attr('hidden', '');
+          if (this.modus === 'delta' && fixP) {
+            this._delta.attr('hidden', '');
+          }
+        } else {
+          this._focus.attr('hidden', null);
+          if (this.modus === 'delta' && fixP) {
+            this._delta.attr('hidden', null);
+          }
+        }
       }
 
       _alignText(node, x, y, marginLeft, marginBottom, textAnchor, alignmentBaseline) {
@@ -1220,7 +1283,7 @@
           alignment = alignmentBaseline || 'ideographic',
           limitLeft = marginLeft,
           limitBottom = marginBottom;
-        switch (anchor) { // list is not complete!
+        switch (anchor) { // switch is not complete!
           case 'middle':
             limitLeft += (bbox.width / 2);
             break;
@@ -1228,7 +1291,7 @@
             limitLeft += bbox.width;
             break;
         }
-        switch (alignment) { // list is not complete!
+        switch (alignment) { // switch is not complete!
           case 'ideographic':
             limitBottom += bbox.height;
             break;
@@ -1242,17 +1305,18 @@
 
         if (y - limitBottom <= 0) { // above top
           alignment = 'hanging';
-          y = limitBottom;
+          y = bbox.height;
         } else if (y + limitBottom > height) {
-          y = height - limitBottom;
+          alignment = 'ideographic';
+          y = height;
         }
 
         if (x + limitLeft >= width) { // beyond right
           anchor = 'end';
-          x = width - limitLeft;
+          x = width;
         } else if (x - limitLeft <= 0) { // beyond left
           anchor = 'start';
-          x = limitLeft;
+          x = 0;
         }
         node.setAttribute('x', x + marginLeft);
         node.setAttribute('y', y - marginBottom);
@@ -1341,11 +1405,12 @@
         this.showMenu = false;
       }
 
-      changeInterpolation(interpolation) {
+      _interpolationChanged(interpolation) {
         this._graphs.forEach(g => {
           if (g && g._isAttached)
             g.set('interpolation', interpolation);
         })
+        this.redraw();
       }
 
       _onAxisBrushEnd(key) {
@@ -1417,8 +1482,10 @@
         if (!this.multiAxesX) {
           domain = x.domain();
           this._graphs.forEach(g => {
-            g.scaleX.domain(domain);
-            g.axisGeneratorX.scale(g.scaleX);
+            if (g._isAttached && g.scaleX && g.scaleY) {
+              g.scaleX.domain(domain);
+              g.axisGeneratorX.scale(g.scaleX);
+            }
           })
           this.scaleX.domain(domain);
           this.axisX.call(this.axisGeneratorX.scale(this.scaleX));
@@ -1427,8 +1494,10 @@
         if (!this.multiAxesY) {
           domain = y.domain();
           this._graphs.forEach(g => {
-            g.scaleY.domain(domain);
-            g.axisGeneratorY.scale(g.scaleY);
+            if (g._isAttached && g.scaleX && g.scaleY) {
+              g.scaleY.domain(domain);
+              g.axisGeneratorY.scale(g.scaleY);
+            }
           })
           this.scaleY.domain(domain);
           this.axisY.call(this.axisGeneratorY.scale(this.scaleY));
@@ -1482,16 +1551,18 @@
         this.axisX._isBrushed = false;
         this.axisY._isBrushed = false;
         this._graphs.forEach(g => {
-          g.axisX._isBrushed = false;
-          g.axisY._isBrushed = false;
-          if (g.domainX && g.domainX.some(e => { return e === undefined || e === null; })) {
-            g.scaleX.domain(g.domainX);
+          if (g._isAttached && g.scaleX && g.scaleY) {
+            g.axisX._isBrushed = false;
+            g.axisY._isBrushed = false;
+            if (g.domainX && g.domainX.some(e => { return e === undefined || e === null; })) {
+              g.scaleX.domain(g.domainX);
+            }
+            if (g.domainY && g.domainY.some(e => { return e === undefined || e === null; })) {
+              g.scaleY.domain(g.domainY).nice();
+            }
+            g.axisX.transition().call(g.axisGeneratorX.scale(g.scaleX));
+            g.axisY.transition().call(g.axisGeneratorY.scale(g.scaleY));
           }
-          if (g.domainY && g.domainY.some(e => { return e === undefined || e === null; })) {
-            g.scaleY.domain(g.domainY).nice();
-          }
-          g.axisX.transition().call(g.axisGeneratorX.scale(g.scaleX));
-          g.axisY.transition().call(g.axisGeneratorY.scale(g.scaleY));
         })
         if (!this.autoHideInfoDisabled) {
           this._hideInfo();

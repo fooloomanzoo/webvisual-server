@@ -2,7 +2,7 @@
   "entrypoint": "index.html",
   "shell": "src/webvisual-app.html",
   "fragments": [ "src/page-home.html", "src/page-list.html", "src/page-groups.html", "src/page-detail.html", "src/lazy-resources.html" ],
-  "sources": [ "src/**/*", "scripts/**/*", "polyfills/**/*" ],
+  "sources": [ "src/**/*", "scripts/**/*", "bower_components/es6-promise/*" ],
   "extraDependencies": [ "bower_components/webcomponentsjs/*", "bower_components/es6-promise/*", "manifest.json", "app.yaml" ],
   "builds": [ {
     "name": "bundled",

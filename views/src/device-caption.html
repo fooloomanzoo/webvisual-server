@@ -71,6 +71,9 @@
       }
     </style>
 
+    <template is="dom-if" if="[[title]]">
+      <section class="captions">[[title]]</section>
+    </template>
     <template is="dom-repeat" items="[[reducedCaptionKeys]]" as="captionKey">
       <section class="captions" hidden$="[[isEmptyCaption(captionKey, groupBy)]]">[[getKey(captionKey, groupBy, keys.*)]]</section>
     </template>
@@ -84,6 +87,10 @@
       static get is() { return 'device-caption'; }
 
       static get properties() { return {
+
+        title: {
+          type: String
+        },
 
         keys: {
           type: Object,

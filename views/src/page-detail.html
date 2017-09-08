@@ -12,7 +12,10 @@
   <template strip-whitespace>
     <style include="selectbox-style">
       :host {
-        --control-button-distance: 2px;
+        --control-icon-size-fine: 18px;
+        --control-icon-size-coarse: 22px;
+        --control-icon-padding-fine: 4px;
+        --control-icon-padding-coarse: 6px;
         --drawer-width: 16em;
         --drawer-background: rgba(255,255,255,0.25);
         --drawer-content: {
@@ -30,12 +33,6 @@
         height: 100%;
       }
 
-      #control {
-        display: block;
-        height: 100%;
-        box-sizing: border-box;
-      }
-
       #chart,
       #svg {
         max-height: 50%;
@@ -46,8 +43,8 @@
 
       #svg {
         overflow: hidden;
-        --control-bottom: 8px;
-        --control-right: 16px;
+        --control-bottom: 16px;
+        --control-right: 8px;
       }
 
       #chart {
@@ -56,7 +53,7 @@
         --chart-plot-background-opacity: 0.8;
         --control-top: 14px;
         --control-bottom: auto;
-        --control-right: 16px;
+        --control-right: 8px;
       }
 
       #chart[fullheight] {
@@ -155,6 +152,13 @@
         #drawer {
           --drawer-background: rgba(255,255,255,0.33);
         }
+        #svg {
+          --control-right: 16px;
+        }
+
+        #chart {
+          --control-right: 16px;
+        }
       }
 
       @media (min-width: 601px) {
@@ -174,6 +178,8 @@
     <!-- Routing-->
     <iron-location query="{{query}}"></iron-location>
     <iron-query-params params-string="{{query}}" params-object="{{queryParams}}"></iron-query-params>
+
+    <!-- Narrow Layout -->
     <iron-media-query query="(max-width: 600px)" query-matches="{{narrowLayout}}"></iron-media-query>
 
     <group-data
@@ -187,22 +193,22 @@
       data="{{svgData}}"></svg-data>
 
     <div id="content">
-      <template is="dom-if" if="[[visible]]">
-        <device-chart id="chart" opened$="[[visible]]" fullheight$="[[!_withSvg]]"
-          items="[[items]]" multi></device-chart>
+      <device-chart id="chart" opened$="[[visible]]" fullheight$="[[!_withSvg]]"
+        items="[[items]]" multi></device-chart>
 
-        <template is="dom-if" if="[[_withSvg]]">
-          <device-svg id="svg"
-            opened$="[[visible]]"
-            url-prefix="/images"
-            src="[[_svgSrcPath]]"
-            selectable="[[_getSvgSelectable(item.svg.path, svgData)]]"
-            items="[[items]]"
-            multi
-            exceeding="[[exceeding]]"></device-svg>
-        </template>
+      <template is="dom-if" if="[[_withSvg]]">
+        <device-svg id="svg"
+          opened$="[[visible]]"
+          url-prefix="/images"
+          src="[[_svgSrcPath]]"
+          selectable="[[_getSvgSelectable(item.svg.path, svgData)]]"
+          items="[[items]]"
+          multi
+          exceeding="[[exceeding]]"></device-svg>
+      </template>
 
-        <drawer-element id="drawer" opened$="[[_ensureOpened(narrowLayout)]]" swipe-open$="[[narrowLayout]]" scrim persistent$="[[!narrowLayout]]" align="right" stretch>
+      <drawer-element id="drawer" opened$="[[_ensureOpened(narrowLayout)]]" swipe-open$="[[narrowLayout]]" scrim persistent$="[[!narrowLayout]]" align="right" stretch>
+        <template is="dom-if" if="[[visible]]">
           <div class="groupbox">
             <div class="selectbox" title="[[groupBy]]">
               <select value="{{groupBy::change}}">
@@ -225,14 +231,17 @@
               <device-checkbox class="checkbox"
                 item-id$="[[item.id]]"
                 item="[[item]]"
+                title$="[[item.title]]"
                 selectable>
-                <device-caption class="caption" keys="[[item.keys]]"></device-caption>
+                <device-caption class="caption"
+                  title$="[[item.title]]"
+                  keys="[[item.keys]]"></device-caption>
               </device-checkbox>
             </template>
           </tabs-container>
           <device-table-group id="table" items="[[items]]" selected-mount="[[item.mount]]" hidden$="[[nothingSelected]]"></device-table-group>
-        </drawer-element>
-      </template>
+        </template>
+      </drawer-element>
     </div>
   </template>
 
@@ -503,7 +512,6 @@
       }
 
       _visibleChanged(visible) {
-        console.log('detail', visible);
         if (visible === true) {
           this._debounceResize();
         } else {

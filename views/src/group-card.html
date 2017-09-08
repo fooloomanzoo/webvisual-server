@@ -1,15 +1,21 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
 <link rel="import" href="mixins/container-mixin.html">
 
+<link rel="import" href="style/control-style.html">
+
 <dom-module id='group-card'>
   <template strip-whitespace>
-    <style>
+    <style include="control-style">
       :host {
         display: block;
         position: relative;
         -webkit-touch-callout: none; -webkit-tap-highlight-color:rgba(0,0,0,0);
         background: white;
         background: var(--group-card-background, #e5e5e5);
+        --control-icon-size-fine: 18px;
+        --control-icon-size-coarse: 22px;
+        --control-icon-padding-fine: 4px;
+        --control-icon-padding-coarse: 6px;
       }
       #header {
         @apply --layout-fit;
@@ -113,14 +119,6 @@
         -webkit-perspective-origin: center top;
         -moz-perspective-origin: center top;
       }
-      :host(.fullscreen) #headerContent {
-        /* blink mistake */
-        /*isolation: unset;*/
-      }
-      icon-button.iron-selected {
-        opacity: 1;
-        background-color: rgba(255,255,255, 0.125);
-      }
       .expand-button {
         margin-right: 0.5em;
         flex-shrink: 0;
@@ -130,17 +128,11 @@
       }
       #control {
         position: static;
-        left: 0; bottom: 0; right: auto; top: auto;
-        pointer-events: none;
-        will-change: opacity;
         transition-property: opacity;
         transition-duration: 500ms;
-        transition-timing-function: cubic-bezier(0.6,0,0.2,1);
-        mix-blend-mode: exclusion;
+        transition-timing-function: cubic-bezier(0.6, 0, 0.2, 1);
+        pointer-events: none;
         opacity: 0;
-      }
-      #control icon-button {
-        background: rgba(255,255,255,0.0625);
       }
       #control icon-button.iron-selected {
         background: rgba(255,255,255,0.25);
@@ -150,15 +142,35 @@
         opacity: 1;
       }
       device-table-group[opened] {
-        margin: 3em 0 2.5em 0;
+        margin-top: 3em;
+        margin-left: 0;
+        margin-bottom: calc(var(--icon-size) + 2*var(--icon-padding));
+        margin-right: 0;
       }
       device-chart {
         --options-scrim-background: transparent;
       }
       device-chart[opened] {
         margin-top: 3em;
-        padding-bottom: calc(var(--icon-size, 1.5em) + 2*var(--icon-padding, 0.5em));
+        padding-bottom: calc(var(--icon-size) + 2*var(--icon-padding));
       }
+      @media (pointer: fine) {
+        device-chart[opened] {
+          padding-bottom: calc(var(--control-icon-size-fine, var(--icon-size)) + 2*var(--control-icon-padding-fine, var(--icon-padding)));
+        }
+        device-table-group[opened] {
+          margin-bottom: calc(var(--control-icon-size-fine, var(--icon-size)) + 2*var(--control-icon-padding-fine, var(--icon-padding)));
+        }
+      }
+      @media (pointer: coarse) {
+        device-chart[opened] {
+          padding-bottom: calc(var(--control-icon-size-coarse, var(--icon-size)) + 2*var(--control-icon-padding-coarse, var(--icon-padding)));
+        }
+        device-table-group[opened] {
+          margin-bottom: calc(var(--control-icon-size-coarse, var(--icon-size)) + 2*var(--control-icon-padding-coarse, var(--icon-padding)));
+        }
+      }
+
       [hidden] {
         display: none !important;
       }
@@ -196,7 +208,7 @@
           <icon-button title="expand" on-click="toggle" class="expand-button" icon="[[expandIcon]]"></icon-button>
         </section>
 
-        <section id="control">
+        <section id="control" class="left bottom">
           <iron-selector selected="{{view}}" selectable=".button">
             <template is="dom-if" if="[[svgSrcPath]]">
               <icon-button title="map" icon="map" class="button" hidden$="[[!svgSrcPath]]"></icon-button>
@@ -328,18 +340,15 @@
             this.$.headerBackground.style['transition'] = '';
             this.$.headerBackground.style['will-change'] = 'padding-top';
             if (this._state === this._STATE.OPENING) {
-              this.$.control.style['transition'] = '';
-              this.$.control.style['will-change'] = 'opacity';
               this.$.addons.classList.add('opened');
               this.$.header.classList.add('opened');
               this.$.headerBackground.classList.add('opened');
             } else if (this._state === this._STATE.CLOSING) {
-              this.$.control.style['transition'] = 'none';
-              this.$.control.style['will-change'] = '';
               this.$.control.classList.remove('opened');
               this.$.addons.classList.remove('opened');
               this.$.headerBackground.classList.remove('opened');
             }
+            // ensure that the transition will end
             setTimeout(() => {
               this._transitionEnd();
             }, this.transitionDuration)

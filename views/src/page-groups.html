@@ -148,11 +148,13 @@
                   <li>
                     <device-sign
                       item="[[_getItem(id, elements, visible)]]"
+                      title$="[[item.title]]"
                       show-date
                       no-link="[[!visible]]"
                       selectable></device-sign>
                     <device-caption
                       vertical
+                      title$="[[item.title]]"
                       keys="[[_getItemKeys(id, elements)]]"
                       group-by='[[groupBy]]' without-group-by></device-caption>
                   </li>

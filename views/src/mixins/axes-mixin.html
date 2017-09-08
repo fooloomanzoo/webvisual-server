@@ -183,6 +183,36 @@
         }
       }
 
+      _scaleXChanged(scaleX) {
+        if (scaleX === undefined) {
+          return;
+        }
+        super._scaleXChanged(scaleX);
+        if (this.axisX && !this.axisX.attr('hidden') && this.scaleX) {
+          this.axisGeneratorX = this._computeAxisGenerator(this.axisOrientX, this.scaleX, this.scalingX, this.scaleBaseX).ticks(this.ticksX).tickSize(this.tickSize).tickFormat(this.axisX.classed('expanded') ? this._computeFormatFn(
+            this.scalingX, this.scaleBaseX) : '');
+          this._updateAxisBrushGenerator.call(this.axisBrushGeneratorX, this.rangeX, this.axisOrientX);
+          if (this.brushToZoom) this.axisX.select('.brush').raise().call(this.axisBrushGeneratorX);
+          this.axisX.attr('transform', 'translate(' + (this.axisX._left || 0) + ',' + (this.axisX._top || 0) + ')');
+        }
+        this.redraw();
+      }
+
+      _scaleYChanged(scaleY) {
+        if (scaleY === undefined) {
+          return;
+        }
+        super._scaleYChanged(scaleY);
+        if (this.axisY && !this.axisY.attr('hidden') && this.scaleY) {
+          this.axisGeneratorY = this._computeAxisGenerator(this.axisOrientY, this.scaleY, this.scalingY, this.scaleBaseY).ticks(this.ticksY).tickSize(this.tickSize).tickFormat(this.axisY.classed('expanded') ? this._computeFormatFn(
+            this.scalingY, this.scaleBaseY) : '');
+          this._updateAxisBrushGenerator.call(this.axisBrushGeneratorY, this.rangeY, this.axisOrientY);
+          if (this.brushToZoom) this.axisY.select('.brush').raise().call(this.axisBrushGeneratorY);
+          this.axisY.attr('transform', 'translate(' + (this.axisY._left || 0) + ',' + (this.axisY._top || 0) + ')');
+        }
+        this.redraw();
+      }
+
       _computeAxisNode(insertionPoint, orient, title, old) {
         if (insertionPoint === undefined) return;
         const color = this.axisColor || '';

@@ -6,6 +6,7 @@ module.exports = {
     '/bower_components/es6-promise/es6-promise.auto.min.js',
 		'/src/**/*',
 		'/scripts/**/*',
+		'/polyfill*',
 		'*/fonts/**/*',
 		'/icons/**/*',
 		'/images/**/*',
@@ -70,6 +71,14 @@ module.exports = {
 			}
 		}, {
 			urlPattern: /scripts\/.*/,
+			handler: 'fastest',
+			options: {
+				cache: {
+					name: 'scripts-cache'
+				}
+			}
+		}, {
+			urlPattern: /polyfills.*/,
 			handler: 'fastest',
 			options: {
 				cache: {

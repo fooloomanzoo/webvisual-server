@@ -13,7 +13,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "start:development": "node index.js development",
+    "start:development": "cd views && rollup -c && cd .. && node index.js development",
     "debug": "node debug.js redis",
     "stop": "taskkill /IM node.exe /F",
     "prepare": "npm version patch",

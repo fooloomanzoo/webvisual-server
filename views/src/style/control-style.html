@@ -1,0 +1,51 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<dom-module id="control-style">
+  <template>
+    <style>
+      #control {
+        position: absolute;
+        mix-blend-mode: var(--control-mix-blend-mode, exclusion);
+        bottom: var(--control-bottom, auto);
+        right: var(--control-right, auto);
+        top: var(--control-top, auto);
+        left: var(--control-left, auto);
+      }
+      /* standard position */
+      #control.left {
+        left: var(--control-left, 0px);
+      }
+      #control.top {
+        top: var(--control-top, 0px);
+      }
+      #control.right {
+        right: var(--control-right, 0px);
+      }
+      #control.bottom {
+        bottom: var(--control-bottom, 0px);
+      }
+      #control > *:not(:first-of-type) {
+        margin-left: var(--control-button-distance, 2px);
+      }
+      #control icon-button {
+        background: rgba(255,255,255,0.0625);
+      }
+      #control icon-button:focus,
+      #control icon-button:hover {
+        background: rgba(255,255,255,0.125);
+      }
+      @media (pointer: fine) {
+        #control icon-button {
+          --icon-size: var(--control-icon-size-fine);
+          --icon-padding: var(--control-icon-padding-fine);
+        }
+      }
+      @media (pointer: coarse) {
+        #control icon-button {
+          --icon-size: var(--control-icon-size-coarse);
+          --icon-padding: var(--control-icon-padding-coarse);
+        }
+      }
+    </style>
+  </template>
+</dom-module>

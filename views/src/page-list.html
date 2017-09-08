@@ -58,9 +58,11 @@
             <a href$="/detail?room=[[queryParams.room]]&ids=[[item.id]]">
               <device-sign
                 item="[[item]]"
+                title$="[[item.title]]"
                 no-link="[[!visible]]"
                 show-date></device-sign>
               <device-caption
+                title$="[[item.title]]"
                 keys="[[item.keys]]"></device-caption>
               <paper-ripple class="ripple"></paper-ripple>
             </a>
