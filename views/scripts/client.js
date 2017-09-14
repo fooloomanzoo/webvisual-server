@@ -208,7 +208,7 @@ WebvisualClient.prototype = {
 
 	_testMobile: function() {
 		const ua = window.navigator.userAgent;
-		return (/[mM]obi/i.test(ua) || /[tT]abconst/i.test(ua) || /[aA]ndroid/i.test(ua));
+		return (/[mM]obi/i.test(ua) || /[tT]ablet/i.test(ua) || /[aA]ndroid/i.test(ua));
 	}
 }
 

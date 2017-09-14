@@ -810,10 +810,19 @@
 
       _loadPresettings() {
         const settings = JSON.parse(localStorage.getItem('settings'));
+        if (!settings && this._isMobile()) {
+          this.setProperties({dark: true, plain: true});
+          return;
+        }
         for (let key in settings) {
           this.set(key, settings[key]);
         }
         this._updateStyles();
+      }
+
+      _isMobile() {
+        const ua = window.navigator.userAgent;
+        return (/[mM]obi/i.test(ua) || /[tT]ablet/i.test(ua) || /[aA]ndroid/i.test(ua));
       }
 
       _plainChanged(plain, old) {
