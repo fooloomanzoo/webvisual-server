@@ -234,8 +234,8 @@
           <iron-collapse opened$="[[showTabs]]" hidden$="[[!wideLayout]]" horizontal style="align-self: flex-end;">
             <div class="tab-drawer top">
               <div class="selectbox toolbar grouping top" title="[[groupBy]]" hidden$="[[hideGroupSelect]]">
-                <select value="{{groupBy::change}}" sort="_sort">
-                  <template is="dom-repeat" items="[[groupingKeys]]">
+                <select value="{{groupBy::change}}">
+                  <template is="dom-repeat" items="[[groupingKeys]]" sort="_sort">
                     <option value="[[item]]">[[item]]</option>
                   </template>
                 </select>
@@ -400,8 +400,8 @@
           <div class="selectbox grouping" title="[[groupBy]]" hidden$="[[hideGroupSelect]]">
             <iron-icon icon="filter-list"></iron-icon>
             <span>{{localize('group by')}}</span>
-            <select value="{{groupBy::change}}" sort="_sort">
-              <template is="dom-repeat" items="[[groupingKeys]]">
+            <select value="{{groupBy::change}}">
+              <template is="dom-repeat" items="[[groupingKeys]]" sort="_sort">
                 <option value="[[item]]">[[item]]</option>
               </template>
             </select>
