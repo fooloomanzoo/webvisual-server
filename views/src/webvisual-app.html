@@ -34,10 +34,14 @@
         height: 4em;
         padding-left: 1em;
         padding-right: 1em;
+        color: inherit;
         @apply --app-toolbar;
       }
-      app-toolbar icon-button {
-        transform: scale(1);
+      app-header {
+        color: inherit;
+      }
+      app-header-layout {
+        color: inherit;
       }
       #drawer .drawer-content {
         display: block;
@@ -122,6 +126,10 @@
       }
       logo-element {
         height: 100%;
+        opacity: 0.925;
+      }
+      logo-element:hover {
+        opacity: 1;
       }
       .notification > .message {
         padding-left: 3em;
@@ -588,12 +596,12 @@
 
       connectedCallback() {
         super.connectedCallback();
+        this._addKeyListeners();
         Polymer.RenderStatus.afterNextRender(this, function() {
           window.addEventListener('online', this._notifyNetworkStatus.bind(this));
           window.addEventListener('offline', this._notifyNetworkStatus.bind(this));
+          // this.removeAttribute('unresolved');
         });
-        this.removeAttribute('unresolved');
-        this._addKeyListeners();
       }
 
       _routePageChanged(path) {

@@ -1,6 +1,6 @@
 [ {
   "name": "Berlin",
-  "title": "Population of Berlin City Quarters",
+  "title": "Bevölkerungsentwicklung Berliner Stadtbezirke",
   "view": {
     "initial": "detail"
   },
@@ -207,8 +207,12 @@
     "exclusiveGroups": {}
   } ]
 }, {
+
   "name": "Bor",
-  "title": "particles of the element Bor",
+  "title": "Partikel des Elements Bor",
+  "view": {
+    "initial": "groups"
+  },
   "clientRequest": {
     "initial": {
       "mobile": 300,
@@ -411,8 +415,231 @@
     "exclusiveGroups": {}
   } ]
 }, {
+
+  "name": "Bor-Alarm",
+  "title": "Partikel des Elements Bor (Alarme)",
+  "view": {
+    "initial": "groups"
+  },
+  "clientRequest": {
+    "initial": {
+      "mobile": 300,
+      "stationary": 1000
+    }
+  },
+
+  "locals": [ {
+    "connections": {
+      "file": {
+        "mode": "append",
+        "path": [
+          "./examples/datafile/bor-atom.txt"
+        ],
+        "format": {
+          "dateFormat": "DD.MM.YYYY hh:mm:ss",
+          "decimalSeparator": ".",
+          "valueSeparator": ";",
+          "dimensions": 1
+        },
+        "ignoredFirstLines": 0
+      }
+    },
+
+    "svgSource": {
+      "bor-atom-modell.svg": {
+        "items": {},
+        "minZoom": 2,
+        "maxZoom": 10,
+        "zoomPartition": 6
+      }
+    },
+    "ignore": [],
+    "items": [ {
+      "id": "p1",
+      "keys": {
+        "name": "p1",
+        "type": "proton"
+      },
+      "isIndicatorLamp": true,
+      "svg": {
+        "selector": "ellipse#ellipse4802",
+        "path": "./examples/svg/bor-atom-modell.svg"
+      }
+    }, {
+      "id": "p2",
+      "keys": {
+        "name": "p2",
+        "type": "proton"
+      },
+      "isIndicatorLamp": true,
+      "svg": {
+        "selector": "ellipse#ellipse4804",
+        "path": "./examples/svg/bor-atom-modell.svg"
+      }
+    }, {
+      "id": "p3",
+      "keys": {
+        "name": "p3",
+        "type": "proton"
+      },
+      "isIndicatorLamp": true,
+      "svg": {
+        "selector": "ellipse#ellipse4806",
+        "path": "./examples/svg/bor-atom-modell.svg"
+      }
+    }, {
+      "id": "p4",
+      "keys": {
+        "name": "p4",
+        "type": "proton"
+      },
+      "isIndicatorLamp": true,
+      "svg": {
+        "selector": "ellipse#ellipse4808",
+        "path": "./examples/svg/bor-atom-modell.svg"
+      }
+    }, {
+      "id": "p5",
+      "keys": {
+        "name": "p5",
+        "type": "proton"
+      },
+      "isIndicatorLamp": true,
+      "svg": {
+        "selector": "ellipse#ellipse4810",
+        "path": "./examples/svg/bor-atom-modell.svg"
+      }
+    }, {
+      "id": "n1",
+      "keys": {
+        "name": "n1",
+        "type": "neutron"
+      },
+      "isIndicatorLamp": true,
+      "svg": {
+        "selector": "circle#circle4812",
+        "path": "./examples/svg/bor-atom-modell.svg"
+      }
+    }, {
+      "id": "n2",
+      "keys": {
+        "name": "n2",
+        "type": "neutron"
+      },
+      "isIndicatorLamp": true,
+      "svg": {
+        "selector": "circle#circle4814",
+        "path": "./examples/svg/bor-atom-modell.svg"
+      }
+    }, {
+      "id": "n3",
+      "keys": {
+        "name": "n3",
+        "type": "neutron"
+      },
+      "isIndicatorLamp": true,
+      "svg": {
+        "selector": "circle#circle4816",
+        "path": "./examples/svg/bor-atom-modell.svg"
+      }
+    }, {
+      "id": "n4",
+      "keys": {
+        "name": "n4",
+        "type": "neutron"
+      },
+      "isIndicatorLamp": true,
+      "svg": {
+        "selector": "circle#circle4818",
+        "path": "./examples/svg/bor-atom-modell.svg"
+      }
+    }, {
+      "id": "n5",
+      "keys": {
+        "name": "n5",
+        "type": "neutron"
+      },
+      "isIndicatorLamp": true,
+      "svg": {
+        "selector": "circle#circle4820",
+        "path": "./examples/svg/bor-atom-modell.svg"
+      }
+    }, {
+      "id": "e1",
+      "keys": {
+        "name": "e1",
+        "type": "electron",
+        "orbital": "s1"
+      },
+      "isIndicatorLamp": true,
+      "svg": {
+        "selector": "ellipse#ellipse4851",
+        "path": "./examples/svg/bor-atom-modell.svg"
+      }
+    }, {
+      "id": "e2",
+      "keys": {
+        "name": "e2",
+        "type": "electron",
+        "orbital": "s2"
+      },
+      "isIndicatorLamp": true,
+      "svg": {
+        "selector": "ellipse#ellipse4853",
+        "path": "./examples/svg/bor-atom-modell.svg"
+      }
+    }, {
+      "id": "e3",
+      "keys": {
+        "name": "e3",
+        "type": "electron",
+        "orbital": "p1"
+      },
+      "isIndicatorLamp": true,
+      "svg": {
+        "selector": "ellipse#ellipse4855",
+        "path": "./examples/svg/bor-atom-modell.svg"
+      }
+    }, {
+      "id": "e4",
+      "keys": {
+        "name": "e4",
+        "type": "electron",
+        "orbital": "p2"
+      },
+      "isIndicatorLamp": true,
+      "svg": {
+        "selector": "ellipse#ellipse4857",
+        "path": "./examples/svg/bor-atom-modell.svg"
+      }
+    }, {
+      "id": "e5",
+      "keys": {
+        "name": "e5",
+        "type": "electron",
+        "orbital": "p3"
+      },
+      "isIndicatorLamp": true,
+      "svg": {
+        "selector": "ellipse#ellipse4859",
+        "path": "./examples/svg/bor-atom-modell.svg"
+      }
+    } ],
+    "unnamedItem": {
+      "id": "id",
+      "unit": "MeV"
+    },
+    "valueModel": {
+      "x": null,
+      "y": 0
+    },
+    "groupingKeys": [ "type" ],
+    "preferedGroupingKey": "type",
+    "exclusiveGroups": {}
+  } ]
+}, {
   "name": "Boxes",
-  "title": "boxes",
+  "title": "Box-Diagramm",
   "clientRequest": {
     "initial": {
       "mobile": 300,

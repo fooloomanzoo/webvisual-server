@@ -87,7 +87,6 @@
     body {
       display: flex;
       margin: 0;
-      font-weight: 300;
       font-family: 'Fira Sans', sans-serif;
       font-size: calc(0.7em + 0.6vmin);
       line-height: normal;
@@ -102,7 +101,7 @@
       display: block;
       box-sizing: border-box;
       top: 0; bottom: 0; left: 0; right: 0;
-      background: #005B82;
+      background: #003c65;
     }
     webvisual-app[unresolved] {
       display: flex;
@@ -112,30 +111,27 @@
       align-items: center;
       align-self: stretch;
     }
-    .unresolved-placeholder {
-      margin-bottom: 32px;
-    }
-    webvisual-app .circle {
+    webvisual-app > .circle {
       display: inherit;
       transform-origin: center center;
       transform: scale(0);
       stroke: #1ED146;
       fill: #1ED146;
-      stroke-width: 2px;
       will-change: transform, fill-opacity, stroke-opacity;
       animation-name: drop, color;
-      animation-duration: 4s, 16s;
+      animation-duration: 3s, 12s;
       animation-timing-function: cubic-bezier(0.6, 0, 0.3, 1);
       animation-iteration-count: infinite;
     }
-    webvisual-app .circle:nth-of-type(1) { animation-delay: 2000ms; }
-    webvisual-app .circle:nth-of-type(2) { animation-delay: 2250ms; }
-    webvisual-app .circle:nth-of-type(3) { animation-delay: 2450ms; }
-    webvisual-app .circle:nth-of-type(4) { animation-delay: 2600ms; }
-    webvisual-app .circle:nth-of-type(5) { animation-delay: 2700ms; }
-    webvisual-app .circle:nth-of-type(6) { animation-delay: 2750ms; }
-    webvisual-app .circle:nth-of-type(2n) { stroke: #fff !important; }
-    webvisual-app:not([unresolved]) .unresolved-placeholder {
+    webvisual-app > .circle:nth-of-type(1) { animation-delay: 0ms; }
+    webvisual-app > .circle:nth-of-type(2) { animation-delay: 250ms; }
+    webvisual-app > .circle:nth-of-type(3) { animation-delay: 450ms; }
+    webvisual-app > .circle:nth-of-type(4) { animation-delay: 600ms; }
+    webvisual-app > .circle:nth-of-type(5) { animation-delay: 700ms; }
+    webvisual-app > .circle:nth-of-type(6) { animation-delay: 750ms; }
+    webvisual-app > .circle:nth-of-type(2n) { stroke: #fff !important; }
+    webvisual-app:not([unresolved]) > .circle,
+    webvisual-app:not([unresolved]) > .unresolved-placeholder {
       display: none;
     }
     @keyframes drop {
@@ -195,18 +191,19 @@
 <body>
 
   <webvisual-app unresolved>
-    <header class="unresolved-placeholder" style="color:#fff;font-size: 24px;letter-spacing: 6px;">WEBVISUAL</header>
-    <svg class="unresolved-placeholder" xmlns="http://www.w3.org/2000/svg" width="144" height="144" viewBox="0 0 18 18" version="1.1" preserveAspectRatio="xMinYMin">
+    <header class="unresolved-placeholder" style="color:#fff;font-size: 24px;letter-spacing: 6px;margin-bottom: 24px;">WEBVISUAL</header>
+    <svg class="unresolved-placeholder" xmlns="http://www.w3.org/2000/svg" width="154" height="144" viewBox="0 0 48 48" version="1.1" preserveAspectRatio="xMidYMid meet">
       <g>
-        <circle class="circle" r="9" cy="9" cx="9" transform="scale(0)"></circle>
-        <circle class="circle" r="9" cy="9" cx="9" transform="scale(0)"></circle>
-        <circle class="circle" r="9" cy="9" cx="9" transform="scale(0)"></circle>
-        <circle class="circle" r="9" cy="9" cx="9" transform="scale(0)"></circle>
-        <circle class="circle" r="9" cy="9" cx="9" transform="scale(0)"></circle>
-        <circle class="circle" r="9" cy="9" cx="9" transform="scale(0)"></circle>
+        <path class="circle" d="M 23.990234,0.01171875 C 14.597239,-0.27097225 5.5917044,4.6762406 1.171875,13.058594 c -0.024776,0.07088 -0.043928,0.140187 -0.068359,0.210937 l -0.31835935,0.794922 c -0.32397553,0.812164 -0.53429919,1.593331 -0.65625,2.345703 -2.29471665,9.940211 -0.62318539,17.410205 5.27148435,24.25586 2.4261372,2.435229 5.4196134,4.414564 8.8945314,5.714843 C 27.056539,51.158283 41.399235,45.008604 46.330078,32.646484 50.084509,23.233459 47.293334,12.935535 40.115234,6.4472656 34.988027,1.8260659 30.213662,0.61307918 25.873047,0.13671875 c -0.628388,-0.06588 -1.256612,-0.106169 -1.882813,-0.125 z" transform="scale(0)" stroke-width="2"/>
+        <path class="circle" d="M 23.990234,0.01171875 C 14.597239,-0.27097225 5.5917044,4.6762406 1.171875,13.058594 c -0.024776,0.07088 -0.043928,0.140187 -0.068359,0.210937 l -0.31835935,0.794922 c -0.32397553,0.812164 -0.53429919,1.593331 -0.65625,2.345703 -2.29471665,9.940211 -0.62318539,17.410205 5.27148435,24.25586 2.4261372,2.435229 5.4196134,4.414564 8.8945314,5.714843 C 27.056539,51.158283 41.399235,45.008604 46.330078,32.646484 50.084509,23.233459 47.293334,12.935535 40.115234,6.4472656 34.988027,1.8260659 30.213662,0.61307918 25.873047,0.13671875 c -0.628388,-0.06588 -1.256612,-0.106169 -1.882813,-0.125 z" transform="scale(0)" stroke-width="2"/>
+        <path class="circle" d="M 23.990234,0.01171875 C 14.597239,-0.27097225 5.5917044,4.6762406 1.171875,13.058594 c -0.024776,0.07088 -0.043928,0.140187 -0.068359,0.210937 l -0.31835935,0.794922 c -0.32397553,0.812164 -0.53429919,1.593331 -0.65625,2.345703 -2.29471665,9.940211 -0.62318539,17.410205 5.27148435,24.25586 2.4261372,2.435229 5.4196134,4.414564 8.8945314,5.714843 C 27.056539,51.158283 41.399235,45.008604 46.330078,32.646484 50.084509,23.233459 47.293334,12.935535 40.115234,6.4472656 34.988027,1.8260659 30.213662,0.61307918 25.873047,0.13671875 c -0.628388,-0.06588 -1.256612,-0.106169 -1.882813,-0.125 z" transform="scale(0)" stroke-width="2"/>
+        <path class="circle" d="M 23.990234,0.01171875 C 14.597239,-0.27097225 5.5917044,4.6762406 1.171875,13.058594 c -0.024776,0.07088 -0.043928,0.140187 -0.068359,0.210937 l -0.31835935,0.794922 c -0.32397553,0.812164 -0.53429919,1.593331 -0.65625,2.345703 -2.29471665,9.940211 -0.62318539,17.410205 5.27148435,24.25586 2.4261372,2.435229 5.4196134,4.414564 8.8945314,5.714843 C 27.056539,51.158283 41.399235,45.008604 46.330078,32.646484 50.084509,23.233459 47.293334,12.935535 40.115234,6.4472656 34.988027,1.8260659 30.213662,0.61307918 25.873047,0.13671875 c -0.628388,-0.06588 -1.256612,-0.106169 -1.882813,-0.125 z" transform="scale(0)" stroke-width="2"/>
+        <path class="circle" d="M 23.990234,0.01171875 C 14.597239,-0.27097225 5.5917044,4.6762406 1.171875,13.058594 c -0.024776,0.07088 -0.043928,0.140187 -0.068359,0.210937 l -0.31835935,0.794922 c -0.32397553,0.812164 -0.53429919,1.593331 -0.65625,2.345703 -2.29471665,9.940211 -0.62318539,17.410205 5.27148435,24.25586 2.4261372,2.435229 5.4196134,4.414564 8.8945314,5.714843 C 27.056539,51.158283 41.399235,45.008604 46.330078,32.646484 50.084509,23.233459 47.293334,12.935535 40.115234,6.4472656 34.988027,1.8260659 30.213662,0.61307918 25.873047,0.13671875 c -0.628388,-0.06588 -1.256612,-0.106169 -1.882813,-0.125 z" transform="scale(0)" stroke-width="2"/>
+        <path class="circle" d="M 23.990234,0.01171875 C 14.597239,-0.27097225 5.5917044,4.6762406 1.171875,13.058594 c -0.024776,0.07088 -0.043928,0.140187 -0.068359,0.210937 l -0.31835935,0.794922 c -0.32397553,0.812164 -0.53429919,1.593331 -0.65625,2.345703 -2.29471665,9.940211 -0.62318539,17.410205 5.27148435,24.25586 2.4261372,2.435229 5.4196134,4.414564 8.8945314,5.714843 C 27.056539,51.158283 41.399235,45.008604 46.330078,32.646484 50.084509,23.233459 47.293334,12.935535 40.115234,6.4472656 34.988027,1.8260659 30.213662,0.61307918 25.873047,0.13671875 c -0.628388,-0.06588 -1.256612,-0.106169 -1.882813,-0.125 z" transform="scale(0)" stroke-width="2"/>
+        <path id="logo" class="unresolved-placeholder"
+        d="M 23.990234 0.01171875 C 14.597239 -0.27097225 5.5917044 4.6762406 1.171875 13.058594 C 1.157032 13.102094 1.1526886 13.146056 1.1347656 13.189453 L 0.78515625 14.064453 C -1.6631635 20.202066 2.0738489 24.737589 5.6972656 26.09375 C 9.314345 27.447796 15.333805 26.561701 17.78125 20.425781 L 25.873047 0.13671875 C 25.244659 0.07083875 24.616435 0.03054975 23.990234 0.01171875 z M 40.115234 6.4472656 L 32.441406 25.685547 C 27.587819 37.857468 15.982058 42.425228 5.4003906 40.666016 C 7.8265278 43.101245 10.820004 45.08058 14.294922 46.380859 C 27.056539 51.158283 41.399235 45.008604 46.330078 32.646484 C 50.084509 23.233459 47.293334 12.935535 40.115234 6.4472656 z "
+        stroke="none" fill="#fff" ></path>
       </g>
-      <path id="logo" class="unresolved-placeholder"
-         d="m 7.921007,9.6185999 c 0.00246,0 0.069517,-0.1271011 0.1238027,-0.2191016 C 8.4858762,8.6535007 11.162847,2.016 11.818367,0.45299994 10.931859,0.16060007 9.9845674,1.3411045e-7 8.9998426,1.3411045e-7 4.0292495,1.3411045e-7 0,4.0296008 0,9.0004025 0,9.8200982 0.11180425,10.613197 0.31703414,11.367597 0.88207947,10.999897 4.326143,8.6165011 4.3313039,8.6333003 4.8828769,10.664597 6.7408919,11.712097 7.9210133,9.6185999 Z M 15.877983,3.1983005 C 15.20168,4.7980011 12.925902,10.164797 12.315732,11.372497 11.113851,13.558698 9.1934612,15.598399 6.5917182,15.715499 3.5379727,15.852899 1.9207658,14.687199 1.0502453,13.219198 2.562154,16.0633 5.5546274,18 8.9998426,18 13.970672,18 18,13.970398 18,9.0004025 18,6.7887033 17.200507,4.7651011 15.877983,3.1983005" style="fill:#fff;"></path>
     </svg>
   </webvisual-app>
 

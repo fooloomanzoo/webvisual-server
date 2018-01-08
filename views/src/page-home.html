@@ -1,5 +1,6 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
 <link rel="import" href="mixins/localize-mixin.html">
+<link rel="import" href="logo-element.html"/>
 
 <dom-module id="page-home">
 
@@ -9,6 +10,7 @@
         color: var(--bright-text-color);
         overflow-y: auto;
         overflow-x: hidden;
+        bottom: 3.5em !important;
       }
       .box {
         @apply --layout-vertical;
@@ -86,7 +88,7 @@
         color: var(--bright-text-color);
       }
       a:active {
-        color: var(--active-link-color);
+        color: var(--highlight-color);
       }
       .login {
         position: absolute;
@@ -111,6 +113,23 @@
       .login:focus,
       .login:hover {
         opacity: 1;
+      }
+      .logo-link {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        left: 0;
+        padding: 0.5em 1.5em 0.5em 0.75em;
+        height: 2.5em;
+        font-weight: 300;
+        background-color: var(--primary-color);
+        color: inherit;
+        @apply --layout-horizontal;
+        @apply --layout-end-justified;
+      }
+      logo-element {
+        padding: 0;
+        background-color: var(--primary-color);
       }
       @media (min-width: 768px) {
         .box {
@@ -154,6 +173,10 @@
         </iron-selector>
       </template>
     </div>
+
+    <a href="http://www.fz-juelich.de" class="logo-link">
+      <logo-element title="fz-juelich.de"></logo-element>
+    </a>
 
   </template>
 

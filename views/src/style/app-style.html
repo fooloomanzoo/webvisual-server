@@ -3,14 +3,15 @@
 <custom-style>
   <style is="custom-style">
 
+    body,
     html {
-      --primary-color: #005B82;
-      --dark-primary-color: #345475; /* Primary Colors */
-      --bright-primary-color: #669DB4;
-      --secondary-color: #4EA7E8;
-      --bright-secondary-color: #E5EEf2;
+      --primary-color: #003c65;
+      --bright-primary-color: #97b8e2;
+      --secondary-color: #b183b9;
+      --bright-secondary-color: #e5d2e8;
       --icon-padding: 0.5em;
       --icon-size: 1.5em;
+      --icon-hover-background: rgba(255, 255, 255, 0.1);
     }
 
     :-webkit-full-screen-ancestor,
@@ -59,7 +60,7 @@
     <style>
 
       :host {
-        color: var(--primary-text-color);
+        color: var(--bright-text-color);
         background: var(--primary-background);
         -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 
@@ -67,14 +68,13 @@
         --primary-text-color: #202020;
         --bright-text-color: #f1f1f1;
         --disabled-text-color: #bbb;
-        --highlight-color: #D28741;
-        --select-color: #CDF2D5;
+        --highlight-color: #68D97B;
 
-        --device-color: #86CAEC;
+        --device-color: #5fb8eb;
         --device-text-color: #252525;
-        --device-state-inrange-color: #51cc41;
-        --device-state-deceeds-color: #920bad;
-        --device-state-exceeds-color: #D91B1B;
+        --device-state-inrange-color: #5feb75;
+        --device-state-deceeds-color: #af82b9;
+        --device-state-exceeds-color: #eb5f73;
         --device-state-inrange-text-color: var(--primary-text-color);
         --device-state-deceeds-text-color: var(--bright-text-color);
         --device-state-exceeds-text-color: var(--bright-text-color);
@@ -84,17 +84,12 @@
         --option-color: var(--primary-text-color);
         --option-background: #f1f1f1;
 
-        --active-link-color: #68D97B;
-        --notification-color: #FCFFBB;
-
-        --highlight-color: var(--active-link-color);
-
         --caption-background: #fff;
         --caption-color: var(--primary-text-color);
         --checkbox-checked-background: #fff;
         --table-background: #fff;
         --table-color: var(--primary-text-color);
-        --group-card-background: #d0d0d0;
+        --group-card-background: #ebebeb;
 
         --dialog-background-color: #eee;
         --dialog-color: var(--primary-text-color);
@@ -108,11 +103,11 @@
         --toggle-button-checked-bar-color:	#68D97B;
         --toggle-button-checked-button-color:	#68D97B;
         --toggle-button-checked-ink-color:	#68D97B;
-
-        --radio-button-checked-color: var(--select-color);
-        --radio-button-unchecked-color: var(--highlight-color);
+/*
+        --radio-button-checked-color: var(--highlight-color);
+        --radio-button-unchecked-color: var(--primary-color);
         --radio-button-unchecked-background-color: tranparent;
-        --radio-button-system-color: currentColor;
+        --radio-button-system-color: currentColor;*/
 
         --drawer-color: var(--bright-text-color);
         --drawer-width: 20em;
@@ -124,7 +119,6 @@
         };
         --app-toolbar: {
           background-color: var(--primary-color);
-          color: var(--bright-text-color, #f1f1f1);
           transition: background 500ms cubic-bezier(0.6, 0, 0.3, 1);
         };
         --svg-text: {
@@ -134,12 +128,13 @@
       }
 
       :host([plain]) {
+        color: var(--primary-color);
         --highlight-color: var(--secondary-color);
         --group-card-background: linear-gradient(to top, rgba(255,255,255,0.03125) 0%, rgba(255,255,255,0.03125) 62%,rgba(255,255,255,0.0625) 100%);
         --group-card-header-border: currentColor;
         --group-card-header-shim: transparent;
         --group-card-header-background: transparent;
-        --group-card-header-color: var(--bright-text-color);
+        --group-card-header-color: var(--primary-text-color);
         --grid-border-color: transparent;
         --checkbox-checked-background: var(--bright-primary-color);
         --toggle-button-unchecked-bar-color: var(--bright-primary-color);
@@ -152,40 +147,39 @@
         --toggle-button-unchecked-button-color: #f1f1f1;
         --toggle-button-unchecked-ink-color: var(--bright-primary-color);
 
-        --drawer-background: var(--dark-primary-color);
+        --drawer-background: var(--primary-color);
 
         --app-toolbar: {
           background-color: var(--bright-primary-color);
-          color: var(--bright-text-color);
         };
       }
 
       :host([plain][dark]) {
-        --primary-background: var(--dark-primary-color);
+        color: var(--bright-primary-color);
+        --primary-background: var(--primary-color);
+        --group-card-header-color: var(--bright-primary-color);
         --checkbox-checked-background: var(--secondary-color);
         --app-toolbar: {
-          background-color: var(--dark-primary-color);
-          color: var(--bright-text-color);
+          background-color: var(--primary-color);
         };
       }
 
       :host(:not([plain])) {
-        --primary-background: #858585;
+        --primary-background: #d0d0d0;
         --group-card-header-background: var(--bright-primary-color);
         --group-card-header-border: inherit;
         --group-card-header-shim: linear-gradient(to top, rgba(255,255,255,0.0078125) 38%,rgba(255,255,255,0.125) 100%);
-        --group-card-header-color: var(--bright-text-color);
+        --group-card-header-color: var(--primary-color);
         --grid-border-color: #888;
       }
 
       :host(:not([plain])[dark]) {
         --primary-background: #151515;
-        --group-card-header-background: var(--dark-primary-color);
-        --group-card-header-color: var(--bright-text-color);
+        --group-card-header-background: var(--primary-color);
+        --group-card-header-color: var(--bright-primary-color);
         --grid-border-color: #333;
         --app-toolbar: {
-          background-color: var(--dark-primary-color);
-          color: var(--bright-text-color);
+          background-color: var(--primary-color);
         };
       }
 
@@ -194,7 +188,6 @@
         --primary-text-color: #000;
         --bright-text-color: #ddd;
 
-        --active-link-color: #00FF2B;
         --warning-color: #FF9D9D;
 
         --highlight-color: var(--secondary-color);
@@ -205,7 +198,7 @@
         --selectbox-color: #000;
         --selectbox-background: rgba(255,255,255,0.5);
         --option-color: var(--bright-text-color);
-        --option-background: var(--dark-primary-color);
+        --option-background: var(--primary-color);
 
         --caption-background: rgba(255,255,255, 0.35);
         --caption-color: #000;

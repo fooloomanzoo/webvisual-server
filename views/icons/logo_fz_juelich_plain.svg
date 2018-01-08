@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="49"
+   height="48"
+   viewBox="0 0 49 48"
+   version="1.1"
+   preserveAspectRatio="xMinYMin meet"
+   id="svg4705"
+   inkscape:version="0.92.2 (5c3e80d, 2017-08-06)"
+   sodipodi:docname="logo_fz_juelich_plain.svg">
+  <metadata
+     id="metadata4761">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs4759" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1680"
+     inkscape:window-height="988"
+     id="namedview4757"
+     showgrid="false"
+     inkscape:zoom="9.2709556"
+     inkscape:cx="7.804764"
+     inkscape:cy="23.993203"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg4705"
+     viewbox-width="49" />
+  <g
+     id="g4754"
+     transform="matrix(0.36111112,0,0,0.36111112,-0.72222224,-62.055556)"
+     style="stroke-width:2.76923084" />
+  <path
+     style="fill:#193a65;fill-opacity:0.3609959;fill-rule:evenodd;stroke:none;stroke-width:0.1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.1, 0.1;stroke-dashoffset:0;stroke-opacity:1"
+     d="M 24.85092,0.01120483 C 15.4397,-0.34755024 5.7912071,5.0023225 1.8114122,13.650522 0.34419462,17.784148 -0.19764223,22.273288 0.09484384,26.647598 0.71589587,34.095411 5.0763596,41.286796 11.746255,44.807777 20.394785,49.74138 31.905991,48.862537 39.685313,42.641766 47.138582,36.959118 50.687467,26.617727 47.956014,17.598603 45.279245,8.0207114 36.210905,0.65064032 26.262502,0.09152856 25.792839,0.05164592 25.322049,0.02537135 24.85092,0.01120483 Z"
+     id="filled"
+     inkscape:connector-curvature="0" />
+  <path
+     style="fill:#111111;stroke:none;stroke-width:7.66863966"
+     d="M 23.981111,0.01697143 C 14.553832,-0.34219513 4.8824589,5.0255389 0.91747276,13.699393 -0.87331131,17.401886 -0.03295283,22.265238 3.3541788,24.77002 7.668236,28.340124 14.931648,26.582835 17.269729,21.522442 19.890731,15.32075 22.28261,9.0187236 24.812796,2.7772709 25.16317,1.8990352 25.513543,1.0207995 25.863917,0.14256375 25.238194,0.07696703 24.609959,0.03587116 23.981111,0.01697143 Z M 40.109833,6.4531887 C 37.294404,13.413996 34.61079,20.430741 31.706502,27.353855 28.340823,34.730295 20.969396,40.026361 12.895915,40.852436 10.661887,41.354304 6.912866,40.702628 5.6143785,40.901736 12.838079,48.101542 24.574564,50.047998 33.781507,45.709607 42.267735,41.976174 48.221748,33.03946 47.993668,23.712707 47.932958,17.183268 44.963037,10.802841 40.109833,6.4531917 Z"
+     id="logo"
+     inkscape:connector-curvature="0" />
+</svg>
