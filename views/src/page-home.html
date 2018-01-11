@@ -10,7 +10,7 @@
         color: var(--bright-text-color);
         overflow-y: auto;
         overflow-x: hidden;
-        bottom: 3.5em !important;
+        bottom: 5.5em !important;
       }
       .box {
         @apply --layout-vertical;
@@ -29,7 +29,7 @@
       .item {
         @apply --layout-vertical;
         @apply --layout-center-center;
-        color: var(--bright-secondary-color);
+        color: var(--bright-text-color);
         font-size: 1em;
         white-space: pre-line;
         text-decoration: none;
@@ -55,22 +55,24 @@
       .item.facility {
         margin: 24px;
         border-radius: 12px;
-        border: thin solid var(--bright-secondary-color);
+        color: var(--primary-color);
+        background-color: var(--bright-primary-color);
+        border: thin solid var(--bright-text-color);
       }
       .item.facility.iron-selected,
       .item.facility.iron-selected:hover {
         font-size: 1.25em;
-        background-color: rgba(255, 255, 255, 0.25);
         border-width: medium;
       }
       .item.system {
         box-sizing: border-box;
         margin-bottom: 0.75em;
         border-radius: 12px;
-        border: thin solid var(--bright-secondary-color);
+        border: thin solid var(--bright-text-color);
       }
       .item.system:hover {
-        color: var(--bright-text-color);
+        color: var(--primary-color);
+        background-color: var(--bright-primary-color);
       }
       iron-collapse {
         margin-bottom: 1.5em;
@@ -119,7 +121,7 @@
         bottom: 0;
         right: 0;
         left: 0;
-        padding: 0.5em 1.5em 0.5em 0.75em;
+        padding: 1.5em;
         height: 2.5em;
         font-weight: 300;
         background-color: var(--primary-color);

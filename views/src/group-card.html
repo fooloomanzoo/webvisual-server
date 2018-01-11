@@ -26,6 +26,7 @@
       }
       #header.opened {
         height: calc(15vh + 120px);
+        color: var(--group-card-header-opened-color, --primary-text-color);
       }
       #header .title-text {
         margin-left: 1em;
@@ -70,16 +71,18 @@
         border-bottom-style: solid;
         border-bottom-width: thin;
         color: var(--group-card-header-color, var(--bright-text-color));
-        border-color: var(--group-card-header-border, inherit);
+        border-color: var(--group-card-header-border, currentColor);
         background-color: var(--group-card-header-background, var(--bright-primary-color));
         padding-top: 3em;
-        transition-property: padding-top;
+        transition-property: padding-top, background-color, border-color;
         transition-duration: 500ms;
         transition-timing-function: cubic-bezier(0.6,0,0.2,1);
       }
       #headerBackground.opened {
         bottom: 0;
         padding-top: calc(15vh + 120px);
+        color: var(--group-card-header-opened-color, var(--bright-text-color));
+        background-color: var(--group-card-header-opened-background, tranparent);
       }
       #headerBackground:not(.opened)::before {
         @apply --layout-fit;
@@ -126,18 +129,16 @@
         opacity: 1;
       }
       #control {
-        position: static;
+        position: absolute;
         transition-property: opacity;
         transition-duration: 500ms;
         transition-timing-function: cubic-bezier(0.6, 0, 0.2, 1);
         pointer-events: none;
+        visibility: hidden;
         opacity: 0;
       }
-      #control icon-button.iron-selected {
-        background: rgba(255,255,255,0.25);
-      }
       #control.opened {
-        position: absolute;
+        visibility: visible;
         opacity: 1;
       }
       device-table-group[opened] {

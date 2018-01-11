@@ -155,11 +155,6 @@
       .tabs {
         position: relative;
         height: 100%;
-        --tab-overlay: {
-          background-color: rgba(255, 255, 255, 0.1);
-          border-left: none;
-          border-bottom: medium solid var(--highlight-color, var(--secondary-color));
-        }
       }
       tab-element {
         height: 100%;
@@ -239,40 +234,42 @@
             <logo-element title$="[[localize('home', 'name')]]"></logo-element>
           </a>
 
-          <iron-collapse opened$="[[showTabs]]" hidden$="[[!wideLayout]]" horizontal style="align-self: flex-end;">
-            <div class="tab-drawer top">
-              <div class="selectbox toolbar grouping top" title="[[groupBy]]" hidden$="[[hideGroupSelect]]">
-                <select value="{{groupBy::change}}">
-                  <template is="dom-repeat" items="[[groupingKeys]]" sort="_sort">
-                    <option value="[[item]]">[[item]]</option>
-                  </template>
-                </select>
+          <template is="dom-if" if="[[loadComplete]]">
+            <iron-collapse opened$="[[showTabs]]" hidden$="[[!wideLayout]]" horizontal style="align-self: flex-end;">
+              <div class="tab-drawer top">
+                <div class="selectbox toolbar grouping top" title="[[groupBy]]" hidden$="[[hideGroupSelect]]">
+                  <select value="{{groupBy::change}}">
+                    <template is="dom-repeat" items="[[groupingKeys]]" sort="_sort">
+                      <option value="[[item]]">[[item]]</option>
+                    </template>
+                  </select>
+                </div>
+                <tabs-container class="tabs"
+                  role="tablist"
+                  selected="{{page}}"
+                  attr-for-selected="page">
+                  <tab-element page="list">
+                    <a href="/list?[[query]]" class="tab">
+                      <iron-icon icon="list" class="left"></iron-icon>
+                      {{localize('list', 'name')}}
+                    </a>
+                  </tab-element>
+                  <tab-element page="groups">
+                    <a href="/groups?[[query]]" class="tab">
+                      <iron-icon icon="grid-on" class="left"></iron-icon>
+                      {{localize('groups', 'name')}}
+                    </a>
+                  </tab-element>
+                  <tab-element page="detail">
+                    <a href="/detail?[[query]]" class="tab">
+                      <iron-icon icon="chrome-reader-mode" class="left"></iron-icon>
+                      {{localize('detail', 'name')}}
+                    </a>
+                  </tab-element>
+                </tabs-container>
               </div>
-              <tabs-container class="tabs"
-                role="tablist"
-                selected="{{page}}"
-                attr-for-selected="page">
-                <tab-element page="list">
-                  <a href="/list?[[query]]" class="tab">
-                    <iron-icon icon="list" class="left"></iron-icon>
-                    {{localize('list', 'name')}}
-                  </a>
-                </tab-element>
-                <tab-element page="groups">
-                  <a href="/groups?[[query]]" class="tab">
-                    <iron-icon icon="grid-on" class="left"></iron-icon>
-                    {{localize('groups', 'name')}}
-                  </a>
-                </tab-element>
-                <tab-element page="detail">
-                  <a href="/detail?[[query]]" class="tab">
-                    <iron-icon icon="chrome-reader-mode" class="left"></iron-icon>
-                    {{localize('detail', 'name')}}
-                  </a>
-                </tab-element>
-              </tabs-container>
-            </div>
-          </iron-collapse>
+            </iron-collapse>
+          </template>
 
           <template is="dom-if" if="[[_shouldLogin]]">
             <icon-button icon="[[loginIcon]]" class="login-icon" title="{{localize('login', 'name')}}" on-click="_openLoginDialog"></icon-button>
@@ -592,15 +589,15 @@
       constructor() {
         super();
         this._loadPresettings();
+        window.addEventListener('online', this._notifyNetworkStatus.bind(this));
+        window.addEventListener('offline', this._notifyNetworkStatus.bind(this));
       }
 
       connectedCallback() {
         super.connectedCallback();
         this._addKeyListeners();
-        Polymer.RenderStatus.afterNextRender(this, function() {
-          window.addEventListener('online', this._notifyNetworkStatus.bind(this));
-          window.addEventListener('offline', this._notifyNetworkStatus.bind(this));
-          // this.removeAttribute('unresolved');
+        setTimeout(() => {
+          this.removeAttribute('unresolved');
         });
       }
 

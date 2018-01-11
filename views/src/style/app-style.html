@@ -1,59 +1,5 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
-
-<custom-style>
-  <style is="custom-style">
-
-    body,
-    html {
-      --primary-color: #003c65;
-      --bright-primary-color: #97b8e2;
-      --secondary-color: #b183b9;
-      --bright-secondary-color: #e5d2e8;
-      --icon-padding: 0.5em;
-      --icon-size: 1.5em;
-      --icon-hover-background: rgba(255, 255, 255, 0.1);
-    }
-
-    :-webkit-full-screen-ancestor,
-    :-webkit-full-screen-ancestor::after,
-    :-webkit-full-screen-ancestor::before,
-    :-webkit-full-screen-ancestor *:not(:-webkit-full-screen),
-    :-webkit-full-screen-ancestor *:not(:-webkit-full-screen)::after,
-    :-webkit-full-screen-ancestor *:not(:-webkit-full-screen)::before {
-      position: static !important;
-      pointer-events: none;
-      isolation: unset;
-      visibility: hidden;
-      z-index: auto !important;
-    }
-
-    :-webkit-full-screen {
-      z-index: 1000;
-      position: fixed;
-      isolation: unset;
-      min-height: 100vh;
-      min-width: 100vw;
-      padding: 0 !important;
-      margin: 0 !important;
-      top: 0; left: 0; right: 0; bottom: 0;
-      pointer-events: all !important;
-      visibility: visible !important;
-    }
-
-    :-webkit-full-screen * {
-      visibility: visible !important;
-      pointer-events: auto;
-    }
-
-    ::selection {
-      background: transparent;
-    }
-
-    ::-moz-selection {
-      background: transparent;
-    }
-  </style>
-</custom-style>
+<link rel="import" href="main-style.html">
 
 <dom-module id="app-style">
   <template>
@@ -65,10 +11,7 @@
         -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 
         /* Costum Colors*/
-        --primary-text-color: #202020;
-        --bright-text-color: #f1f1f1;
-        --disabled-text-color: #bbb;
-        --highlight-color: #68D97B;
+        --highlight-color: var(--quaternary-color);
 
         --device-color: #5fb8eb;
         --device-text-color: #252525;
@@ -125,62 +68,12 @@
           fill: var(--bright-text-color) !important;
           font-family: inherit !important;
         };
-      }
 
-      :host([plain]) {
-        color: var(--primary-color);
-        --highlight-color: var(--secondary-color);
-        --group-card-background: linear-gradient(to top, rgba(255,255,255,0.03125) 0%, rgba(255,255,255,0.03125) 62%,rgba(255,255,255,0.0625) 100%);
-        --group-card-header-border: currentColor;
-        --group-card-header-shim: transparent;
-        --group-card-header-background: transparent;
-        --group-card-header-color: var(--primary-text-color);
-        --grid-border-color: transparent;
-        --checkbox-checked-background: var(--bright-primary-color);
-        --toggle-button-unchecked-bar-color: var(--bright-primary-color);
-        --toggle-button-unchecked-button-color: #f1f1f1;
-        --toggle-button-unchecked-ink-color: var(--bright-primary-color);
-
-        --primary-background: var(--bright-primary-color);
-
-        --toggle-button-unchecked-bar-color: var(--bright-primary-color);
-        --toggle-button-unchecked-button-color: #f1f1f1;
-        --toggle-button-unchecked-ink-color: var(--bright-primary-color);
-
-        --drawer-background: var(--primary-color);
-
-        --app-toolbar: {
-          background-color: var(--bright-primary-color);
-        };
-      }
-
-      :host([plain][dark]) {
-        color: var(--bright-primary-color);
-        --primary-background: var(--primary-color);
-        --group-card-header-color: var(--bright-primary-color);
-        --checkbox-checked-background: var(--secondary-color);
-        --app-toolbar: {
-          background-color: var(--primary-color);
-        };
-      }
-
-      :host(:not([plain])) {
-        --primary-background: #d0d0d0;
-        --group-card-header-background: var(--bright-primary-color);
-        --group-card-header-border: inherit;
-        --group-card-header-shim: linear-gradient(to top, rgba(255,255,255,0.0078125) 38%,rgba(255,255,255,0.125) 100%);
-        --group-card-header-color: var(--primary-color);
-        --grid-border-color: #888;
-      }
-
-      :host(:not([plain])[dark]) {
-        --primary-background: #151515;
-        --group-card-header-background: var(--primary-color);
-        --group-card-header-color: var(--bright-primary-color);
-        --grid-border-color: #333;
-        --app-toolbar: {
-          background-color: var(--primary-color);
-        };
+        --tab-overlay: {
+          background-color: rgba(255, 255, 255, 0.1);
+          border-left: none;
+          border-bottom: 0.2em solid var(--highlight-color);
+        }
       }
 
       :host([dark]) {
@@ -200,12 +93,12 @@
         --option-color: var(--bright-text-color);
         --option-background: var(--primary-color);
 
-        --caption-background: rgba(255,255,255, 0.35);
+        --caption-background: rgba(255,255,255, 0.333);
         --caption-color: #000;
-        --checkbox-checked-background: rgba(255,255,255, 0.25);
-        --table-background: rgba(255,255,255, 0.35);
+        --checkbox-checked-background: rgba(255,255,255, 0.333);
+        --table-background: rgba(255,255,255, 0.333);
         --table-color: #000;
-        --group-card-background: rgba(255,255,255, 0.2);
+        --group-card-background: rgba(255,255,255, 0.25);
 
         --toggle-button-unchecked-bar-color: #454545;
         --toggle-button-unchecked-button-color: #BDE2F1;
@@ -218,7 +111,75 @@
         --device-state-exceeds-color: #bb1616;
         --device-state-inrange-text-color: #000;
 
+        --control-button-background: rgba(255,255,255,0.0625);
+        --control-button-hover-background: rgba(255,255,255,0.125);
+        --control-button-selected-background: rgba(255,255,255,0.2);
+
         --fullscreen-color: #eee;
+      }
+
+      :host([plain]) {
+        color: var(--primary-color);
+        --highlight-color: var(--secondary-color);
+
+        --group-card-background: linear-gradient(to top, rgba(255,255,255,0.03125) 0%, rgba(255,255,255,0.03125) 32%,rgba(255,255,255,0.0625) 100%);
+        --group-card-header-shim: transparent;
+        --group-card-header-color: var(--primary-color);
+        --group-card-header-background: transparent;
+        --group-card-header-opened-color: var(--primary-color);
+        --group-card-header-opened-background: transparent;
+
+        --grid-border-color: transparent;
+        --checkbox-checked-background: var(--bright-primary-color);
+        --toggle-button-unchecked-bar-color: var(--bright-primary-color);
+        --toggle-button-unchecked-button-color: #f1f1f1;
+        --toggle-button-unchecked-ink-color: var(--bright-primary-color);
+
+        --primary-background: var(--bright-primary-color);
+
+        --toggle-button-unchecked-bar-color: var(--bright-primary-color);
+        --toggle-button-unchecked-button-color: #f1f1f1;
+        --toggle-button-unchecked-ink-color: var(--bright-primary-color);
+
+        --drawer-background: var(--primary-color);
+
+        --app-toolbar: {
+          background-color: var(--bright-primary-color);
+        };
+        --tab-overlay: {
+          background-color: rgba(255, 255, 255, 0.1);
+          border-left: none;
+          border-bottom: 0.15em solid var(--tertiary-color);
+        }
+      }
+
+      :host([plain][dark]) {
+        color: var(--bright-primary-color);
+        --primary-background: var(--primary-color);
+        --group-card-header-color: var(--bright-primary-color);
+        --group-card-header-opened-color: var(--bright-primary-color);
+        --checkbox-checked-background: var(--secondary-color);
+        --app-toolbar: {
+          background-color: var(--primary-color);
+        };
+      }
+
+      :host(:not([plain])) {
+        --group-card-header-color: var(--primary-color);
+        --group-card-header-background: var(--bright-primary-color);
+        --group-card-header-opened-background: rgba(255,255,255,0.5);
+        --group-card-header-opened-color: var(--primary-text-color);
+        --group-card-header-shim: linear-gradient(to top, rgba(255,255,255,0.0625) 38%,rgba(255,255,255,0.125) 100%);
+        --grid-border-color: #888;
+      }
+
+      :host(:not([plain])[dark]) {
+        --primary-background: #0a0a0a;
+        --group-card-header-color: var(--bright-primary-color);
+        --group-card-header-background: var(--primary-color);
+        --group-card-header-opened-background: rgba(0,0,0,0.5);
+        --group-card-header-opened-color: var(--bright-text-color);
+        --grid-border-color: #222;
       }
 
       tabs > button {

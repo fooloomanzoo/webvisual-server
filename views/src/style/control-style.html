@@ -28,12 +28,15 @@
         margin-left: var(--control-button-distance, 2px);
       }
       #control icon-button {
-        background: rgba(255,255,255,0.0625);
+        background: var(--control-button-background, rgba(0,0,0,0.0625));
         border-radius: 0;
       }
       #control icon-button:focus,
       #control icon-button:hover {
-        background: rgba(255,255,255,0.125);
+        background: var(--control-button-hover-background, rgba(0,0,0,0.125));
+      }
+      #control icon-button.iron-selected {
+        background: var(--control-button-selected-background, rgba(0,0,0,0.2));
       }
       @media (pointer: fine) {
         #control icon-button {

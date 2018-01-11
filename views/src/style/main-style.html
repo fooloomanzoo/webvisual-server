@@ -1,0 +1,66 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<custom-style>
+  <style is="custom-style">
+
+    body,
+    html {
+      --primary-color: #023d6b;
+      --bright-primary-color: #97b8e2;
+      --secondary-color: #af82b9;
+      --bright-secondary-color: #e0c8e6;
+      --tertiary-color: #eb5f73;
+      --bright-tertiary-color: #f4c0c8;
+      --quaternary-color: #68D97B;
+
+      --primary-text-color: #202020;
+      --bright-text-color: #f1f1f1;
+      --disabled-text-color: #bbb;
+
+      --primary-background: #9a9a9a;
+
+      --icon-padding: 0.5em;
+      --icon-size: 1.5em;
+      --icon-hover-background: rgba(255, 255, 255, 0.1);
+    }
+
+    :-webkit-full-screen-ancestor,
+    :-webkit-full-screen-ancestor::after,
+    :-webkit-full-screen-ancestor::before,
+    :-webkit-full-screen-ancestor *:not(:-webkit-full-screen),
+    :-webkit-full-screen-ancestor *:not(:-webkit-full-screen)::after,
+    :-webkit-full-screen-ancestor *:not(:-webkit-full-screen)::before {
+      position: static !important;
+      pointer-events: none;
+      isolation: unset;
+      visibility: hidden;
+      z-index: auto !important;
+    }
+
+    :-webkit-full-screen {
+      z-index: 1000;
+      position: fixed;
+      isolation: unset;
+      min-height: 100vh;
+      min-width: 100vw;
+      padding: 0 !important;
+      margin: 0 !important;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: all !important;
+      visibility: visible !important;
+    }
+
+    :-webkit-full-screen * {
+      visibility: visible !important;
+      pointer-events: auto;
+    }
+
+    ::selection {
+      background: transparent;
+    }
+
+    ::-moz-selection {
+      background: transparent;
+    }
+  </style>
+</custom-style>
