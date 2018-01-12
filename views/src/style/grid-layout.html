@@ -7,7 +7,7 @@
         @apply --layout-horizontal;
         @apply --layout-wrap;
         @apply --layout-start-justified;
-        margin: 0.25em 0.5em 0.5em 0.5em;
+        margin: 0.2em 0.4em 0.4em 0.4em;
         padding: 0;
         list-style: none;
         box-sizing: border-box;
@@ -32,7 +32,7 @@
         box-shadow: 0 4px 5px 0 rgba(0, 0, 0, 0.14),
                     0 1px 10px 0 rgba(0, 0, 0, 0.12),
                     0 2px 4px -1px rgba(0, 0, 0, 0.4);
-        border-color: var(--grid-border-color);
+        border-color: var(--grid-border-color, rgba(0,0,0,0.5));
       }
       :host([plain]) .grid li > * {
         border-radius: 6px;
@@ -47,10 +47,6 @@
         -webkit-flex-basis: auto;
         flex-basis: auto;
       }
-      device-sign {
-        /*flex: 1 0 auto;*/
-      }
-
       @media (min-width: 1981px) {
         .grid li {
           -webkit-flex-basis: 20%;
@@ -96,22 +92,6 @@
         flex-basis: 100%;
         max-width: 100%;
       }
-
-      a {
-        font-weight: 300;
-        color: currentColor;
-        -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
-      }
-      a:link,
-      a:visited {
-        color: currentColor;
-        text-decoration: none;
-        font-weight: 300;
-      }
-      a:active {
-        font-weight: 400;
-      }
-
     </style>
   </template>
 </dom-module>

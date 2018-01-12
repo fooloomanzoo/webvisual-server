@@ -3,6 +3,12 @@
 <dom-module id="control-style">
   <template>
     <style>
+      :host {
+        --control-icon-size-fine: 1.3em;
+        --control-icon-padding-fine: 0.3em;
+        --control-icon-size-coarse: 1.4em;
+        --control-icon-padding-coarse: 0.4em;
+      }
       #control {
         position: absolute;
         mix-blend-mode: var(--control-mix-blend-mode, exclusion);
@@ -24,6 +30,10 @@
       #control.bottom {
         bottom: var(--control-bottom, 0px);
       }
+      #control > iron-selector {
+        display: flex;
+        flex-direction: row;
+      }
       #control > *:not(:first-of-type) {
         margin-left: var(--control-button-distance, 2px);
       }
@@ -35,14 +45,12 @@
       #control icon-button:hover {
         background: var(--control-button-hover-background, rgba(0,0,0,0.125));
       }
-      #control icon-button.iron-selected {
+      #control icon-button.iron-selected:not(:only-of-type) {
         background: var(--control-button-selected-background, rgba(0,0,0,0.2));
       }
-      @media (pointer: fine) {
-        #control icon-button {
-          --icon-size: var(--control-icon-size-fine);
-          --icon-padding: var(--control-icon-padding-fine);
-        }
+      #control icon-button {
+        --icon-size: var(--control-icon-size-fine);
+        --icon-padding: var(--control-icon-padding-fine);
       }
       @media (pointer: coarse) {
         #control icon-button {

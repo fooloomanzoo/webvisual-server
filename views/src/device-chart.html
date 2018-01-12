@@ -92,6 +92,12 @@
       .axis.dragged path {
         fill-opacity: 0.25;
       }
+      .axis.y .tick:last-of-type:not(:only-of-type) text {
+        alignment-baseline: before-edge;
+      }
+      .axis.x .tick:last-of-type:not(:only-of-type) text {
+        text-anchor: end;
+      }
       .grid .tick line {
         stroke: var(--chart-line-color, var(--grid-color, currentColor));
         stroke-opacity: 0.1;

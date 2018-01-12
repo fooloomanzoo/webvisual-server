@@ -48,10 +48,6 @@
         @apply --layout-center-center;
         text-decoration: none;
       }
-      span, div, h1, a {
-        -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
-        -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
-      }
       .item.facility {
         margin: 24px;
         border-radius: 12px;
@@ -85,13 +81,6 @@
         align-items: stretch;
         margin: 0 3em;
       }
-      a:link,
-      a:visited {
-        color: var(--bright-text-color);
-      }
-      a:active {
-        color: var(--highlight-color);
-      }
       .login {
         position: absolute;
         bottom: auto; top: 0; left: 50%; right: auto;
@@ -124,7 +113,7 @@
         padding: 1.5em;
         height: 2.5em;
         font-weight: 300;
-        background-color: var(--primary-color);
+        background-color: inherit;
         color: inherit;
         @apply --layout-horizontal;
         @apply --layout-end-justified;

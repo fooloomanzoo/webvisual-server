@@ -16,16 +16,17 @@
         outline: none;
         -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;
         -webkit-touch-callout: none; -webkit-tap-highlight-color: rgba(0,0,0,0);
-        font-size: 1em;
         font-weight: 400;
         width: auto;
         min-width: 4em;
         min-height: 4em;
         align-self: stretch;
         background-color: var(--device-state-inrange-color, var(--device-color));
-        color: var(--device-text-color);
+        color: var(--device-text-color, currentColor);
         will-change: background-color;
         transition: background-color 250ms cubic-bezier(0.3, 0, 0.15, 1);
+        --computed-device-sign-shim: var(--device-sign-shim, linear-gradient(180deg,rgba(255,255,255,0),rgba(255,255,255,0.1),rgba(255,255,255,0)));
+        --computed-device-exceeding-sign-shim: var(--device-sign-exceeding-shim, linear-gradient(180deg,rgba(255,255,255,0),rgba(255,255,255,0.125),rgba(255,255,255,0)));
       }
 
       :host([state="0"]) {
@@ -56,10 +57,11 @@
         top: 0; bottom: 0; left: 0; right: 0;
         content: "";
         pointer-events: none;
-        background: linear-gradient(180deg,rgba(255,255,255,0),rgba(255,255,255,0.12),rgba(255,255,255,0));
+        background: var(--computed-device-sign-shim);
       }
       :host([state="1"]) .value::before, :host([state="-1"]) .value::before {
         will-change: transform;
+        background: var(--computed-device-exceeding-sign-shim);
         animation-name: sign-background-rotate;
         animation-duration: 1800ms;
         animation-fill-mode: both;
@@ -91,7 +93,7 @@
       #dateSection {
         position: absolute;
         pointer-events: none;
-        padding: 0.15em 0.25em;
+        padding: 0.15em 1rem;
         font-size: 0.55em;
         bottom: 0;
         width: 100%;
@@ -101,28 +103,35 @@
         text-overflow: ellipsis;
         text-align: center;
       }
-      svg#icon {
+      svg {
+        fill: currentColor;
+        cursor: pointer;
+        outline: none;
+        height: 1em;
+        width: 1em;
+      }
+      #sign[bottom] {
+        display: none;
+        position: absolute;
+        left: 0;
+        bottom: 0;
+      }
+      #sign:not([bottom]) {
         height: 1.5em;
         width: 1.5em;
-        fill: currentColor;
+      }
+      :host([state="1"]) #sign, :host([state="-1"]) #sign {
+        display: initial;
       }
       #ripple {
         pointer-events: none;
-        color: #1d1d1d;
         border-radius: inherit;
       }
       #bookmark {
-        padding: 4px;
-        cursor: pointer;
-        outline: none;
         position: absolute;
-        right: -5px;
-        top: -5px;
-        height: 1.25em;
-        width: 1.25em;
-        fill: #fff;
+        right: 0;
+        top: 0;
         opacity: 0.9;
-        mix-blend-mode: hard-light;
         will-change: transform, opacity;
         transform-origin: center;
         transition: transform 300ms cubic-bezier(0.3, 0, 0.1, 1), opacity 300ms cubic-bezier(0.3, 0, 0.1, 1);
@@ -132,17 +141,11 @@
         opacity: 1;
       }
       #checkbox {
-        fill: #fff;
-        cursor: pointer;
-        outline: none;
         pointer-events: none;
         position: absolute;
         opacity: 0.6;
         right: 0;
         bottom: 0;
-        height: 1.25em;
-        width: 1.25em;
-        mix-blend-mode: hard-light;
       }
       [hidden] {
         pointer-events: none;
@@ -160,8 +163,8 @@
         <span id="unitSection">[[item.unit]]</span>
       </div>
 
-      <svg id="icon" hidden$="[[!item.isIndicatorLamp]]" aria-label="Alarm" viewBox="0 0 24 24">
-        <g id="error-outline" hidden$="[[!isExceeding]]"><path d="M11 15h2v2h-2zm0-8h2v6h-2zm.99-5C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/></g>
+      <svg id="sign" bottom$="[[!item.isIndicatorLamp]]" aria-label="Alarm" viewBox="0 0 24 24">
+        <g><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></g>
       </svg>
     </div>
 

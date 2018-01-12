@@ -13,10 +13,9 @@
         flex-shrink: 0;
         background-color: rgba(0, 0, 0, 0.2);
 				--tab-overlay: {
-          background-color: rgba(0, 0, 0, 0.3);
-          color: var(--bright-text-color);
-					/*border-top: thin solid var(--secondary-color);*/
-					border-bottom: 0.15em solid var(--secondary-color);
+          background-color: rgba(0, 0, 0, 0.2);
+          color: currentColor;
+					border-bottom: 0.2em solid var(--secondary-color, var(--highlight-color, currentColor));
 					border-left: none;
 				}
 			}
@@ -54,7 +53,7 @@
     <iron-pages id="tables" selected="{{selectedMount}}" attr-for-selected="title">
       <template is="dom-repeat" items="[[items]]">
         <device-table
-          title$="[[item.title]]"
+          title="[[item.mount]]"
           item="[[item]]"
           no-link="[[!opened]]"></device-table>
       </template>
