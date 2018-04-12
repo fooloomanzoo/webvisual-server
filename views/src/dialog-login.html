@@ -366,7 +366,7 @@
           this.userProfile = {
             username: profile.username
           };
-          window.dispatchEvent(new CustomEvent('loggedin', {
+          window.dispatchEvent(new CustomEvent('logged-in', {
             detail: this.loggedIn,
             bubbles: true,
             composed: true
@@ -381,7 +381,7 @@
         console.warn('not signed in', err);
         let status = '';
         if (this.loggedIn || window._loggedIn) {
-          window.dispatchEvent(new CustomEvent('loggedin', {
+          window.dispatchEvent(new CustomEvent('logged-in', {
             detail: this.loggedIn,
             bubbles: true,
             composed: true

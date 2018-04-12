@@ -28,17 +28,18 @@
 
       connectedCallback() {
         super.connectedCallback();
-        window.addEventListener('online', this._load.bind(this));
-        window.addEventListener('offline', this._load.bind(this));
-        window.addEventListener('loggedin', this._load.bind(this));
+        this._load = this._load.bind(this);
+        window.addEventListener('online', this._load);
+        window.addEventListener('offline', this._load);
+        window.addEventListener('logged-in', this._load);
         this._load();
       }
 
       disconnectedCallback() {
         super.connectedCallback();
-        window.removeEventListener('online', this._load.bind(this));
-        window.removeEventListener('offline', this._load.bind(this));
-        window.removeEventListener('loggedin', this._load.bind(this));
+        window.removeEventListener('online', this._load);
+        window.removeEventListener('offline', this._load);
+        window.removeEventListener('logged-in', this._load);
       }
 
       _load() {
