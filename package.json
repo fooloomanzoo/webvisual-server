@@ -18,7 +18,7 @@
     "stop": "taskkill /IM node.exe /F",
     "prepare": "npm version patch",
     "prebuild": "cd views && bower install",
-    "build": "cd views && rollup -c && uglifyjs scripts/d3.bundle.js -c -m -o scripts/d3.bundle.js && polymer build --verbose"
+    "build": "cd views && polymer build --verbose"
   },
   "dependencies": {
     "activedirectory": "^0.7.1",
@@ -52,12 +52,6 @@
     "spdy": "*",
     "webvisual-schemas": "github:fooloomanzoo/webvisual-schemas",
     "x-frame-options": "*"
-  },
-  "devDependencies": {
-    "d3": "*",
-    "rollup": "*",
-    "rollup-plugin-node-resolve": "*",
-    "uglify-js": "*"
   },
   "engines": {
     "node": ">= 7.0",

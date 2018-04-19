@@ -7,27 +7,10 @@
     "fooloomanzoo <hannes-b@web.de>"
   ],
   "dependencies": {
-    "polymer": "polymer/polymer",
+    "polymer": "polymer/polymer#2",
     "iron-location": "polymerelements/iron-location",
-    "app-layout": "polymerelements/app-layout",
-    "iron-flex-layout": "polymerelements/iron-flex-layout",
-    "iron-icon": "polymerelements/iron-icon",
-    "iron-list": "polymerelements/iron-list",
-    "iron-iconset-svg": "polymerelements/iron-iconset-svg",
-    "iron-media-query": "polymerelements/iron-media-query",
-    "iron-pages": "polymerelements/iron-pages",
-    "iron-selector": "polymerelements/iron-selector",
-    "iron-collapse": "polymerelements/iron-collapse",
-    "iron-resizable-behavior": "polymerelements/iron-resizable-behavior",
-    "iron-a11y-keys-behavior": "polymerelements/iron-a11y-keys-behavior",
-    "paper-ripple": "polymerelements/paper-ripple",
-    "paper-behaviors": "polymerelements/paper-behaviors",
-    "paper-dialog-behavior": "polymerelements/paper-dialog-behavior",
-    "datetime-picker": "fooloomanzoo/datetime-picker",
+    "webvisual-elements": "fooloomanzoo/webvisual-elements",
     "fetch": "*",
     "es6-promise": "*"
-  },
-  "resolutions": {
-    "polymer": "1.9 - 2"
   }
 }
