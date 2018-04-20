@@ -13,13 +13,13 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "start:development": "node index.js development",
+    "start-dev": "node index.js development",
     "debug": "node debug.js redis",
     "stop": "taskkill /IM node.exe /F",
-    "prepare": "npm version patch",
     "prebuild": "cd views && bower update -f",
     "prepublish": "git pull && npm run build && git add . && git commit -m \"publish new version\" && npm version patch && git push",
-    "build": "cd views && polymer build --verbose"
+    "build": "cd views && polymer build --verbose",
+    "test-build": "cd views && polymer build --verbose"
   },
   "dependencies": {
     "activedirectory": "^0.7.1",

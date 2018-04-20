@@ -8,19 +8,12 @@
       align-items: center;
       position: relative;
       color: currentColor;
-      overflow: hidden;
       box-sizing: border-box;
       height: 100%;
-      --calculated-icon-padding: var(--icon-padding, 0.5em);
-      padding: var(--calculated-icon-padding);
       transition: color 0.3s cubic-bezier(0.6, 0, 0.3, 1);
     }
     svg {
       shape-rendering: geometricPrecision;
-      fill: currentColor;
-      transform-origin: center center;
-    }
-    #logo {
       fill: currentColor;
     }
     .circle {
@@ -28,9 +21,9 @@
       fill: var(--highlight-color, #68D97B);
       stroke: var(--highlight-color, #68D97B);
       /* firefox positioning */
-      transform-origin: 30px center;
-      fill-opacity: 0;
-      transform: scale(0);
+      transform-origin: 0 center;
+      fill-opacity: 0.01;
+      transform: scale(0.01);
       stroke: currentColor;
       stroke-opacity: 0.5;
       transition-property: transform, stroke-opacity, fill-opacity;
@@ -47,12 +40,12 @@
       transition-delay: 600ms;
     }
     .circle.animated {
-      transform: scale(1);
-      stroke-opacity: 0;
+      transform: scale(0.99);
+      stroke-opacity: 0.01;
       fill-opacity: 0.5;
     }
     @media all and (max-device-width: 240px) {
-      :host(:not([show-always])) path:not(#logo) {
+      svg > :not(#Logo) {
         display: none !important;
       }
     }
