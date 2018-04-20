@@ -107,7 +107,7 @@ IOSocket.prototype = {
 
 			this.socketRoom = opt.socketRoom;
 			this.mobile = opt.mobile || false;
-
+			console.info(`socket setup for "${opt.socketRoom}"`);
 			this.socket.emit('setup', {
 				room: this.socketRoom,
 				mobile: this.mobile

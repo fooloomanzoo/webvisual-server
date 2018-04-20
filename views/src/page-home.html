@@ -1,5 +1,7 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../bower_components/webvisual-elements/mixins/localize-mixin.html">
+<link rel="import" href="../bower_components/webvisual-elements/shared-styles/button-style.html">
+<link rel="import" href="../bower_components/webvisual-elements/login/accessibility-mixin.html">
 <link rel="import" href="logo-element.html"/>
 
 <dom-module id="page-home">
@@ -172,7 +174,7 @@
   </template>
 
   <script>
-    class PageHome extends WebvisualMixins.LocalizeMixin(Polymer.Element) {
+    class PageHome extends WebvisualMixins.LocalizeMixin(WebvisualMixins.AccessibilityMixin(Polymer.Element)) {
 
       static get is() {
         return 'page-home';
@@ -193,10 +195,6 @@
           },
 
           visible: {
-            type: Boolean
-          },
-
-          loggedIn: {
             type: Boolean
           },
 
@@ -224,12 +222,6 @@
         return Boolean(facilities && facilities.length > 0);
       }
 
-      _requestLogin() {
-        this.dispatchEvent(new CustomEvent('login-request', {
-          bubbles: true,
-          composed: true
-        }));
-      }
     }
     customElements.define(PageHome.is, PageHome);
   </script>

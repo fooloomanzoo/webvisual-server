@@ -36,7 +36,7 @@
         --checkbox-checked-background: #fff;
         --table-background: #fff;
         --table-color: var(--primary-text-color);
-        --group-card-background: rgba(255,255,255, 0.667);
+        --device-group-card-background: rgba(255,255,255, 0.667);
 
         --dialog-background-color: #eee;
         --dialog-color: var(--primary-text-color);
@@ -97,7 +97,7 @@
         --checkbox-checked-background: rgba(255,255,255, 0.333);
         --table-background: rgba(255,255,255, 0.333);
         --table-color: #000;
-        --group-card-background: rgba(255,255,255, 0.333);
+        --device-group-card-background: rgba(255,255,255, 0.333);
         --device-sign-shim: linear-gradient(180deg,rgba(0,0,0,0.125),rgba(0,0,0,0.075),rgba(0,0,0,0.125));
 
         --grid-border-color: rgba(0,0,0,0.667);
@@ -110,12 +110,12 @@
       }
 
       :host([plain]) {
-        --group-card-background: linear-gradient(to top, rgba(255,255,255,0.03125) 0%, rgba(255,255,255,0.03125) 32%,rgba(255,255,255,0.0625) 100%);
-        --group-card-header-shim: transparent;
-        --group-card-header-color: var(--primary-color);
-        --group-card-header-background: transparent;
-        --group-card-header-opened-color: var(--primary-color);
-        --group-card-header-opened-background: transparent;
+        --device-group-card-background: linear-gradient(to top, rgba(255,255,255,0.03125) 0%, rgba(255,255,255,0.03125) 32%,rgba(255,255,255,0.0625) 100%);
+        --device-group-card-header-shim: transparent;
+        --device-group-card-header-color: var(--primary-color);
+        --device-group-card-header-background: transparent;
+        --device-group-card-header-opened-color: var(--primary-color);
+        --device-group-card-header-opened-background: transparent;
 
         --grid-border-color: transparent;
         --checkbox-checked-background: var(--bright-primary-color);
@@ -145,8 +145,8 @@
       :host([plain][dark]) {
         color: var(--bright-primary-color);
         --primary-background: var(--primary-color);
-        --group-card-header-color: var(--bright-primary-color);
-        --group-card-header-opened-color: var(--bright-primary-color);
+        --device-group-card-header-color: var(--bright-primary-color);
+        --device-group-card-header-opened-color: var(--bright-primary-color);
         --app-toolbar: {
           color: var(--bright-primary-color);
           background-color: var(--primary-color);
@@ -154,19 +154,19 @@
       }
 
       :host(:not([plain])) {
-        --group-card-header-color: var(--primary-color);
-        --group-card-header-background: var(--bright-primary-color);
-        --group-card-header-opened-background: rgba(255,255,255,0.5);
-        --group-card-header-opened-color: var(--primary-text-color);
-        --group-card-header-shim: linear-gradient(to top, rgba(255,255,255,0.0625) 38%,rgba(255,255,255,0.125) 100%);
+        --device-group-card-header-color: var(--primary-color);
+        --device-group-card-header-background: var(--bright-primary-color);
+        --device-group-card-header-opened-background: rgba(255,255,255,0.5);
+        --device-group-card-header-opened-color: var(--primary-text-color);
+        --device-group-card-header-shim: linear-gradient(to top, rgba(255,255,255,0.0625) 38%,rgba(255,255,255,0.125) 100%);
       }
 
       :host(:not([plain])[dark]) {
         --primary-background: var(--dark-primary-background);
-        --group-card-header-color: var(--bright-primary-color);
-        --group-card-header-background: var(--primary-color);
-        --group-card-header-opened-background: rgba(0,0,0,0.5);
-        --group-card-header-opened-color: var(--secondary-text-color);
+        --device-group-card-header-color: var(--bright-primary-color);
+        --device-group-card-header-background: var(--primary-color);
+        --device-group-card-header-opened-background: rgba(0,0,0,0.5);
+        --device-group-card-header-opened-color: var(--secondary-text-color);
       }
 
       tabs > button {

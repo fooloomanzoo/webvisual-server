@@ -1,4 +1,5 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
+<script src="../scripts/client.js"></script>
 
 <link rel="import" href="../bower_components/app-layout/app-header-layout/app-header-layout.html">
 <link rel="import" href="../bower_components/app-layout/app-header/app-header.html">
@@ -196,9 +197,6 @@
       }
     </style>
 
-    <!-- login dialog-->
-    <dialog-login id="loginDialog" icon="{{loginIcon}}" logged-in="{{loggedIn}}"></dialog-login>
-
     <!-- Routing-->
     <iron-location path="{{path}}" query="{{query}}"></iron-location>
     <iron-query-params params-string="{{query}}" params-object="{{queryParams}}"></iron-query-params>
@@ -209,14 +207,14 @@
       room="[[queryParams.room]]"
       items="{{elements}}"></facility-data>
 
-    <template is="dom-if" if="[[loadComplete]]">
-      <socket-connector
-        socket-room="[[queryParams.room]]"
-        socket-status="{{socketStatus}}"></socket-connector>
-    </template>
+    <!-- Socket Connection -->
+    <socket-connector
+      socket-room="[[queryParams.room]]"
+      socket-status="{{socketStatus}}"></socket-connector>
 
     <iron-media-query query="(min-width: 768px)" query-matches="{{wideLayout}}"></iron-media-query>
 
+    <!-- Layout -->
     <app-header-layout id="layout" fullbleed has-scrolling-region>
       <!-- Toolbar -->
       <app-header slot="header" id="header" hidden$="[[!_isContentPage]]" reveals fixed="[[_isFullbleedPage]]" threshold="64" threshold-triggered="{{thresholdTriggered}}" shadow$="[[thresholdTriggered]]">
@@ -265,12 +263,11 @@
           </template>
 
           <template is="dom-if" if="[[_shouldLogin]]">
-            <icon-button icon="[[loginIcon]]" class="login-icon" title="{{localize('login', 'name')}}" on-click="_openLoginDialog"></icon-button>
+            <icon-button icon="[[loginIcon]]" class="login-icon" title="{{localize('login', 'name')}}" on-click="openLoginDialog"></icon-button>
           </template>
 
           <template is="dom-if" if="[[detailHasDrawer]]">
-            <icon-button icon="subject" title="items" on-click="_toggleDetailControlDrawer">
-            </icon-button>
+            <icon-button icon="subject" title="items" on-click="_toggleDetailControlDrawer"></icon-button>
           </template>
 
           <icon-button icon="more-vert" title="{{localize('view')}}" on-click="toggleShowTabs"></icon-button>
@@ -281,7 +278,7 @@
       <!-- Pages-->
       <iron-pages id="pages" role="main" selected="{{page}}" attr-for-selected="page" selected-attribute="visible" fallback-selection="home">
         <!-- home view for selecting the facility -->
-        <page-home page="home" dark$="[[dark]]" plain$="[[plain]]" class="fullbleed" facilities="[[facilities]]" on-login-request="_openLoginDialog">
+        <page-home page="home" dark$="[[dark]]" plain$="[[plain]]" class="fullbleed" facilities="[[facilities]]" on-login-request="openLoginDialog">
           <slot></slot>
         </page-home>
         <!-- list view of items in a facility -->
@@ -296,6 +293,7 @@
       </iron-pages>
     </app-header-layout>
 
+    <!-- Notification Bars -->
     <drawer-element id="networkNotification" class="notification" align="bottom" shadow auto-close auto-close-period="4000">
       <iron-icon class="prop" icon="[[socketStatusIcon]]" slot="icon"></iron-icon>
       <span class="message"></span>
@@ -305,6 +303,7 @@
       <span class="message"></span>
     </drawer-element>
 
+    <!-- Tab Drawer (bottom) -->
     <drawer-element opened="{{showTabsOnBottom}}" id="toolbarBottom" swipe-open auto-close-period="8000" shadow auto-close="[[!thresholdTriggered]]">
       <div class="tab-drawer">
         <tabs-container class="tabs" role="tablist" selected="{{page}}" attr-for-selected="page">
@@ -335,7 +334,7 @@
       <drawer-element id="drawer" opened="{{drawerOpened}}" align="left" swipe-open tabindex="0" scrim stretch>
         <app-toolbar class="top">
           <icon-button icon="close" title="close" on-click="_toggleDrawer"></icon-button>
-          <icon-button icon="[[loginIcon]]" title="{{localize('notification', 'loggedIn', loggedIn)}}" on-click="_openLoginDialog"></icon-button>
+          <icon-button icon="[[loginIcon]]" title="{{localize('notification', 'loggedIn', loggedIn)}}" on-click="openLoginDialog"></icon-button>
         </app-toolbar>
 
         <div class="drawer-content">
@@ -565,7 +564,7 @@
       static get listeners() {
         return {
           'detail-request': '_openDetailRequestDialog',
-          'login-request': '_openLoginDialog',
+          'login-request': 'openLoginDialog',
           'announce': '_notifyAnnouncement',
           'data-missing': '_notifyAnnouncement',
           'empty-configuration': '_redirectHome'
@@ -788,10 +787,6 @@
 
       _toggleAlarmDrawer() {
         this.alarmDrawerOpened = !this.alarmDrawerOpened;
-      }
-
-      _openLoginDialog() {
-        this.$.loginDialog.open();
       }
 
       // detail-requests

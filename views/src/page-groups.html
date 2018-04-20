@@ -1,6 +1,6 @@
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../bower_components/webvisual-elements/shared-styles/grid-layout.html">
-<link rel="import" href="../bower_components/webvisual-elements/device/group-card.html">
+<link rel="import" href="../bower_components/webvisual-elements/device/device-group-card.html">
 <link rel="import" href="data/group-data.html">
 
 <dom-module id="page-groups">
@@ -109,7 +109,7 @@
           max-width: 33%;
         }
       }
-      :host(:-webkit-full-screen-ancestor) group-card:not(.fullscreen) {
+      :host(:-webkit-full-screen-ancestor) device-group-card:not(.fullscreen) {
         visibility: hidden;
       }
       [hidden] {
@@ -134,7 +134,7 @@
       <ul class="grid">
         <template is="dom-repeat" id="cards" items="[[_getSubGroups(subgroups)]]" as="group">
           <li>
-            <group-card
+            <device-group-card
               title="[[group.title]]"
               open-on-select
               open-on-exceed
@@ -160,7 +160,7 @@
                   </li>
                 </template>
               </ul>
-            </group-card>
+            </device-group-card>
           </li>
         </template>
       </ul>
@@ -258,7 +258,7 @@
             el.reset();
           });
 
-          const cards = Polymer.dom(this.root).querySelectorAll('group-card');
+          const cards = Polymer.dom(this.root).querySelectorAll('device-group-card');
           cards.forEach(function(gr) {
             gr.clearItems();
             gr._resetTransitionState();

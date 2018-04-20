@@ -8,6 +8,7 @@
   ],
   "dependencies": {
     "polymer": "polymer/polymer#2",
+    "app-layout": "polymerelements/app-layout",
     "iron-location": "polymerelements/iron-location",
     "webvisual-elements": "fooloomanzoo/webvisual-elements",
     "fetch": "*",
